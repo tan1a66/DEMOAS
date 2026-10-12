@@ -549,3 +549,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .page-grid { grid-template-columns: 1fr 1fr; }
   .page-grid .mini { grid-column: 1 / -1; }
 }
+
+/* Durante la intro solo queda la escena (y "Saltar intro"): la interfaz aparece al terminar. */
+.intro .topbar, .intro .back, .intro .wa-float { opacity: 0 !important; pointer-events: none !important; }
