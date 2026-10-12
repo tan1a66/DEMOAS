@@ -734,11 +734,22 @@ function frame() {
   renderer.render(scene, camera);
   labels.update(camera, window.innerWidth, window.innerHeight);
 
-  // La ficha flotante se abre hacia abajo si no cabe por encima del proyecto.
+  // La ficha flotante se abre encima del proyecto; si no cabe, debajo; y siempre se mantiene
+  // dentro de la pantalla (entre la barra superior y los botones inferiores).
   if (cardItem?.visible && state.cardId) {
     _v.copy(models.get(state.cardId).anchor()).project(camera);
-    const y = (-_v.y * 0.5 + 0.5) * window.innerHeight;
-    card.el.classList.toggle('below', y < 380);
+    const H = window.innerHeight;
+    const y = (-_v.y * 0.5 + 0.5) * H;
+    const h = card.el.offsetHeight;
+    const minTop = 70;
+    const maxBottom = H - 90;
+    const aboveTop = y - h - 18;
+    const belowTop = y + 26;
+    const below = aboveTop < minTop && (belowTop + h <= maxBottom || belowTop + h - maxBottom < minTop - aboveTop);
+    const top = below ? belowTop : aboveTop;
+    const dy = Math.max(minTop - top, 0) + Math.min(maxBottom - (top + h), 0);
+    card.el.classList.toggle('below', below);
+    card.el.style.setProperty('--dy', `${Math.round(dy)}px`);
   }
 }
 const _v = new THREE.Vector3();

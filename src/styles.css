@@ -240,7 +240,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .card-anchor { z-index: 6; pointer-events: none; }
 .card {
   position: absolute; left: 0; top: 0; width: 290px;
-  translate: -50% calc(-100% - 18px);
+  translate: -50% calc(-100% - 18px + var(--dy, 0px));
   border-radius: 18px; overflow: hidden;
   background: rgba(251, 247, 240, 0.66);
   border: 1px solid rgba(255, 255, 255, 0.75);
@@ -250,7 +250,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
   pointer-events: none;
 }
-.card.below { translate: -50% 26px; }
+.card.below { translate: -50% calc(26px + var(--dy, 0px)); }
 .card.docked {
   position: fixed; left: auto; top: 50%; right: var(--gutter); width: 320px;
   translate: 0 -50%; z-index: 7;
