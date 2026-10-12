@@ -13,7 +13,8 @@ const readLang = () => {
   }
 };
 
-let lang = DICTS[readLang()] ? readLang() : CONFIG.defaultLang;
+// Sin selector visible, el idioma es siempre el predeterminado (español).
+let lang = CONFIG.showLangToggle && DICTS[readLang()] ? readLang() : CONFIG.defaultLang;
 
 export const getLang = () => lang;
 

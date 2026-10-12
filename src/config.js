@@ -21,7 +21,10 @@ export const CONFIG = {
     mobile: { maxPixelRatio: 1.5, clouds: 0, antialias: true, shadowMap: 1024, softShadows: false },
   },
 
+  // Sitio solo en español. Los textos en inglés quedan en src/i18n/en.js para el futuro:
+  // basta con poner showLangToggle: true para mostrar el selector ES/EN.
   defaultLang: 'es',
+  showLangToggle: false,
 };
 
 export const IS_MOBILE =

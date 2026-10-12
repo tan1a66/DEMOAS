@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 
-import { QUALITY, IS_MOBILE } from './config.js';
+import { CONFIG, QUALITY, IS_MOBILE } from './config.js';
 import { t, applyDom, setLang, getLang, onLangChange } from './i18n/index.js';
 import { toVec3, centroid, LAND_TOP } from './geo/projection.js';
 import { buildLand } from './scene/land.js';
@@ -15,7 +15,11 @@ import { ProjectModel } from './scene/buildings.js';
 import { DistanceRings } from './scene/distanceRings.js';
 import { Labels } from './ui/labels.js';
 import { ProjectCard } from './ui/card.js';
-import { poiGroupFor } from './data/travel.js';
+import { poiGroupFor, haversineKm, driveMinutes } from './data/travel.js';
+import { SearchBar, matches, isActive, EMPTY } from './ui/search.js';
+import { ProjectPage } from './ui/projectPage.js';
+import { whatsappUrl } from './ui/whatsapp.js';
+import { setCurrency, getCurrency, onCurrencyChange } from './ui/format.js';
 
 import geo from './data/yucatan.geo.json';
 import places from './data/places.json';
@@ -84,6 +88,7 @@ const VIEWS = {
   intro: () => ({ target: toVec3({ lat: 20.35, lng: -88.45 }, 0), distance: 2900, polar: 0.02, azimuth: -0.35 }),
   merida: () => ({ target: cityCentroid('merida'), distance: 27 * aspectBoost(), polar: 0.95, azimuth: 0.35 }),
   playa: () => ({ target: toVec3(byCity('playa')[0].coordenadas), distance: 26 * aspectBoost(), polar: 1.02, azimuth: -1.15 }),
+  search: () => state.searchView,
   // Mérida Costa: cámara sobre el mar mirando al sur, inclinada para que el agua quede en primer plano.
   costa: () => {
     const pts = [...byCity('costa').map((p) => p.coordenadas), places.ciudades.find((c) => c.id === 'costa')];
@@ -99,7 +104,7 @@ const markers = [];
 const cityLabels = [];
 const models = new Map(); // id -> ProjectModel
 const tags = new Map(); // id -> etiqueta HTML
-let rings, card, cardItem, cardAnchor;
+let rings, card, cardItem, cardAnchor, search, page;
 
 async function build() {
   loader.set(0.05, 'loader.step.fonts');
@@ -147,6 +152,9 @@ async function build() {
     tags.set(p.id, makeProjectTag(m));
   }
   rings = new DistanceRings(scene, labels, resolution);
+  const cityNames = Object.fromEntries(places.ciudades.map((c) => [c.id, c.nombre]));
+  search = new SearchBar($('search-slot'), projects, cityNames, applyFilters);
+  page = new ProjectPage($('page'), geo, closePage);
   card = new ProjectCard(openProject);
   if (IS_MOBILE) {
     // En móvil la ficha es una hoja inferior fija (no flota sobre el modelo).
@@ -204,7 +212,7 @@ function makeProjectTag(model) {
   });
   el.addEventListener('pointerenter', () => hoverProject(model.id));
   el.addEventListener('pointerleave', () => hoverProject(null));
-  const item = labels.add(el, () => model.anchor());
+  const item = labels.add(el, () => model.anchor(), { avoid: true });
   item.visible = false;
   return { el, item };
 }
@@ -231,21 +239,37 @@ function buildCityNav() {
 }
 
 // ---------------------------------------------------------------- Estado / navegación
-const state = { view: 'intro', renderNav: () => {}, introTl: null, hoverId: null, selectedId: null, cardId: null };
+const state = {
+  view: 'intro', renderNav: () => {}, introTl: null,
+  hoverId: null, selectedId: null, cardId: null,
+  filters: { ...EMPTY }, matches: null, searchView: null,
+  pageId: null, pageShown: false,
+};
 
+function hudTexts(view) {
+  if (view !== 'search') return [t(`hud.${view}.kicker`), t(`hud.${view}.title`), t(`hud.${view}.sub`)];
+  const n = state.matches?.size ?? 0;
+  const title = n === 0 ? t('hud.search.title0') : n === 1 ? t('hud.search.title1') : t('hud.search.title', { n });
+  return [t('hud.search.kicker'), title, n ? t('hud.search.sub') : t('hud.search.sub0')];
+}
+
+let hudTimer;
 function setHud(view) {
   const hud = $('hud');
   hud.classList.remove('show');
-  setTimeout(() => {
-    $('hud-kicker').textContent = t(`hud.${view}.kicker`);
-    $('hud-title').textContent = t(`hud.${view}.title`);
-    $('hud-sub').textContent = t(`hud.${view}.sub`);
+  clearTimeout(hudTimer);
+  hudTimer = setTimeout(() => {
+    const [k, ti, sub] = hudTexts(view);
+    $('hud-kicker').textContent = k;
+    $('hud-title').textContent = ti;
+    $('hud-sub').textContent = sub;
     hud.classList.add('show');
   }, 350);
 }
 
 function setView(view) {
   state.view = view;
+  app.classList.toggle('searching', view === 'search');
   setHud(view);
   state.renderNav();
   $('back').classList.toggle('is-home', view === 'peninsula');
@@ -254,6 +278,7 @@ function setView(view) {
     // En la vista de ciudad, su propio marcador se apaga para dejar ver los proyectos.
     l.el.classList.toggle('current', l.city.id === view);
     gsap.to(l.marker, { appear: l.city.id === view ? 0 : 1, duration: 0.8 });
+    if (view === 'search') l.el.classList.add('dim');
   }
   growProjects(view);
 }
@@ -262,7 +287,7 @@ function setView(view) {
 function growProjects(view) {
   let i = 0;
   for (const m of models.values()) {
-    const on = m.city === view;
+    const on = view === 'search' || m.city === view;
     gsap.killTweensOf(m, 'grow');
     if (on) {
       const g = { v: m.grow };
@@ -280,6 +305,7 @@ function growProjects(view) {
 function selectCity(id) {
   if (state.view === 'intro') finishIntro();
   if (id === state.view) return deselectProject();
+  resetSearch();
   clearSelection();
   const from = state.view;
   setView(id);
@@ -300,7 +326,8 @@ const reversedTren = () =>
 
 function goHome() {
   if (state.view === 'intro') return finishIntro();
-  if (state.view === 'peninsula') return;
+  if (state.view === 'peninsula') return resetSearch();
+  resetSearch();
   clearSelection();
   setView('peninsula');
   rig.flyTo(VIEWS.peninsula(), { duration: 2.6, arc: false });
@@ -330,7 +357,9 @@ function showCard(id, pinned) {
 function hoverProject(id) {
   if (id === state.hoverId) return;
   state.hoverId = id;
-  for (const m of models.values()) m.highlightTarget = m.id === id || m.id === state.selectedId ? 1 : 0;
+  for (const m of models.values()) {
+    m.highlightTarget = m.id === id || m.id === state.selectedId || (!state.selectedId && state.matches?.has(m.id)) ? 1 : 0;
+  }
   // Con un proyecto seleccionado, la ficha fija no cambia al pasar sobre otros.
   if (!state.selectedId) showCard(id, false);
 }
@@ -344,7 +373,7 @@ function clickProject(id) {
 function selectProject(id) {
   const m = models.get(id);
   if (!m) return;
-  if (m.city !== state.view) selectCity(m.city);
+  if (m.city !== state.view && state.view !== 'search') selectCity(m.city);
   state.selectedId = id;
   for (const x of models.values()) {
     x.highlightTarget = x.id === id ? 1 : 0;
@@ -365,11 +394,17 @@ function clearSelection() {
   state.selectedId = null;
   rings?.clear();
   $('poi-legend').classList.remove('show');
-  for (const m of models.values()) {
-    m.highlightTarget = 0;
-    m.dimTarget = 0;
-  }
+  applyDims();
   showCard(null);
+}
+
+// Búsqueda activa: coincidencias iluminadas, el resto atenuado.
+function applyDims() {
+  for (const m of models.values()) {
+    const hit = state.matches?.has(m.id);
+    m.highlightTarget = state.matches && hit ? 1 : 0;
+    m.dimTarget = state.matches && !hit ? 0.7 : 0;
+  }
 }
 
 function deselectProject() {
@@ -378,9 +413,15 @@ function deselectProject() {
   if (VIEWS[state.view]) rig.flyTo(VIEWS[state.view](), { duration: 2 });
 }
 
-// "Ver proyecto" / segundo clic: la cámara se acerca al volumen.
-// (La página del proyecto con galería, datos y CTA llega en la Fase 3.)
+// "Ver proyecto" / segundo clic: la cámara se acerca, el mapa se desvanece y se abre la página.
 function openProject(project) {
+  if (state.pageId) return;
+  state.pageId = project.id;
+  gsap.delayedCall(1.5, () => showPage(project));
+  zoomToProject(project);
+}
+
+function zoomToProject(project) {
   const m = models.get(project.id);
   rings.clear();
   $('poi-legend').classList.remove('show');
@@ -390,6 +431,125 @@ function openProject(project) {
     { target, distance: 5.5 * m.scale * aspectBoost(), polar: 1.08, azimuth: rig.state.azimuth + 0.5 },
     { duration: 2.2, arc: false }
   );
+}
+
+function poiDistances(project) {
+  return places.puntos_clave[poiGroupFor(project.ciudad)]
+    .map((poi) => ({
+      poi,
+      km: haversineKm(project.coordenadas, poi),
+      min: driveMinutes(project.id, project.coordenadas, poi),
+    }))
+    .sort((a, b) => a.km - b.km);
+}
+
+function showPage(project) {
+  const m = models.get(project.id);
+  // Sin fotos oficiales: la galería usa vistas 3D del propio volumen (marcadas como ilustrativas).
+  const shots = project.imagenes?.length
+    ? project.imagenes.map((src) => ({ src, caption: project.nombre }))
+    : captureShots(m);
+  showCard(null);
+  app.classList.add('page-open');
+  page.open(project, { shots, distances: poiDistances(project) });
+  // Con la página cubriendo la pantalla se pausa el render 3D (ahorro de batería/GPU).
+  setTimeout(() => state.pageId === project.id && (state.pageShown = true), 900);
+}
+
+function closePage() {
+  const id = state.pageId;
+  if (!id) return;
+  page.close();
+  app.classList.remove('page-open');
+  state.pageShown = false;
+  state.pageId = null;
+  state.selectedId = null;
+  selectProject(id);
+}
+
+function captureShots(m) {
+  const src = renderer.domElement;
+  const out = document.createElement('canvas');
+  out.width = 960;
+  out.height = 600;
+  const ctx = out.getContext('2d');
+  const s = m.scale;
+  const base = m.group.position.clone();
+  base.y += m.height * s * 0.3;
+  const views = [
+    ['page.shot.aerial', 6.5 * s, 0.82, 0.7],
+    ['page.shot.street', 3.6 * s, 1.34, -0.9],
+    ['page.shot.context', 15 * s, 1.05, 2.5],
+  ];
+  const fog = [scene.fog.near, scene.fog.far];
+  const haloVisible = m.halo.visible;
+  m.halo.visible = false;
+  const shots = views.map(([key, d, polar, az]) => {
+    const off = new THREE.Vector3().setFromSpherical(new THREE.Spherical(d, polar, rig.state.azimuth + az));
+    camera.position.copy(base).add(off);
+    camera.lookAt(base);
+    scene.fog.near = d * 0.9;
+    scene.fog.far = d * 4.2 + 300;
+    sky.position.copy(camera.position);
+    renderer.render(scene, camera);
+    // Recorte 16:10 centrado del lienzo WebGL (en la misma tarea, antes de componer).
+    let sw = src.width;
+    let sh = sw / 1.6;
+    if (sh > src.height) {
+      sh = src.height;
+      sw = sh * 1.6;
+    }
+    ctx.drawImage(src, (src.width - sw) / 2, (src.height - sh) / 2, sw, sh, 0, 0, out.width, out.height);
+    return { src: out.toDataURL('image/jpeg', 0.86), caption: t(key), illustrative: true };
+  });
+  m.halo.visible = haloVisible;
+  [scene.fog.near, scene.fog.far] = fog;
+  rig.apply();
+  return shots;
+}
+
+// ---------------------------------------------------------------- Búsqueda
+function applyFilters(f) {
+  if (state.view === 'intro') finishIntro();
+  if (state.pageId) closePage();
+  state.filters = f;
+  clearSelection();
+  if (!isActive(f)) {
+    state.matches = null;
+    applyDims();
+    if (state.view === 'search') {
+      setView('peninsula');
+      rig.flyTo(VIEWS.peninsula(), { duration: 2.4, arc: false });
+    }
+    return;
+  }
+  const found = projects.filter((p) => matches(p, f));
+  state.matches = new Set(found.map((p) => p.id));
+  applyDims();
+  if (state.view !== 'search') setView('search');
+  else setHud('search');
+  if (!found.length) return;
+  state.searchView = frameProjects(found);
+  rig.flyTo(state.searchView, { duration: 2.6 });
+}
+
+// Encuadre que contiene todos los proyectos encontrados.
+function frameProjects(list) {
+  const pts = list.map((p) => toVec3(p.coordenadas));
+  const c = pts.reduce((a, b) => a.add(b), new THREE.Vector3()).divideScalar(pts.length);
+  const extent = Math.max(...pts.map((p) => Math.hypot(p.x - c.x, p.z - c.z)));
+  const minD = Math.max(...list.map((p) => models.get(p.id).scale)) * 16 * aspectBoost();
+  // Distancia según el campo de visión horizontal: en vertical (móvil) la cámara se aleja más.
+  const halfH = Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect);
+  return { target: c, distance: Math.max(minD, (extent * 1.3) / Math.tan(halfH)), polar: 0.85, azimuth: 0.15 };
+}
+
+function resetSearch() {
+  if (!state.matches && !isActive(state.filters)) return;
+  state.filters = { ...EMPTY };
+  state.matches = null;
+  search.reset(false);
+  applyDims();
 }
 
 // ---------------------------------------------------------------- Intro cinematográfica
@@ -493,8 +653,26 @@ document.querySelectorAll('.lang button').forEach((b) =>
   })
 );
 document.querySelectorAll('.lang button').forEach((x) => x.classList.toggle('active', x.dataset.lang === getLang()));
+$('lang').hidden = !CONFIG.showLangToggle;
+
+const fxNote = () => t('currency.note', { rate: CONFIG.exchange.mxnPerUsd });
+$('currency').title = fxNote();
+document.querySelectorAll('#currency button').forEach((b) => b.addEventListener('click', () => setCurrency(b.dataset.cur)));
+onCurrencyChange((c) =>
+  document.querySelectorAll('#currency button').forEach((x) => x.classList.toggle('active', x.dataset.cur === c))
+);
+
+// WhatsApp: el mensaje incluye el proyecto abierto o seleccionado.
+$('wa').addEventListener('click', () => {
+  const id = state.pageId ?? state.selectedId ?? state.cardId;
+  $('wa').href = whatsappUrl(id ? models.get(id).project : null);
+});
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') (state.selectedId ? deselectProject() : goHome());
+  if (e.key !== 'Escape') return;
+  if (state.pageId) closePage();
+  else if (search.open) search.setOpen(false);
+  else if (state.selectedId) deselectProject();
+  else goHome();
 });
 
 // ---------------------------------------------------------------- Bucle
@@ -515,6 +693,7 @@ let elapsed = 0;
 
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
+  if (state.pageShown) return; // la página cubre el mapa: sin render
   elapsed += dt;
 
   if (!rig.flying) rig.controls.update();
@@ -542,7 +721,8 @@ function frame() {
   for (const [id, tag] of tags) {
     const m = models.get(id);
     // Con una selección activa solo queda su etiqueta (las de los puntos clave no se pisan).
-    tag.item.visible = m.grow > 0.6 && id !== state.cardId && !state.selectedId;
+    tag.item.visible =
+      m.grow > 0.6 && id !== state.cardId && !state.selectedId && (!state.matches || state.matches.has(id));
   }
 
   clouds.update(camera, dt);
@@ -575,4 +755,4 @@ build()
   });
 
 // Acceso de depuración desde la consola del navegador.
-window.__urbaz = { gsap, selectCity, goHome, rig, finishIntro, selectProject, hoverProject, openProject: (id) => openProject(models.get(id).project), introProgress: (p) => state.introTl?.progress(p) };
+window.__urbaz = { gsap, applyFilters, closePage, getCurrency, setCurrency, selectCity, goHome, rig, finishIntro, selectProject, hoverProject, openProject: (id) => openProject(models.get(id).project), introProgress: (p) => state.introTl?.progress(p) };
