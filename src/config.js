@@ -1,0 +1,35 @@
+// Configuración general de la demo. Todo lo marcado como "indicativo" o
+// "placeholder" debe confirmarse con URBAZ antes de cualquier uso real.
+
+export const CONFIG = {
+  // Tipo de cambio FIJO e indicativo (no se consulta ninguna API).
+  exchange: {
+    mxnPerUsd: 18.5, // indicativo — actualizar a mano
+    note: 'Tipo de cambio indicativo',
+  },
+
+  // WhatsApp de ventas URBAZ: +52 1 999 322 6482 (confirmado por el cliente).
+  // wa.me usa el formato internacional sin el "1" móvil: 52 + 10 dígitos.
+  whatsapp: {
+    number: '529993226482',
+    placeholder: false,
+  },
+
+
+  // Calidad: se baja automáticamente en móvil / pantallas táctiles.
+  quality: {
+    desktop: { maxPixelRatio: 1.75, clouds: 34, antialias: true, shadowMap: 2048, softShadows: true },
+    mobile: { maxPixelRatio: 1.5, clouds: 0, antialias: true, shadowMap: 1024, softShadows: false },
+  },
+
+  // Sitio solo en español. Los textos en inglés quedan en src/i18n/en.js para el futuro:
+  // basta con poner showLangToggle: true para mostrar el selector ES/EN.
+  defaultLang: 'es',
+  showLangToggle: false,
+};
+
+export const IS_MOBILE =
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 760);
+
+export const QUALITY = IS_MOBILE ? CONFIG.quality.mobile : CONFIG.quality.desktop;

@@ -1,0 +1,22 @@
+{
+  "name": "urbaz-3d-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "URBAZ — demo de rediseño 3D (propuesta Alessia Studio). Solo uso local.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "geo": "node scripts/build-geo.mjs",
+    "build:preview": "vite build --config vite.preview.config.js"
+  },
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10",
+    "vite-plugin-singlefile": "^2.0.3"
+  }
+}
