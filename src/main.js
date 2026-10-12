@@ -11,7 +11,11 @@ import { buildClouds } from './scene/clouds.js';
 import { CityMarker } from './scene/markers.js';
 import { GlowRoute } from './scene/route.js';
 import { CameraRig } from './scene/cameraRig.js';
+import { ProjectModel } from './scene/buildings.js';
+import { DistanceRings } from './scene/distanceRings.js';
 import { Labels } from './ui/labels.js';
+import { ProjectCard } from './ui/card.js';
+import { poiGroupFor } from './data/travel.js';
 
 import geo from './data/yucatan.geo.json';
 import places from './data/places.json';
@@ -41,6 +45,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, QUALITY.maxPixelRatio))
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.12;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+// Móvil: sombras simplificadas (PCF sin suavizado y mapa más pequeño).
+renderer.shadowMap.type = QUALITY.softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
 
 const scene = new THREE.Scene();
 const FOG_COLOR = new THREE.Color(0xf0d2b4);
@@ -55,6 +62,12 @@ const sunDir = new THREE.Vector3(-0.82, 0.4, 0.2).normalize();
 scene.add(new THREE.HemisphereLight(0xfff4e6, 0xd6c3a2, 1.5));
 const sun = new THREE.DirectionalLight(0xffd4a8, 2.0);
 sun.position.copy(sunDir).multiplyScalar(400);
+sun.castShadow = true;
+sun.shadow.mapSize.setScalar(QUALITY.shadowMap);
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.02;
+sun.shadow.radius = 3;
+Object.assign(sun.shadow.camera, { near: 1, far: 900 });
 scene.add(sun, sun.target);
 
 const rig = new CameraRig(camera, canvas);
@@ -69,14 +82,14 @@ const aspectBoost = () => Math.pow(Math.max(1, 1.2 / camera.aspect), 0.85);
 const VIEWS = {
   peninsula: () => ({ target: toVec3({ lat: camera.aspect < 1 ? 20.25 : 20.5, lng: camera.aspect < 1 ? -88.35 : -88.45 }, 0), distance: 640 * aspectBoost(), polar: 0.88, azimuth: 0 }),
   intro: () => ({ target: toVec3({ lat: 20.35, lng: -88.45 }, 0), distance: 2900, polar: 0.02, azimuth: -0.35 }),
-  merida: () => ({ target: cityCentroid('merida'), distance: 34 * aspectBoost(), polar: 0.95, azimuth: 0.35 }),
+  merida: () => ({ target: cityCentroid('merida'), distance: 27 * aspectBoost(), polar: 0.95, azimuth: 0.35 }),
   playa: () => ({ target: toVec3(byCity('playa')[0].coordenadas), distance: 26 * aspectBoost(), polar: 1.02, azimuth: -1.15 }),
   // Mérida Costa: cámara sobre el mar mirando al sur, inclinada para que el agua quede en primer plano.
   costa: () => {
     const pts = [...byCity('costa').map((p) => p.coordenadas), places.ciudades.find((c) => c.id === 'costa')];
     const c = centroid(pts);
     c.z += 4;
-    return { target: c, distance: 78 * aspectBoost(), polar: 1.2, azimuth: Math.PI - 0.15 };
+    return { target: c, distance: 68 * aspectBoost(), polar: 1.2, azimuth: Math.PI - 0.15 };
   },
 };
 
@@ -84,6 +97,9 @@ const VIEWS = {
 let land, sea, sky, clouds, tren, roadProgreso, coastRoad;
 const markers = [];
 const cityLabels = [];
+const models = new Map(); // id -> ProjectModel
+const tags = new Map(); // id -> etiqueta HTML
+let rings, card, cardItem, cardAnchor;
 
 async function build() {
   loader.set(0.05, 'loader.step.fonts');
@@ -124,6 +140,26 @@ async function build() {
   }
   buildCityNav();
 
+  for (const p of projects) {
+    const m = new ProjectModel(p);
+    models.set(p.id, m);
+    scene.add(m.group);
+    tags.set(p.id, makeProjectTag(m));
+  }
+  rings = new DistanceRings(scene, labels, resolution);
+  card = new ProjectCard(openProject);
+  if (IS_MOBILE) {
+    // En móvil la ficha es una hoja inferior fija (no flota sobre el modelo).
+    card.el.classList.add('sheet');
+    app.appendChild(card.el);
+  } else {
+    cardAnchor = document.createElement('div');
+    cardAnchor.className = 'card-anchor';
+    cardAnchor.appendChild(card.el);
+    cardItem = labels.add(cardAnchor, () => models.get(state.cardId)?.anchor() ?? new THREE.Vector3());
+    cardItem.visible = false;
+  }
+
   resize();
   rig.set(VIEWS.intro());
   renderer.compile(scene, camera);
@@ -157,6 +193,22 @@ function makeCityLabel(city, marker) {
   return { el, item, city, marker };
 }
 
+function makeProjectTag(model) {
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'ptag';
+  el.textContent = model.project.nombre;
+  el.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clickProject(model.id);
+  });
+  el.addEventListener('pointerenter', () => hoverProject(model.id));
+  el.addEventListener('pointerleave', () => hoverProject(null));
+  const item = labels.add(el, () => model.anchor());
+  item.visible = false;
+  return { el, item };
+}
+
 function buildCityNav() {
   const nav = $('cities');
   const order = ['merida', 'costa', 'playa'];
@@ -179,7 +231,7 @@ function buildCityNav() {
 }
 
 // ---------------------------------------------------------------- Estado / navegación
-const state = { view: 'intro', renderNav: () => {}, introTl: null };
+const state = { view: 'intro', renderNav: () => {}, introTl: null, hoverId: null, selectedId: null, cardId: null };
 
 function setHud(view) {
   const hud = $('hud');
@@ -197,12 +249,38 @@ function setView(view) {
   setHud(view);
   state.renderNav();
   $('back').classList.toggle('is-home', view === 'peninsula');
-  for (const l of cityLabels) l.el.classList.toggle('dim', view !== 'peninsula' && l.city.id !== view);
+  for (const l of cityLabels) {
+    l.el.classList.toggle('dim', view !== 'peninsula' && l.city.id !== view);
+    // En la vista de ciudad, su propio marcador se apaga para dejar ver los proyectos.
+    l.el.classList.toggle('current', l.city.id === view);
+    gsap.to(l.marker, { appear: l.city.id === view ? 0 : 1, duration: 0.8 });
+  }
+  growProjects(view);
+}
+
+// Los proyectos de la ciudad activa "crecen" desde el terreno; los demás se recogen.
+function growProjects(view) {
+  let i = 0;
+  for (const m of models.values()) {
+    const on = m.city === view;
+    gsap.killTweensOf(m, 'grow');
+    if (on) {
+      const g = { v: m.grow };
+      gsap.to(g, {
+        v: 1, duration: 1.6, ease: 'back.out(1.3)', delay: 1.1 + i++ * 0.18,
+        onUpdate: () => m.setGrow(g.v),
+      });
+    } else if (m.grow > 0) {
+      const g = { v: m.grow };
+      gsap.to(g, { v: 0, duration: 0.5, ease: 'power2.in', onUpdate: () => m.setGrow(g.v) });
+    }
+  }
 }
 
 function selectCity(id) {
   if (state.view === 'intro') finishIntro();
-  if (id === state.view) return;
+  if (id === state.view) return deselectProject();
+  clearSelection();
   const from = state.view;
   setView(id);
 
@@ -223,8 +301,95 @@ const reversedTren = () =>
 function goHome() {
   if (state.view === 'intro') return finishIntro();
   if (state.view === 'peninsula') return;
+  clearSelection();
   setView('peninsula');
   rig.flyTo(VIEWS.peninsula(), { duration: 2.6, arc: false });
+}
+
+// ---------------------------------------------------------------- Proyectos: hover, selección, apertura
+function showCard(id, pinned) {
+  state.cardId = id;
+  if (!id) {
+    card.el.classList.remove('show');
+    if (cardItem) cardItem.visible = false;
+    return;
+  }
+  card.set(models.get(id).project, { pinned });
+  if (!IS_MOBILE) {
+    // Escritorio: al pasar el cursor la ficha flota sobre el volumen; al seleccionar
+    // se acopla a la derecha para no tapar los círculos de distancia.
+    const docked = pinned;
+    if (docked && card.el.parentNode !== app) app.appendChild(card.el);
+    if (!docked && card.el.parentNode !== cardAnchor) cardAnchor.appendChild(card.el);
+    card.el.classList.toggle('docked', docked);
+    cardItem.visible = !docked;
+  }
+  requestAnimationFrame(() => card.el.classList.add('show'));
+}
+
+function hoverProject(id) {
+  if (id === state.hoverId) return;
+  state.hoverId = id;
+  for (const m of models.values()) m.highlightTarget = m.id === id || m.id === state.selectedId ? 1 : 0;
+  // Con un proyecto seleccionado, la ficha fija no cambia al pasar sobre otros.
+  if (!state.selectedId) showCard(id, false);
+}
+
+function clickProject(id) {
+  if (state.selectedId === id) return openProject(models.get(id).project);
+  selectProject(id);
+}
+
+// Primer clic: ficha fija + círculos de distancia con minutos en auto.
+function selectProject(id) {
+  const m = models.get(id);
+  if (!m) return;
+  if (m.city !== state.view) selectCity(m.city);
+  state.selectedId = id;
+  for (const x of models.values()) {
+    x.highlightTarget = x.id === id ? 1 : 0;
+    x.dimTarget = x.id === id ? 0 : 0.55;
+  }
+  showCard(id, true);
+  const pois = places.puntos_clave[poiGroupFor(m.city)];
+  rings.show(m.project, pois, t);
+  $('poi-legend').classList.add('show');
+  const target = m.group.position.clone();
+  rig.flyTo(
+    { target, distance: THREE.MathUtils.clamp(rings.maxRadius * 3.1, 18, 220) * aspectBoost(), polar: 0.5, azimuth: rig.state.azimuth },
+    { duration: 2.2 }
+  );
+}
+
+function clearSelection() {
+  state.selectedId = null;
+  rings?.clear();
+  $('poi-legend').classList.remove('show');
+  for (const m of models.values()) {
+    m.highlightTarget = 0;
+    m.dimTarget = 0;
+  }
+  showCard(null);
+}
+
+function deselectProject() {
+  if (!state.selectedId) return;
+  clearSelection();
+  if (VIEWS[state.view]) rig.flyTo(VIEWS[state.view](), { duration: 2 });
+}
+
+// "Ver proyecto" / segundo clic: la cámara se acerca al volumen.
+// (La página del proyecto con galería, datos y CTA llega en la Fase 3.)
+function openProject(project) {
+  const m = models.get(project.id);
+  rings.clear();
+  $('poi-legend').classList.remove('show');
+  const target = m.group.position.clone();
+  target.y += m.height * m.scale * 0.35;
+  rig.flyTo(
+    { target, distance: 5.5 * m.scale * aspectBoost(), polar: 1.08, azimuth: rig.state.azimuth + 0.5 },
+    { duration: 2.2, arc: false }
+  );
 }
 
 // ---------------------------------------------------------------- Intro cinematográfica
@@ -272,26 +437,45 @@ const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let downAt = null;
 
-function pickMarker(e) {
+function setPointer(e) {
   const rect = canvas.getBoundingClientRect();
   pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
   raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(markers.map((m) => m.hit), false);
-  return hits.length ? markers.find((m) => m.hit === hits[0].object) : null;
+}
+
+function pickMarker() {
+  const live = markers.filter((m) => m.appear > 0.5);
+  const hits = raycaster.intersectObjects(live.map((m) => m.hit), false);
+  return hits.length ? live.find((m) => m.hit === hits[0].object) : null;
+}
+
+function pickProject() {
+  const live = [...models.values()].filter((m) => m.grow > 0.5);
+  const hits = raycaster.intersectObjects(live.map((m) => m.hit), false);
+  return hits.length ? hits[0].object.userData.projectId : null;
 }
 
 canvas.addEventListener('pointermove', (e) => {
-  if (e.pointerType !== 'mouse') return;
-  const hit = pickMarker(e);
+  if (e.pointerType !== 'mouse' || rig.flying || state.view === 'intro') return;
+  setPointer(e);
+  const pid = pickProject();
+  hoverProject(pid);
+  const hit = pid ? null : pickMarker();
   markers.forEach((m) => (m.hoverTarget = m === hit ? 1 : 0));
   cityLabels.forEach((l) => l.el.classList.toggle('hover', l.marker === hit));
-  canvas.style.cursor = hit ? 'pointer' : '';
+  canvas.style.cursor = hit || pid ? 'pointer' : '';
 });
 canvas.addEventListener('pointerdown', (e) => (downAt = [e.clientX, e.clientY]));
 canvas.addEventListener('pointerup', (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
-  const hit = pickMarker(e);
-  if (hit) selectCity(hit.city.id);
+  if (state.view === 'intro') return;
+  setPointer(e);
+  const pid = pickProject();
+  if (pid) return clickProject(pid);
+  const hit = pickMarker();
+  if (hit) return selectCity(hit.city.id);
+  // Clic en el vacío: se cierra la selección.
+  if (state.selectedId) deselectProject();
 });
 
 $('back').addEventListener('click', goHome);
@@ -310,7 +494,7 @@ document.querySelectorAll('.lang button').forEach((b) =>
 );
 document.querySelectorAll('.lang button').forEach((x) => x.classList.toggle('active', x.dataset.lang === getLang()));
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') goHome();
+  if (e.key === 'Escape') (state.selectedId ? deselectProject() : goHome());
 });
 
 // ---------------------------------------------------------------- Bucle
@@ -343,9 +527,23 @@ function frame() {
   sea.uniforms.uTime.value = elapsed;
   land.setFocus(1 - THREE.MathUtils.smoothstep(dist, 45, 160));
 
-  // El sol sigue al objetivo para conservar sombras nítidas en la zona visible (Fase 2).
+  // El sol sigue al objetivo: el mapa de sombras cubre solo la zona visible (sombras nítidas).
   sun.target.position.copy(rig.controls.target);
   sun.position.copy(rig.controls.target).addScaledVector(sunDir, 400);
+  const half = THREE.MathUtils.clamp(dist * 0.85, 6, 220);
+  const sc = sun.shadow.camera;
+  if (Math.abs(sc.right - half) > half * 0.05) {
+    Object.assign(sc, { left: -half, right: half, top: half, bottom: -half });
+    sc.updateProjectionMatrix();
+  }
+
+  for (const m of models.values()) m.update(elapsed, dt);
+  rings.update(elapsed, dist);
+  for (const [id, tag] of tags) {
+    const m = models.get(id);
+    // Con una selección activa solo queda su etiqueta (las de los puntos clave no se pisan).
+    tag.item.visible = m.grow > 0.6 && id !== state.cardId && !state.selectedId;
+  }
 
   clouds.update(camera, dt);
   tren.update(elapsed, dist);
@@ -353,7 +551,15 @@ function frame() {
 
   renderer.render(scene, camera);
   labels.update(camera, window.innerWidth, window.innerHeight);
+
+  // La ficha flotante se abre hacia abajo si no cabe por encima del proyecto.
+  if (cardItem?.visible && state.cardId) {
+    _v.copy(models.get(state.cardId).anchor()).project(camera);
+    const y = (-_v.y * 0.5 + 0.5) * window.innerHeight;
+    card.el.classList.toggle('below', y < 380);
+  }
 }
+const _v = new THREE.Vector3();
 
 // ---------------------------------------------------------------- Arranque
 build()
@@ -369,4 +575,4 @@ build()
   });
 
 // Acceso de depuración desde la consola del navegador.
-window.__urbaz = { selectCity, goHome, rig, finishIntro, introProgress: (p) => state.introTl?.progress(p) };
+window.__urbaz = { gsap, selectCity, goHome, rig, finishIntro, selectProject, hoverProject, openProject: (id) => openProject(models.get(id).project), introProgress: (p) => state.introTl?.progress(p) };

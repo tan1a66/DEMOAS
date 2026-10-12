@@ -218,3 +218,124 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .city-label.dim { pointer-events: none; }
   .city-label.dim .inner { opacity: 0; }
 }
+
+/* ---------- Fase 2: proyectos ---------- */
+.city-label.current { pointer-events: none; }
+.city-label.current .inner { opacity: 0 !important; }
+
+.ptag {
+  position: absolute; display: block; z-index: 2; cursor: pointer; white-space: nowrap; line-height: 1;
+  pointer-events: auto; translate: -50% calc(-100% - 8px);
+  padding: 6px 11px; border-radius: 999px; background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 18px rgba(60, 40, 20, 0.14);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink);
+  transition: background 0.25s, opacity 0.4s;
+}
+.ptag:hover { background: var(--glass-strong); }
+.ptag.dim { opacity: 0.45; }
+
+.card-anchor { z-index: 6; pointer-events: none; }
+.card {
+  position: absolute; left: 0; top: 0; width: 290px;
+  translate: -50% calc(-100% - 18px);
+  border-radius: 18px; overflow: hidden;
+  background: rgba(251, 247, 240, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: 0 18px 60px rgba(50, 35, 20, 0.22), 0 2px 6px rgba(50, 35, 20, 0.08);
+  opacity: 0; transform: translateY(8px) scale(0.98);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+  pointer-events: none;
+}
+.card.below { translate: -50% 26px; }
+.card.docked {
+  position: fixed; left: auto; top: 50%; right: var(--gutter); width: 320px;
+  translate: 0 -50%; z-index: 7;
+}
+.card.docked .card-photo { height: 170px; }
+.card.show { opacity: 1; transform: none; }
+.card.pinned { pointer-events: auto; }
+.card-photo {
+  position: relative; height: 128px; overflow: hidden;
+  background: linear-gradient(135deg, #f3e7d3 0%, #e4d2b5 45%, #a9d9d2 100%);
+}
+.card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-photo.placeholder::after {
+  /* Trama arquitectónica mientras no hay fotos oficiales. */
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.35) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to top, transparent, #000 70%);
+}
+.card-mark {
+  position: absolute; left: 18px; bottom: 10px; z-index: 1;
+  font-family: var(--serif); font-style: italic; font-size: 54px; line-height: 1; color: rgba(29, 42, 46, 0.22);
+}
+.card-state {
+  position: absolute; right: 12px; top: 12px; z-index: 1;
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
+  padding: 6px 10px; border-radius: 999px; background: var(--ink); color: var(--warm-white);
+}
+.card-state.tbc { background: rgba(251, 247, 240, 0.85); color: var(--ink-soft); }
+.card-body { padding: 14px 18px 16px; }
+.card-zone { margin: 0; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #0c625d; font-weight: 700; }
+.card-name { margin: 4px 0 8px; font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 30px; line-height: 1; }
+.card-price { margin: 0 0 10px; display: flex; align-items: baseline; gap: 6px; }
+.card-price small { font-size: 11px; color: var(--ink-soft); }
+.card-price b { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.card-price.tbc b { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.card-tags span {
+  font-size: 11px; padding: 4px 9px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6); border: 1px solid var(--line);
+}
+.card-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+.card-open {
+  border: 0; border-radius: 999px; padding: 10px 18px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap;
+  background: var(--ink); color: var(--warm-white); transition: background 0.25s;
+}
+.card-open:hover { background: #0c625d; }
+.card:not(.pinned) .card-open { display: none; }
+.card-hint { font-size: 11px; color: var(--ink-soft); }
+
+.card.sheet {
+  position: fixed; left: 12px; right: 12px; top: auto; bottom: calc(132px + env(safe-area-inset-bottom));
+  width: auto; translate: none; z-index: 7; pointer-events: auto;
+  display: grid; grid-template-columns: 110px 1fr;
+}
+.card.sheet:not(.show) { pointer-events: none; transform: translateY(20px); }
+.card.sheet .card-photo { height: auto; min-height: 100%; }
+.card.sheet .card-mark { font-size: 40px; left: 12px; }
+.card.sheet .card-state { left: 6px; right: 6px; top: 6px; font-size: 8px; padding: 4px 6px; text-align: center; line-height: 1.25; }
+.card.sheet .card-body { padding: 12px 14px 12px; }
+.card.sheet .card-name { font-size: 24px; }
+.card.sheet .card-actions { margin-top: 10px; }
+.card.sheet .card-hint { display: none; }
+
+.poi-label {
+  pointer-events: none; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  translate: -50% calc(-100% - 10px);
+  padding: 6px 10px 5px; border-radius: 10px; white-space: nowrap;
+  background: rgba(29, 42, 46, 0.78); color: var(--warm-white);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity 0.5s var(--ease);
+}
+.poi-label.show { opacity: 1; }
+.poi-name { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; }
+.poi-min { font-size: 10px; color: var(--turq-glow); letter-spacing: 0.04em; }
+
+.poi-legend {
+  position: absolute; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  margin: 0; padding: 7px 14px; border-radius: 999px; z-index: 3;
+  font-size: 11px; color: var(--ink-soft); background: var(--glass); white-space: nowrap;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  opacity: 0; transition: opacity 0.6s; pointer-events: none;
+}
+.poi-legend.show { opacity: 1; }
+@media (max-width: 760px) {
+  .poi-legend { display: none; }
+  .card.sheet.pinned .card-hint { display: inline; font-size: 10px; }
+  .ptag { font-size: 10px; padding: 5px 9px; }
+}

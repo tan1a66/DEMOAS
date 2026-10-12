@@ -33,5 +33,26 @@ export default {
 
   'route.tren': 'Tren Maya (approximate route)',
 
+  'card.from': 'From',
+  'card.priceTbc': 'Price to be confirmed',
+  'card.stateTbc': 'Status to be confirmed',
+  'card.open': 'View project',
+  'card.hint': 'Click to see distances',
+  'card.hintPinned': 'Approximate driving times',
+  'card.bedrooms': '{n} bd.',
+
+  'tipo.departamentos': 'Apartments',
+  'tipo.lotes': 'Lots',
+  'tipo.locales': 'Retail',
+  'tipo.oficinas': 'Offices',
+
+  'estado.preventa': 'Pre-sale',
+  'estado.construccion': 'Under construction',
+  'estado.entrega': 'Ready to move in',
+
+  'poi.minutes': 'min by car',
+  'poi.legend': 'Straight-line distances · estimated driving times',
+  'project.close': 'Close',
+
   'lang.label': 'Language',
 };

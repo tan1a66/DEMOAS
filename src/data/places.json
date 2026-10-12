@@ -1,47 +1,186 @@
 {
   "_nota": "Coordenadas aproximadas (WGS84). La ruta del Tren Maya es una aproximación por estaciones principales, no el trazo real.",
   "ciudades": [
-    { "id": "merida", "nombre": "Mérida", "lat": 20.967, "lng": -89.623 },
-    { "id": "playa", "nombre": "Playa del Carmen", "lat": 20.629, "lng": -87.073 },
-    { "id": "costa", "nombre": "Mérida Costa", "lat": 21.283, "lng": -89.664, "referencia": "Progreso" }
+    {
+      "id": "merida",
+      "nombre": "Mérida",
+      "lat": 20.967,
+      "lng": -89.623
+    },
+    {
+      "id": "playa",
+      "nombre": "Playa del Carmen",
+      "lat": 20.629,
+      "lng": -87.073
+    },
+    {
+      "id": "costa",
+      "nombre": "Mérida Costa",
+      "lat": 21.283,
+      "lng": -89.664,
+      "referencia": "Progreso"
+    }
   ],
   "tren_maya_merida_playa": [
-    { "nombre": "Mérida (centro)", "lat": 20.967, "lng": -89.623 },
-    { "nombre": "Mérida (Teya)", "lat": 20.995, "lng": -89.56 },
-    { "nombre": "Tixkokob", "lat": 21.0, "lng": -89.39 },
-    { "nombre": "Izamal", "lat": 20.93, "lng": -89.02 },
-    { "nombre": "Chichén Itzá", "lat": 20.68, "lng": -88.57 },
-    { "nombre": "Valladolid", "lat": 20.69, "lng": -88.2 },
-    { "nombre": "Nuevo Xcán", "lat": 20.86, "lng": -87.6 },
-    { "nombre": "Leona Vicario", "lat": 20.99, "lng": -87.2 },
-    { "nombre": "Cancún Aeropuerto", "lat": 21.03, "lng": -86.9 },
-    { "nombre": "Puerto Morelos", "lat": 20.85, "lng": -86.93 },
-    { "nombre": "Playa del Carmen", "lat": 20.645, "lng": -87.09 }
+    {
+      "nombre": "Mérida (centro)",
+      "lat": 20.967,
+      "lng": -89.623
+    },
+    {
+      "nombre": "Mérida (Teya)",
+      "lat": 20.995,
+      "lng": -89.56
+    },
+    {
+      "nombre": "Tixkokob",
+      "lat": 21.0,
+      "lng": -89.39
+    },
+    {
+      "nombre": "Izamal",
+      "lat": 20.93,
+      "lng": -89.02
+    },
+    {
+      "nombre": "Chichén Itzá",
+      "lat": 20.68,
+      "lng": -88.57
+    },
+    {
+      "nombre": "Valladolid",
+      "lat": 20.69,
+      "lng": -88.2
+    },
+    {
+      "nombre": "Nuevo Xcán",
+      "lat": 20.86,
+      "lng": -87.6
+    },
+    {
+      "nombre": "Leona Vicario",
+      "lat": 20.99,
+      "lng": -87.2
+    },
+    {
+      "nombre": "Cancún Aeropuerto",
+      "lat": 21.03,
+      "lng": -86.9
+    },
+    {
+      "nombre": "Puerto Morelos",
+      "lat": 20.85,
+      "lng": -86.93
+    },
+    {
+      "nombre": "Playa del Carmen",
+      "lat": 20.645,
+      "lng": -87.09
+    }
   ],
   "carretera_merida_progreso": [
-    { "lat": 20.995, "lng": -89.62 },
-    { "lat": 21.1, "lng": -89.63 },
-    { "lat": 21.2, "lng": -89.655 },
-    { "lat": 21.283, "lng": -89.664 }
+    {
+      "lat": 20.995,
+      "lng": -89.62
+    },
+    {
+      "lat": 21.1,
+      "lng": -89.63
+    },
+    {
+      "lat": 21.2,
+      "lng": -89.655
+    },
+    {
+      "lat": 21.283,
+      "lng": -89.664
+    }
   ],
   "costa_progreso_san_crisanto": [
-    { "lat": 21.283, "lng": -89.664 },
-    { "lat": 21.31, "lng": -89.5 },
-    { "lat": 21.33, "lng": -89.33 },
-    { "lat": 21.352, "lng": -89.172 }
+    {
+      "lat": 21.283,
+      "lng": -89.664
+    },
+    {
+      "lat": 21.31,
+      "lng": -89.5
+    },
+    {
+      "lat": 21.33,
+      "lng": -89.33
+    },
+    {
+      "lat": 21.352,
+      "lng": -89.172
+    }
   ],
   "puntos_clave": {
-    "_nota": "Para la Fase 2 (círculos de distancia). Coordenadas y minutos POR VERIFICAR.",
+    "_nota": "Para los círculos de distancia. Coordenadas aproximadas; minutos POR VERIFICAR (ver src/data/travel.js). Mérida Costa usa su propio grupo.",
     "merida": [
-      { "id": "altabrisa", "nombre": "Altabrisa", "lat": 21.018, "lng": -89.583 },
-      { "id": "la-isla", "nombre": "La Isla Mérida", "lat": 21.05, "lng": -89.597 },
-      { "id": "aeropuerto-mid", "nombre": "Aeropuerto MID", "lat": 20.937, "lng": -89.658 },
-      { "id": "progreso", "nombre": "Progreso", "lat": 21.283, "lng": -89.664 }
+      {
+        "id": "altabrisa",
+        "nombre": "Altabrisa",
+        "lat": 21.018,
+        "lng": -89.583
+      },
+      {
+        "id": "la-isla",
+        "nombre": "La Isla Mérida",
+        "lat": 21.05,
+        "lng": -89.597
+      },
+      {
+        "id": "aeropuerto-mid",
+        "nombre": "Aeropuerto MID",
+        "lat": 20.937,
+        "lng": -89.658
+      },
+      {
+        "id": "progreso",
+        "nombre": "Progreso",
+        "lat": 21.283,
+        "lng": -89.664
+      }
     ],
     "playa": [
-      { "id": "quinta-avenida", "nombre": "Quinta Avenida", "lat": 20.6296, "lng": -87.0739 },
-      { "id": "playa", "nombre": "Playa", "lat": 20.632, "lng": -87.066 },
-      { "id": "aeropuerto-cun", "nombre": "Aeropuerto de Cancún", "lat": 21.0365, "lng": -86.8771 }
+      {
+        "id": "quinta-avenida",
+        "nombre": "Quinta Avenida",
+        "lat": 20.6296,
+        "lng": -87.0739
+      },
+      {
+        "id": "playa",
+        "nombre": "Playa",
+        "lat": 20.632,
+        "lng": -87.066
+      },
+      {
+        "id": "aeropuerto-cun",
+        "nombre": "Aeropuerto de Cancún",
+        "lat": 21.0365,
+        "lng": -86.8771
+      }
+    ],
+    "costa": [
+      {
+        "id": "progreso",
+        "nombre": "Progreso",
+        "lat": 21.283,
+        "lng": -89.664
+      },
+      {
+        "id": "altabrisa",
+        "nombre": "Mérida (Altabrisa)",
+        "lat": 21.018,
+        "lng": -89.583
+      },
+      {
+        "id": "aeropuerto-mid",
+        "nombre": "Aeropuerto MID",
+        "lat": 20.937,
+        "lng": -89.658
+      }
     ]
   }
 }

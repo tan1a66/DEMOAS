@@ -14,9 +14,12 @@ npm run dev        # http://localhost:5173  (aggiungere ?auto per far partire l'
 - `src/data/yucatan.geo.json`: confini Natural Earth 1:10m (pubblico dominio), generati con `npm run geo`
 - `src/config.js`: tasso MXN/USD indicativo, numero WhatsApp segnaposto, qualità desktop/mobile
 - `src/i18n/`: testi dell'interfaccia (`es.js`, `en.js`)
+- `src/data/travel.js`: minuti in auto **stimati** (da verificare); i tempi reali vanno in `TRAVEL_OVERRIDES`
+- `src/scene/buildings.js`: volumi stilizzati per progetto (forma indicativa del tipo, non modelli reali)
+- Valori ammessi per `estado` in projects.json: `preventa`, `construccion`, `entrega`
 - `src/scene/`: terra, mare (shader), cielo, nuvole, marker, linee luminose, camera
 
 ## Stato
 - [x] Fase 1: contenuti, intro, scelta città, percorsi animati
-- [ ] Fase 2: progetti 3D, hover, click, cerchi di distanza
+- [x] Fase 2: progetti 3D, hover, click, cerchi di distanza
 - [ ] Fase 3: pagina progetto, ricerca, WhatsApp, MXN/USD, rifinitura mobile

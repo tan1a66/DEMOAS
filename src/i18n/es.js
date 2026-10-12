@@ -33,5 +33,26 @@ export default {
 
   'route.tren': 'Tren Maya (trazo aproximado)',
 
+  'card.from': 'Desde',
+  'card.priceTbc': 'Precio por confirmar',
+  'card.stateTbc': 'Estado por confirmar',
+  'card.open': 'Ver proyecto',
+  'card.hint': 'Clic para ver distancias',
+  'card.hintPinned': 'Tiempos aproximados en auto',
+  'card.bedrooms': '{n} rec.',
+
+  'tipo.departamentos': 'Departamentos',
+  'tipo.lotes': 'Lotes',
+  'tipo.locales': 'Locales',
+  'tipo.oficinas': 'Oficinas',
+
+  'estado.preventa': 'Preventa',
+  'estado.construccion': 'En construcción',
+  'estado.entrega': 'Entrega inmediata',
+
+  'poi.minutes': 'min en auto',
+  'poi.legend': 'Distancias en línea recta · tiempos estimados en auto',
+  'project.close': 'Cerrar',
+
   'lang.label': 'Idioma',
 };

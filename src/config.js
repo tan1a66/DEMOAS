@@ -17,8 +17,8 @@ export const CONFIG = {
 
   // Calidad: se baja automáticamente en móvil / pantallas táctiles.
   quality: {
-    desktop: { maxPixelRatio: 1.75, clouds: 34, antialias: true },
-    mobile: { maxPixelRatio: 1.5, clouds: 0, antialias: true },
+    desktop: { maxPixelRatio: 1.75, clouds: 34, antialias: true, shadowMap: 2048, softShadows: true },
+    mobile: { maxPixelRatio: 1.5, clouds: 0, antialias: true, shadowMap: 1024, softShadows: false },
   },
 
   defaultLang: 'es',
