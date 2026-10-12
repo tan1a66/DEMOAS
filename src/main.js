@@ -446,10 +446,11 @@ function poiDistances(project) {
 
 function showPage(project) {
   const m = models.get(project.id);
-  // Sin fotos oficiales: la galería usa vistas 3D del propio volumen (marcadas como ilustrativas).
-  const shots = project.imagenes?.length
-    ? project.imagenes.map((src) => ({ src, caption: project.nombre }))
-    : captureShots(m);
+  // Fotos oficiales primero; después, vistas 3D del propio volumen (marcadas como ilustrativas).
+  const shots = [
+    ...(project.imagenes ?? []).map((src) => ({ src, caption: project.nombre })),
+    ...captureShots(m),
+  ];
   showCard(null);
   app.classList.add('page-open');
   page.open(project, { shots, distances: poiDistances(project) });

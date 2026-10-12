@@ -50,6 +50,8 @@ export class ProjectPage {
     img.src = s.src;
     img.alt = `${this.project.nombre} — ${s.caption}`;
     this.root.querySelector('.g-caption').textContent = s.caption;
+    // La etiqueta "ilustrativa" solo acompaña a las vistas 3D generadas, no a las fotos oficiales.
+    this.root.querySelector('.g-illu').hidden = !s.illustrative;
     this.root.querySelectorAll('[data-shot]').forEach((b) => b.classList.toggle('active', +b.dataset.shot === i));
   }
 
@@ -67,7 +69,6 @@ export class ProjectPage {
       [t('page.location'), `${p.zona}, ${p.municipio}`],
     ].filter(([, v]) => v != null);
 
-    const illustrative = this.shots.some((s) => s.illustrative);
     const links = [
       p.url_sitio && `<a class="btn-ghost" href="${esc(p.url_sitio)}" target="_blank" rel="noopener">${t('page.site')}</a>`,
       p.url_ficha && `<a class="btn-ghost" href="${esc(p.url_ficha)}" target="_blank" rel="noopener">${t('page.urbaz')}</a>`,
@@ -78,7 +79,7 @@ export class ProjectPage {
         <div class="gallery">
           <figure class="g-main">
             <img decoding="async" alt="" />
-            <figcaption><span class="g-caption"></span>${illustrative ? `<em>${t('page.illustrative')}</em>` : ''}</figcaption>
+            <figcaption><span class="g-caption"></span><em class="g-illu">${t('page.illustrative')}</em></figcaption>
           </figure>
           <div class="g-thumbs">
             ${this.shots
