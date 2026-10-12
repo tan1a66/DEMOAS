@@ -18,7 +18,7 @@
       "municipio": "Solidaridad, Quintana Roo",
       "tipo": ["lotes"],
       "precio_desde_mxn": 1200000,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": null,
       "m2": { "min": 120, "max": 190.51, "unidad": "m² por lote" },
       "descripcion": "Lotes residenciales en una comunidad rodeada de naturaleza y bienestar, en Playa del Carmen.",
@@ -28,6 +28,7 @@
       "contacto": { "email": "nativa@urbaz.mx" },
       "coordenadas": { "lat": 20.605, "lng": -87.095, "precision": "zona (cerca de Playacar, lado interior) — indicada por el cliente" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "precio_desde_mxn": "sitio-proyecto (nativaplaya.mx: 'Lotes desde $1.2MDP')",
         "m2": "sitio-proyecto (nativaplaya.mx: 'desde 120 m² hasta 190.51 m²')",
         "descripcion": "sitio-proyecto",
@@ -47,7 +48,7 @@
       "municipio": "Mérida, Yucatán",
       "tipo": ["departamentos"],
       "precio_desde_mxn": 3000000,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": [1, 2],
       "m2": null,
       "descripcion": "Departamentos de 1 y 2 recámaras al norte de Mérida.",
@@ -56,6 +57,7 @@
       "url_sitio": "https://seipark.mx/",
       "coordenadas": { "lat": 21.045, "lng": -89.603, "precision": "colonia (Santa Gertrudis Copó)" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "recamaras": "urbaz.mx",
         "descripcion": "urbaz.mx",
         "precio_desde_mxn": "sitio-proyecto (seipark.mx: modelo Ámbar 1 rec. ≈ $3 MDP — cifra resumida por el buscador, verificar)",
@@ -75,7 +77,7 @@
       "municipio": "Mérida, Yucatán",
       "tipo": ["departamentos", "locales", "oficinas"],
       "precio_desde_mxn": null,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": null,
       "m2": { "min": 56, "max": 130, "unidad": "m² por departamento" },
       "descripcion": "67 unidades residenciales de 56 a 130 m², más 4 locales comerciales y 10 oficinas.",
@@ -85,6 +87,7 @@
       "url_sitio": null,
       "coordenadas": { "lat": 21.07, "lng": -89.59, "precision": "colonia (Temozón Norte)" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "m2": "urbaz.mx",
         "descripcion": "urbaz.mx",
         "esquema_pago": "urbaz.mx",
@@ -104,7 +107,7 @@
       "municipio": "Mérida, Yucatán",
       "tipo": ["departamentos", "oficinas", "locales"],
       "precio_desde_mxn": 2300000,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": [2],
       "m2": { "min": 90, "max": 110, "unidad": "m² por departamento" },
       "descripcion": "Proyecto vertical de usos mixtos sobre la Avenida Líbano, en la colonia México de Mérida.",
@@ -113,6 +116,7 @@
       "url_sitio": "https://torretriada.com/",
       "coordenadas": { "lat": 20.9965, "lng": -89.6025, "precision": "avenida (Av. Líbano, col. México)" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "descripcion": "urbaz.mx",
         "precio_desde_mxn": "sitio-proyecto (torretriada.com: 'Desde $2.3MDP', rango 2.3–5.5 MDP)",
         "recamaras": "sitio-proyecto (30 departamentos de 2 recámaras)",
@@ -132,7 +136,7 @@
       "municipio": "Conkal, Yucatán",
       "tipo": ["locales", "oficinas"],
       "precio_desde_mxn": null,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": null,
       "m2": null,
       "descripcion": "Diferentes áreas comerciales para restaurantes, boutiques, cafeterías, bancos y cowork.",
@@ -141,6 +145,7 @@
       "url_sitio": null,
       "coordenadas": { "lat": 21.072, "lng": -89.53, "precision": "municipio (Conkal) — dato de portales de terceros" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "descripcion": "urbaz.mx (sección Oficinas)",
         "coordenadas": "estimada; la ubicación 'Conkal' solo aparece en portales de terceros"
       },
@@ -159,7 +164,7 @@
       "municipio": "Yucatán",
       "tipo": ["lotes"],
       "precio_desde_mxn": null,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": null,
       "m2": { "min": 270, "max": null, "unidad": "m² por lote" },
       "descripcion": "Lotes residenciales en el nuevo norte de la ciudad, con más de 12 amenidades, incluyendo un lago totalmente recreativo de más de 500 m de extensión.",
@@ -168,6 +173,7 @@
       "url_sitio": "https://www.blulagun.mx/",
       "coordenadas": { "lat": 21.075, "lng": -89.47, "precision": "zona (entre Conkal y Yaxkukul) — dato de portales de terceros" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "descripcion": "urbaz.mx",
         "m2": "sitio-proyecto (blulagun.mx: 'lotes residenciales desde 270 m2', más de 26 ha, 1.4 ha de agua)",
         "coordenadas": "estimada; urbaz.mx solo dice 'nuevo norte de la ciudad'"
@@ -187,7 +193,7 @@
       "municipio": "Sinanché, Yucatán",
       "tipo": ["departamentos"],
       "precio_desde_mxn": null,
-      "estado": null,
+      "estado": "preventa",
       "recamaras": [2, 3, 4],
       "m2": null,
       "descripcion": "Comunidad de departamentos de baja densidad frente al mar, con vista al mar en San Crisanto, Yucatán.",
@@ -197,6 +203,7 @@
       "url_sitio": "https://marcrisanto.mx/inicio",
       "coordenadas": { "lat": 21.352, "lng": -89.172, "precision": "localidad (San Crisanto, frente al mar)" },
       "fuentes": {
+        "estado": "cliente (indicado por URBAZ / Alessia Studio)",
         "descripcion": "urbaz.mx + sitio-proyecto",
         "recamaras": "sitio-proyecto (marcrisanto.mx: 2, 3 y 4 recámaras)",
         "unidades": "sitio-proyecto (84 departamentos)",
