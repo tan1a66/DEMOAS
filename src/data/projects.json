@@ -26,12 +26,12 @@
       "url_ficha": "https://nativaplaya.mx/proyecto/aldea",
       "url_sitio": "https://nativaplaya.mx/",
       "contacto": { "email": "nativa@urbaz.mx" },
-      "coordenadas": { "lat": 20.655, "lng": -87.095, "precision": "ciudad — ubicación exacta del predio no publicada" },
+      "coordenadas": { "lat": 20.605, "lng": -87.095, "precision": "zona (cerca de Playacar, lado interior) — indicada por el cliente" },
       "fuentes": {
         "precio_desde_mxn": "sitio-proyecto (nativaplaya.mx: 'Lotes desde $1.2MDP')",
         "m2": "sitio-proyecto (nativaplaya.mx: 'desde 120 m² hasta 190.51 m²')",
         "descripcion": "sitio-proyecto",
-        "coordenadas": "estimada"
+        "coordenadas": "cliente (cerca de Playacar); punto aproximado"
       },
       "referencias_terceros": [
         { "fuente": "rcrealestate.com.mx", "dato": "Entrega 2029; lotes de 120 m² a 1,200 m²" },
