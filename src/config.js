@@ -8,12 +8,13 @@ export const CONFIG = {
     note: 'Tipo de cambio indicativo',
   },
 
-  // Número de WhatsApp: placeholder hasta confirmar el número de ventas oficial.
-  // (En el índice de urbaz.mx aparece +52 1 999 322 6482 — POR VERIFICAR antes de usarlo.)
+  // WhatsApp de ventas URBAZ: +52 1 999 322 6482 (confirmado por el cliente).
+  // wa.me usa el formato internacional sin el "1" móvil: 52 + 10 dígitos.
   whatsapp: {
-    number: '5219990000000',
-    placeholder: true,
+    number: '529993226482',
+    placeholder: false,
   },
+
 
   // Calidad: se baja automáticamente en móvil / pantallas táctiles.
   quality: {
