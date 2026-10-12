@@ -24,10 +24,11 @@ import { setCurrency, getCurrency, onCurrencyChange } from './ui/format.js';
 import geo from './data/yucatan.geo.json';
 import places from './data/places.json';
 import projectsData from './data/projects.json';
+import { attachImages } from './data/images.js';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app');
-const projects = projectsData.proyectos;
+const projects = attachImages(projectsData.proyectos);
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
 
 // ---------------------------------------------------------------- Loader
