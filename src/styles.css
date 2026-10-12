@@ -1,0 +1,220 @@
+:root {
+  --sand: #eadcc3;
+  --sand-deep: #c9b28c;
+  --warm-white: #fbf7f0;
+  --ink: #1d2a2e;
+  --ink-soft: rgba(29, 42, 46, 0.68);
+  --turq: #1fa89f;
+  --turq-glow: #3fe0d0;
+  --glass: rgba(251, 247, 240, 0.58);
+  --glass-strong: rgba(251, 247, 240, 0.82);
+  --line: rgba(29, 42, 46, 0.12);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Manrope', system-ui, -apple-system, sans-serif;
+  --gutter: clamp(16px, 3vw, 36px);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #f1d9bd;
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+
+#app { position: fixed; inset: 0; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+#mist {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, #fffaf2 0%, #f5e6d3 55%, #ecd3b6 100%);
+  opacity: 1;
+}
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 55%, transparent 55%, rgba(60, 40, 20, 0.18) 100%);
+}
+
+/* ---------- Barra superior ---------- */
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; gap: 16px;
+  padding: calc(14px + env(safe-area-inset-top)) var(--gutter) 14px;
+  background: linear-gradient(to bottom, rgba(251, 247, 240, 0.55), rgba(251, 247, 240, 0));
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  z-index: 5;
+}
+.ready .topbar { opacity: 1; transform: none; }
+.logo {
+  font-weight: 600; letter-spacing: 0.42em; font-size: 15px;
+  color: var(--ink); text-decoration: none; padding-left: 0.42em;
+}
+.topbar-slot { flex: 1; }
+.lang { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-soft); }
+.lang button { background: none; border: 0; padding: 6px 4px; letter-spacing: 0.08em; color: var(--ink-soft); }
+.lang button.active { color: var(--ink); font-weight: 600; }
+
+/* ---------- Titular contextual ---------- */
+.hud {
+  position: absolute; left: var(--gutter); top: 96px; max-width: 420px;
+  pointer-events: none; z-index: 3;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+.hud.show { opacity: 1; transform: none; }
+.kicker {
+  margin: 0 0 6px; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: #0c625d; font-weight: 700; text-shadow: 0 0 14px rgba(251, 247, 240, 0.9);
+}
+.title {
+  margin: 0; font-family: var(--serif); font-weight: 500; font-style: italic;
+  font-size: clamp(38px, 5vw, 64px); line-height: 0.98; letter-spacing: -0.01em;
+  text-shadow: 0 1px 24px rgba(251, 247, 240, 0.6);
+}
+.sub { margin: 12px 0 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); max-width: 340px; }
+
+/* ---------- Selector de ciudades ---------- */
+.cities {
+  position: absolute; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 12px);
+  display: flex; gap: 4px; padding: 5px;
+  background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(1.2); -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-radius: 999px; box-shadow: 0 10px 40px rgba(60, 40, 20, 0.14);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  z-index: 4; max-width: calc(100vw - 2 * var(--gutter));
+}
+.cities.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.cities button {
+  border: 0; background: transparent; border-radius: 999px; white-space: nowrap;
+  padding: 10px 18px; font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+  transition: background 0.3s, color 0.3s;
+}
+.cities button:hover { background: rgba(255, 255, 255, 0.6); }
+.cities button.active { background: var(--ink); color: var(--warm-white); }
+.cities button small { opacity: 0.6; margin-left: 6px; font-size: 11px; }
+
+/* ---------- Botones ---------- */
+.back {
+  position: absolute; left: var(--gutter); bottom: calc(28px + env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px 10px 12px; border-radius: 999px;
+  background: var(--glass-strong); border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 6px 24px rgba(60, 40, 20, 0.12);
+  opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease), transform 0.3s;
+  z-index: 4;
+}
+.ready .back { opacity: 1; pointer-events: auto; }
+.back.is-home { opacity: 0.55; }
+.back:hover { transform: translateY(-1px); }
+.back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+.skip {
+  position: absolute; right: var(--gutter); bottom: calc(28px + env(safe-area-inset-bottom));
+  background: none; border: 1px solid rgba(29, 42, 46, 0.25); border-radius: 999px;
+  padding: 8px 16px; font-size: 12px; letter-spacing: 0.08em; color: var(--ink);
+  opacity: 0; pointer-events: none; transition: opacity 0.5s; z-index: 6;
+}
+.intro .skip { opacity: 0.85; pointer-events: auto; }
+
+.legend {
+  position: absolute; right: var(--gutter); bottom: calc(34px + env(safe-area-inset-bottom));
+  margin: 0; display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--ink-soft); letter-spacing: 0.04em;
+  opacity: 0; transition: opacity 0.8s; z-index: 3;
+}
+.legend i { width: 22px; height: 2px; background: var(--turq-glow); box-shadow: 0 0 8px var(--turq-glow); border-radius: 2px; }
+.ready:not(.intro) .legend.show { opacity: 1; }
+.credit {
+  position: absolute; right: var(--gutter); bottom: calc(10px + env(safe-area-inset-bottom));
+  margin: 0; font-size: 10px; letter-spacing: 0.12em; color: rgba(29, 42, 46, 0.45);
+  text-transform: uppercase; z-index: 3;
+}
+
+/* ---------- Etiquetas de ciudad ---------- */
+.city-label {
+  pointer-events: auto; border: 0; background: none; padding: 0;
+  will-change: transform; z-index: 2;
+}
+.city-label .inner {
+  --tx: -50%; --ty: calc(-100% - 6px);
+  position: absolute; left: 0; top: 0;
+  transform: translate(var(--tx), var(--ty));
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 9px 16px 8px; border-radius: 14px;
+  background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px) saturate(1.2); -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 0 8px 30px rgba(60, 40, 20, 0.16);
+  white-space: nowrap; opacity: 0;
+  transition: opacity 0.6s var(--ease), transform 0.4s var(--ease), background 0.3s;
+}
+.city-label.show .inner { opacity: 1; }
+.city-label:hover .inner, .city-label.hover .inner {
+  background: var(--glass-strong); transform: translate(var(--tx), calc(var(--ty) - 6px));
+}
+.city-label.side-left .inner { --tx: calc(-100% - 12px); --ty: -50%; align-items: flex-end; }
+.city-label.side-right .inner { --tx: 12px; --ty: -50%; align-items: flex-start; }
+.city-label .name { font-family: var(--serif); font-style: italic; font-size: 22px; line-height: 1; }
+.city-label .count { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--turq); font-weight: 600; }
+.city-label.dim .inner { opacity: 0.35; }
+
+/* ---------- Pantalla de carga ---------- */
+.loader {
+  position: absolute; inset: 0; z-index: 20;
+  display: grid; place-items: center;
+  background: radial-gradient(ellipse at 50% 40%, #fffaf2 0%, #f3e4cf 60%, #e8cfaf 100%);
+  transition: opacity 1.2s var(--ease), visibility 1.2s;
+}
+.loader.hide { opacity: 0; visibility: hidden; }
+.loader-inner { width: min(360px, 80vw); text-align: center; }
+.loader-logo {
+  font-weight: 600; font-size: clamp(34px, 8vw, 52px); letter-spacing: 0.5em; padding-left: 0.5em;
+}
+.loader-tag {
+  margin: 10px 0 34px; font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink-soft);
+}
+.bar { height: 2px; background: rgba(29, 42, 46, 0.1); border-radius: 2px; overflow: hidden; }
+.bar span {
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--sand-deep), var(--turq));
+  transition: width 0.4s var(--ease);
+}
+.loader-step { margin: 12px 0 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+.loader-step b { font-weight: 600; color: var(--ink); margin-left: 4px; }
+.enter {
+  margin-top: 30px; padding: 13px 34px; border-radius: 999px;
+  border: 1px solid var(--ink); background: transparent;
+  font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; padding-left: calc(34px + 0.3em);
+  opacity: 0; transform: translateY(6px); pointer-events: none;
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), background 0.3s, color 0.3s;
+}
+.enter.show { opacity: 1; transform: none; pointer-events: auto; }
+.enter:hover { background: var(--ink); color: var(--warm-white); }
+
+/* ---------- Móvil ---------- */
+@media (max-width: 760px) {
+  .hud { top: 74px; max-width: calc(100vw - 2 * var(--gutter)); }
+  .title { font-size: 40px; }
+  .sub { font-size: 13px; }
+  .cities { bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .cities button { padding: 9px 12px; font-size: 12px; }
+  .cities button small { display: none; }
+  .back { bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .legend { display: none; }
+  .skip { bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .credit { bottom: calc(4px + env(safe-area-inset-bottom)); font-size: 9px; }
+  .city-label .name { font-size: 18px; }
+  .city-label .inner { padding: 7px 12px 6px; }
+  .city-label.dim { pointer-events: none; }
+  .city-label.dim .inner { opacity: 0; }
+}
