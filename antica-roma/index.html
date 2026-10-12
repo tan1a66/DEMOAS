@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Antica Roma · Mérida</title>
+  <meta name="description" content="Antica Roma — cocina romana en Mérida, Yucatán. Un viaje de 9,411 km desde el Coliseo hasta tu mesa." />
+  <meta name="theme-color" content="#1c120d" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%239e1b1f'/%3E%3Ctext x='32' y='42' font-family='serif' font-size='30' text-anchor='middle' fill='%23e3c477'%3EAR%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/book.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+</head>
+<body>
+  <!-- Escena fija: todo se mueve con el scroll y con el cursor -->
+  <div id="stage" aria-hidden="true">
+    <div id="ground">
+      <div id="world"></div>
+    </div>
+    <div id="clouds-low"></div>
+    <img id="plane-shadow" src="assets/plane.webp" alt="" draggable="false" />
+    <img id="plane" src="assets/plane.webp" alt="" draggable="false" />
+    <div id="clouds-high"></div>
+    <div id="table">
+      <div id="table-inner">
+        <img id="cloth" alt="" draggable="false" />
+        <div id="table-glow"></div>
+      </div>
+    </div>
+    <div id="ingredients"></div>
+    <div id="fx-light"></div>
+    <div id="fx-vignette"></div>
+    <div id="fx-grain"></div>
+    <div id="fx-flash"></div>
+  </div>
+
+  <!-- Platos: los botones del sitio (posicionados sobre la foto de la mesa) -->
+  <nav id="plates" aria-label="Menú principal"></nav>
+
+  <header id="topbar">
+    <a class="brand" href="#" id="brand" data-cursor="Inicio" aria-label="Antica Roma — volver al inicio">
+      <svg class="laurel" viewBox="0 0 64 40" aria-hidden="true"><use href="#ico-laurel" /></svg>
+      <span class="brand-name">Antica Roma</span>
+      <span class="brand-city">Mérida</span>
+    </a>
+    <div class="top-actions">
+      <button class="top-link" type="button" data-open="menu" data-cursor="Abrir">La carta</button>
+      <button class="top-pill" type="button" data-open="reserva" data-cursor="Reservar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ico-wa" /></svg>
+        <span>Reserva</span>
+      </button>
+    </div>
+  </header>
+
+  <section id="hero" aria-labelledby="hero-title">
+    <p class="kicker"><span>Cucina romana</span><i></i><span>Mérida, Yucatán</span></p>
+    <h1 id="hero-title" class="hero-title" aria-label="Antica Roma"></h1>
+    <p class="hero-sub">Un viaje de <b>9,411&nbsp;km</b> desde el Coliseo<br />hasta tu mesa.</p>
+  </section>
+
+  <div id="scroll-hint" aria-hidden="true">
+    <span class="mouse"><i></i></span>
+    <span class="hint-text">Desliza para despegar</span>
+  </div>
+
+  <div id="hud" aria-hidden="true">
+    <div class="hud-route">
+      <span class="hud-city">Roma</span>
+      <span class="hud-line"><i class="hud-fill"></i><svg class="hud-plane" viewBox="0 0 24 24"><use href="#ico-plane" /></svg></span>
+      <span class="hud-city">Mérida</span>
+    </div>
+    <div class="hud-data"><b id="hud-km">0</b><span> km</span><em id="hud-coords"></em></div>
+  </div>
+
+  <div id="captions" aria-live="polite"></div>
+
+  <div id="table-ui">
+    <p class="choose">Elige un plato</p>
+    <button class="replay" type="button" id="replay" data-cursor="Volar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ico-plane" /></svg> Volver a volar
+    </button>
+  </div>
+
+  <div id="intro" aria-hidden="true">
+    <div class="intro-mark">
+      <svg viewBox="0 0 64 40"><use href="#ico-laurel" /></svg>
+      <span>Antica Roma</span>
+      <i id="intro-bar"></i>
+    </div>
+  </div>
+
+  <div id="cursor" aria-hidden="true"><i class="ring"></i><i class="dot"></i><span class="label"></span></div>
+  <div id="modal-root"></div>
+  <div id="track"></div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="ico-laurel" viewBox="0 0 64 40">
+        <g fill="currentColor">
+          <path d="M31 37c-6-1-12-5-15-11 3 5 9 9 15 9z" />
+          <path d="M33 37c6-1 12-5 15-11-3 5-9 9-15 9z" />
+          <ellipse cx="13" cy="22" rx="5.2" ry="2.3" transform="rotate(-62 13 22)" />
+          <ellipse cx="10.5" cy="15" rx="5" ry="2.2" transform="rotate(-80 10.5 15)" />
+          <ellipse cx="10.8" cy="8" rx="4.6" ry="2" transform="rotate(-100 10.8 8)" />
+          <ellipse cx="18.5" cy="28.5" rx="5.2" ry="2.3" transform="rotate(-35 18.5 28.5)" />
+          <ellipse cx="25" cy="33" rx="5" ry="2.2" transform="rotate(-15 25 33)" />
+          <ellipse cx="16.5" cy="17" rx="4.2" ry="1.9" transform="rotate(-25 16.5 17)" />
+          <ellipse cx="16" cy="10" rx="4" ry="1.8" transform="rotate(-45 16 10)" />
+          <ellipse cx="51" cy="22" rx="5.2" ry="2.3" transform="rotate(62 51 22)" />
+          <ellipse cx="53.5" cy="15" rx="5" ry="2.2" transform="rotate(80 53.5 15)" />
+          <ellipse cx="53.2" cy="8" rx="4.6" ry="2" transform="rotate(100 53.2 8)" />
+          <ellipse cx="45.5" cy="28.5" rx="5.2" ry="2.3" transform="rotate(35 45.5 28.5)" />
+          <ellipse cx="39" cy="33" rx="5" ry="2.2" transform="rotate(15 39 33)" />
+          <ellipse cx="47.5" cy="17" rx="4.2" ry="1.9" transform="rotate(25 47.5 17)" />
+          <ellipse cx="48" cy="10" rx="4" ry="1.8" transform="rotate(45 48 10)" />
+        </g>
+      </symbol>
+      <symbol id="ico-wa" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z" />
+      </symbol>
+      <symbol id="ico-plane" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M12 1.5c.8 0 1.3 1.2 1.3 2.6v5.2l8.2 4.6v2l-8.2-2.4v4.6l2.4 1.8v1.6L12 20.6l-3.7.9v-1.6l2.4-1.8v-4.6l-8.2 2.4v-2l8.2-4.6V4.1c0-1.4.5-2.6 1.3-2.6z" />
+      </symbol>
+      <symbol id="ico-book" viewBox="0 0 32 32">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M16 8.5c-3.2-2.2-7.5-2.7-11.5-1.8v17.8c4-.9 8.3-.4 11.5 1.8 3.2-2.2 7.5-2.7 11.5-1.8V6.7C23.5 5.8 19.2 6.3 16 8.5zM16 8.5v17.8" />
+      </symbol>
+      <symbol id="ico-pin" viewBox="0 0 32 32">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" d="M16 29s9-8.6 9-15.5a9 9 0 0 0-18 0C7 20.4 16 29 16 29z" />
+        <circle cx="16" cy="13.5" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6" />
+      </symbol>
+      <symbol id="ico-column" viewBox="0 0 32 32">
+        <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M6 7.5h20M7.5 4.5h17M8 27.5h16M6.5 30h19" />
+          <path d="M10 7.5v20M14 7.5v20M18 7.5v20M22 7.5v20" />
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <script src="js/config.js"></script>
+  <script src="js/table-data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/book.js"></script>
+  <script src="js/modals.js"></script>
+</body>
+</html>
