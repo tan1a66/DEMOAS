@@ -4,3 +4,4 @@ dist
 *.local
 dist-preview
 video
+dist-artifact

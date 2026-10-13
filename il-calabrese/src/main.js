@@ -262,7 +262,7 @@ $('#logo').addEventListener('click', (e) => {
   enter.classList.add('ready');
   const go = () => {
     $('#loader').classList.add('done');
-    if (params.has('mesa')) {
+    if (params.has('mesa') || location.hash === '#mesa') {
       mode = 'intro';
       endIntro();
     } else startIntro();
@@ -270,5 +270,5 @@ $('#logo').addEventListener('click', (e) => {
   enter.addEventListener('click', go, { once: true });
   if (params.has('debug')) gsap.ticker.lagSmoothing(0);
   if (params.has('debug')) window.__demo = { globe, table, openPage, closePage, endIntro };
-  if (params.has('auto') || params.has('mesa')) go();
+  if (params.has('auto') || params.has('mesa') || location.hash === '#mesa') go();
 })();

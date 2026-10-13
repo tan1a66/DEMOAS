@@ -1,7 +1,9 @@
 // Contenido HTML de las tres páginas que se abren desde los platos.
 import { PIZZAS, CATEGORIES } from '../data/pizzas.js';
-import { drawPizza } from '../textures.js';
-import { CONFIG } from '../config.js';
+import { drawPizza, drawMap } from '../textures.js';
+import { CONFIG, ARTIFACT } from '../config.js';
+
+const EMBED_MAP = !ARTIFACT;
 
 const money = (n) => `$${n.toLocaleString('es-MX')}`;
 const TAG = { vegetariana: 'Vegetariana', vegana: 'Vegana', picante: 'Picante 🌶', firma: 'De la casa', postre: 'Postre' };
@@ -22,7 +24,7 @@ export function renderMenu(el) {
       </div>
       <figure class="pizza-photo">
         <div class="pizza-photo-in" data-photo="${i}">
-          <img alt="Pizza ${p.name}" loading="lazy" decoding="async" src="${p.photo}" />
+          ${ARTIFACT ? '' : `<img alt="Pizza ${p.name}" loading="lazy" decoding="async" src="${p.photo}" />`}
         </div>
       </figure>
     </article>`;
@@ -47,7 +49,17 @@ export function renderMenu(el) {
   </div>
   <div class="menu-progress"><i></i></div>`;
 
-  // Si una foto no carga, se dibuja la pizza (siempre hay imagen).
+  // Si una foto no carga (o no hay fotos externas), se dibuja la pizza: siempre hay imagen.
+  if (ARTIFACT) {
+    el.querySelectorAll('.pizza-photo-in').forEach((box) => {
+      const i = +box.dataset.photo;
+      const c = drawPizza(PIZZAS[i], 700, i + 3);
+      c.className = 'pizza-canvas';
+      c.setAttribute('role', 'img');
+      c.setAttribute('aria-label', `Pizza ${PIZZAS[i].name}`);
+      box.appendChild(c);
+    });
+  }
   el.querySelectorAll('.pizza-photo-in img').forEach((img) => {
     const i = +img.parentElement.dataset.photo;
     const fallback = () => {
@@ -63,6 +75,7 @@ export function renderMenu(el) {
   const list = [...el.querySelectorAll('.pizza')];
   const bar = el.querySelector('.menu-progress i');
 
+  el.classList.add('menu-anim');
   const io = new IntersectionObserver(
     (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('in')),
     { root: scroller, threshold: 0.18 }
@@ -131,9 +144,10 @@ export function renderReservar(el) {
       </form>
       <div class="resv-ok" hidden>
         <div class="ok-plate">✓</div>
-        <h3>¡Grazie mille!</h3>
+        <h3>¡Casi listo!</h3>
         <p class="ok-text"></p>
-        <a class="btn btn-green" target="_blank" rel="noopener">Abrir WhatsApp</a>
+        <p class="ok-msg"></p>
+        <a class="btn btn-green" target="_blank" rel="noopener">Enviar por WhatsApp</a>
         <button class="btn btn-ghost" type="button" data-again>Hacer otra reserva</button>
       </div>
     </div>
@@ -161,7 +175,8 @@ export function renderReservar(el) {
     const fecha = new Date(d.fecha + 'T12:00').toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
     const msg = `Hola Il Calabrese, quiero reservar una mesa para ${people}${people === 8 ? '+' : ''} personas el ${fecha} a las ${d.hora}. Nombre: ${d.nombre}. Tel: ${d.tel}.${d.ocasion ? ' Ocasión: ' + d.ocasion + '.' : ''}${d.notas ? ' Notas: ' + d.notas : ''}`;
     const ok = el.querySelector('.resv-ok');
-    ok.querySelector('.ok-text').textContent = `${d.nombre}, te esperamos el ${fecha} a las ${d.hora} (${people} personas).`;
+    ok.querySelector('.ok-text').textContent = `${d.nombre}, tu reserva para el ${fecha} a las ${d.hora} (${people}${people === 8 ? '+' : ''} personas) queda confirmada cuando envíes este mensaje:`;
+    ok.querySelector('.ok-msg').textContent = msg;
     ok.querySelector('a').href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
     form.hidden = true;
     ok.hidden = false;
@@ -199,11 +214,19 @@ export function renderUbicacion(el) {
           <p class="fineprint">Dirección y teléfono de demostración (por confirmar).</p>
         </div>
         <div class="map-frame">
-          <iframe title="Mapa de Il Calabrese en Mérida" loading="lazy" src="${osm}"></iframe>
-          <div class="map-pin" aria-hidden="true"><span>Il Calabrese</span></div>
+          ${EMBED_MAP ? `<iframe title="Mapa de Il Calabrese en Mérida" loading="lazy" src="${osm}"></iframe>` : ''}
+          <a class="map-pin" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}">Il Calabrese · ver en Google Maps ↗</a>
         </div>
       </div>
     </div>
   </div>`;
+  // Sin iframe (página publicada en un entorno que no permite incrustar mapas): mapa ilustrado de Mérida.
+  if (!EMBED_MAP) {
+    const c = drawMap(900);
+    c.className = 'map-canvas';
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', 'Mapa ilustrado del centro de Mérida');
+    el.querySelector('.map-frame').prepend(c);
+  }
   return {};
 }
