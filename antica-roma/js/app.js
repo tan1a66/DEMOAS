@@ -51,22 +51,22 @@
 
   /* ---------- datos de la escena ---------- */
   const ZONES = [
-    { id: 'roma', src: 'assets/zones/roma.webp', alt: 'assets/sea.webp', tone: 'linear-gradient(#7a5236,#5a3a26)',
+    { id: 'roma', src: 'assets/roma.webp', tone: 'linear-gradient(#7a5236,#5a3a26)',
       cap: { k: 'Italia · 41.890° N', t: 'Roma', s: 'Il Colosseo · punto de partida' } },
     { id: 'tirreno', src: 'assets/sea.webp',
       cap: { k: 'Costa del Lazio', t: 'Mar Tirreno', s: 'Rumbo al oeste, con la carta a bordo' } },
     { id: 'med', src: 'assets/zones/ocean.webp', alt: 'assets/sea.webp', crop: 'top',
       cap: { k: 'Entre Italia y España', t: 'Mediterráneo', s: 'Pecorino, guanciale y pasta en la bodega' } },
-    { id: 'atl', src: 'assets/zones/ocean.webp', alt: 'assets/sea.webp', flip: true, crop: 'top',
+    { id: 'atl', src: 'assets/atlantic.webp', alt: 'assets/zones/ocean.webp',
       cap: { k: 'Sobre las nubes', t: 'Océano Atlántico', s: '9,411 km de sabor' } },
-    { id: 'yuc', src: 'assets/zones/yucatan.webp', alt: 'assets/sea.webp', flipY: true,
+    { id: 'yuc', src: 'assets/yucatan.webp', alt: 'assets/zones/yucatan.webp',
       cap: { k: 'México', t: 'Península de Yucatán', s: 'Mar Caribe · selva maya' } },
     { id: 'mer', src: 'assets/monumento.webp',
       cap: { k: 'Mérida · 20.997° N', t: 'Monumento a la Patria', s: 'Paseo de Montejo · aterrizamos' } },
   ];
   const N = ZONES.length;
   const ZONE_ASPECT = 2304 / 1286;
-  const ROMA = Object.assign({ cx: 0.6, cy: 0.44, park: { x: 0.6, y: 0.83 } }, AR.romaMeta || {});
+  const ROMA = { cx: 0.507, cy: 0.455, park: { x: 0.665, y: 0.79 }, heroShift: 0.075 }; // Colosseo e viale (via di San Gregorio) in roma.webp
   const MONUMENT = { x: 0.5, y: 0.455 };
 
   const TD = AR.tableData || null; // manifest de la mesa (js/table-data.js) — opcional
@@ -153,7 +153,7 @@
   waits.push(track(planeShadow));
 
   /* nubes */
-  const cloudSrc = (i) => `assets/zones/cloud-${(i % 6) + 1}.webp`;
+  const cloudSrc = (i) => `assets/zones/rc-${(i % 7) + 1}.webp`; // nubes reales recortadas de atlantic.webp
   const clouds = [];
   (function buildClouds() {
     const r = rng(7);
@@ -371,7 +371,9 @@
     const zoom = 1 + 4.2 * E.inQuad(dv);
     const O = [vw / 2, vh / 2 + (MONUMENT.y - 0.5) * G.ZH]; // centro del monumento en pantalla al final del viaje
     const toScreenZoom = (x, y) => [O[0] + (x - O[0]) * zoom, O[1] + (y - O[1]) * zoom];
-    world.style.transform = `translate(${O[0]}px,${O[1]}px) scale(${zoom}) translate(${-O[0]}px,${-O[1]}px) translate(${G.worldLeft}px,${camTY}px)`;
+    // en el hero el Coliseo se desplaza a la derecha para dejar sitio al título
+    const wx = G.worldLeft + (G.portrait ? 0 : Math.min(ROMA.heroShift * vw, (G.ZW - vw) / 2 - 2) * (1 - E.inOutSine(seg(p, 0.03, 0.17))));
+    world.style.transform = `translate(${O[0]}px,${O[1]}px) scale(${zoom}) translate(${-O[0]}px,${-O[1]}px) translate(${wx.toFixed(2)}px,${camTY.toFixed(2)}px)`;
     const wBlur = (zoom - 1) * 1.5;
     world.style.filter = wBlur > 0.05 ? `blur(${wBlur.toFixed(2)}px)` : 'none';
     const worldO = 1 - E.inOutCubic(seg(p, T.worldFade[0], T.worldFade[1]));
@@ -381,7 +383,7 @@
     ground.style.transform = `translate3d(${(-S.tiltX * 16 * tiltK).toFixed(2)}px,${(-S.tiltY * 10 * tiltK).toFixed(2)}px,0) rotateX(${(-S.tiltY * 2.4 * tiltK).toFixed(3)}deg) rotateY(${(S.tiltX * 2.8 * tiltK).toFixed(3)}deg)`;
 
     // zona → pantalla (sin zoom)
-    const zoneToScreen = (k, nx, ny) => [G.worldLeft + nx * G.ZW, zoneEls[k].top + ny * G.ZH + camTY];
+    const zoneToScreen = (k, nx, ny) => [wx + nx * G.ZW, zoneEls[k].top + ny * G.ZH + camTY];
 
     /* --- nubes --- */
     const zf = c * (N - 1); // posición del viaje en "zonas"
@@ -441,7 +443,7 @@
     }
     // en tierra (Roma): el morro sigue al cursor
     const parked = 1 - seg(tk, 0, 0.35);
-    const yawT = parked * clamp(Math.atan2(mouse.sx - park[0], -(mouse.sy - park[1])) * 57.3, -28, 28) * (mouse.moved ? 1 : 0);
+    const yawT = parked * clamp(Math.atan2(mouse.sx - park[0], -(mouse.sy - park[1])) * 57.3, -16, 16) * (mouse.moved ? 1 : 0);
     S.yaw = damp(S.yaw, yawT, 3, dt);
     rot = S.yaw + S.bank * 0.55 * (1 - ap);
     const roll = 1 - Math.abs(S.bank) / 120;
@@ -532,7 +534,7 @@
     const pc = toScreenZoom(px, py);
     ings.forEach((g) => {
       if (!showIng || p < g.start) { if (g.vis !== false) { g.el.style.display = 'none'; g.vis = false; } return; }
-      if (g.vis !== true) { g.el.style.display = 'block'; g.vis = true; }
+      if (g.vis !== true) { g.el.style.display = g.isCard ? 'flex' : 'block'; g.vis = true; }
       const u = seg(p, g.start, g.start + T.flyDur);
       const [bx, by] = tableToScreen(g.it.cx, g.it.cy);
       const [ex, ey] = tf(bx, by);
