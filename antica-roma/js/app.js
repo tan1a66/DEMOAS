@@ -226,7 +226,9 @@
       n.alt = ''; n.draggable = false; n.src = 'assets/table/' + it.src;
       n.style.zIndex = String(10 + (it.z || 0));
       waits.push(track(n));
-      ings.push({ it, el: n, i, ang: 0, spin: (r() < 0.5 ? -1 : 1) * (140 + r() * 260), jx: (r() - 0.5) * 0.5, jy: (r() - 0.5) * 0.8,
+      // ingredientes cortados por el borde de la foto: entran deslizando desde fuera de la pantalla
+      const bx = it.box, ox = (bx.x < 0.004 ? -1 : 0) + (bx.x + bx.w > 0.996 ? 1 : 0), oy = (bx.y < 0.004 ? -1 : 0) + (bx.y + bx.h > 0.996 ? 1 : 0);
+      ings.push({ it, el: n, i, ang: 0, edge: ox !== 0 || oy !== 0, out: [ox, oy], spin: (r() < 0.5 ? -1 : 1) * (140 + r() * 260), jx: (r() - 0.5) * 0.5, jy: (r() - 0.5) * 0.8,
         dir: 0, reach: 0.35 + r() * 0.35, ox: 0, oy: 0, vx: 0, vy: 0, ro: 0, vr: 0, start: 0 });
     });
     // orden de salida: del centro hacia fuera, alternando lados
@@ -237,7 +239,7 @@
   // tarjeta con el nombre del restaurante (también cae del avión)
   const card = el('div', 'ing place-card', ingLayer);
   card.innerHTML = '<svg viewBox="0 0 64 40" aria-hidden="true"><use href="#ico-laurel"/></svg><b>Antica Roma</b><span>Cucina romana · Mérida</span>';
-  const cardSpec = { it: { cx: 0.493, cy: 0.128, box: { x: 0.388, y: 0.06, w: 0.21, h: 0.136 } }, el: card, i: 99, spin: -24, jx: 0, jy: 0,
+  const cardSpec = { it: { cx: 0.512, cy: 0.118, box: { x: 0.427, y: 0.063, w: 0.17, h: 0.11 } }, el: card, i: 99, spin: -24, jx: 0, jy: 0,
     dir: -Math.PI / 2, reach: 0.25, ox: 0, oy: 0, vx: 0, vy: 0, ro: 0, vr: 0, start: T.burst + 0.03, isCard: true };
   ings.push(cardSpec);
 
@@ -290,7 +292,7 @@
       const bx = g.it.box;
       g.w = bx.w * TW; g.h = bx.h * TH;
       g.el.style.width = g.w + 'px'; g.el.style.height = g.h + 'px';
-      if (g.isCard) g.el.style.fontSize = (g.w / 17) + 'px';
+      if (g.isCard) g.el.style.fontSize = (g.w / 15) + 'px';
     });
   }
   // imagen de la mesa (coords normalizadas) → pantalla, antes del encuadre de transición
@@ -561,11 +563,19 @@
       const reach = g.reach * Math.min(vw, vh);
       const c1x = s0x + Math.cos(g.dir) * reach, c1y = s0y + Math.sin(g.dir) * reach - reach * 0.35;
       const e = E.inOutSine(u);
-      const ix = (1 - e) * (1 - e) * s0x + 2 * (1 - e) * e * c1x + e * e * ex;
-      const iy = (1 - e) * (1 - e) * s0y + 2 * (1 - e) * e * c1y + e * e * ey;
+      let ix = (1 - e) * (1 - e) * s0x + 2 * (1 - e) * e * c1x + e * e * ex;
+      let iy = (1 - e) * (1 - e) * s0y + 2 * (1 - e) * e * c1y + e * e * ey;
       const bump = Math.sin(Math.PI * seg(u, 0.84, 1));
-      const scale = lerp(0.1, 1, E.inCubic(Math.min(1, u / 0.86))) * tk2 * (1 + bump * 0.07);
+      let scale = lerp(0.1, 1, E.inCubic(Math.min(1, u / 0.86))) * tk2 * (1 + bump * 0.07);
       let rotI = g.spin * (1 - E.outCubic(u)) + (G.portrait ? 90 : 0);
+      if (g.edge) {
+        let [ox, oy] = g.out;
+        if (G.portrait) [ox, oy] = [-oy, ox];
+        const k = 1 - E.outCubic(u), far = Math.max(vw, vh) * 0.55;
+        ix = ex + ox * far * k; iy = ey + oy * far * k;
+        scale = tk2 * (1 + bump * 0.04);
+        rotI = g.spin * 0.08 * k + (G.portrait ? 90 : 0);
+      }
       // física: el cursor empuja los ingredientes posados
       const landed = u >= 1;
       if (landed && !S.modalOpen) {
@@ -588,7 +598,7 @@
       const disp = Math.hypot(g.ox, g.oy);
       const x = ix + g.ox + par[0] * 0.8, y = iy + g.oy + par[1] * 0.8;
       g.el.style.transform = `translate3d(${(x - g.w / 2).toFixed(1)}px,${(y - g.h / 2).toFixed(1)}px,0) rotate(${(rotI + g.ro).toFixed(2)}deg) scale(${scale.toFixed(4)})`;
-      g.el.style.opacity = String(seg(u, 0, 0.06));
+      g.el.style.opacity = String(g.edge ? 1 : seg(u, 0, 0.06));
       const air = 1 - E.outCubic(u) + disp / 160;
       const sh = 3 + air * 26, bl = 3 + air * 20;
       g.el.style.filter = `drop-shadow(${(sh * 0.55).toFixed(1)}px ${sh.toFixed(1)}px ${bl.toFixed(1)}px rgba(48,8,8,${(0.42 - air * 0.12).toFixed(2)}))`;
