@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Il Calabrese — Pizzería italiana en Mérida</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="gl" aria-label="Escena 3D de Il Calabrese"></canvas>
+      <div id="labels"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <!-- Intro: textos del vuelo -->
+      <section class="story" id="story" aria-live="polite">
+        <p class="story-kicker" id="story-kicker"></p>
+        <h1 class="story-title" id="story-title"></h1>
+        <p class="story-sub" id="story-sub"></p>
+      </section>
+      <div class="flight-hud" id="flight-hud" aria-hidden="true">
+        <span>CALABRIA</span>
+        <div class="flight-bar"><i id="flight-fill"></i><b id="flight-plane">✈</b></div>
+        <span>MÉRIDA</span>
+        <em id="flight-km">0 km</em>
+      </div>
+      <button class="skip" id="skip" type="button">Saltar intro ›</button>
+
+      <!-- Mesa -->
+      <header class="topbar" id="topbar">
+        <a class="logo" href="#" id="logo">
+          <span class="logo-il">Il</span> Calabrese
+          <small>Pizzería italiana · Mérida</small>
+        </a>
+        <nav class="topnav">
+          <button type="button" data-open="menu">Menú</button>
+          <button type="button" data-open="reservar">Reservar</button>
+          <button type="button" data-open="ubicacion">Ubicación</button>
+        </nav>
+      </header>
+      <p class="table-hint" id="table-hint">Toca un plato para empezar</p>
+      <button class="replay" id="replay" type="button" title="Ver de nuevo el viaje">✈ De Calabria a Mérida</button>
+
+      <!-- Páginas -->
+      <section class="page page-menu" id="page-menu" aria-hidden="true"></section>
+      <section class="page page-reservar" id="page-reservar" aria-hidden="true"></section>
+      <section class="page page-ubicacion" id="page-ubicacion" aria-hidden="true"></section>
+
+      <div class="fade" id="fade" aria-hidden="true"></div>
+
+      <div id="loader" class="loader">
+        <div class="loader-inner">
+          <div class="flag" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="loader-logo"><span>Il</span> Calabrese</div>
+          <p class="loader-tag">Pizza napoletana con alma calabresa · Mérida, Yucatán</p>
+          <div class="bar"><span id="bar-fill"></span></div>
+          <p class="loader-step" id="loader-step">Preparando el horno…</p>
+          <button class="enter" id="enter" type="button">Entrar</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
