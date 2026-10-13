@@ -39,13 +39,14 @@ class Film {
   async step() {
     await this.page.evaluate((ms) => window.__arTick(ms), 1000 / FPS);
     const t = this.t;
-    if (t >= FROM && t <= TO) {
+    if (t >= FROM - 1e-9 && t < TO - 1e-9) {
       const { data } = await this.cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 93, optimizeForSpeed: true, captureBeyondViewport: false });
       const buf = Buffer.from(data, 'base64');
       if (!this.ff.stdin.write(buf)) await new Promise((r) => this.ff.stdin.once('drain', r));
     }
     this.frame++;
     if (this.frame % (FPS * 5) === 0) process.stdout.write(`  ${this.t.toFixed(1)}s\n`);
+    if (this.t >= TO) throw new Error('__SEGMENT_DONE__'); // fine della finestra: inutile proseguire
   }
   // anima scroll e/o mouse insieme per `dur` secondi
   async play(dur, { scroll, mouse, e = 'inOut', me, se } = {}) {
@@ -99,7 +100,7 @@ class Film {
   const f = new Film(page, cdp, ff);
   const scene = require('./scene.cjs');
   const t0 = Date.now();
-  await scene(f, { W, H, ease });
+  try { await scene(f, { W, H, ease }); } catch (e) { if (!String(e && e.message).includes('__SEGMENT_DONE__')) throw e; }
   ff.stdin.end();
   await new Promise((r) => ff.on('close', r));
   console.log(`frames: ${f.frame} (${f.t.toFixed(1)}s) in ${((Date.now() - t0) / 1000).toFixed(0)}s → ${OUT}`);

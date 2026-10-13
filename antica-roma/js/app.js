@@ -332,6 +332,23 @@
   $('#brand').addEventListener('click', (e) => { e.preventDefault(); scrollTo({ top: 0, behavior: AR.rec ? 'auto' : 'smooth' }); });
   $('#replay').addEventListener('click', () => scrollTo({ top: 0, behavior: AR.rec ? 'auto' : 'smooth' }));
 
+  /* ---------- música (Vivaldi, La Primavera — dominio público) ---------- */
+  const soundBtn = $('#sound'), bars = [...soundBtn.querySelectorAll('i')];
+  let audio = null, soundOn = false, soundLvl = 0;
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.setAttribute('aria-pressed', String(soundOn));
+    if (soundOn) {
+      if (!audio) { audio = new Audio('assets/audio/primavera.m4a'); audio.loop = true; audio.volume = 0; }
+      audio.play().catch(() => { soundOn = false; });
+    }
+  });
+  hooks.push((dt, t) => {
+    soundLvl = damp(soundLvl, soundOn ? 1 : 0, 3, dt);
+    if (audio) { audio.volume = clamp(soundLvl * 0.55, 0, 1); if (!soundOn && soundLvl < 0.01 && !audio.paused) audio.pause(); }
+    bars.forEach((b, i) => { const h = 4 + soundLvl * (6 + 8 * Math.abs(Math.sin(t * (5 + i * 1.7) + i))); b.style.height = h.toFixed(1) + 'px'; });
+  });
+
   /* ---------- fotograma ---------- */
   function frame(dt) {
     dt = clamp(dt, 0, 0.1);

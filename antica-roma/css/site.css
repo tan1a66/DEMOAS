@@ -137,6 +137,8 @@ img { display: block; }
   color: var(--crema); text-shadow: 0 1px 10px rgba(0,0,0,.5); padding: 10px 4px;
 }
 .top-link:hover { color: var(--oro-2); }
+.top-sound { display: inline-flex; align-items: flex-end; gap: 3px; height: 34px; padding: 8px 6px; }
+.top-sound i { display: block; width: 3px; height: 4px; border-radius: 2px; background: var(--crema); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
 .top-pill {
   display: inline-flex; align-items: center; gap: 10px;
   padding: 11px 20px 11px 16px; border-radius: 999px;
