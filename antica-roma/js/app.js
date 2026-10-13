@@ -91,14 +91,15 @@
     takeoff: [0.045, 0.165],
     cruise: [0.07, 0.745],
     approach: [0.705, 0.795],
-    burst: 0.8,
-    dive: [0.812, 0.93],
-    worldFade: [0.858, 0.9],
-    tableIn: [0.852, 0.9],
-    match: [0.852, 0.952],
-    flyDur: 0.1,
-    labels: 0.935,
-    ui: [0.962, 0.99],
+    burst: 0.798,
+    burstStep: 0.0034,
+    dive: [0.842, 0.94],
+    worldFade: [0.874, 0.912],
+    tableIn: [0.868, 0.912],
+    match: [0.868, 0.962],
+    flyDur: 0.118,
+    labels: 0.952,
+    ui: [0.972, 0.995],
   };
 
   /* ---------- DOM ---------- */
@@ -230,7 +231,7 @@
     });
     // orden de salida: del centro hacia fuera, alternando lados
     const order = ings.map((g, i) => ({ i, d: Math.abs(g.it.cx - 0.5) + Math.abs(g.it.cy - 0.5) * 0.4 })).sort((a, b) => a.d - b.d);
-    order.forEach((o, k) => { ings[o.i].start = T.burst + k * 0.0042; });
+    order.forEach((o, k) => { ings[o.i].start = T.burst + k * T.burstStep; });
     ings.forEach((g) => { g.dir = Math.atan2(g.it.cy - 0.5, g.it.cx - 0.5); });
   }
   // tarjeta con el nombre del restaurante (también cae del avión)
@@ -396,7 +397,7 @@
     const worldO = 1 - E.inOutCubic(seg(p, T.worldFade[0], T.worldFade[1]));
     world.style.opacity = String(worldO);
     ground.style.display = worldO <= 0.001 ? 'none' : 'block';
-    const tiltK = 1 - seg(p, 0.8, 0.86);
+    const tiltK = 1 - seg(p, 0.82, 0.88);
     ground.style.transform = `translate3d(${(-S.tiltX * 16 * tiltK).toFixed(2)}px,${(-S.tiltY * 10 * tiltK).toFixed(2)}px,0) rotateX(${(-S.tiltY * 2.4 * tiltK).toFixed(3)}deg) rotateY(${(S.tiltX * 2.8 * tiltK).toFixed(3)}deg)`;
 
     // zona → pantalla (sin zoom)
@@ -470,7 +471,7 @@
     // con la inmersión el avión se queda en el suelo
     const [zx, zy] = toScreenZoom(px, py);
     const zs = ps * zoom;
-    const planeO = 1 - seg(p, 0.83, 0.868);
+    const planeO = 1 - seg(p, 0.858, 0.885);
     const pw = G.planeW, ph = G.planeH;
     plane.style.transform = `translate3d(${(zx - pw / 2).toFixed(1)}px,${(zy - ph / 2).toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg) scale(${(zs * roll).toFixed(4)},${zs.toFixed(4)})`;
     plane.style.opacity = String(planeO);
@@ -501,7 +502,7 @@
     table.style.filter = tBlur > 0.05 ? `blur(${tBlur.toFixed(2)}px)` : 'none';
 
     /* --- platos --- */
-    const live = p > 0.975 && !S.modalOpen;
+    const live = p > 0.978 && !S.modalOpen;
     let hoverIdx = -1;
     plates.forEach((pl, i) => {
       const [bx, by] = tableToScreen(pl.pd.cx, pl.pd.cy);
@@ -525,14 +526,14 @@
         pl.body.style.backgroundSize = `${TWk}px ${THk}px`;
         pl.body.style.backgroundPosition = `${-(pl.pd.cx * TWk - d / 2)}px ${-(pl.pd.cy * THk - d / 2)}px`;
       }
-      pl.b.style.opacity = String(tIn);
+      pl.b.style.opacity = String(Math.pow(tIn, 3));
       pl.b.style.transform = `translate3d(${(cx2 - d / 2).toFixed(1)}px,${(cy2 - d / 2 - lift).toFixed(1)}px,0) perspective(${(d * 3).toFixed(0)}px) rotateX(${pl.tx.toFixed(2)}deg) rotateY(${pl.ty.toFixed(2)}deg) scale(${sc.toFixed(4)})`;
       pl.b.classList.toggle('live', live);
       pl.b.tabIndex = live ? 0 : -1;
       // sombra en la mesa
       const sd = d * (1.02 + pl.hover * 0.06);
       pl.shadow.style.width = pl.shadow.style.height = sd + 'px';
-      pl.shadow.style.opacity = String(tIn * (0.55 + pl.hover * 0.25));
+      pl.shadow.style.opacity = String(Math.pow(tIn, 3) * (0.55 + pl.hover * 0.25));
       pl.shadow.style.transform = `translate3d(${(cx2 - sd / 2 + d * 0.025 + lift * 0.5).toFixed(1)}px,${(cy2 - sd / 2 + d * 0.04 + lift * 0.9).toFixed(1)}px,0)`;
       pl.shadow.style.filter = `blur(${(d * 0.025 + lift * 0.8).toFixed(1)}px)`;
       // brillo que sigue al cursor
@@ -649,8 +650,8 @@
       `radial-gradient(circle at ${lx}px ${ly}px, rgba(255,196,120,${candleA}) 0, rgba(255,170,90,${(0.16 * tPhase).toFixed(3)}) ${Math.round(Math.max(vw, vh) * 0.14)}px, rgba(0,0,0,0) ${Math.round(Math.max(vw, vh) * 0.34)}px)`;
     tableGlow.style.background = `radial-gradient(circle at ${((mouse.sx / vw) * 100).toFixed(1)}% ${((mouse.sy / vh) * 100).toFixed(1)}%, rgba(255,236,200,${(0.25 * tPhase).toFixed(3)}), rgba(40,10,0,${(0.22 * tPhase).toFixed(3)}) 70%)`;
     fxVig.style.opacity = String(0.85 + tPhase * 0.35);
-    const flash = Math.sin(Math.PI * seg(p, 0.862, 0.905));
-    fxFlash.style.opacity = String((flash * 0.22).toFixed(3));
+    const flash = Math.sin(Math.PI * seg(p, 0.864, 0.902));
+    fxFlash.style.opacity = String((flash * 0.42).toFixed(3));
     fxFlash.style.display = flash > 0.001 ? 'block' : 'none';
     const gs = Math.floor(t * 24);
     fxGrain.style.backgroundPosition = `${(gs * 37) % 220}px ${(gs * 71) % 220}px`;
@@ -694,6 +695,7 @@
   if (AR.rec) {
     window.__arTick = (ms) => frame(ms / 1000);
     window.__arSkipIntro = () => { S.readyAt = AR.time - 3; S.intro = 1; };
+    window.__arMouse = (x, y) => { mouse.x = x; mouse.y = y; mouse.moved = true; }; // avance rápido sin eventos reales
   } else {
     let last = performance.now();
     const loop = (now) => { frame((now - last) / 1000); last = now; requestAnimationFrame(loop); };

@@ -18,13 +18,17 @@ module.exports = async function scene(f, { W, H }) {
   await f.play(5.0, { scroll: 0.33, mouse: [[W * 0.32, H * 0.42], [W * 0.18, H * 0.5]], se: 'lin', me: 'sine' });
   await f.play(5.0, { scroll: 0.49, mouse: [[W * 0.45, H * 0.3], [W * 0.8, H * 0.4]], se: 'lin', me: 'sine' });
   await f.play(4.6, { scroll: 0.62, mouse: [[W * 0.86, H * 0.55], [W * 0.6, H * 0.35]], se: 'lin', me: 'sine' });
+  f.mark('safe');
   // 4 — Yucatán e avvicinamento a Mérida
   await f.play(4.0, { scroll: 0.71, mouse: [[W * 0.5, H * 0.42]], se: 'out', me: 'sine' });
   await f.play(3.4, { scroll: 0.8, mouse: [[W * 0.56, H * 0.3]], se: 'inOut', me: 'sine' });
   await f.wait(0.5);
   // 5 — gli ingredienti cadono dall'aereo, tuffo nel monumento → tavola
-  await f.play(5.6, { scroll: 1.0, mouse: [[W * 0.52, H * 0.22]], se: 'sine', me: 'sine' });
+  await f.play(2.8, { scroll: 0.862, mouse: [[W * 0.55, H * 0.34]], se: 'lin', me: 'sine' }); // gli ingredienti escono dall'aereo
+  await f.play(3.2, { scroll: 0.966, mouse: [[W * 0.52, H * 0.24]], se: 'sine', me: 'sine' });  // tuffo nel monumento → piatto
+  await f.play(1.6, { scroll: 1.0, se: 'out' });
   await f.wait(0.8);
+  f.mark('safe');
   // 6 — il cursore sposta gli ingredienti e accende la luce sulla tovaglia
   await f.play(2.2, { mouse: [[W * 0.2, H * 0.14], [W * 0.08, H * 0.2], [W * 0.18, H * 0.84]], e: 'sine' });
   await f.play(2.2, { mouse: [[W * 0.36, H * 0.92], [W * 0.5, H * 0.84], [W * 0.62, H * 0.9]], e: 'sine' });
@@ -62,6 +66,7 @@ module.exports = async function scene(f, { W, H }) {
   await f.key('Escape');
   await f.wait(1.0);
 
+  f.mark('safe');
   // 9 — RESERVA AHORA: modulo WhatsApp
   await f.moveTo(P('reserva'), 1.0);
   await f.wait(0.3);
@@ -96,6 +101,7 @@ module.exports = async function scene(f, { W, H }) {
   await f.key('Escape');
   await f.wait(1.0);
 
+  f.mark('safe');
   // 11 — MÁS DE NUESTRA HISTORIA
   await f.moveTo(P('historia'), 1.0);
   await f.wait(0.3);

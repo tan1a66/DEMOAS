@@ -12,6 +12,7 @@ const OUT = args[0] && !args[0].startsWith('--') ? args[0] : path.resolve(__dirn
 const FPS = +opt('fps', 60);
 const FROM = +opt('from', 0), TO = +opt('to', 1e9); // finestra (secondi) da esportare: utile per anteprime veloci
 const SCALE = +opt('scale', 1);
+const DRY = args.includes('--dry'); // nessuna cattura: stampa solo i punti di taglio (mark)
 const W = 1920, H = 1080;
 
 const ease = {
@@ -32,6 +33,8 @@ function spline(pts, t) {
 class Film {
   constructor(page, cdp, ff) { this.page = page; this.cdp = cdp; this.ff = ff; this.frame = 0; this.mouse = [W * 0.6, H * 0.45]; this.p = 0; this.down = false; }
   get t() { return this.frame / FPS; }
+  get fast() { return DRY || this.t < FROM - 1e-9; } // prima della finestra: avanzamento rapido senza eventi reali
+  mark(name) { if (DRY) console.log(`MARK ${name} ${this.t.toFixed(3)}`); }
   async setScroll(p) {
     this.p = p;
     await this.page.evaluate((p) => { const max = document.documentElement.scrollHeight - innerHeight; window.scrollTo(0, p * max); }, p);
@@ -39,7 +42,7 @@ class Film {
   async step() {
     await this.page.evaluate((ms) => window.__arTick(ms), 1000 / FPS);
     const t = this.t;
-    if (t >= FROM - 1e-9 && t < TO - 1e-9) {
+    if (!DRY && t >= FROM - 1e-9 && t < TO - 1e-9) {
       const { data } = await this.cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 93, optimizeForSpeed: true, captureBeyondViewport: false });
       const buf = Buffer.from(data, 'base64');
       if (!this.ff.stdin.write(buf)) await new Promise((r) => this.ff.stdin.once('drain', r));
@@ -59,13 +62,15 @@ class Film {
       if (path) {
         const [x, y] = spline(path, ease[me || e](u));
         this.mouse = [x, y];
-        await this.page.mouse.move(x, y);
+        if (this.fast) await this.page.evaluate(([x, y]) => window.__arMouse(x, y), [x, y]);
+        else await this.page.mouse.move(x, y);
       }
       await this.step();
     }
   }
   async wait(dur) { await this.play(dur, {}); }
   async click(hold = 0.08) {
+    await this.page.mouse.move(this.mouse[0], this.mouse[1]);
     await this.page.mouse.down(); await this.play(hold, {});
     await this.page.mouse.up();
   }
@@ -93,7 +98,7 @@ class Film {
   await page.goto('file://' + path.resolve(__dirname, '../index.html') + '?rec');
   await page.evaluate(() => window.__arReady);
   const cdp = await page.context().newCDPSession(page);
-  const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
+  const ff = DRY ? { stdin: { write: () => true, end: () => {} }, on: (e, cb) => cb() } : spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     '-vf', `scale=${W}:${H}:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-profile:v', 'high',
     '-movflags', '+faststart', OUT], { stdio: ['pipe', 'inherit', 'inherit'] });
 
