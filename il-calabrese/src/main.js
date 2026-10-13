@@ -8,10 +8,12 @@ const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
 const mobile = matchMedia('(pointer: coarse)').matches || innerWidth < 800;
 const quality = mobile ? 0.5 : 1;
+// ?lite: mesa sin vidrio con transmisión ni sombras grandes (grabación de video con render por software).
+const tableQuality = params.has('lite') ? 0.5 : quality;
 
 const canvas = $('#gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.6 : 2));
+renderer.setPixelRatio(params.has('pr') ? +params.get('pr') : Math.min(devicePixelRatio, mobile ? 1.6 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.95;
@@ -183,11 +185,11 @@ function frame() {
     hud.plane.style.left = `${u * 100}%`;
     hud.km.textContent = `${Math.round(u * globe.routeKm).toLocaleString('es-MX')} km`;
     if (gt >= globe.T.end) endIntro();
-    renderer.render(globe.scene, globe.camera);
+    if (!window.__skipRender) renderer.render(globe.scene, globe.camera);
   } else if (mode === 'table' && !(current && !busy)) {
     // Con una página abierta la mesa queda tapada: no se renderiza (ahorra batería en móvil).
     table.update(dt, t);
-    renderer.render(table.scene, table.camera);
+    if (!window.__skipRender) renderer.render(table.scene, table.camera);
     const w = innerWidth;
     const h = innerHeight;
     const lp = table.labelPositions(w, h);
@@ -252,7 +254,7 @@ $('#logo').addEventListener('click', (e) => {
   await progress(20, 'Dibujando las costas de Italia y Yucatán…');
   globe = createGlobe({ quality });
   await progress(55, 'Poniendo el mantel…');
-  table = createTable(renderer, { quality });
+  table = createTable(renderer, { quality: tableQuality });
   buildLabels();
   setupPages();
   await progress(75, 'Encendiendo el horno de leña…');
