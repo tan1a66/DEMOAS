@@ -28,3 +28,16 @@ Parámetros útiles: `?auto` (arranca sin pulsar "Entrar"), `?mesa` (salta la in
 - `src/data/pizzas.js`: carta, precios y fotos (las fotos son de Unsplash como marcador; si no cargan,
   se dibuja la pizza automáticamente).
 - `src/data/world.json`: generado con `npm run geo -- land.geojson borders.geojson` (ver script).
+
+## Video de la demo (≈40 s, 1080p)
+Grabación fotograma a fotograma con reloj virtual (sale fluida aunque el render sea por software):
+```bash
+npm run build:artifact
+mkdir -p /tmp/rec && python3 scripts/video/build-page.py /tmp/rec/index.html
+(cd /tmp/rec && python3 -m http.server 5191 &)
+export PW=$(npm root -g)/playwright W=1280 H=720 DPR=1.5 LITE=1 PR=1
+node scripts/video/capture.cjs A /tmp/rec/fA &   # loader + vuelo + llegada a la mesa
+node scripts/video/capture.cjs B /tmp/rec/fB     # mesa, menú, reserva, ubicación, cierre
+# unir fA + fB numerados en orden en /tmp/rec/all y codificar (acelerado 1.2x):
+ffmpeg -framerate 30 -i /tmp/rec/all/%05d.jpg -vf "setpts=PTS/1.2,fps=30" -c:v libx264 -crf 20 -pix_fmt yuv420p -movflags +faststart demo.mp4
+```
