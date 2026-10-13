@@ -465,14 +465,14 @@ export function createTable(renderer, { quality = 1 } = {}) {
     camera.fov = portrait ? 50 : 38;
     // Retrato: platos en diagonal y cámara más cenital para que quepan los tres.
     const pts = portrait
-      ? [[-0.16, -0.3], [0.14, 0.04], [-0.12, 0.38]]
+      ? [[-0.11, -0.34], [0.11, 0.02], [-0.11, 0.38]]
       : PLATES.map((p) => [p.x, p.z]);
     plates.forEach((p, i) => {
       p.x = pts[i][0];
       p.z = pts[i][1];
       p.group.position.set(p.x, 0, p.z);
     });
-    const dist = portrait ? 1.5 + (0.85 - aspect) * 0.9 : Math.max(1.25, 1.95 / aspect);
+    const dist = portrait ? 2.0 + (0.85 - aspect) * 1.6 : Math.max(1.35, 2.1 / aspect);
     HOME.pos.set(0, dist * 0.8, dist * 0.55 + (portrait ? 0.25 : 0));
     HOME.target.set(0, -0.02, portrait ? 0.06 : -0.02);
     camera.updateProjectionMatrix();

@@ -184,7 +184,8 @@ function frame() {
     hud.km.textContent = `${Math.round(u * globe.routeKm).toLocaleString('es-MX')} km`;
     if (gt >= globe.T.end) endIntro();
     renderer.render(globe.scene, globe.camera);
-  } else if (mode === 'table') {
+  } else if (mode === 'table' && !(current && !busy)) {
+    // Con una página abierta la mesa queda tapada: no se renderiza (ahorra batería en móvil).
     table.update(dt, t);
     renderer.render(table.scene, table.camera);
     const w = innerWidth;
@@ -267,6 +268,7 @@ $('#logo').addEventListener('click', (e) => {
     } else startIntro();
   };
   enter.addEventListener('click', go, { once: true });
+  if (params.has('debug')) gsap.ticker.lagSmoothing(0);
   if (params.has('debug')) window.__demo = { globe, table, openPage, closePage, endIntro };
   if (params.has('auto') || params.has('mesa')) go();
 })();
