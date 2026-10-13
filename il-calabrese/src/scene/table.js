@@ -529,9 +529,17 @@ export function createTable(renderer, { quality = 1 } = {}) {
     });
   }
 
+  // Centro de un plato en píxeles de pantalla (para guiar un cursor en la grabación del video).
+  function plateScreen(i, w, h) {
+    const p = plates[i];
+    const v = new THREE.Vector3(p.x, 0.02, p.z).project(camera);
+    return { x: (v.x * 0.5 + 0.5) * w, y: (-v.y * 0.5 + 0.5) * h };
+  }
+
   return {
     scene,
     camera,
+    plateScreen,
     update,
     layout,
     view,

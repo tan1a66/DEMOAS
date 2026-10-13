@@ -190,9 +190,14 @@ function frame() {
     renderer.render(table.scene, table.camera);
     const w = innerWidth;
     const h = innerHeight;
-    table.labelPositions(w, h).forEach((l, i) => {
+    const lp = table.labelPositions(w, h);
+    // Si los platos quedan juntos en pantalla, las etiquetas se encogen para no pisarse.
+    const gap = Math.min(...lp.slice(1).map((l, i) => Math.hypot(l.x - lp[i].x, (l.y - lp[i].y) * 2.2)));
+    const fit = Math.min(1, gap / 175);
+    lp.forEach((l, i) => {
       const el = labelEls[i];
-      el.style.transform = `translate(${l.x}px, ${l.y}px) translate(-50%, 0) scale(${1 + l.hover * 0.06})`;
+      el.style.transform = `translate(${l.x}px, ${l.y}px) translate(-50%, 0) scale(${(1 + l.hover * 0.06) * fit})`;
+      el.style.transformOrigin = '50% 0';
       el.classList.toggle('hover', l.hover > 0.5);
     });
   }
