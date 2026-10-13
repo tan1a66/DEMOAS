@@ -472,7 +472,7 @@ export function createTable(renderer, { quality = 1 } = {}) {
       p.z = pts[i][1];
       p.group.position.set(p.x, 0, p.z);
     });
-    const dist = portrait ? 2.0 + (0.85 - aspect) * 1.6 : Math.max(1.35, 2.1 / aspect);
+    const dist = portrait ? 2.0 + (0.85 - aspect) * 1.6 : Math.max(1.6, 2.6 / aspect);
     HOME.pos.set(0, dist * 0.8, dist * 0.55 + (portrait ? 0.25 : 0));
     HOME.target.set(0, -0.02, portrait ? 0.06 : -0.02);
     camera.updateProjectionMatrix();
