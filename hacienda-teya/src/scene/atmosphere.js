@@ -189,12 +189,12 @@ export function createDust(count) {
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
         float dist = -mv.z;
-        gl_PointSize = aSize * uPixelRatio * (16.0 / dist) * (1.0 + smoothstep(2.5, 0.8, dist) * 2.0);
+        gl_PointSize = aSize * uPixelRatio * (16.0 / dist) * (1.0 + smoothstep(2.5, 0.8, dist) * 0.6);
         // controluce: più brillante guardando verso il sole
         vec3 view = normalize(p - cameraPosition);
         float fwd = pow(max(0.0, dot(view, uSunDir)), 3.0);
         float twinkle = 0.65 + 0.35 * sin(uTime * (1.0 + aSeed * 2.0) + aSeed * 40.0);
-        vAlpha = (0.12 + 1.1 * fwd) * twinkle * smoothstep(0.4, 1.4, dist) * smoothstep(0.0, 0.5, p.y) * smoothstep(4.2, 3.4, p.y);
+        vAlpha = (0.12 + 1.1 * fwd) * twinkle * smoothstep(1.0, 2.6, dist) * smoothstep(0.0, 0.5, p.y) * smoothstep(4.2, 3.4, p.y);
       }`,
     fragmentShader: /* glsl */ `
       uniform float uOpacity; uniform vec3 uColor;

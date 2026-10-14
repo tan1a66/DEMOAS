@@ -191,7 +191,11 @@ export class Embroidery {
     this.disposeStitches();
     const em = place.scale;
     const r = THREAD.radius * em;
-    const Ln = NEEDLE_LENGTH;
+    // la spina resta in proporzione con la scritta (su mobile la scritta è più piccola)
+    const needleScale = THREE.MathUtils.clamp(em / 0.54, 0.55, 1.2);
+    const Ln = NEEDLE_LENGTH * needleScale;
+    this.needle.scale.setScalar(needleScale);
+    this.Ln = Ln;
     this.place = place;
     this.em = em;
     this.r = r;
@@ -351,7 +355,9 @@ export class Embroidery {
     let raw = 0;
     const rawArr = new Float32Array(tip.length);
     for (let i = fEnd + 1; i < tip.length; i++) {
-      const v = lerp(1, 7.5, tip[i].lam);
+      // dietro il lino l'ago non si vede: lì va più veloce, così il tempo resta ai tratti visibili
+      const behind = tip[i].p.z < -0.01 ? 2.4 : 1;
+      const v = lerp(1, 7.5, tip[i].lam) * behind;
       raw += (sArr[i] - sArr[i - 1]) / v;
       rawArr[i] = raw;
     }
@@ -502,6 +508,12 @@ export class Embroidery {
     return out.set(p.x + this.origin.x, p.y + this.origin.y, p.z + z + this.origin.z);
   }
 
+  // primo foro (mondo, senza vento): serve alla camera per il primo piano
+  firstHoleWorld() {
+    const ev = this.events[0];
+    return V3(ev.pos.x + this.origin.x, ev.pos.y + this.origin.y, this.origin.z);
+  }
+
   holeWorld(k, windT, zOff, out) {
     const ev = this.events[k];
     const z = fabricWave(ev.pos.x / this.em, ev.pos.y / this.em, windT) * this.em;
@@ -516,7 +528,7 @@ export class Embroidery {
   update(t, dt, windT) {
     if (!this.tip) return;
     this.uniforms.uIntroTime.value = t;
-    const Ln = NEEDLE_LENGTH;
+    const Ln = this.Ln;
     const r = this.r;
 
     // posa dell'ago

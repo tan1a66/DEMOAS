@@ -132,6 +132,7 @@ function buildBand() {
   bandHolder.position.copy(place.band.origin);
   bandHolder.add(band.group);
   embroidery.build(place, agave.group.localToWorld(agave.heart.clone()));
+  computeShots();
 }
 
 // "Desde 1683" e il pulsante stanno subito sotto la fascia di lino
@@ -155,7 +156,6 @@ const state = {
   light: 0, // 0 buio → 1 luce dorata piena
   open: 0, // apertura della pianta
   fabric: 0, // luce radente sul lino
-  dolly: 0, // 0 posa iniziale → 1 posa finale
 };
 
 function applyState() {
@@ -189,7 +189,6 @@ const intro = gsap.timeline({ paused: true, onComplete: finishIntro });
 intro
   .to(state, { light: 1, duration: 1.6, ease: 'power2.inOut' }, 0)
   .to(state, { open: 1, duration: INTRO.openPlant, ease: 'power2.out' }, 0.05)
-  .to(state, { dolly: 1, duration: 5, ease: 'power2.out' }, 0)
   .to(state, { fabric: 1, duration: 1.3, ease: 'power2.inOut' }, 0.3)
   .fromTo(ui.lines, { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: 'power3.out' }, INTRO.subtitleAt)
   .fromTo(ui.since, { opacity: 0, y: 8, letterSpacing: '0.42em' }, { opacity: 1, y: 0, letterSpacing: '0.18em', duration: 0.9, ease: 'power3.out' }, INTRO.subtitleAt)
@@ -213,20 +212,65 @@ ui.skip.addEventListener('click', () => {
 const clock = new THREE.Clock();
 let worldTime = 0;
 const sunView = new THREE.Vector3();
-const camStart = new THREE.Vector3();
+// ── Regia della camera ───────────────────────────────────────────────────────
+// 0–0,75 s   inquadratura larga sulla pianta che si accende
+// 0,75–1,6 s segue la spina che sale e si avvicina al lino, dove nasce la "H"
+// 1,6–2,4 s  primo piano: si vedono trama, ago e filo che attraversano i fori
+// 2,4–4,15 s si allontana mentre il time-lapse completa il nome → posa finale
+const shot = {
+  startPos: new THREE.Vector3(),
+  startTarget: new THREE.Vector3(),
+  closePos: new THREE.Vector3(),
+  closeTarget: new THREE.Vector3(),
+};
+const CAM = { push: 0.75, close: 1.6, hold: 2.4, rest: 4.15 };
 
+function computeShots() {
+  shot.startPos.copy(rest.pos).add(new THREE.Vector3(0.18, -0.22, -0.9));
+  shot.startTarget.copy(rest.target);
+  // primo piano: un po' a destra del primo foro (lì corrono i primi punti),
+  // visto da sinistra e dal basso perché la luce radente mostri il rilievo
+  const em = place.scale;
+  shot.closeTarget.copy(embroidery.firstHoleWorld()).add(new THREE.Vector3(0.28 * em, -0.06 * em, 0));
+  shot.closePos.copy(shot.closeTarget).add(new THREE.Vector3(-0.55 * em, -0.3 * em, 3.3 * em));
+}
+
+const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const _p = new THREE.Vector3();
+const _t = new THREE.Vector3();
+
+function cameraPose(t, pos, target) {
+  const clamp01 = (x) => Math.min(1, Math.max(0, x));
+  if (t < CAM.push) {
+    const k = 1 - Math.pow(1 - t / CAM.push, 2);
+    pos.copy(shot.startPos).add(_p.set(0, 0.06 * k, -0.15 * k));
+    target.copy(shot.startTarget).add(_t.set(0, 0.12 * k, 0));
+  } else if (t < CAM.close) {
+    const k = easeInOut(clamp01((t - CAM.push) / (CAM.close - CAM.push)));
+    pos.copy(shot.startPos).add(_p.set(0, 0.06, -0.15)).lerp(shot.closePos, k);
+    target.copy(shot.startTarget).add(_t.set(0, 0.12, 0)).lerp(shot.closeTarget, k);
+  } else if (t < CAM.hold) {
+    // leggera deriva in avanti: il primo piano respira
+    const k = (t - CAM.close) / (CAM.hold - CAM.close);
+    pos.copy(shot.closePos).add(_p.set(0.05 * k * place.scale, 0, -0.12 * k * place.scale));
+    target.copy(shot.closeTarget);
+  } else {
+    const k = easeInOut(clamp01((t - CAM.hold) / (CAM.rest - CAM.hold)));
+    pos.copy(shot.closePos).add(_p.set(0.05 * place.scale, 0, -0.12 * place.scale)).lerp(rest.pos, k);
+    target.copy(shot.closeTarget).lerp(rest.target, k);
+  }
+}
+
+const camTarget = new THREE.Vector3();
 function updateCamera(dt) {
-  // carrellata d'apertura: parte un po' più vicina e bassa, poi si assesta
-  const d = state.dolly;
-  camStart.copy(rest.pos).add(new THREE.Vector3(0.18, -0.22, -0.9));
-  camera.position.lerpVectors(camStart, rest.pos, d);
-  // parallax
+  cameraPose(intro.time(), camera.position, camTarget);
+  // parallax col mouse
   const k = 1 - Math.exp(-dt * 3);
   pointer.sx += (pointer.x - pointer.sx) * k;
   pointer.sy += (pointer.y - pointer.sy) * k;
   camera.position.x += pointer.sx * 0.22;
   camera.position.y += -pointer.sy * 0.1;
-  camera.lookAt(rest.target);
+  camera.lookAt(camTarget);
 }
 
 function frame(dt, render = true) {

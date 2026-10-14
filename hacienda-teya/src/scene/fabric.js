@@ -142,7 +142,7 @@ export function createLinenBand({ width, height, scale, pitch, quality, uniforms
           float cover = max(warp, weft);
           // anti-aliasing: fili più piccoli di un pixel → valore medio
           float fw = max(fwidth(q.x), fwidth(q.y));
-          float aa = smoothstep(0.3, 0.75, fw);
+          float aa = smoothstep(0.16, 0.42, fw); // presto: evita il moiré mentre la camera si allontana
           h = mix(h, 0.46, aa);
           cover = mix(cover, 0.86, aa);
           gWeaveH = h;
