@@ -65,8 +65,8 @@ export function CorteHero() {
 
     // Entrada desde la oscuridad del umbral.
     const presencia = suave(h, 0.5, 1.02);
-    // Disolución hacia el mapa de Orígenes.
-    const disolver = rm ? 0 : suave(h, 1.86, 2.17);
+    // Nace de sus vetas mientras se apaga el fuego del umbral, y al final vuelve a ellas.
+    const disolver = rm ? 0 : Math.max(1 - suave(h, 0.52, 0.98), suave(h, 1.86, 2.17));
     material.uniforms.uDisolver.value = disolver;
     const apagar = rm ? 1 - suave(h, 1.86, 2.12) : 1;
 

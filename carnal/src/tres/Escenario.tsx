@@ -65,13 +65,13 @@ function Motor() {
 }
 
 export default function Escenario() {
-  const [montadas, setMontadas] = useState<string[]>(['corte']);
+  const [montadas, setMontadas] = useState<string[]>(['corte', 'fuego']);
 
   useEffect(
     () =>
       alCuadro((e) => {
         const faltan = Object.entries(VENTANAS)
-          .filter(([, [a, b]]) => e.historia > a - ANTICIPO && e.historia < b + 0.3)
+          .filter(([, tramos]) => tramos.some((t) => e.historia > t.desde - ANTICIPO && e.historia < t.hasta + 0.3))
           .map(([id]) => id);
         setMontadas((prev) => (faltan.every((id) => prev.includes(id)) ? prev : [...new Set([...prev, ...faltan])]));
       }),

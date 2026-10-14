@@ -55,14 +55,28 @@
     "lema": "Sin prisa. Entre carnales.",
     "texto": "El ritual Carnal, en su forma más íntima. Reserva el privado y disfruta un momento especial, sin prisa y en la intimidad de Carnal.",
     "invitacion": "Invitación",
-    "invitacionTexto": "Cuéntanos de tu velada. Te respondemos por WhatsApp para confirmar.",
+    "invitacionTexto": "Una mesa aparte, sin prisa. Cuéntanos de tu velada y te respondemos por WhatsApp para confirmar.",
+    "boton": "Reservar el privado"
+  },
+  "reserva": {
+    "titulo": "Reservar",
+    "bajada": "Tu lugar en el ritual.",
+    "texto": "Elige el día y la hora. Te respondemos por WhatsApp para confirmar.",
     "campos": {
       "nombre": "Nombre",
-      "fecha": "Fecha deseada",
+      "fecha": "Fecha",
+      "hora": "Hora",
       "personas": "Personas",
-      "ocasion": "Ocasión (opcional)"
+      "comentarios": "Ocasión o comentarios (opcional)"
     },
-    "boton": "Solicitar el privado"
+    "privado": {
+      "etiqueta": "En el privado",
+      "detalle": "El ritual Carnal, en su forma más íntima."
+    },
+    "si": "Sí",
+    "no": "No",
+    "boton": "Reservar por WhatsApp",
+    "cerrar": "Cerrar"
   },
   "final": {
     "titulo": "La mesa está servida.",
@@ -70,7 +84,7 @@
       "coleccion": "Ver la colección",
       "whatsapp": "Pedir por WhatsApp",
       "llegar": "Cómo llegar",
-      "privado": "Solicitar el privado",
+      "reservar": "Reservar",
       "instagram": "Instagram"
     },
     "pie": "Carne con origen. Ritual con intención."

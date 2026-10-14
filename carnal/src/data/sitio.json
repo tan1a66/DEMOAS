@@ -9,7 +9,12 @@
     "visible": "+52 999 000 0000",
     "mensajePedido": "Hola, Carnal. Me gustaría hacer un pedido.",
     "mensajeCorte": "Hola, Carnal. Me interesa el corte: {corte}.",
-    "mensajePrivado": "Hola, Carnal. Quisiera solicitar el privado.\n\nNombre: {nombre}\nFecha: {fecha}\nPersonas: {personas}\nOcasión: {ocasion}"
+    "mensajeReserva": "Hola, Carnal. Quisiera reservar.\n\nNombre: {nombre}\nFecha: {fecha}\nHora: {hora}\nPersonas: {personas}\nPrivado: {privado}\nComentarios: {comentarios}"
+  },
+  "reservas": {
+    "_nota": "PENDIENTE: horas que se ofrecen al reservar y máximo de personas (confirmar con el cliente).",
+    "horas": ["12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "17:00", "17:30", "18:00", "18:30", "19:00"],
+    "personasMax": 12
   },
   "instagram": {
     "_nota": "PENDIENTE: usuario y enlace reales.",

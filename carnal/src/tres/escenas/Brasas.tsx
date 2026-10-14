@@ -1,10 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { createPortal, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { env } from '../../lib/env';
 import { estado } from '../../lib/scroll';
-import { azar } from '../../lib/mate';
-import { presencia } from '../director';
+import { amortigua, azar } from '../../lib/mate';
+import { presencia, presente } from '../director';
 import { RUIDO } from '../glsl/ruido';
 import { LUZ_ADITIVA } from '../mezclas';
 import { usarToma } from '../usarToma';
@@ -15,7 +15,6 @@ function materialLecho() {
     uniforms: {
       uTiempo: { value: 0 },
       uFuego: { value: 0 },
-      uFondo: { value: new THREE.Color('#0e0c0b') },
       uMovimiento: { value: env.movimientoReducido ? 0 : 1 },
     },
     vertexShader: /* glsl */ `
@@ -28,7 +27,6 @@ function materialLecho() {
     fragmentShader: /* glsl */ `
       uniform float uTiempo;
       uniform float uFuego;
-      uniform vec3 uFondo;
       uniform float uMovimiento;
       varying vec3 vMundo;
       ${RUIDO}
@@ -71,11 +69,14 @@ function materialLecho() {
         // Se pierde en la oscuridad hacia el fondo y a los lados.
         float borde = smoothstep(4.0, 1.2, abs(vMundo.x)) * smoothstep(-3.0, -0.9, vMundo.z) * smoothstep(1.6, 0.6, vMundo.z);
         col *= borde;
-        col = mix(uFondo, col, uFuego * borde);
-        gl_FragColor = vec4(col, 1.0);
+        // Transparente donde se apaga: deja ver el fondo de la página (y, en el umbral, el corte
+        // que entra por encima).
+        gl_FragColor = vec4(col, uFuego * borde);
         #include <colorspace_fragment>
       }`,
     toneMapped: false,
+    transparent: true,
+    depthWrite: false,
   });
 }
 
@@ -155,9 +156,14 @@ function materialHumo() {
   });
 }
 
-/** 5 · El fuego: brasas, calor y humo. Sin clichés de parrilla: solo la luz del carbón. */
+/**
+ * 5 · El fuego: brasas, calor y humo. Sin clichés de parrilla: solo la luz del carbón.
+ * También es el fondo del umbral (escena 1): ahí se enciende poco a poco al cargar.
+ */
 export default function Brasas() {
-  const { escena, camara, aspecto } = usarToma('fuego', 2, 34);
+  // Orden -1: en el umbral, el corte del hero se dibuja encima mientras el fuego se apaga.
+  const { escena, camara, aspecto } = usarToma('fuego', -1, 34);
+  const encendido = useRef(0);
   const alta = env.calidad === 'alta';
   const lecho = useMemo(materialLecho, []);
   const humo = useMemo(materialHumo, []);
@@ -170,9 +176,10 @@ export default function Brasas() {
   }, [chispas]);
 
   useFrame(() => {
-    const h = estado.historia;
-    if (h < 3.9 || h > 5.1) return;
-    const fuego = presencia('fuego', 0.08, 0.06);
+    if (!presente('fuego')) return;
+    // Al abrir el sitio las brasas se encienden en unos segundos, mientras se dibujan las vetas.
+    encendido.current = env.movimientoReducido ? 1 : amortigua(encendido.current, 1, 1.1, estado.dt);
+    const fuego = presencia('fuego', 0.08, 0.06) * (estado.historia < 1.5 ? encendido.current : 1);
     const t = estado.tiempo;
     for (const m of [lecho, humo, chispas.m]) {
       m.uniforms.uTiempo.value = env.movimientoReducido ? 0 : t;
@@ -185,9 +192,9 @@ export default function Brasas() {
 
   return createPortal(
     <>
-      <mesh geometry={geoLecho} material={lecho} />
-      <points geometry={chispas.g} material={chispas.m} frustumCulled={false} />
-      <mesh geometry={geoHumo} material={humo} position={[0, 1.4, -1.4]} />
+      <mesh geometry={geoHumo} material={humo} position={[0, 1.4, -1.4]} renderOrder={0} />
+      <mesh geometry={geoLecho} material={lecho} renderOrder={1} />
+      <points geometry={chispas.g} material={chispas.m} frustumCulled={false} renderOrder={2} />
     </>,
     escena,
   );

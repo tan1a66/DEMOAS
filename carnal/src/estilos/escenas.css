@@ -244,6 +244,14 @@
 .vetas__trazo--3 {
   opacity: 0.3;
 }
+.umbral__fondo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 100%;
+}
 .umbral__frase-scroll {
   display: grid;
   place-items: center;
@@ -950,6 +958,152 @@
     repeating-linear-gradient(90deg, #1a0520 0, #3a0f3f 1.6%, #4d1a52 2.3%, #2a0a30 3.4%, #1a0520 4.6%);
 }
 
+/* ═════════════════════════ Reservar (diálogo) ═════════════════════════ */
+.reserva {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--marfil);
+  width: min(31rem, calc(100vw - 2 * var(--margen)));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.reserva::backdrop {
+  background: rgb(8 6 6 / 0.82);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+.reserva[open] {
+  animation: reserva-entra 0.8s var(--lento);
+}
+.rm .reserva[open] {
+  animation: none;
+}
+@keyframes reserva-entra {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.reserva__tarjeta {
+  background: #140f10;
+  padding: 50px 30px 32px;
+  transition: background-color 0.8s var(--lento);
+}
+.reserva__tarjeta--privado {
+  background: #170d16;
+}
+.reserva__cerrar {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--marfil-50);
+  cursor: pointer;
+  transition: color 0.4s;
+}
+.reserva__cerrar:hover,
+.reserva__cerrar:focus-visible {
+  color: var(--brasa);
+}
+.reserva__titulo {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: clamp(42px, 6vw, 58px);
+}
+.reserva__bajada {
+  margin: -2px 0 0;
+  text-align: center;
+  font-size: 22px;
+  color: var(--marfil-70);
+}
+.reserva .invitacion__texto {
+  text-align: center;
+}
+.invitacion__fila--tres {
+  grid-template-columns: minmax(0, 1fr) 5.6rem 5rem;
+}
+/* La opción del privado: un interruptor discreto que tiñe la invitación de terciopelo. */
+.opcion-privado {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  box-shadow: inset 0 0 0 1px var(--marfil-10);
+  cursor: pointer;
+  transition: background 0.8s var(--lento), box-shadow 0.8s var(--lento);
+}
+.opcion-privado input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.opcion-privado:has(input:focus-visible) {
+  outline: 1px solid var(--oro);
+  outline-offset: 3px;
+}
+.opcion-privado__interruptor {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px var(--marfil-20);
+  transition: background-color 0.5s var(--lento), box-shadow 0.5s;
+}
+.opcion-privado__interruptor::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--marfil-50);
+  transition: transform 0.5s var(--lento), background-color 0.5s;
+}
+.opcion-privado input:checked + .opcion-privado__interruptor {
+  background: var(--morado);
+  box-shadow: inset 0 0 0 1px rgb(160 90 160 / 0.45);
+}
+.opcion-privado input:checked + .opcion-privado__interruptor::after {
+  transform: translateX(16px);
+  background: var(--marfil);
+}
+.reserva__tarjeta--privado .opcion-privado {
+  background: linear-gradient(90deg, rgb(58 15 63 / 0.55), rgb(58 15 63 / 0.15));
+  box-shadow: inset 0 0 0 1px rgb(160 90 160 / 0.3);
+}
+.opcion-privado__texto {
+  display: grid;
+  gap: 2px;
+}
+.opcion-privado__etiqueta {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.opcion-privado__detalle {
+  font-size: 12.5px;
+  color: var(--marfil-50);
+}
+@media (max-width: 760px) {
+  .reserva__tarjeta {
+    padding: 46px 18px 22px;
+  }
+  .invitacion__fila--tres {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .invitacion__fila--tres .campo:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ═════════════════════════ 8 · La mesa servida ═════════════════════════ */
 .seccion.seccion--final {
   margin-top: 0;
@@ -1258,7 +1412,7 @@
 
 @media (max-width: 760px) and (max-height: 720px) {
   .privado__texto,
-  .invitacion__texto {
+  .privado__contenido .invitacion__texto {
     display: none;
   }
   .privado__lema {

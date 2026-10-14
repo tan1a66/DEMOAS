@@ -4,6 +4,7 @@ import { textos } from '../data';
 import { env } from '../lib/env';
 import { desaparece } from '../lib/coreografia';
 import { Vetas } from '../ui/Vetas';
+import estaticos from '../ui/estaticos';
 import { Seccion, type Coreografia } from './Seccion';
 
 // Con el scroll, el umbral se disuelve hacia arriba mientras la luz del hero sube.
@@ -11,11 +12,12 @@ const coreografia: Coreografia = (tl, q) => {
   desaparece(tl, q('.umbral__vetas-scroll'), 0.15, 0.6, { y: -80, scale: 1.06 });
   desaparece(tl, q('.umbral__frase-scroll'), 0.2, 0.45, { y: -50 });
   desaparece(tl, q('.umbral__desliza-scroll'), 0.02, 0.15, {});
+  if (!env.webgl) desaparece(tl, q('.umbral__fondo'), 0.3, 0.5, {});
 };
 
 /**
- * 1 · Umbral. Negro total; las vetas del marmoleo se dibujan como líneas finas color marfil
- * (es el loader) y aparece una sola frase.
+ * 1 · Umbral. Las vetas del marmoleo se dibujan como líneas finas color marfil (es el loader)
+ * mientras se encienden las brasas del fondo (la misma toma 3D de "El fuego"); luego, una frase.
  */
 export function Umbral({ listo, onVetasDibujadas }: { listo: boolean; onVetasDibujadas: () => void }) {
   const vetas = useRef<SVGSVGElement>(null);
@@ -55,7 +57,8 @@ export function Umbral({ listo, onVetasDibujadas }: { listo: boolean; onVetasDib
         { autoAlpha: 1, y: 0, filter: 'blur(0px)', duration: 1.6, ease: 'power2.out', stagger: 0.12 },
       );
       gsap.fromTo(desliza.current, { autoAlpha: 0 }, { autoAlpha: 1, duration: 1.2, delay: 1.6 });
-      gsap.to(vetas.current, { opacity: 0.32, duration: 2.4, ease: 'power1.inOut' });
+      // Las vetas fueron la espera; ahora el protagonista es el fuego.
+      gsap.to(vetas.current, { opacity: 0.12, duration: 2.8, ease: 'power1.inOut' });
     });
     return () => ctx.revert();
   }, [listo]);
@@ -68,6 +71,7 @@ export function Umbral({ listo, onVetasDibujadas }: { listo: boolean; onVetasDib
       coreografia={coreografia}
       encima={
         <div className="umbral">
+          {!env.webgl && estaticos.fuego && <img className="umbral__fondo" src={estaticos.fuego} alt="" />}
           <div className="umbral__vetas-scroll">
             <Vetas ref={vetas} semilla={11} troncos={10} className="umbral__vetas" />
           </div>

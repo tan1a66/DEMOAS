@@ -36,23 +36,28 @@ mármol, brasas, piedra caliza y terciopelo son shaders.
 
 | # | Escena | DOM | 3D |
 |---|--------|-----|----|
-| 1 | Umbral | `escenas/Umbral.tsx`: vetas SVG procedurales que se dibujan (es el loader) y la frase | — |
+| 1 | Umbral | `escenas/Umbral.tsx`: vetas SVG procedurales que se dibujan (es el loader) y la frase | Las brasas de "El fuego" se encienden de fondo; el corte del hero nace de sus vetas mientras se apagan |
 | 2 | El corte | `escenas/Corte.tsx`: wordmark **detrás** del corte, frases | `tres/escenas/CorteHero.tsx`: wagyu con marmoleo (Worley + fbm), una luz lateral que lo recorre; al final se disuelve y quedan las vetas como líneas de luz |
 | 3 | Orígenes | `escenas/Origenes.tsx` + `ui/Mapa.tsx`: mapa de puntos (Pacífico al centro), rutas que viajan a Mérida, 3 capítulos | — |
 | 4 | La Colección | `escenas/Coleccion.tsx`: ficha técnica en monospace | `tres/escenas/Rotonda.tsx`: columnas de mármol negro en círculo, vitrinas de cristal (transmisión), spot cenital fijo: el círculo gira y cada corte "entra en la luz" |
 | 5 | El fuego | `escenas/Fuego.tsx`: productos y tres reglas | `tres/escenas/Brasas.tsx`: lecho de brasas con distorsión térmica, brasas que suben, humo |
 | 6 | Visítanos | `escenas/Visitanos.tsx`: dirección, horarios, mapa de marcador | `tres/escenas/Fachada.tsx`: muro colonial de piedra caliza y estuco, portón con luz cálida, rejas, placa |
-| 7 | El privado | `escenas/Privado.tsx`: "Hay un lugar más.", invitación → WhatsApp | `tres/escenas/Cortina.tsx`: cortina de terciopelo morado que se abre con el scroll |
-| 8 | La mesa servida | `escenas/Final.tsx`: carta con los 5 botones | — |
+| 7 | El privado | `escenas/Privado.tsx`: "Hay un lugar más.", invitación "Reservar el privado" | `tres/escenas/Cortina.tsx`: cortina de terciopelo morado que se abre con el scroll |
+| 8 | La mesa servida | `escenas/Final.tsx`: carta con los 5 botones (colección, WhatsApp, cómo llegar, reservar, Instagram) | — |
+
+**Reservar** (`ui/Reserva.tsx`): una sola reserva para todo el sitio (nombre, fecha, hora, personas,
+comentarios) con la opción **En el privado**. Se abre desde la carta final, desde el privado (con la opción
+ya marcada) o con el enlace directo `/#reservar`, y se envía como mensaje de WhatsApp. Las horas y el máximo
+de personas están en `sitio.json → reservas`.
 
 Interfaz (`ui/Interfaz.tsx`): logo pequeño, línea fina de avance, botón discreto de WhatsApp siempre visible e
 "Ir al final" (salto con fundido a negro, sin atravesar todo el ritual). Enlaces directos: `/#final`,
-`/#coleccion`, `/#privado`, `/#visitanos`.
+`/#coleccion`, `/#privado`, `/#visitanos`, `/#reservar`.
 
 ## Datos editables (`src/data/`)
 
 - `sitio.json`: nombre, **WhatsApp** (número y plantillas de mensaje), **Instagram**, **dirección y
-  coordenadas**, **horarios**, textos SEO. De aquí salen también el `<title>`, Open Graph y los datos
+  coordenadas**, **horarios**, **horas de reserva**, textos SEO. De aquí salen también el `<title>`, Open Graph y los datos
   estructurados `schema.org/ButcherShop` del HTML estático (`seo.ts`).
 - `cortes.json`: la colección (nombre, origen, raza, grado, peso, notas, cocción). `forma` elige la
   geometría (`ribeye`, `striploin`, `tomahawk`, `picana`, `filete`) y `bms` la densidad del marmoleo en 3D.

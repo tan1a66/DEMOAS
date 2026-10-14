@@ -5,6 +5,7 @@ import { env } from '../lib/env';
 import { registrarSeccion } from '../lib/scroll';
 import { saltarA } from '../lib/navegacion';
 import { IconoInstagram, IconoWhatsApp } from '../ui/Iconos';
+import { abrirReserva } from '../ui/Reserva';
 
 const B = textos.final.botones;
 const romano = ['I', 'II', 'III', 'IV', 'V'];
@@ -36,17 +37,11 @@ export function Final() {
     };
   }, []);
 
-  const irPrivado = () => {
-    saltarA('privado', 0.9).then(() => {
-      document.querySelector<HTMLInputElement>('#invitacion input[name="nombre"]')?.focus({ preventScroll: true });
-    });
-  };
-
   const acciones = [
     { id: 'coleccion', texto: B.coleccion, onClick: () => saltarA('coleccion', 0.12) },
     { id: 'whatsapp', texto: B.whatsapp, href: whatsappUrl(), icono: <IconoWhatsApp tam={16} />, destacado: true },
     { id: 'llegar', texto: B.llegar, href: sitio.direccion.mapsUrl },
-    { id: 'privado', texto: B.privado, onClick: irPrivado },
+    { id: 'reservar', texto: B.reservar, onClick: () => abrirReserva() },
     { id: 'instagram', texto: B.instagram, href: sitio.instagram.url, icono: <IconoInstagram tam={15} /> },
   ];
 

@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { sitio, textos, whatsappUrl } from '../data';
+import { useEffect, useRef, useState } from 'react';
+import { textos } from '../data';
 import { aparece, desaparece } from '../lib/coreografia';
 import { env } from '../lib/env';
 import { alCuadro, progreso } from '../lib/scroll';
 import { PRIVADO } from '../lib/tiempos';
 import { Foto } from '../ui/Foto';
+import { abrirReserva } from '../ui/Reserva';
 import { Seccion, type Coreografia } from './Seccion';
 
 const coreografia: Coreografia = (tl, q) => {
@@ -33,17 +34,12 @@ const coreografia: Coreografia = (tl, q) => {
 
 const T = textos.privado;
 
-function hoy() {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-}
-
 /** 7 · El privado. Oscuridad, "Hay un lugar más.", la cortina de terciopelo y la invitación. */
 export function Privado() {
   const contenido = useRef<HTMLDivElement>(null);
   const [abierta, setAbierta] = useState(false);
 
-  // Mientras la cortina esté cerrada, el formulario no recibe foco.
+  // Mientras la cortina esté cerrada, la invitación no recibe foco.
   useEffect(() => {
     let ultimo = false;
     return alCuadro(() => {
@@ -54,22 +50,6 @@ export function Privado() {
       }
     });
   }, []);
-
-  function solicitar(ev: FormEvent<HTMLFormElement>) {
-    ev.preventDefault();
-    const f = new FormData(ev.currentTarget);
-    const fecha = String(f.get('fecha') || '');
-    const legible = fecha
-      ? new Date(`${fecha}T12:00:00`).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
-    const url = whatsappUrl(sitio.whatsapp.mensajePrivado, {
-      nombre: String(f.get('nombre') || '').trim(),
-      fecha: legible,
-      personas: String(f.get('personas') || ''),
-      ocasion: String(f.get('ocasion') || '').trim() || '—',
-    });
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
 
   return (
     <Seccion
@@ -88,39 +68,15 @@ export function Privado() {
               </p>
               <p className="privado__texto texto">{T.texto}</p>
 
-              <form id="invitacion" className="invitacion" onSubmit={solicitar}>
+              <div className="invitacion">
                 <p className="invitacion__encabezado mono">
                   <span className="filete" /> {T.invitacion} <span className="filete" />
                 </p>
                 <p className="invitacion__texto">{T.invitacionTexto}</p>
-                <label className="campo">
-                  <span className="mono">{T.campos.nombre}</span>
-                  <input name="nombre" required autoComplete="name" />
-                </label>
-                <div className="invitacion__fila">
-                  <label className="campo">
-                    <span className="mono">{T.campos.fecha}</span>
-                    <input name="fecha" type="date" required min={hoy()} />
-                  </label>
-                  <label className="campo campo--corto">
-                    <span className="mono">{T.campos.personas}</span>
-                    <select name="personas" defaultValue="2">
-                      {Array.from({ length: 11 }, (_, i) => i + 2).map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <label className="campo">
-                  <span className="mono">{T.campos.ocasion}</span>
-                  <input name="ocasion" autoComplete="off" />
-                </label>
-                <button type="submit" className="boton boton--brasa">
+                <button type="button" className="boton boton--brasa" onClick={() => abrirReserva({ privado: true })}>
                   {T.boton}
                 </button>
-              </form>
+              </div>
             </div>
           </div>
           {!env.webgl && (

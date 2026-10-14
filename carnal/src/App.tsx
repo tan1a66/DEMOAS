@@ -5,6 +5,7 @@ import { bloquearScroll, iniciarScroll, ORDEN, type SeccionId } from './lib/scro
 import { esperarCarga, marcarListo } from './lib/carga';
 import { saltarA } from './lib/navegacion';
 import { Interfaz } from './ui/Interfaz';
+import { abrirReserva, Reserva } from './ui/Reserva';
 import { Umbral } from './escenas/Umbral';
 import { Corte } from './escenas/Corte';
 import { Origenes } from './escenas/Origenes';
@@ -54,9 +55,10 @@ export function App() {
     setListo(true);
     bloquearScroll(false);
     ScrollTrigger.refresh();
-    // Enlaces directos (p. ej. desde Instagram): carnal.mx/#final
+    // Enlaces directos (p. ej. desde Instagram): …/#final, …/#reservar
     const destino = window.location.hash.slice(1) as SeccionId;
-    if (ORDEN.includes(destino) && destino !== 'umbral') saltarA(destino, destino === 'coleccion' ? 0.12 : 0);
+    if (window.location.hash === '#reservar') abrirReserva();
+    else if (ORDEN.includes(destino) && destino !== 'umbral') saltarA(destino, destino === 'coleccion' ? 0.12 : 0);
   }, [cargado, vetasDibujadas, listo]);
 
   const alDibujar = useCallback(() => setVetasDibujadas(true), []);
@@ -87,6 +89,7 @@ export function App() {
         <Final />
       </main>
       <Interfaz visible={listo} />
+      <Reserva />
       <div className="vineta" aria-hidden="true" />
       <div className="grano" aria-hidden="true" />
       <div className="velo" aria-hidden="true" />
