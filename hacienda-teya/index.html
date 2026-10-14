@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#160c08" />
+    <link rel="icon" href="data:," />
+    <title>Hacienda Teya · Desde 1683 · Mérida, Yucatán</title>
+    <meta
+      name="description"
+      content="Hacienda San Ildefonso Teya: un viaje culinario a través de la historia y la tradición yucateca. Restaurante, bodas y eventos a minutos de Mérida."
+    />
+  </head>
+  <body>
+    <!-- Scena 3D (henequén + filo) -->
+    <canvas id="gl" aria-hidden="true"></canvas>
+
+    <header class="topbar" id="topbar">
+      <a class="brand" href="#inicio" aria-label="Hacienda San Ildefonso Teya, inicio">
+        <span class="brand__small">Hacienda</span>
+        <span class="brand__name">San Ildefonso Teya</span>
+      </a>
+      <a class="topbar__cta" data-link="reservar" href="#" target="_blank" rel="noopener">Reservar</a>
+    </header>
+
+    <main>
+      <section class="hero" id="inicio" aria-label="Inicio">
+        <!-- Il nome lo scrive il filo in 3D; qui resta per lettori di schermo e motori di ricerca -->
+        <h1 class="sr-only">Hacienda Teya</h1>
+
+        <!-- Sotto la scritta 3D: la posizione arriva da main.js (--hero-text-bottom) -->
+        <p class="hero__since">
+          <span class="hero__line" aria-hidden="true"></span>
+          <span class="hero__since-text" data-since>Desde 1683</span>
+          <span class="hero__line" aria-hidden="true"></span>
+        </p>
+        <div class="hero__cta">
+          <a class="btn" id="ctaReservar" href="#" target="_blank" rel="noopener">Reservar mesa</a>
+        </div>
+
+        <p class="hero__caption" id="heroCaption">
+          Cocina yucateca <i aria-hidden="true">·</i> Bodas y eventos <i aria-hidden="true">·</i> Mérida, Yucatán
+        </p>
+
+        <div class="hero__scroll" id="scrollCue" aria-hidden="true">
+          <span>Desliza para entrar</span>
+          <span class="hero__scroll-thread"></span>
+        </div>
+      </section>
+    </main>
+
+    <button class="skip" id="skip" type="button">Saltar</button>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
