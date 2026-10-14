@@ -44,6 +44,8 @@ function Motor() {
     let antes = false;
     return alCuadro((e) => {
       const ahora = hayTomaPresente();
+      // Grabación de video: permite recorrer tramos ya grabados sin renderizar (mucho más rápido).
+      if (env.video && (window as unknown as { __sinRender?: boolean }).__sinRender) return;
       if (ahora || antes) advance(e.tiempo);
       antes = ahora;
       if (!ahora || e.dt > 0.25 || env.video) return;
@@ -96,12 +98,12 @@ export default function Escenario() {
         <Motor />
         <Director />
         <CorteHero />
-        <Suspense fallback={null}>
-          {montadas.includes('coleccion') && <Rotonda />}
-          {montadas.includes('fuego') && <Brasas />}
-          {montadas.includes('fachada') && <Fachada />}
-          {montadas.includes('cortina') && <Cortina />}
-        </Suspense>
+        {/* Un Suspense por toma: si compartieran uno, al descargarse la siguiente escena React
+            ocultaría las que ya están en pantalla (un parpadeo a negro en mitad del recorrido). */}
+        <Suspense fallback={null}>{montadas.includes('coleccion') && <Rotonda />}</Suspense>
+        <Suspense fallback={null}>{montadas.includes('fuego') && <Brasas />}</Suspense>
+        <Suspense fallback={null}>{montadas.includes('fachada') && <Fachada />}</Suspense>
+        <Suspense fallback={null}>{montadas.includes('cortina') && <Cortina />}</Suspense>
       </Canvas>
     </div>
   );

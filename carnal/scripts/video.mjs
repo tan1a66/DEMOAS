@@ -185,13 +185,15 @@ const mover = (hacia, t0, dur) => (trayecto = { desde: { ...cursor }, hacia, t0,
 
 const total = Math.round(DURACION * FPS);
 let reservaAbierta = false;
+let cursorEnCarta = false;
 let privadoMarcado = false;
 for (let n = 0; n < total; n++) {
   const t = n / FPS;
   const h = historia(t);
 
   // Guion del cursor en la carta final
-  if (t >= 34.3 && !cursor.on) {
+  if (t >= 34.3 && !cursorEnCarta) {
+    cursorEnCarta = true;
     cursor.on = true;
     const r = await pagina.evaluate(() => {
       const el = [...document.querySelectorAll('.carta__accion')].find((b) => /Reservar/.test(b.textContent));
@@ -210,24 +212,31 @@ for (let n = 0; n < total; n++) {
       document.body.appendChild(r);
       setTimeout(() => r.remove(), 700);
       [...document.querySelectorAll('.carta__accion')].find((b) => /Reservar/.test(b.textContent)).click();
+      // El diálogo modal está en la capa superior: el cursor (y luego el fundido) van dentro de él.
+      const d = document.querySelector('dialog.reserva');
+      d.appendChild(document.getElementById('vcursor'));
+      document.activeElement?.blur();
     }, [cursor.x, cursor.y]);
+    // mientras el diálogo entra (tiene transform), el cursor se oculta: fixed sería relativo a él
+    cursor.on = false;
   }
-  if (t >= 35.9 && reservaAbierta && !privadoMarcado && (!trayecto || trayecto.t1 < 35.9)) {
+  if (t >= 36.1 && reservaAbierta && !privadoMarcado) {
+    cursor.on = true;
     const r = await pagina.evaluate(() => {
       const q = document.querySelector('.opcion-privado__interruptor').getBoundingClientRect();
       return { x: q.left + q.width / 2, y: q.top + q.height / 2 };
     });
-    mover(r, 35.9, 0.7);
+    mover(r, 36.1, 0.6);
     privadoMarcado = 'yendo';
   }
-  if (t >= 36.7 && privadoMarcado === 'yendo') {
+  if (t >= 36.75 && privadoMarcado === 'yendo') {
     privadoMarcado = true;
     await pagina.evaluate(([x, y]) => {
       const r = document.createElement('div');
       r.className = 'vripple';
       r.style.left = x + 'px';
       r.style.top = y + 'px';
-      document.body.appendChild(r);
+      document.querySelector('dialog.reserva').appendChild(r);
       setTimeout(() => r.remove(), 700);
       document.querySelector('.opcion-privado').click();
     }, [cursor.x, cursor.y]);
@@ -237,20 +246,30 @@ for (let n = 0; n < total; n++) {
     cursor.x = trayecto.desde.x + (trayecto.hacia.x - trayecto.desde.x) * k;
     cursor.y = trayecto.desde.y + (trayecto.hacia.y - trayecto.desde.y) * k;
   }
-  // Fundido final a negro
-  const fundido = t >= 37.2;
+  // Fundido final a negro (dentro del diálogo, que está por encima de todo)
+  const fundido = suave((t - 37.2) / 0.7);
 
   await pagina.evaluate(
-    ([h, ms, c, fundido, dialogo]) => {
+    ([h, ms, c, fundido, dialogo, sinRender]) => {
+      window.__sinRender = sinRender;
       if (!dialogo) window.carnal.fijar(h);
-      document.querySelector('.velo').classList.toggle('velo--activo', fundido);
+      if (fundido > 0) {
+        let v = document.getElementById('vfundido');
+        if (!v) {
+          v = document.createElement('div');
+          v.id = 'vfundido';
+          v.style.cssText = 'position:fixed;inset:-50vh -50vw;background:#0E0C0B;z-index:200;pointer-events:none';
+          (document.querySelector('dialog[open]') || document.body).appendChild(v);
+        }
+        v.style.opacity = String(fundido);
+      }
       window.__reloj.avanzar(ms);
       const el = document.getElementById('vcursor');
       el.style.left = c.x + 'px';
       el.style.top = c.y + 'px';
       el.classList.toggle('on', c.on);
     },
-    [h, 1000 / FPS, cursor, fundido, reservaAbierta],
+    [h, 1000 / FPS, cursor, fundido, reservaAbierta, t < DESDE - 1.5],
   );
   if (t > HASTA) break;
   if (t < DESDE) continue;
