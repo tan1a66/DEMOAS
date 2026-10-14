@@ -1,0 +1,103 @@
+{
+  "_nota": "La Colección. Datos de EJEMPLO hasta recibir la lista real. Cada corte aparece en su vitrina, en este orden. 'forma' elige la geometría (ribeye, striploin, tomahawk, picana, filete). 'bms' (1–12, escala Beef Marbling Standard) controla la densidad del marmoleo en 3D; para USDA Prime se usa un equivalente aproximado. 'foto' es opcional (ruta en public/).",
+  "cortes": [
+    {
+      "id": "ribeye-a5",
+      "nombre": "Ribeye A5",
+      "origen": "japon",
+      "region": "Kagoshima, Japón",
+      "raza": "Kuroge Washu (negro japonés)",
+      "grado": "A5 · BMS 11",
+      "peso": "300 g",
+      "notas": "Mantequilla tostada, nuez, umami largo",
+      "coccion": "Láminas de 1 cm. Hierro muy caliente, 40 s por lado. Sal al final.",
+      "forma": "ribeye",
+      "bms": 11,
+      "foto": ""
+    },
+    {
+      "id": "new-york-a5",
+      "nombre": "New York A5",
+      "origen": "japon",
+      "region": "Miyazaki, Japón",
+      "raza": "Kuroge Washu (negro japonés)",
+      "grado": "A5 · BMS 10",
+      "peso": "250 g",
+      "notas": "Dulce, sedoso, se funde en la boca",
+      "coccion": "En cubos, sellado breve en piedra o hierro. Sin reposo largo.",
+      "forma": "striploin",
+      "bms": 10,
+      "foto": ""
+    },
+    {
+      "id": "tomahawk-wagyu",
+      "nombre": "Tomahawk Wagyu",
+      "origen": "australia",
+      "region": "Queensland, Australia",
+      "raza": "Wagyu F1 (Wagyu × Angus)",
+      "grado": "AUS-MEAT · BMS 8–9",
+      "peso": "1.4 kg",
+      "notas": "Profundo, a nuez y a brasa",
+      "coccion": "Fuego indirecto hasta 48 °C al centro; cierre a fuego directo. Reposo 10 min.",
+      "forma": "tomahawk",
+      "bms": 8,
+      "foto": ""
+    },
+    {
+      "id": "ribeye-prime",
+      "nombre": "Ribeye Prime",
+      "origen": "usa",
+      "region": "Nebraska, USA",
+      "raza": "Black Angus",
+      "grado": "USDA Prime",
+      "peso": "450 g",
+      "notas": "Clásico, mineral, final mantecoso",
+      "coccion": "Sella 3 min por lado y retira a 52 °C. Reposo 6 min.",
+      "forma": "ribeye",
+      "bms": 5,
+      "foto": ""
+    },
+    {
+      "id": "filete-a5",
+      "nombre": "Filete A5",
+      "origen": "japon",
+      "region": "Kagoshima, Japón",
+      "raza": "Kuroge Washu (negro japonés)",
+      "grado": "A5 · BMS 9",
+      "peso": "200 g",
+      "notas": "Delicado, limpio, casi floral",
+      "coccion": "Medallón grueso. Sellado suave por todos lados, centro a 50 °C.",
+      "forma": "filete",
+      "bms": 9,
+      "foto": ""
+    },
+    {
+      "id": "picana-wagyu",
+      "nombre": "Picaña Wagyu",
+      "origen": "australia",
+      "region": "Nueva Gales del Sur, Australia",
+      "raza": "Wagyu F1 (Wagyu × Angus)",
+      "grado": "AUS-MEAT · BMS 6–7",
+      "peso": "1.1 kg",
+      "notas": "Grasa dulce, carne firme y jugosa",
+      "coccion": "Grasa hacia el fuego primero. Rebanadas gruesas contra la fibra.",
+      "forma": "picana",
+      "bms": 6,
+      "foto": ""
+    },
+    {
+      "id": "new-york-prime",
+      "nombre": "New York Prime",
+      "origen": "usa",
+      "region": "Kansas, USA",
+      "raza": "Black Angus",
+      "grado": "USDA Prime",
+      "peso": "400 g",
+      "notas": "Firme, intenso, borde de grasa crujiente",
+      "coccion": "El borde de grasa a la plancha primero; luego 3 min por lado.",
+      "forma": "striploin",
+      "bms": 5,
+      "foto": ""
+    }
+  ]
+}

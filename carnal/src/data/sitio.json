@@ -1,0 +1,45 @@
+{
+  "_nota": "Datos del negocio. Todo lo marcado como PENDIENTE es de ejemplo y debe sustituirse antes de publicar.",
+  "nombre": "CARNAL",
+  "tipo": "Carnicería boutique",
+  "ciudad": "Mérida, Yucatán",
+  "whatsapp": {
+    "_nota": "PENDIENTE: número real en formato internacional sin '+' ni espacios (México: 52 + 10 dígitos).",
+    "numero": "520000000000",
+    "visible": "+52 999 000 0000",
+    "mensajePedido": "Hola, Carnal. Me gustaría hacer un pedido.",
+    "mensajeCorte": "Hola, Carnal. Me interesa el corte: {corte}.",
+    "mensajePrivado": "Hola, Carnal. Quisiera solicitar el privado.\n\nNombre: {nombre}\nFecha: {fecha}\nPersonas: {personas}\nOcasión: {ocasion}"
+  },
+  "instagram": {
+    "_nota": "PENDIENTE: usuario y enlace reales.",
+    "usuario": "@carnal",
+    "url": "https://www.instagram.com/"
+  },
+  "direccion": {
+    "_nota": "PENDIENTE: dirección, coordenadas y enlace de mapas reales.",
+    "calle": "Calle 00 #000 × 00 y 00",
+    "colonia": "Centro",
+    "ciudad": "Mérida",
+    "estado": "Yucatán",
+    "cp": "97000",
+    "pais": "MX",
+    "referencia": "Puerta de piedra, sin letrero grande.",
+    "lat": 20.9674,
+    "lng": -89.6237,
+    "mapsUrl": "https://www.google.com/maps/search/?api=1&query=20.9674,-89.6237"
+  },
+  "horarios": [
+    { "dias": "Martes a sábado", "horas": "11:00 – 20:00", "schema": { "dias": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "abre": "11:00", "cierra": "20:00" } },
+    { "dias": "Domingo", "horas": "11:00 – 16:00", "schema": { "dias": ["Sunday"], "abre": "11:00", "cierra": "16:00" } },
+    { "dias": "Lunes", "horas": "Cerrado" }
+  ],
+  "seo": {
+    "_nota": "PENDIENTE: dominio definitivo (url) e imagen para redes (og.jpg en public/).",
+    "titulo": "CARNAL — Carnicería boutique en Mérida · Cortes de Japón, USA y Australia",
+    "descripcion": "Los mejores cortes de Mérida en una sola carnicería. Wagyu A5 de Japón, USDA Prime de USA y Wagyu de Australia, elegidos por su calidad, marmoleo y sabor. Cortes premium para llevar a casa y un privado para el ritual más íntimo.",
+    "url": "https://carnal.example/",
+    "imagen": "og.jpg",
+    "precio": "$$$$"
+  }
+}

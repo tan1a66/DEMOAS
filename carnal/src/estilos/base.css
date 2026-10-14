@@ -1,0 +1,224 @@
+/* ───────────────────────── Paleta y tipografía ───────────────────────── */
+:root {
+  --carbon: #0e0c0b; /* fondo: negro cálido, nunca negro puro */
+  --oxblood: #4a1212; /* detalles, sangre oxidada */
+  --marfil: #ede4d3; /* texto, blanco del marmoleo */
+  --brasa: #c2532b; /* acento: CTA y hover, muy poco */
+  --oro: #a8875a; /* solo líneas finas y números */
+  --morado: #3a0f3f; /* terciopelo del privado */
+
+  --marfil-70: rgb(237 228 211 / 0.7);
+  --marfil-50: rgb(237 228 211 / 0.5);
+  --marfil-20: rgb(237 228 211 / 0.2);
+  --marfil-10: rgb(237 228 211 / 0.1);
+  --oro-50: rgb(168 135 90 / 0.5);
+  --oro-25: rgb(168 135 90 / 0.25);
+
+  /* Display: Cormorant Garamond como marcador; previsto Editorial New o Canela con licencia. */
+  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --jp: 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif JP', 'Noto Serif CJK JP', serif;
+
+  --margen: clamp(16px, 4.5vw, 64px);
+  --lento: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --pantalla: 100vh;
+}
+@supports (height: 1lvh) {
+  :root { --pantalla: 100lvh; }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--carbon);
+  color: var(--marfil);
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html.bloqueado,
+html.bloqueado body {
+  overflow: hidden;
+}
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--carbon);
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--oxblood);
+  color: var(--marfil);
+}
+
+a {
+  color: inherit;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 1px solid var(--oro);
+  outline-offset: 4px;
+}
+
+.solo-lector {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ───────────────────────── Tipos ───────────────────────── */
+.display {
+  font-family: var(--serif);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+}
+.display em,
+.cursiva {
+  font-style: italic;
+}
+.mono {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 10.5px;
+  line-height: 1.7;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.numero {
+  font-family: var(--mono);
+  color: var(--oro);
+  font-feature-settings: 'tnum';
+}
+.jp {
+  font-family: var(--jp);
+  font-weight: 400;
+}
+.texto {
+  font-size: clamp(15px, 1.05vw + 8px, 18px);
+  color: var(--marfil-70);
+  max-width: 34em;
+}
+.filete {
+  display: block;
+  height: 1px;
+  background: var(--oro-50);
+  border: 0;
+  margin: 0;
+}
+
+/* ───────────────────────── Secciones ancladas ─────────────────────────
+   Cada escena: una <section> alta + un escenario sticky de una pantalla.
+   Las secciones se solapan una pantalla para que los anclajes vayan seguidos. */
+.seccion {
+  position: relative;
+  height: calc(var(--alto) * 1vh);
+}
+@supports (height: 1lvh) {
+  .seccion { height: calc(var(--alto) * 1lvh); }
+}
+.seccion + .seccion {
+  margin-top: calc(-1 * var(--pantalla));
+}
+.escenario {
+  position: sticky;
+  top: 0;
+  height: var(--pantalla);
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Capa "debajo" del 3D (p. ej. el wordmark tras el corte) y capa "encima". */
+.escenario--debajo {
+  z-index: 0;
+}
+.escenario--encima {
+  z-index: 2;
+}
+.escenario--debajo + .escenario--encima {
+  margin-top: calc(-1 * var(--pantalla));
+}
+.escenario a,
+.escenario button,
+.escenario input,
+.escenario select,
+.escenario textarea,
+.escenario label,
+.escenario [data-interactivo] {
+  pointer-events: auto;
+}
+
+/* Capa 3D: un solo canvas fijo para todo el recorrido. */
+.lienzo {
+  position: fixed;
+  inset: 0;
+  height: var(--pantalla);
+  z-index: 1;
+  pointer-events: none;
+}
+.lienzo canvas {
+  display: block;
+}
+/* react-three-fiber pone pointer-events: auto en su contenedor: el 3D nunca debe tapar los clics
+   (el formulario del privado vive debajo de la cortina). */
+.lienzo,
+.lienzo * {
+  pointer-events: none !important;
+}
+
+/* Grano de película: estático, barato. */
+.grano {
+  position: fixed;
+  inset: -50%;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vineta {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgb(5 4 4 / 0.55) 100%);
+}
+
+/* Modo captura (?limpio): solo el 3D. */
+html.limpio .escenario > *,
+html.limpio .interfaz,
+html.limpio .grano {
+  visibility: hidden !important;
+}

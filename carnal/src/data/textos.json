@@ -1,0 +1,78 @@
+{
+  "_nota": "Textos del recorrido, escena por escena. Frases cortas, seguras y sensuales: nunca explicar demasiado.",
+  "interfaz": {
+    "irAlFinal": "Ir al final",
+    "whatsapp": "Pedir por WhatsApp",
+    "avance": "Avance del ritual",
+    "desliza": "Desliza"
+  },
+  "umbral": {
+    "frase": "El ritual comienza en la carne."
+  },
+  "corte": {
+    "bajada": "Carnicería boutique · Mérida, Yucatán",
+    "linea1a": "El marmoleo no se explica.",
+    "linea1b": "Se siente.",
+    "linea2": "Los mejores cortes de Mérida en una sola carnicería.",
+    "linea3": "Reunimos cortes importados de Australia, USA y Japón, elegidos por su calidad, marmoleo y sabor."
+  },
+  "origenes": {
+    "titulo1": "Tres orígenes.",
+    "titulo2": "Un solo ritual.",
+    "destino": "Mérida"
+  },
+  "coleccion": {
+    "titulo": "La Colección",
+    "bajada": "Para los que saben.",
+    "etiquetas": {
+      "origen": "Origen",
+      "raza": "Raza",
+      "grado": "Grado",
+      "peso": "Peso",
+      "notas": "Notas",
+      "coccion": "Cocción"
+    },
+    "pedir": "Pedir este corte"
+  },
+  "fuego": {
+    "titulo": "El ritual en casa",
+    "frase": "Carne con origen. Ritual con intención.",
+    "texto": "Los mejores cortes premium para llevar a casa.",
+    "productosTitulo": "Para el ritual",
+    "guiasTitulo": "Tres reglas"
+  },
+  "visitanos": {
+    "titulo": "Visítanos",
+    "frase": "Detrás de la piedra, la carne espera.",
+    "direccion": "Dirección",
+    "horarios": "Horarios",
+    "comoLlegar": "Cómo llegar",
+    "mapaPendiente": "Mapa de ejemplo · ubicación por confirmar"
+  },
+  "privado": {
+    "frase": "Hay un lugar más.",
+    "titulo": "El Privado",
+    "lema": "Sin prisa. Entre carnales.",
+    "texto": "El ritual Carnal, en su forma más íntima. Reserva el privado y disfruta un momento especial, sin prisa y en la intimidad de Carnal.",
+    "invitacion": "Invitación",
+    "invitacionTexto": "Cuéntanos de tu velada. Te respondemos por WhatsApp para confirmar.",
+    "campos": {
+      "nombre": "Nombre",
+      "fecha": "Fecha deseada",
+      "personas": "Personas",
+      "ocasion": "Ocasión (opcional)"
+    },
+    "boton": "Solicitar el privado"
+  },
+  "final": {
+    "titulo": "La mesa está servida.",
+    "botones": {
+      "coleccion": "Ver la colección",
+      "whatsapp": "Pedir por WhatsApp",
+      "llegar": "Cómo llegar",
+      "privado": "Solicitar el privado",
+      "instagram": "Instagram"
+    },
+    "pie": "Carne con origen. Ritual con intención."
+  }
+}

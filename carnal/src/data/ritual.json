@@ -1,0 +1,50 @@
+{
+  "_nota": "Escena 'El fuego': productos para el ritual en casa (EJEMPLO, por confirmar con el cliente) y tres guías breves.",
+  "productos": [
+    {
+      "id": "sal",
+      "nombre": "Sal en escamas",
+      "linea": "Para el final. Nunca antes de tiempo.",
+      "foto": "",
+      "fotoDescripcion": "Escamas de sal sobre piedra negra"
+    },
+    {
+      "id": "carbon",
+      "nombre": "Carbón binchotan",
+      "linea": "Calor limpio, constante, sin humo áspero.",
+      "foto": "",
+      "fotoDescripcion": "Binchotan encendido, macro"
+    },
+    {
+      "id": "sebo",
+      "nombre": "Sebo de wagyu",
+      "linea": "Para sellar el corte en su propia grasa.",
+      "foto": "",
+      "fotoDescripcion": "Sebo sobre hierro caliente"
+    },
+    {
+      "id": "termometro",
+      "nombre": "Termómetro de sonda",
+      "linea": "La certeza también es parte del ritual.",
+      "foto": "",
+      "fotoDescripcion": "Sonda en un corte grueso, luz lateral"
+    }
+  ],
+  "guias": [
+    {
+      "titulo": "Temperatura",
+      "dato": "52 °C",
+      "texto": "Saca el corte del frío 30 minutos antes. Retíralo del fuego a 52 °C: en reposo llegará a término medio rojo."
+    },
+    {
+      "titulo": "Reposo",
+      "dato": "½",
+      "texto": "Reposa la mitad del tiempo que estuvo en el fuego, sobre rejilla y sin tapar."
+    },
+    {
+      "titulo": "Sal",
+      "dato": "NaCl",
+      "texto": "Gruesa, justo antes del fuego o 40 minutos antes. En escamas, al servir. En A5, solo al final."
+    }
+  ]
+}
