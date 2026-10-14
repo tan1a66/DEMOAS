@@ -449,7 +449,7 @@
   position: absolute;
   left: var(--margen);
   top: 15vh;
-  width: min(30rem, 38vw);
+  width: min(33rem, 42vw);
   visibility: hidden;
 }
 .origen__num {
@@ -482,7 +482,7 @@
 }
 .origen__cuerpo {
   display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr);
+  grid-template-columns: 12.5rem minmax(0, 1fr);
   gap: 1.4rem;
   align-items: start;
 }
@@ -1260,7 +1260,7 @@
     margin: 0.3em 0 1em;
   }
   .origen__cuerpo {
-    grid-template-columns: 6.2rem minmax(0, 1fr);
+    grid-template-columns: 7.4rem minmax(0, 1fr);
     gap: 1rem;
   }
   .origen .mono {

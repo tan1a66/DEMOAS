@@ -1,5 +1,5 @@
 {
-  "_nota": "Los tres orígenes, tratados como los terroirs de una bodega. 'lat'/'lng' es el punto de salida de la línea en el mapa; 'foto' es opcional (ruta en public/) y 'fotoDescripcion' describe la toma pendiente.",
+  "_nota": "Los tres orígenes, tratados como los terroirs de una bodega. 'lat'/'lng' es el punto de salida de la línea en el mapa; 'foto' es la ruta dentro de src/assets/fotos (las actuales son PROVISIONALES, generadas con IA en Higgsfield) y 'fotoDescripcion' describe la toma (también es el texto alternativo).",
   "destino": { "nombre": "Mérida", "lat": 20.97, "lng": -89.62 },
   "origenes": [
     {

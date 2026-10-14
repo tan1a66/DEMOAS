@@ -65,8 +65,10 @@ Interfaz (`ui/Interfaz.tsx`): logo pequeño, línea fina de avance, botón discr
 - `origenes.json`: los tres orígenes (texto, datos, punto de salida en el mapa).
 - `ritual.json`: productos para el ritual en casa y las tres reglas.
 - `textos.json`: todo el copy del recorrido.
-- Fotos: campo `foto` (ruta en `public/`). Mientras esté vacío se muestra un marcador oscuro con el formato
-  correcto y la descripción de la toma pendiente.
+- Fotos: campo `foto`, ruta dentro de `src/assets/fotos/` (p. ej. `origenes/japon.webp`); Vite las optimiza y
+  las incluye también en el HTML único. Mientras falte el archivo se muestra un marcador oscuro con el formato
+  correcto y la descripción de la toma. Las fotos de Orígenes son **provisionales, generadas con IA
+  (Higgsfield, Nano Banana)**: sustituir por fotografía real antes de publicar.
 
 ## Accesibilidad, respaldo y SEO
 
@@ -92,7 +94,7 @@ Parámetros de prueba en la URL: `?rm` (movimiento reducido), `?nogl` (sin WebGL
 
 - Número de WhatsApp, Instagram, dirección, coordenadas, horarios y dominio (`sitio.json`).
 - Lista real de cortes (`cortes.json`) y productos (`ritual.json`).
-- Fotos finales de cortes, orígenes, productos y del privado.
+- Fotos finales de cortes, productos y del privado (las de orígenes son provisionales, generadas con IA).
 - Modelos 3D / fotogrametría: cuando existan, sustituir la geometría de `tres/geometria.ts` por GLB con Draco
   (y texturas KTX2); el material de marmoleo puede quedarse como respaldo o como detalle.
 - Tipografía display con licencia (Editorial New o Canela): cambiar `--serif` en `src/estilos/base.css`.
