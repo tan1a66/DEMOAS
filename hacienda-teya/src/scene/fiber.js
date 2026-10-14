@@ -213,9 +213,15 @@ export class Rope {
     this.ready = false;
   }
 
-  reset(a, b) {
+  // parte già "appesa": parabola con la lunghezza giusta (una corda dritta ma
+  // più lunga della distanza si comprimerebbe e si accartoccerebbe a zigzag)
+  reset(a, b, length = 0) {
+    const D = a.distanceTo(b);
+    const sag = length > D ? Math.sqrt((3 * D * (length - D)) / 8) : 0;
     for (let i = 0; i < this.n; i++) {
-      this.p[i].lerpVectors(a, b, i / (this.n - 1));
+      const u = i / (this.n - 1);
+      this.p[i].lerpVectors(a, b, u);
+      this.p[i].y -= 4 * sag * u * (1 - u);
       this.q[i].copy(this.p[i]);
     }
     this.ready = true;
@@ -228,7 +234,7 @@ export class Rope {
    * @param wind    vettore di vento (accelerazione)
    */
   step(a, b, length, dt, wind) {
-    if (!this.ready) this.reset(a, b);
+    if (!this.ready) this.reset(a, b, length);
     const n = this.n;
     const h = Math.min(dt, 1 / 30);
     // integrazione Verlet con smorzamento
@@ -243,7 +249,8 @@ export class Rope {
     this.p[n - 1].copy(b);
     // vincoli di lunghezza
     const rest = length / (n - 1);
-    for (let it = 0; it < 14; it++) {
+    const iterations = Math.max(14, Math.round(n * 0.6));
+    for (let it = 0; it < iterations; it++) {
       for (let i = 0; i < n - 1; i++) {
         const p1 = this.p[i];
         const p2 = this.p[i + 1];

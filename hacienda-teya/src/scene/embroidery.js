@@ -569,7 +569,7 @@ export class Embroidery {
       const A = this.heart;
       const B = kEye < 0 ? eyeW : this.holeWorld(0, windT, -0.3 * r, V3());
       const attachT = this.timeAtS(this.sHole[0] + Ln);
-      const slack = 1.008 + 0.04 * THREE.MathUtils.smoothstep(t, attachT, attachT + 0.6);
+      const slack = 1.008 + 0.062 * THREE.MathUtils.smoothstep(t, attachT, attachT + 0.6);
       const pts = this.leadRope.step(A, B, A.distanceTo(B) * slack + 0.002, step, wind);
       this.leadTube.update(pts, radius);
     } else {
