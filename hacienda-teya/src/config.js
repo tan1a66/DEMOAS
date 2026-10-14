@@ -18,9 +18,9 @@ export const QUALITY = IS_MOBILE
       shadowMapSize: 1024,
       agaveLeaves: 30, // foglie della pianta principale
       leafSegments: [22, 4], // lungo la foglia, attraverso la foglia
-      threadSegments: 2600, // segmenti del tubo lungo tutto il filo
-      threadRadial: 6, // lati del tubo
-      fuzz: 500, // fibre sfilacciate attorno al filo
+      threadRadial: 5, // lati del tubo del filo libero
+      stitchRadial: 5, // lati del tubo di ogni punto ricamato
+      fabricSegments: [90, 30], // suddivisioni del lino (onde del vento)
       dust: 450, // particelle di polvere nella luce
       bloom: true,
     }
@@ -30,9 +30,9 @@ export const QUALITY = IS_MOBILE
       shadowMapSize: 2048,
       agaveLeaves: 42,
       leafSegments: [40, 6],
-      threadSegments: 6400,
-      threadRadial: 10,
-      fuzz: 1500,
+      threadRadial: 8,
+      stitchRadial: 7,
+      fabricSegments: [180, 60],
       dust: 1400,
       bloom: true,
     };
@@ -49,19 +49,21 @@ export const PALETTE = {
   soil: '#8a3d26', // terra rossa dello Yucatán (kancab)
 };
 
-// Filo di henequén
+// Filo di henequén e fascia di lino
 export const THREAD = {
-  radius: 0.016, // in em (deve coincidere con THREAD_R in scripts/build-thread.mjs)
-  planeZ: 0.75, // la scritta "galleggia" davanti alla pianta (metri)
+  radius: 0.019, // in em
+  planeZ: 0.75, // il lino sta davanti alla pianta (metri)
+  threadsPerStitch: 8, // fili della trama coperti da un punto: dà la scala del lino
 };
 
-// Tempi dell'apertura (secondi). Totale ≈ 4,8 s
+// Tempi dell'apertura (secondi). Totale ≈ 5 s
 export const INTRO = {
   openPlant: 1.2, // la pianta si apre mentre sale la luce
-  threadStart: 0.75, // il filo nasce dal cuore della pianta
-  writeDuration: 3.0, // il filo scrive "Hacienda Teya"
-  subtitleAt: 3.7, // "Desde 1683"
-  ctaAt: 4.0, // "Reservar mesa"
+  needleLift: 0.85, // la spina si stacca dal cogollo e tira fuori la fibra
+  needleArrive: 1.5, // la spina arriva al lino e fa il primo foro
+  stitchEnd: 4.05, // ultimo punto del nome
+  subtitleAt: 3.95, // "Desde 1683"
+  ctaAt: 4.25, // "Reservar mesa"
 };
 
 // Link reali (verificati su OpenTable); quelli mancanti sono segnaposto da completare

@@ -1,8 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  Hacienda Teya — apertura 3D
-//  pianta di henequén → il filo nasce dal cogollo e scrive "Hacienda Teya"
-//  → "Desde 1683" + "Reservar mesa". Nessuna schermata di caricamento:
-//  l'apertura stessa parte al primo fotogramma.
+//  pianta di henequén → la spina in punta al cogollo si stacca e tira fuori la
+//  fibra (ago e filo dalla stessa pianta) → ricama "Hacienda Teya" sul lino
+//  rojo almagre → "Desde 1683" + "Reservar mesa". Nessuna schermata di
+//  caricamento: l'apertura stessa parte al primo fotogramma.
 // ─────────────────────────────────────────────────────────────────────────────
 import '@fontsource/cormorant-garamond/latin-500.css';
 import '@fontsource/cormorant-garamond/latin-500-italic.css';
@@ -13,9 +14,11 @@ import './styles.css';
 
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { QUALITY, PALETTE, INTRO, LINKS, DEBUG, IS_MOBILE } from './config.js';
+import { QUALITY, PALETTE, INTRO, LINKS, DEBUG, IS_MOBILE, THREAD } from './config.js';
 import { createAgave } from './scene/agave.js';
-import { HenequenThread, placeText } from './scene/thread.js';
+import { placeText } from './scene/layout.js';
+import { createLinenBand, createFabricUniforms, RAKE_DIR } from './scene/fabric.js';
+import { Embroidery, STITCH } from './scene/embroidery.js';
 import { createSunsetEnvironment, createSkyDome, createLights, createGround, createDust, SUN_DIR } from './scene/atmosphere.js';
 import { createPost } from './scene/post.js';
 
@@ -46,8 +49,13 @@ agave.group.scale.setScalar(1.12);
 agave.group.updateMatrixWorld();
 const dust = createDust(QUALITY.dust);
 dust.material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
-const thread = new HenequenThread(QUALITY);
-scene.add(sky, lights.group, ground, agave.group, dust, thread.group);
+// lino + ricamo: il "porta-fascia" sta nel centro della fascia; i punti sono suoi figli
+const fabricUniforms = createFabricUniforms();
+const bandHolder = new THREE.Group();
+const embroidery = new Embroidery(QUALITY, fabricUniforms);
+bandHolder.add(embroidery.local);
+let band = null;
+scene.add(sky, lights.group, ground, agave.group, dust, bandHolder, embroidery.world);
 
 const post = DEBUG.noPost ? null : createPost(renderer, scene, camera, QUALITY);
 
@@ -70,7 +78,8 @@ function computeFraming() {
       pos: new THREE.Vector3(0, 1.55, dist),
       target: new THREE.Vector3(0, 2.05, 0),
       fov: THREE.MathUtils.clamp(fov, 40, 68),
-      text: { layout: 'tall', centerY: 0.52, width: 0.9, maxHeight: 0.44 },
+      // in verticale la fascia esce dai bordi dello schermo
+      text: { layout: 'tall', centerY: 0.5, width: 0.86, maxHeight: 0.4, bandWidth: 1.12, marginEm: 0.22 },
     };
   }
   return {
@@ -78,7 +87,7 @@ function computeFraming() {
     pos: new THREE.Vector3(0, 1.75, 6.9),
     target: new THREE.Vector3(0, 1.8, 0),
     fov: aspect < 1.4 ? 40 : 34,
-    text: { layout: 'wide', centerY: 0.56, width: 0.78, maxHeight: 0.44 },
+    text: { layout: 'wide', centerY: 0.53, width: 0.76, maxHeight: 0.4, bandWidth: 0.84, marginEm: 0.24 },
   };
 }
 
@@ -98,13 +107,36 @@ function applyFraming() {
   const changed = !place || place.layout !== next.layout || Math.abs(place.scale - next.scale) / place.scale > 0.015;
   place = next;
   document.body.classList.toggle('is-tall', framing.tall);
-  if (changed) thread.build(place, agave.group.localToWorld(agave.heart.clone()));
+  if (changed) buildBand();
   positionOverlay();
 }
 
-// "Desde 1683" e il pulsante stanno subito sotto la scritta 3D
+// (ri)costruisce la fascia di lino e il ricamo per l'impaginazione corrente
+function buildBand() {
+  if (band) {
+    bandHolder.remove(band.group);
+    band.dispose();
+  }
+  const em = place.scale;
+  // un punto copre ~8 fili della trama: così lino e ricamo hanno la stessa scala
+  const pitch = (STITCH.length * em) / THREAD.threadsPerStitch;
+  band = createLinenBand({
+    width: place.band.width,
+    height: place.band.height,
+    scale: em,
+    pitch,
+    quality: QUALITY,
+    uniforms: fabricUniforms,
+    fringe: !framing.tall, // in verticale le estremità sono fuori schermo
+  });
+  bandHolder.position.copy(place.band.origin);
+  bandHolder.add(band.group);
+  embroidery.build(place, agave.group.localToWorld(agave.heart.clone()));
+}
+
+// "Desde 1683" e il pulsante stanno subito sotto la fascia di lino
 function positionOverlay() {
-  const p = place.bottomWorld.clone().project(camera);
+  const p = place.bandBottomWorld.clone().project(camera);
   const y = (1 - (p.y * 0.5 + 0.5)) * innerHeight;
   document.documentElement.style.setProperty('--hero-text-bottom', `${Math.round(y)}px`);
 }
@@ -122,8 +154,7 @@ if (!matchMedia('(pointer: coarse)').matches) {
 const state = {
   light: 0, // 0 buio → 1 luce dorata piena
   open: 0, // apertura della pianta
-  write: 0, // avanzamento del filo (tempo di scrittura)
-  sweep: -1, // riflesso finale lungo il filo
+  fabric: 0, // luce radente sul lino
   dolly: 0, // 0 posa iniziale → 1 posa finale
 };
 
@@ -132,15 +163,16 @@ function applyState() {
   lights.sun.intensity = 3.2 * L;
   lights.fill.intensity = 0.6 * L;
   lights.rim.intensity = 0.7 * L;
+  fabricUniforms.uRakeColor.value.set('#ffc68a').multiplyScalar(1.5 * state.fabric);
+  fabricUniforms.uLight.value = L;
   scene.environmentIntensity = 0.06 + 0.26 * L;
   agave.uniforms.uLight.value = L;
   dust.material.uniforms.uOpacity.value = L;
   agave.setOpen(state.open);
-  thread.setProgress(state.write);
-  thread.uniforms.uSweep.value = state.sweep;
 }
 
-// ── Timeline dell'apertura (≈ 4,8 s) ─────────────────────────────────────────
+// ── Timeline dell'apertura (≈ 5 s) ───────────────────────────────────────────
+// Il ricamo non è un tween: legge il tempo della timeline (vedi embroidery.update)
 const ui = {
   since: document.querySelectorAll('[data-since]'),
   lines: document.querySelectorAll('.hero__line'),
@@ -157,9 +189,8 @@ const intro = gsap.timeline({ paused: true, onComplete: finishIntro });
 intro
   .to(state, { light: 1, duration: 1.6, ease: 'power2.inOut' }, 0)
   .to(state, { open: 1, duration: INTRO.openPlant, ease: 'power2.out' }, 0.05)
-  .to(state, { dolly: 1, duration: 4.8, ease: 'power2.out' }, 0)
-  .to(state, { write: 1, duration: INTRO.writeDuration, ease: 'power1.inOut' }, INTRO.threadStart)
-  .to(state, { sweep: 1.15, duration: 1.1, ease: 'power1.inOut' }, INTRO.threadStart + INTRO.writeDuration - 0.15)
+  .to(state, { dolly: 1, duration: 5, ease: 'power2.out' }, 0)
+  .to(state, { fabric: 1, duration: 1.3, ease: 'power2.inOut' }, 0.3)
   .fromTo(ui.lines, { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: 'power3.out' }, INTRO.subtitleAt)
   .fromTo(ui.since, { opacity: 0, y: 8, letterSpacing: '0.42em' }, { opacity: 1, y: 0, letterSpacing: '0.18em', duration: 0.9, ease: 'power3.out' }, INTRO.subtitleAt)
   .fromTo(ui.cta, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, INTRO.ctaAt)
@@ -198,16 +229,21 @@ function updateCamera(dt) {
   camera.lookAt(rest.target);
 }
 
-function frame(dt) {
+function frame(dt, render = true) {
   worldTime += dt;
   applyState();
   updateCamera(dt);
+  fabricUniforms.uWindTime.value = worldTime;
+  embroidery.update(intro.time(), dt, worldTime);
   agave.update(worldTime);
   dust.material.uniforms.uTime.value = worldTime;
   // direzione del sole nello spazio vista (per la traslucenza delle foglie)
   sunView.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
   agave.uniforms.uSunDirView.value.copy(sunView);
+  fabricUniforms.uSunDirView.value.copy(sunView);
+  fabricUniforms.uRakeDirView.value.copy(RAKE_DIR).transformDirection(camera.matrixWorldInverse);
   agave.uniforms.uUpView.value.set(0, 1, 0).transformDirection(camera.matrixWorldInverse);
+  if (!render) return;
   if (post) post.render(dt);
   else renderer.render(scene, camera);
 }
@@ -230,9 +266,18 @@ document.body.classList.toggle('is-mobile', IS_MOBILE);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (DEBUG.capture) {
   // registrazione fotogramma per fotogramma: window.__teya.frame(t)
+  let simT = 0;
   window.__teya = {
     duration: intro.duration(),
+    // avanza la simulazione a 30 fps fino a t (senza disegnare), poi disegna t
     frame(t) {
+      while (simT + 1 / 30 < t - 1e-6) {
+        simT += 1 / 30;
+        intro.time(simT, false);
+        worldTime = simT - 1 / 30;
+        frame(1 / 30, false);
+      }
+      simT = t;
       intro.time(t, false);
       worldTime = t - 1 / 30;
       frame(1 / 30);
