@@ -151,9 +151,17 @@ export default function Rotonda() {
   const mat = useMemo(
     () => ({
       marmoles: cortes.map((_, i) => materialMarmol(i + 1, calidad, 3.0)),
-      vidrio: alta
-        ? new THREE.MeshPhysicalMaterial({ color: '#f3efe8', transmission: 1, thickness: 0.03, roughness: 0.03, ior: 1.5, envMapIntensity: 1.4, specularIntensity: 1 })
-        : new THREE.MeshPhysicalMaterial({ color: '#cfc6b8', transparent: true, opacity: 0.1, roughness: 0.04, envMapIntensity: 3, depthWrite: false }),
+      // Cristal sin transmisión: sobre un canvas transparente la transmisión deja el reflejo con alfa
+      // casi nulo y el navegador lo suma como luz (el vidrio se ve lechoso). Un velo apenas tintado
+      // con reflejos del entorno se lee mejor y cuesta mucho menos.
+      vidrio: new THREE.MeshPhysicalMaterial({
+        color: '#cfc6b8',
+        transparent: true,
+        opacity: alta ? 0.12 : 0.1,
+        roughness: 0.04,
+        envMapIntensity: alta ? 3.4 : 3,
+        depthWrite: false,
+      }),
       aristas: new THREE.LineBasicMaterial({ color: '#a8875a', transparent: true, opacity: 0.4 }),
       soporte: new THREE.MeshStandardMaterial({ color: '#0a0909', roughness: 0.6 }),
       piso: materialPiso(),
