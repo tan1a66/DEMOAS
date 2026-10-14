@@ -1,32 +1,32 @@
 {
-  "_nota": "Escena 'El fuego': productos para el ritual en casa (EJEMPLO, por confirmar con el cliente) y tres guías breves.",
+  "_nota": "Escena 'El fuego': productos para el ritual en casa (EJEMPLO, por confirmar con el cliente) y tres guías breves. Las fotos de productos son PROVISIONALES, generadas con IA (Higgsfield); 'foto' es la ruta dentro de src/assets/fotos.",
   "productos": [
     {
       "id": "sal",
       "nombre": "Sal en escamas",
       "linea": "Para el final. Nunca antes de tiempo.",
-      "foto": "",
+      "foto": "productos/sal.webp",
       "fotoDescripcion": "Escamas de sal sobre piedra negra"
     },
     {
       "id": "carbon",
       "nombre": "Carbón binchotan",
       "linea": "Calor limpio, constante, sin humo áspero.",
-      "foto": "",
+      "foto": "productos/carbon.webp",
       "fotoDescripcion": "Binchotan encendido, macro"
     },
     {
       "id": "sebo",
       "nombre": "Sebo de wagyu",
       "linea": "Para sellar el corte en su propia grasa.",
-      "foto": "",
+      "foto": "productos/sebo.webp",
       "fotoDescripcion": "Sebo sobre hierro caliente"
     },
     {
       "id": "termometro",
       "nombre": "Termómetro de sonda",
       "linea": "La certeza también es parte del ritual.",
-      "foto": "",
+      "foto": "productos/termometro.webp",
       "fotoDescripcion": "Sonda en un corte grueso, luz lateral"
     }
   ],

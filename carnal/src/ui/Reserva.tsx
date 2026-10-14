@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { sitio, textos, whatsappUrl } from '../data';
 import { bloquearScroll } from '../lib/scroll';
+import { Marca } from './Marca';
 
 const T = textos.reserva;
 const EVENTO = 'carnal:reservar';
@@ -71,7 +72,7 @@ export function Reserva() {
           {T.cerrar} ×
         </button>
         <p className="invitacion__encabezado mono">
-          <span className="filete" /> {sitio.nombre} <span className="filete" />
+          <span className="filete" /> <Marca className="reserva__marca" /> <span className="filete" />
         </p>
         <h2 id="reserva-titulo" className="reserva__titulo display">
           {T.titulo}

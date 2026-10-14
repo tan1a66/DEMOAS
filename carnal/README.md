@@ -67,8 +67,11 @@ Interfaz (`ui/Interfaz.tsx`): logo pequeño, línea fina de avance, botón discr
 - `textos.json`: todo el copy del recorrido.
 - Fotos: campo `foto`, ruta dentro de `src/assets/fotos/` (p. ej. `origenes/japon.webp`); Vite las optimiza y
   las incluye también en el HTML único. Mientras falte el archivo se muestra un marcador oscuro con el formato
-  correcto y la descripción de la toma. Las fotos de Orígenes son **provisionales, generadas con IA
-  (Higgsfield, Nano Banana)**: sustituir por fotografía real antes de publicar.
+  correcto y la descripción de la toma. Las fotos de Orígenes y de los productos son **provisionales,
+  generadas con IA (Higgsfield, Nano Banana)**: sustituir por fotografía real antes de publicar. La foto del
+  privado (`privado/sala.webp`) es la sala real.
+- Logotipo: `src/assets/marca/carnal.svg`, vectorizado del rótulo a pincel del cliente (`ui/Marca.tsx`); se usa
+  en el hero, la cabecera, la carta final, la reserva, la placa de la fachada y el favicon.
 
 ## Accesibilidad, respaldo y SEO
 
@@ -89,12 +92,16 @@ Parámetros de prueba en la URL: `?rm` (movimiento reducido), `?nogl` (sin WebGL
 - `npm run estaticos`: con `npx vite --port 5199` corriendo, regenera las imágenes sin WebGL y `public/og.jpg`.
 - `npm run capturas -- "http://localhost:5199/?rapido" capturas 1440x900 corte:0.1 coleccion:0.3`: capturas
   de revisión en Chromium (WebGL por software).
+- `node scripts/video.mjs http://localhost:5199/ capturas/video`: video demo de ≈38 s grabado fotograma a
+  fotograma con reloj virtual (el guion está al inicio del script); luego `ffmpeg` (comando en el script).
 
 ## Pendiente del cliente (hoy son marcadores)
 
 - Número de WhatsApp, Instagram, dirección, coordenadas, horarios y dominio (`sitio.json`).
 - Lista real de cortes (`cortes.json`) y productos (`ritual.json`).
-- Fotos finales de cortes, productos y del privado (las de orígenes son provisionales, generadas con IA).
+- Fotos reales de orígenes y productos (hoy son provisionales, generadas con IA) y, si se quiere, de los cortes.
+- Logotipo en vector original (hoy está vectorizado de una captura pequeña).
 - Modelos 3D / fotogrametría: cuando existan, sustituir la geometría de `tres/geometria.ts` por GLB con Draco
   (y texturas KTX2); el material de marmoleo puede quedarse como respaldo o como detalle.
-- Tipografía display con licencia (Editorial New o Canela): cambiar `--serif` en `src/estilos/base.css`.
+- Tipografía display con licencia (Editorial New o Canela) o la del cliente, si existe como fuente: cambiar
+  `--serif` en `src/estilos/base.css`.

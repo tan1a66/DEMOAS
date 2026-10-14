@@ -4,6 +4,7 @@ import { alCuadro } from '../lib/scroll';
 import { saltarA } from '../lib/navegacion';
 import { ventana } from '../lib/mate';
 import { IconoWhatsApp, Flecha } from './Iconos';
+import { Marca } from './Marca';
 
 /** Casi nada de UI: logo pequeño, línea fina de avance, WhatsApp discreto e "Ir al final". */
 export function Interfaz({ visible }: { visible: boolean }) {
@@ -33,8 +34,8 @@ export function Interfaz({ visible }: { visible: boolean }) {
           saltarA('umbral', 1);
         }}
       >
-        {sitio.nombre}
-        <span className="solo-lector"> — volver al inicio</span>
+        <Marca decorativa />
+        <span className="solo-lector">{sitio.nombre} — volver al inicio</span>
       </a>
 
       <a

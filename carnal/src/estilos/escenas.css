@@ -13,15 +13,17 @@
   opacity: var(--atenuar);
   transition: opacity 0.6s var(--lento), color 0.4s, border-color 0.4s;
 }
+.marca {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .interfaz__logo {
-  top: calc(20px + env(safe-area-inset-top));
+  top: calc(11px + env(safe-area-inset-top));
   left: var(--margen);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 15px;
-  letter-spacing: 0.42em;
+  width: 66px;
+  color: var(--marfil);
   text-decoration: none;
-  line-height: 1;
 }
 .interfaz__final {
   top: calc(20px + env(safe-area-inset-top));
@@ -300,20 +302,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 26vh;
+  padding-top: 16vh;
 }
+/* El rótulo a pincel del cliente, detrás del corte. */
 .corte__wordmark {
   margin: 0;
-  font-weight: 300;
-  font-size: clamp(64px, 16vw, 270px);
-  letter-spacing: 0.16em;
-  padding-left: 0.16em;
-  line-height: 0.9;
-  white-space: nowrap;
+  width: min(50vw, 760px);
+  line-height: 0;
   color: var(--marfil);
 }
 .corte__bajada {
-  margin: 2.2em 0 0;
+  margin: 1.6em 0 0;
   color: var(--marfil-50);
 }
 .corte--encima {
@@ -1010,6 +1009,11 @@
 .reserva__cerrar:focus-visible {
   color: var(--brasa);
 }
+.reserva__marca {
+  width: 58px;
+  flex: none;
+  color: var(--marfil-70);
+}
 .reserva__titulo {
   margin: 4px 0 0;
   text-align: center;
@@ -1132,10 +1136,9 @@
   pointer-events: none;
 }
 .carta__marca {
-  margin: 0;
-  font-size: 22px;
-  letter-spacing: 0.44em;
-  padding-left: 0.44em;
+  width: 170px;
+  margin: 0 auto;
+  color: var(--marfil);
 }
 .carta__titulo {
   margin: 0.45em 0 0;
@@ -1227,7 +1230,10 @@
     height: 24vh;
   }
   .corte {
-    padding-top: 21vh;
+    padding-top: 17vh;
+  }
+  .corte__wordmark {
+    width: 80vw;
   }
   .corte__l1 {
     bottom: 12vh;

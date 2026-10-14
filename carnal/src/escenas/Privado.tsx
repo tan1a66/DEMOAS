@@ -60,7 +60,13 @@ export function Privado() {
       debajo={
         <>
           <div ref={contenido} className="privado__contenido" inert={!abierta}>
-            <Foto className="privado__foto" alt="El privado de Carnal" toma="Mesa íntima, una vela, luz cálida tenue" proporcion="3 / 4" />
+            <Foto
+              className="privado__foto"
+              src="privado/sala.webp"
+              alt="El privado de Carnal: mesa de mármol negro bajo una lámpara de tela iluminada"
+              toma="Mesa íntima, una vela, luz cálida tenue"
+              proporcion="3 / 4"
+            />
             <div className="privado__columna">
               <h2 className="privado__titulo display">{T.titulo}</h2>
               <p className="privado__lema display">

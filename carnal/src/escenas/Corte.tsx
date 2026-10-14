@@ -3,13 +3,14 @@ import { aparece, desaparece, plano } from '../lib/coreografia';
 import { env } from '../lib/env';
 import { Seccion, type Coreografia } from './Seccion';
 import estaticos from '../ui/estaticos';
+import { Marca } from '../ui/Marca';
 
 const coreografia: Coreografia = (tl, q) => {
   const mov = !env.movimientoReducido;
   tl.fromTo(
     q('.corte__wordmark'),
-    { autoAlpha: 0, y: mov ? 40 : 0, letterSpacing: mov ? '0.34em' : '0.16em' },
-    { autoAlpha: 1, y: 0, letterSpacing: '0.16em', duration: 0.09, ease: 'power2.out' },
+    { autoAlpha: 0, y: mov ? 40 : 0, scale: mov ? 1.06 : 1 },
+    { autoAlpha: 1, y: 0, scale: 1, duration: 0.09, ease: 'power2.out' },
     0,
   );
   aparece(tl, q('.corte__bajada'), 0.04, 0.06);
@@ -39,9 +40,11 @@ export function Corte() {
       debajo={
         <div className="corte">
           {!env.webgl && estaticos.corte && <img className="estatico" src={estaticos.corte} alt="Corte de wagyu con marmoleo bajo una luz lateral" />}
-          <h1 className="corte__wordmark display">
-            {sitio.nombre}
-            <span className="solo-lector"> — {sitio.tipo} en {sitio.ciudad}</span>
+          <h1 className="corte__wordmark">
+            <Marca decorativa />
+            <span className="solo-lector">
+              {sitio.nombre} — {sitio.tipo} en {sitio.ciudad}
+            </span>
           </h1>
           <p className="corte__bajada mono">{textos.corte.bajada}</p>
         </div>

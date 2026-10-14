@@ -4,6 +4,7 @@
 //   ?calidad=baja|alta   fuerza el nivel 3D (por defecto: automático)
 //   ?rapido      salta la espera del loader
 //   ?limpio      oculta textos e interfaz (para capturas del 3D)
+//   ?video       grabación del video demo (scroll fijado fotograma a fotograma, sin Lenis)
 const params = new URLSearchParams(window.location.search);
 
 function hayWebGL(): boolean {
@@ -33,6 +34,7 @@ export const env = {
   tactil: window.matchMedia('(pointer: coarse)').matches,
   rapido: params.has('rapido'),
   limpio: params.has('limpio'),
+  video: params.has('video'),
 };
 
 document.documentElement.classList.toggle('rm', env.movimientoReducido);

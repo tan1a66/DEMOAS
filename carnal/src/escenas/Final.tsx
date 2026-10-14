@@ -6,6 +6,7 @@ import { registrarSeccion } from '../lib/scroll';
 import { saltarA } from '../lib/navegacion';
 import { IconoInstagram, IconoWhatsApp } from '../ui/Iconos';
 import { abrirReserva } from '../ui/Reserva';
+import { Marca } from '../ui/Marca';
 
 const B = textos.final.botones;
 const romano = ['I', 'II', 'III', 'IV', 'V'];
@@ -48,7 +49,9 @@ export function Final() {
   return (
     <section id="final" ref={ref} className="seccion seccion--final" aria-label={textos.final.titulo}>
       <div className="carta">
-        <p className="carta__marca display">{sitio.nombre}</p>
+        <p className="carta__marca">
+          <Marca />
+        </p>
         <h2 className="carta__titulo display">
           <em>{textos.final.titulo}</em>
         </h2>

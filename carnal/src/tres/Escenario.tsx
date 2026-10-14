@@ -46,7 +46,7 @@ function Motor() {
       const ahora = hayTomaPresente();
       if (ahora || antes) advance(e.tiempo);
       antes = ahora;
-      if (!ahora || e.dt > 0.25) return;
+      if (!ahora || e.dt > 0.25 || env.video) return;
       const m = medida.current;
       m.cuadros++;
       m.tiempo += e.dt;

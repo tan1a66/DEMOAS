@@ -124,7 +124,7 @@ export function iniciarScroll() {
   if (iniciado) return;
   iniciado = true;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  if (!env.movimientoReducido) {
+  if (!env.movimientoReducido && !env.video) {
     lenis = new Lenis({
       lerp: 0.075, // lento a propósito: el lujo es la lentitud
       wheelMultiplier: 0.8,
@@ -142,6 +142,11 @@ export function iniciarScroll() {
   (window as unknown as { carnal: unknown }).carnal = {
     estado,
     ir: (id: SeccionId, avance = 0) => irA(id, { avance, inmediato: true }),
+    // Para la grabación: lleva el recorrido exactamente a un momento de la historia.
+    fijar: (h: number) => {
+      window.scrollTo(0, yDeHistoria(h));
+      ScrollTrigger.update();
+    },
   };
 }
 
@@ -149,6 +154,17 @@ export function bloquearScroll(bloquear: boolean) {
   document.documentElement.classList.toggle('bloqueado', bloquear);
   if (bloquear) lenis?.stop();
   else lenis?.start();
+}
+
+/** Posición de scroll que corresponde a un momento de la historia (inversa de calcularHistoria). */
+export function yDeHistoria(h: number) {
+  const i = Math.max(0, Math.min(ORDEN.length - 1, Math.floor(h)));
+  const id = ORDEN[i];
+  if (id === 'final') {
+    const c = cajas.get('final');
+    return c ? c.top - estado.vh + clamp(h - i) * estado.vh : 0;
+  }
+  return posicion(id, clamp(h - i));
 }
 
 /** Lleva el recorrido a una sección (y a un avance dentro de ella). */

@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { createPortal, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { sitio } from '../../data';
+import { marcaSvg, PROPORCION_MARCA } from '../../ui/Marca';
 import { env } from '../../lib/env';
 import { estado, progreso } from '../../lib/scroll';
 import { amortigua, mezcla, suave } from '../../lib/mate';
@@ -126,15 +126,18 @@ function texturaPlaca() {
   x.strokeStyle = 'rgba(30,20,10,.7)';
   x.lineWidth = 3;
   x.strokeRect(14, 14, 484, 164);
-  x.fillStyle = 'rgba(25,16,8,.92)';
-  x.font = '300 86px "Cormorant Garamond", serif';
-  x.textAlign = 'center';
-  x.textBaseline = 'middle';
-  if ('letterSpacing' in x) (x as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = '28px';
-  x.fillText(sitio.nombre, 256 + 14, 100);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
+  // El logotipo grabado en el latón.
+  const img = new Image();
+  img.onload = () => {
+    const w = 340;
+    const h = w / PROPORCION_MARCA;
+    x.drawImage(img, 256 - w / 2, 96 - h / 2, w, h);
+    t.needsUpdate = true;
+  };
+  img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(marcaSvg('rgba(28,18,8,0.9)'))}`;
   return t;
 }
 
@@ -183,17 +186,6 @@ export default function Fachada() {
   const objFarol = useMemo(() => new THREE.Object3D(), []);
   const objPuerta = useMemo(() => new THREE.Object3D(), []);
   const avance = useRef(0);
-
-  useEffect(() => {
-    const t = mat.placa.map;
-    if (t) document.fonts.ready.then(() => {
-      const nueva = texturaPlaca();
-      mat.placa.map = nueva;
-      mat.placa.emissiveMap = nueva;
-      mat.placa.needsUpdate = true;
-      t.dispose();
-    });
-  }, [mat]);
 
   useFrame(() => {
     const h = estado.historia;
