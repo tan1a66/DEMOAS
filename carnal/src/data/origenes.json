@@ -16,7 +16,7 @@
         { "etiqueta": "Marmoleo", "valor": "BMS 8–12" },
         { "etiqueta": "Regiones", "valor": "Kagoshima · Miyazaki" }
       ],
-      "foto": "",
+      "foto": "origenes/japon.webp",
       "fotoDescripcion": "Macro de marmoleo A5, luz lateral dura"
     },
     {
@@ -33,7 +33,7 @@
         { "etiqueta": "Marmoleo", "valor": "Abundante" },
         { "etiqueta": "Regiones", "valor": "Nebraska · Kansas" }
       ],
-      "foto": "",
+      "foto": "origenes/usa.webp",
       "fotoDescripcion": "Manos del carnicero sobre un ribeye, fondo negro"
     },
     {
@@ -50,7 +50,7 @@
         { "etiqueta": "Marmoleo", "valor": "BMS 6–9+" },
         { "etiqueta": "Regiones", "valor": "Queensland · NSW" }
       ],
-      "foto": "",
+      "foto": "origenes/australia.webp",
       "fotoDescripcion": "Cuchillo y corte en penumbra, humo leve"
     }
   ]
