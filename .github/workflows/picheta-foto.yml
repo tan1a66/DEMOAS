@@ -1,0 +1,67 @@
+# Una tantum: scarica le foto generate con Higgsfield, le ottimizza e le committa sul branch.
+# (L'ambiente di sviluppo non raggiunge il CDN di Higgsfield; GitHub sì.) Va rimosso dopo l'uso.
+name: Picheta · foto Higgsfield
+on:
+  push:
+    branches: [claude/nifty-cray-jz19r9]
+    paths: ['.github/workflows/picheta-foto.yml']
+permissions:
+  contents: write
+jobs:
+  foto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/nifty-cray-jz19r9
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow==11.3.0
+      - name: Scarica e ottimizza
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/hf
+          B=https://d8j0ntlcm91z4.cloudfront.net/user_3KPn8qyrVUWjGbp5Z3pY2oOJd3p
+          dl() { curl -fsSL --retry 4 -o "/tmp/hf/$1" "$B/$2"; ls -la "/tmp/hf/$1"; }
+          dl cocina.png         hf_20261015_170200_a83a793c-06ee-4f90-957c-597eedf4bb9f.png
+          dl terraza-dorada.png hf_20261015_170130_3f0f7d07-3d3c-49c3-8a79-b9c5391a890d.png
+          dl terraza-dia.png    hf_20261015_170336_15304109-5949-4a77-ab45-ba47bb462172.png
+          dl terraza-azul.png   hf_20261015_170501_cfaa2259-1184-4db2-a00e-1bc92fff1412.png
+          dl terraza-noche.png  hf_20261015_182234_10dca88c-f9ee-437c-903c-fa633374a5b0.png
+          dl cocina-01.png      hf_20261015_182442_d1bb9326-f3ea-4699-b32a-11add842f414.png
+          dl cocina-02.png      hf_20261015_182628_b0a82d03-a33f-4060-92de-79c0d9ea1c17.png
+          dl cocina-03.png      hf_20261015_182810_40d1ad4e-1119-4d5c-b07f-c315f11d22c9.png
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          src = Path('/tmp/hf')
+          hero = Path('picheta/public/hero'); hero.mkdir(parents=True, exist_ok=True)
+          photos = Path('picheta/public/photos')
+          def save(im, out, width, fmt, q):
+              h = round(im.height * width / im.width)
+              r = im.resize((width, h), Image.LANCZOS) if width != im.width else im
+              if fmt == 'WEBP':
+                  r.save(out, 'WEBP', quality=q, method=6)
+              else:
+                  r.save(out, 'JPEG', quality=q, optimize=True, progressive=True)
+              print(out, r.size, out.stat().st_size // 1024, 'KB')
+          load = lambda n: Image.open(src / n).convert('RGB')
+          k = load('cocina.png')
+          save(k, hero / 'cocina-m.webp', 1280, 'WEBP', 74)
+          save(k, hero / 'cocina-d.webp', 1600, 'WEBP', 76)
+          for name in ['dia', 'dorada', 'azul', 'noche']:
+              im = load(f'terraza-{name}.png')
+              save(im, hero / f'terraza-{name}-m.webp', 1536, 'WEBP', 76)
+              save(im, hero / f'terraza-{name}-d.webp', 2048, 'WEBP', 78)
+          for i in (1, 2, 3):
+              im = load(f'cocina-{i:02d}.png')
+              save(im, photos / f'{i:02d}.jpg', im.width, 'JPEG', 84)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add picheta/public/hero picheta/public/photos
+          git commit -m "Picheta: foto Higgsfield ottimizzate (hero e La cocina)"
+          git push origin HEAD:claude/nifty-cray-jz19r9
