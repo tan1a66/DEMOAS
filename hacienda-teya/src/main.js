@@ -414,7 +414,7 @@ function setShadowBox(b, near, far) {
   sc.updateProjectionMatrix();
 }
 
-// ── Il lino vola via al primo scroll (resta legato alla pianta come un aquilone)
+// ── Il lino vola via al primo scroll (il capo del filo è già stato ritirato)
 function updateBandFlight(s) {
   const k = smooth(0, fieldS() * 0.75, s);
   bandHolder.position.copy(place.band.origin).add(_p.set(-k * 1.5, k * k * 18, -k * 7));

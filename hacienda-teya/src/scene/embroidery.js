@@ -567,12 +567,16 @@ export class Embroidery {
     const kEye = this.lastHoleBefore(eyeS);
     const radius = () => r;
 
-    // filo dalla pianta: fino al primo foro segue la base dell'ago, poi resta fissato
-    if (t >= INTRO.needleLift) {
-      const A = this.heart;
+    // filo dalla pianta: fino al primo foro segue la base dell'ago, poi resta fissato.
+    // A ricamo finito il capo libero viene tirato dietro il lino e sparisce
+    // (niente filo che penzola sotto il titolo, né quando il lino vola via)
+    const doneT = this.timeAtS(this.sHole.at(-1) + 0.08 + Ln);
+    const reel = THREE.MathUtils.smoothstep(t, doneT + 0.05, doneT + 0.85);
+    if (t >= INTRO.needleLift && reel < 1) {
       const B = kEye < 0 ? eyeW : this.holeWorld(0, windT, -0.3 * r, V3());
+      const A = this.heart.clone().lerp(B, reel * reel);
       const attachT = this.timeAtS(this.sHole[0] + Ln);
-      const slack = 1.008 + 0.062 * THREE.MathUtils.smoothstep(t, attachT, attachT + 0.6);
+      const slack = 1.008 + 0.062 * THREE.MathUtils.smoothstep(t, attachT, attachT + 0.6) * (1 - reel);
       const pts = this.leadRope.step(A, B, A.distanceTo(B) * slack + 0.002, step, wind);
       this.leadTube.update(pts, radius);
     } else {
