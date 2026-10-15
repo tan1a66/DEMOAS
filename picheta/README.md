@@ -102,7 +102,8 @@ Note di regia: la composizione è stilizzata, non topografica. La camera guarda 
 ## Prestazioni
 
 - **Modalità foto**: solo immagini e CSS (niente WebGL). Si scaricano prima la cucina e la luce dell'ora attuale,
-  le altre luci subito dopo. Sul telefono ~2 MB in tutto, sul desktop di più (foto più grandi).
+  le altre luci subito dopo. Hero: ~1,2 MB sul telefono, ~1,8 MB sul desktop; foto di "La cocina" ~0,5 MB (caricate solo scrollando).
+- Sulle foto la tinta dei testi è sempre crema con velo scuro (anche di giorno): più fotografico e più leggibile.
 
 Modalità 3D:
 

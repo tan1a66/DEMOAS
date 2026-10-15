@@ -8,7 +8,7 @@
 
 import { IS_MOBILE, REDUCED_MOTION } from './config.js';
 import { sunPosition } from './sun.js';
-import { paletteAt, smoothstep } from './palette.js';
+import { smoothstep } from './palette.js';
 import { PointerInput } from './pointer.js';
 import { createIntro } from './film.js';
 import { Embers } from './embers.js';
@@ -23,8 +23,9 @@ const PLATES = ['terraza-dia', 'terraza-dorada', 'terraza-azul', 'terraza-noche'
 // Encuadre. x/y = "object-position" (0 izquierda/arriba … 1 derecha/abajo).
 // En móvil la terraza (cuadrada) se recorta a los lados: manda x; en escritorio, arriba y abajo: manda y.
 export const FRAME = {
-  terrace: { x: 0.4, y: 0.6 },
-  fire: { x: 0.5, y: 0.9, spread: 0.2 }, // el fogón en la foto de la cocina (de aquí salen las brasas)
+  // Móvil: las dos torres de la catedral; escritorio: torres, guirnalda y el pretil.
+  terrace: { x: 0.14, y: 0.22 },
+  fire: { x: 0.5, y: 0.905, spread: 0.12 }, // el fogón en la foto de la cocina (de aquí salen las brasas)
 };
 
 // Altura del sol (grados) → foto de la terraza (índice en PLATES). Entre dos paradas, fundido.
@@ -207,9 +208,6 @@ export async function startPhoto({ clock, ui, onFirstFrame, onFail }) {
   const pointer = new PointerInput();
   const par = { x: 0, y: 0 };
 
-  // ---------------------------------------------------------------- tono de la interfaz
-  let day = paletteAt(target()).day;
-
   // ---------------------------------------------------------------- bucle
   let last = performance.now() / 1000;
   let uiClock = 0;
@@ -224,16 +222,14 @@ export async function startPhoto({ clock, ui, onFirstFrame, onFail }) {
     last = t;
 
     // Luz: pesos objetivo según el sol, suavizados (en tiempo real todo cambia muy despacio).
-    const alt = target();
+    target();
     const tau = { timelapse: 0.12, manual: 0.9, fixed: 1.2, live: 2.5 }[clock.mode];
     const k = first ? 1 : 1 - Math.exp(-rawDt / tau);
     for (let i = 0; i < shown.length; i++) shown[i] += (weights[i] - shown[i]) * k;
-    day += (paletteAt(alt).day - day) * k;
 
     uiClock += dt;
     if (uiClock > (clock.mode === 'timelapse' ? 0.05 : 0.5)) {
       ui.update();
-      ui.setTone(day);
       uiClock = 0;
     }
     if (covered && !first) return;
@@ -338,8 +334,8 @@ export async function startPhoto({ clock, ui, onFirstFrame, onFail }) {
       });
     }
   };
-  ui.forceNight = !intro.skip;
-  ui.setTone(day);
+  // Sobre las fotos, siempre tinta crema con velo oscuro (también de día): más fotográfico y legible.
+  ui.setTone(0);
   requestAnimationFrame(frame);
   clock.onChange(() => ui.update());
 
