@@ -6,8 +6,10 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 /** Acumula geometrías transformadas y las fusiona en una sola. */
 export class GeoBag {
-  constructor() {
+  /** @param {string[]} keep atributos que se conservan (todas las piezas deben tenerlos) */
+  constructor(keep = ['position', 'normal']) {
     this.parts = [];
+    this.keep = keep;
   }
 
   /** Añade una geometría con posición, rotación (euler en radianes) y escala. */
@@ -23,9 +25,9 @@ export class GeoBag {
   addMatrix(geo, matrix) {
     const g = geo.index ? geo.toNonIndexed() : geo.clone();
     g.applyMatrix4(matrix);
-    // Solo posición y normal: así todas las piezas son compatibles al fusionar.
+    // Solo los atributos comunes (posición y normal): así todas las piezas son compatibles al fusionar.
     for (const name of Object.keys(g.attributes)) {
-      if (name !== 'position' && name !== 'normal') g.deleteAttribute(name);
+      if (!this.keep.includes(name)) g.deleteAttribute(name);
     }
     this.parts.push(g);
     return this;

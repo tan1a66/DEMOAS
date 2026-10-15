@@ -21,7 +21,7 @@ function tower(bag, x) {
   bag.box(t + 0.3, 0.5, t + 0.3, x, 35.65, -t / 2);
   // Remate: cupulín y linterna.
   bag.add(new THREE.CylinderGeometry(1.75, 1.95, 1.1, 8), { x, y: 36.7, z: -t / 2 });
-  bag.add(new THREE.SphereGeometry(1.75, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), { x, y: 37.25, z: -t / 2 });
+  bag.add(new THREE.SphereGeometry(1.75, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), { x, y: 37.25, z: -t / 2 });
   bag.add(new THREE.CylinderGeometry(0.42, 0.42, 1.3, 6), { x, y: 39.5, z: -t / 2 });
   bag.add(new THREE.ConeGeometry(0.5, 1.3, 6), { x, y: 40.8, z: -t / 2 });
   bag.add(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 4), { x, y: 42, z: -t / 2 });
@@ -47,11 +47,30 @@ export function buildCathedral(mat) {
   tower(bag, -W / 2 + 2.3);
   tower(bag, W / 2 - 2.3);
 
-  // Nave, naves laterales y cúpula en el crucero.
+  // Pilastras y zócalo de la fachada, remates en las esquinas del frontispicio.
+  for (const x of [-10.2, -6.6, 6.6, 10.2]) bag.box(1.1, H - 0.6, 0.35, x, 0, 0.12);
+  bag.box(W + 0.6, 1.2, 5.6, 0, 0, -2.5);
+  for (const x of [-7.3, 7.3]) {
+    bag.box(0.8, 1.4, 0.8, x, H, -0.6);
+    bag.add(new THREE.SphereGeometry(0.42, 12, 8), { x, y: H + 1.8, z: -0.6 });
+  }
+
+  // Nave, naves laterales y cúpula en el crucero; muros almenados como una fortaleza.
   bag.box(17, 19, 52, 0, 0, -31);
   bag.box(W - 2, 12.5, 46, 0, 0, -30);
+  for (let z = -8; z > -54; z -= 2.4) {
+    for (const x of [-8.3, 8.3]) bag.box(0.9, 1.1, 1.1, x, 19, z);
+    for (const x of [-(W - 2) / 2 + 0.4, (W - 2) / 2 - 0.4]) bag.box(0.8, 1.0, 1.0, x, 12.5, z);
+  }
+  for (let z = -10; z > -54; z -= 7.5) {
+    for (const x of [-(W - 2) / 2 - 0.5, (W - 2) / 2 + 0.5]) bag.box(1.0, 11, 1.6, x, 0, z);
+  }
   bag.add(new THREE.CylinderGeometry(5.2, 5.2, 4, 8), { y: 21, z: -42 });
-  bag.add(new THREE.SphereGeometry(5.2, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), { y: 23, z: -42 });
+  bag.add(new THREE.SphereGeometry(5.2, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), { y: 23, z: -42 });
+  for (let k = 0; k < 8; k++) {
+    // nervios de la cúpula
+    bag.add(new THREE.TorusGeometry(5.25, 0.14, 4, 12, Math.PI / 2), { y: 23, z: -42, ry: (k / 8) * Math.PI * 2, rz: 0 });
+  }
   bag.add(new THREE.CylinderGeometry(0.9, 0.9, 2.2, 6), { y: 29.2, z: -42 });
   bag.add(new THREE.ConeGeometry(1.1, 1.4, 6), { y: 31, z: -42 });
 

@@ -8,6 +8,9 @@ import { buildTerrace } from './terrace.js';
 import { buildPlaza } from './plaza.js';
 import { buildBuildings } from './buildings.js';
 import { buildCathedral } from './cathedral.js';
+import { buildCasona } from './casona.js';
+import { buildBirds } from './birds.js';
+import { SHARED } from './clay.js';
 
 // La cámara mira al sur (acimut 180°) desde el lado norte de la plaza: la catedral queda a la
 // izquierda y el sol se pone a la derecha. Comprimimos los acimuts reales para que el
@@ -30,8 +33,11 @@ export function skyDirection(altitude, azimuth, out = new THREE.Vector3(), scale
   return out.set(Math.sin(a) * Math.cos(e), Math.sin(e), -Math.cos(a) * Math.cos(e));
 }
 
-// Zona que cubre el mapa de sombras (terraza + plaza + catedral).
-const SHADOW_BOX = new THREE.Box3(new THREE.Vector3(-42, -10, -122), new THREE.Vector3(42, 36, 4));
+// Zona que cubre el mapa de sombras (patio + terraza + plaza + catedral).
+const SHADOW_BOX = new THREE.Box3(new THREE.Vector3(-42, -10, -122), new THREE.Vector3(42, 36, 16.5));
+const SMOKE_GREY = new THREE.Color('#8f877c');
+const DOOR_DAY = new THREE.Color('#4a2c1c');
+const DOOR_NIGHT = new THREE.Color('#c0682c');
 const NIGHT_LIGHT_DIR = new THREE.Vector3(-0.35, 0.85, 0.4).normalize();
 
 export function createScene({ shadowMapSize }) {
@@ -45,7 +51,9 @@ export function createScene({ shadowMapSize }) {
   const plaza = buildPlaza(mat);
   const buildings = buildBuildings(mat);
   const cathedral = buildCathedral(mat);
-  scene.add(terrace.group, plaza.group, buildings.group, cathedral.group);
+  const casona = buildCasona(mat);
+  const birds = buildBirds();
+  scene.add(terrace.group, plaza.group, buildings.group, cathedral.group, casona.group, birds.group);
   scene.add(cathedral.flood, cathedral.flood.target);
 
   scene.fog = new THREE.FogExp2(new THREE.Color(), 0.0034);
@@ -54,12 +62,6 @@ export function createScene({ shadowMapSize }) {
   const hemi = new THREE.HemisphereLight('#ffffff', '#888888', 1);
   scene.add(hemi);
 
-  // Relleno suave desde detrás de la cámara (el cielo a nuestra espalda): sin él, las
-  // fachadas que miran a la terraza quedarían siempre a contraluz.
-  const fill = new THREE.DirectionalLight('#ffffff', 0);
-  fill.position.set(-30, 40, 80);
-  fill.target.position.set(0, -6, -60);
-  scene.add(fill, fill.target);
 
   const sun = new THREE.DirectionalLight('#ffffff', 1);
   sun.castShadow = true;
@@ -71,6 +73,7 @@ export function createScene({ shadowMapSize }) {
   scene.add(sun, sun.target);
 
   const tmp = new THREE.Vector3();
+  const tmp2 = new THREE.Vector2();
   const lightDir = new THREE.Vector3(0, 1, 0);
   const lastShadowDir = new THREE.Vector3(0, -1, 0);
   const corners = Array.from({ length: 8 }, () => new THREE.Vector3());
@@ -105,10 +108,13 @@ export function createScene({ shadowMapSize }) {
   /**
    * @param {object} s  estado suavizado: palette (paletteAt), sunDir, lightDir, moonDir, moon, time
    * @param {THREE.WebGLRenderer} renderer
+   * @param {THREE.PerspectiveCamera} camera
    */
-  function update(s, renderer) {
+  function update(s, renderer, camera) {
     const p = s.palette;
     const u = sky.uniforms;
+    setSRGB(u.uCloudLit.value, p.cloudLit);
+    setSRGB(u.uCloudShade.value, p.cloudShade);
     setSRGB(u.uZenith.value, p.zenith);
     setSRGB(u.uMid.value, p.mid);
     setSRGB(u.uHorizon.value, p.horizon);
@@ -124,15 +130,17 @@ export function createScene({ shadowMapSize }) {
     u.uMoon.value = THREE.MathUtils.smoothstep(s.moonDir.y, -0.02, 0.04) * (0.35 + 0.65 * p.windows);
 
     // Niebla = color del horizonte (con un poco del resplandor): la ciudad se funde con el cielo.
-    setSRGB(scene.fog.color, p.horizon).lerp(setSRGB(c, p.glow), 0.4);
+    setSRGB(scene.fog.color, p.horizon).lerp(setSRGB(c, p.glow), 0.25);
     scene.fog.density = p.fog;
+    SHARED.uTime.value = s.time;
+    SHARED.uFogSun.value.copy(s.sunDir);
+    setSRGB(SHARED.uFogGlow.value, p.glow);
 
     // Luz ambiental del cielo: es la que tiñe la piedra de naranja, rosa o azul.
     setSRGB(hemi.color, p.hemiSky);
     setSRGB(hemi.groundColor, p.hemiGround);
-    hemi.intensity = p.hemiI;
-    setSRGB(fill.color, p.hemiSky);
-    fill.intensity = p.hemiI * 0.55;
+    hemi.intensity = p.hemiI * 1.05;
+    setSRGB(SHARED.uFillColor.value, p.hemiSky).multiplyScalar(p.hemiI * 0.75);
 
     // Sol de día; de noche una luz de luna azulada y tenue desde arriba.
     const night = p.moonlight;
@@ -166,8 +174,16 @@ export function createScene({ shadowMapSize }) {
     terrace.candle.intensity = L * 0.35 * flicker;
     cathedral.flood.intensity = p.windows * 70;
 
+    // El fuego de la cocina (siempre encendido; de noche manda) y los zanates del atardecer.
+    const size = renderer.getDrawingBufferSize(tmp2);
+    const scale = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    casona.kitchenGlow.color.lerpColors(DOOR_DAY, DOOR_NIGHT, L); // la cocina trabaja: de noche se nota más
+    casona.patioLantern.emissiveIntensity = (1.1 + 1.1 * L) * flicker;
+    casona.fire.update(s.time, camera, { ambient: setSRGB(c, p.horizon).lerp(SMOKE_GREY, 0.35), scale, night: p.lanterns });
+    birds.update(s.time, s.dt ?? 0.016, p);
+
     renderer.toneMappingExposure = p.exposure;
   }
 
-  return { scene, sky, update, materials: mat };
+  return { scene, sky, update, materials: mat, casona };
 }

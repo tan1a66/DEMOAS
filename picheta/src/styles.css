@@ -99,7 +99,7 @@ img {
 .scrim::after {
   background:
     linear-gradient(to bottom, rgb(239 230 214 / 0.42) 0%, rgb(239 230 214 / 0) 16%),
-    linear-gradient(to top, rgb(239 230 214 / 0.8) 0%, rgb(239 230 214 / 0.55) 26%, rgb(239 230 214 / 0) 54%);
+    linear-gradient(to top, rgb(239 230 214 / 0.9) 0%, rgb(239 230 214 / 0.72) 30%, rgb(239 230 214 / 0) 56%);
   opacity: 0;
 }
 .tone-day .scrim::before {
@@ -255,6 +255,18 @@ main {
 }
 .title .line {
   display: block;
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 1.5s var(--ease-out),
+    transform 1.9s var(--ease-out);
+}
+/* Película: cada mitad del titular aparece en su momento (ui.stage). */
+.intro-fire .title .line:first-child,
+.intro-sky .title .line-2,
+.is-in .title .line {
+  opacity: 1;
+  transform: none;
 }
 .title .line-2 {
   font-style: italic;
@@ -302,11 +314,10 @@ main {
   opacity: 1;
   transform: none;
 }
-.is-in #kicker { transition-delay: 0.15s; }
-.is-in #title { transition-delay: 0.35s; }
-.is-in #subtitle { transition-delay: 0.9s; }
+.is-in #kicker { transition-delay: 0.5s; }
+.is-in #subtitle { transition-delay: 0.15s; }
 .is-in .scroll-hint { transition-delay: 1.6s; }
-.is-in .cta { transition-delay: 1.2s; }
+.is-in .cta { transition-delay: 0.7s; }
 
 /* Cambio de tono día/noche: los textos se apagan, cambia la tinta y vuelven. */
 .tone-swap .hero-copy,
@@ -571,7 +582,7 @@ main {
   transform: translateX(-50%);
   width: min(560px, calc(100% - 2 * var(--gutter)));
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto auto;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
@@ -611,7 +622,7 @@ main {
 }
 @media (max-width: 520px) {
   .timebar {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr auto auto;
   }
   .timebar-label {
     display: none;

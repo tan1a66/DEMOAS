@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { GeoBag, at } from './build.js';
+import { PATIO } from './casona.js';
 
 export const PARAPET_Z = -1.85; // eje de la balaustrada
 const RAIL_TOP = 0.92;
@@ -17,7 +18,23 @@ function balusterGeometry() {
     [0.06, 0], [0.06, 0.04], [0.035, 0.07], [0.078, 0.3], [0.045, 0.48],
     [0.03, 0.54], [0.052, 0.58], [0.052, 0.66], [0.0, 0.66],
   ].map(([r, y]) => new THREE.Vector2(r, y));
-  return new THREE.LatheGeometry(p, 6);
+  return new THREE.LatheGeometry(p, 10);
+}
+
+/** Henequén (agave) en maceta: la planta de Yucatán. Base en el origen. */
+function agaveBag() {
+  const b = new GeoBag();
+  const pot = [[0, 0], [0.2, 0], [0.26, 0.05], [0.3, 0.42], [0.34, 0.46], [0.33, 0.5], [0, 0.5]].map(([r, y]) => new THREE.Vector2(r, y));
+  b.add(new THREE.LatheGeometry(pot, 18));
+  const leaf = new THREE.ConeGeometry(0.055, 0.85, 5).translate(0, 0.425, 0);
+  const n = 16;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + (i % 2) * 0.2;
+    const tilt = 0.35 + (i % 3) * 0.28;
+    const s = 0.75 + ((i * 7) % 5) * 0.08;
+    b.add(leaf, { y: 0.48, rx: Math.cos(a) * tilt, rz: -Math.sin(a) * tilt, sx: 1, sy: s, sz: 0.4 });
+  }
+  return b;
 }
 
 /** Silla de bistró: asiento redondo, patas abiertas y respaldo curvo. Mira hacia +Z. */
@@ -42,9 +59,10 @@ function chairBag() {
 /** Mesa redonda de un pie. */
 function tableBag() {
   const b = new GeoBag();
-  b.add(new THREE.CylinderGeometry(0.38, 0.38, 0.035, 14), { y: 0.74 });
-  b.add(new THREE.CylinderGeometry(0.03, 0.035, 0.72, 6), { y: 0.37 });
-  b.add(new THREE.CylinderGeometry(0.2, 0.23, 0.03, 10), { y: 0.015 });
+  b.add(new THREE.CylinderGeometry(0.38, 0.38, 0.035, 28), { y: 0.74 });
+  b.add(new THREE.CylinderGeometry(0.39, 0.37, 0.012, 28), { y: 0.72 });
+  b.add(new THREE.CylinderGeometry(0.03, 0.035, 0.72, 10), { y: 0.37 });
+  b.add(new THREE.CylinderGeometry(0.2, 0.23, 0.03, 16), { y: 0.015 });
   return b;
 }
 
@@ -76,7 +94,15 @@ export function buildTerrace(mat) {
   const clay = new GeoBag();
 
   // ---------------------------------------------------------------- suelo
-  clay.add(new THREE.BoxGeometry(2 * HALF_LEN, 0.3, 9), { y: -0.15, z: PARAPET_Z + 4.4 });
+  // Mosaico de pasta, con el hueco del patio de la casona detrás de la cámara.
+  const floor = new GeoBag();
+  const { x0, x1, z0, z1 } = PATIO;
+  const zFront = PARAPET_Z - 0.1;
+  const zBack = 18;
+  floor.add(new THREE.BoxGeometry(2 * HALF_LEN, 0.3, z0 - zFront), { y: -0.15, z: (zFront + z0) / 2 });
+  floor.add(new THREE.BoxGeometry(2 * HALF_LEN, 0.3, zBack - z1), { y: -0.15, z: (z1 + zBack) / 2 });
+  floor.add(new THREE.BoxGeometry(x0 + HALF_LEN, 0.3, z1 - z0), { y: -0.15, x: (x0 - HALF_LEN) / 2, z: (z0 + z1) / 2 });
+  floor.add(new THREE.BoxGeometry(HALF_LEN - x1, 0.3, z1 - z0), { y: -0.15, x: (x1 + HALF_LEN) / 2, z: (z0 + z1) / 2 });
   // Cornisa del edificio bajo la terraza (se ve de reojo entre balaustres).
   clay.add(new THREE.BoxGeometry(2 * HALF_LEN, 0.22, 0.5), { y: -0.36, z: PARAPET_Z - 0.05 });
   // Fachada del edificio hasta la calle.
@@ -92,6 +118,12 @@ export function buildTerrace(mat) {
   for (const x of pillars) {
     clay.box(0.34, RAIL_TOP + 0.06, 0.42, x, 0, PARAPET_Z);
     clay.box(0.42, 0.06, 0.5, x, RAIL_TOP + 0.06, PARAPET_Z);
+    clay.box(0.4, 0.1, 0.48, x, 0, PARAPET_Z);
+  }
+  // Remates: bolas sobre peana en las pilastras sin poste.
+  for (const x of [-10.6, 10.6]) {
+    clay.add(new THREE.CylinderGeometry(0.1, 0.13, 0.08, 14), { x, y: RAIL_TOP + 0.16, z: PARAPET_Z });
+    clay.add(new THREE.SphereGeometry(0.13, 16, 10), { x, y: RAIL_TOP + 0.31, z: PARAPET_Z });
   }
   const baluster = balusterGeometry();
   for (let x = -HALF_LEN; x <= HALF_LEN; x += 0.21) {
@@ -189,7 +221,13 @@ export function buildTerrace(mat) {
     }
   }
 
+  // Henequén en macetas junto a la balaustrada (enmarcan la vista en pantallas anchas).
+  const agave = agaveBag();
+  clay.addBag(agave, at(-1.95, 0, PARAPET_Z + 0.55, 0.3));
+  clay.addBag(agave, at(2.05, 0, PARAPET_Z + 0.5, 1.1, 0.85));
+
   group.add(clay.mesh(mat.clay));
+  group.add(floor.mesh(mat.tiles, { cast: false }));
   group.add(wires.mesh(mat.wire, { cast: false, receive: false }));
   const bulbMesh = bulbs.mesh(mat.bulb, { cast: false, receive: false });
   const lanternMesh = lanterns.mesh(mat.lantern, { cast: false, receive: false });

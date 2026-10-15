@@ -8,6 +8,34 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+// Acabado de película: viñeta suave y grano finísimo (en espacio de pantalla, ya en sRGB).
+const FinishShader = {
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uAspect: { value: 1 } },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uAspect;
+    varying vec2 vUv;
+    // Hash aritmético (sin senos): estable en todas las GPU, sin tramas regulares.
+    float h(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+    }
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
+      float v = smoothstep(0.35, 1.15, length(q) * 1.35);
+      c.rgb *= 1.0 - 0.28 * v;
+      c.rgb += (h(gl_FragCoord.xy + floor(fract(uTime * 0.5) * 24.0) * 37.0) - 0.5) * 0.022;
+      gl_FragColor = c;
+    }`,
+};
 
 export function createPost(renderer, scene, camera, { ao, msaa, bloomScale, hideFromAO = [] }) {
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
@@ -45,6 +73,8 @@ export function createPost(renderer, scene, camera, { ao, msaa, bloomScale, hide
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x * bloomScale, size.y * bloomScale), 0.32, 0.08, 1.1);
   composer.addPass(bloom);
   composer.addPass(new OutputPass());
+  const finish = new ShaderPass(FinishShader);
+  composer.addPass(finish);
 
   return {
     composer,
@@ -53,8 +83,10 @@ export function createPost(renderer, scene, camera, { ao, msaa, bloomScale, hide
     setSize(w, h, pixelRatio) {
       composer.setPixelRatio(pixelRatio);
       composer.setSize(w, h);
+      finish.uniforms.uAspect.value = w / h;
     },
-    render(dt) {
+    render(dt, t = 0) {
+      finish.uniforms.uTime.value = t;
       composer.render(dt);
     },
   };

@@ -37,9 +37,11 @@ export const CONFIG = {
 const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 export const IS_MOBILE = coarse || Math.min(screen.width, screen.height) < 600;
 
+// `ao`: oclusión en espacio de pantalla (GTAO). Apagada: el material de arcilla ya lleva una
+// oclusión analítica (contacto con el suelo, patio) sin el ruido de la GTAO a media resolución.
 export const QUALITY = IS_MOBILE
   ? { maxPixelRatio: 2, shadowMapSize: 1024, ao: false, msaa: 0, bloomScale: 0.5 }
-  : { maxPixelRatio: 2, shadowMapSize: 2048, ao: true, msaa: 4, bloomScale: 0.5 };
+  : { maxPixelRatio: 2, shadowMapSize: 2048, ao: false, msaa: 4, bloomScale: 0.5 };
 
 export const REDUCED_MOTION =
   typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;

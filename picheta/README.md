@@ -1,8 +1,13 @@
 # Picheta — "El cielo de Mérida, hoy"
 
 Demo dell'hero del nuovo sito di Picheta (cucina yucateca contemporanea, terrazza sulla Plaza Grande di Mérida).
-La scena 3D è argilla color crema: l'unico colore è il cielo **reale** sopra Mérida in questo momento
-e la luce che cade sugli edifici.
+La scena 3D è argilla color crema: l'unico colore è il cielo **reale** sopra Mérida in questo momento,
+la luce che cade sugli edifici e il fuoco della cucina.
+
+**Il film d'apertura** (~7,5 s): "Abajo, el fuego." — si parte in cucina, davanti al fogón nel patio della
+casona; la camera segue le braci su per il patio tra i portali e i farolitos, sbuca sopra il tetto e si posa
+sulla terrazza davanti alla piazza: "Arriba, Mérida.". Scrollando, la camera torna a guardare giù nel patio,
+verso il fuoco, mentre sale la sezione "La cocina".
 
 Vite + Three.js + `suncalc`, JavaScript vanilla, una sola pagina.
 
@@ -19,11 +24,14 @@ npm run preview    # serve dist/ in locale
 | URL / tasto | Cosa fa |
 | --- | --- |
 | `?t=18:10` | Forza un orario (ora di Mérida, oggi). |
-| `?timelapse=1` | Dalle 16:00 all'01:00 in ~40 s, poi ricomincia (per registrare il video). Opzionali: `&from=17:00&to=22:00&dur=30`. |
+| `?timelapse=1` | Dopo il film d'apertura, dalle 16:00 all'01:00 in ~40 s (rallenta attorno al tramonto), poi ricomincia. Opzionali: `&from=17:00&to=22:00&dur=30`, `&ease=0` (velocità costante). |
 | `?d=2026-06-21` | Forza una data (es. il tramonto d'estate, alle 18:42). Si combina con `t` e `timelapse`. |
 | `?lang=en` | Apre in inglese (altrimenti spagnolo, o l'ultima lingua scelta). |
 | `?slider` | Mostra subito lo slider orario (utile su telefono, dove non c'è il tasto T). |
 | `?nogl=1` | Forza il fallback senza WebGL (gradiente CSS). |
+| `?intro=0` | Salta il film d'apertura (si parte già sulla terrazza). |
+| `?introAt=3.4` | Congela il film in un istante (secondi): utile per screenshot e ritocchi. |
+| Tasto **R** | Rivede il film d'apertura (anche il pulsante "▶ Intro" nello slider). |
 | Tasto **T** | Mostra/nasconde lo slider orario. "En vivo" torna all'ora reale. |
 | Tasti **1–9** (slider aperto) | Salti rapidi: 12:00, 16:30, 17:15, 17:45, 18:10, 18:40, 19:30, 21:30, 00:30. |
 
@@ -59,8 +67,12 @@ Prima delle 05:00 la notte appartiene ancora al giorno precedente (all'01:30 di 
 - `src/palette.js` — keyframe del cielo (giorno, golden hour, tramonto, blue hour, notte), condivisi da WebGL e fallback CSS.
 - `src/copy.js` — testi ES/EN e logica del bottone.
 - `src/ui.js` — testi animati, switch lingua, bottone, slider; tinta del testo adattiva (scura di giorno, crema di notte).
-- `src/camera.js` — camera da seduti, deriva lentissima, parallax mouse/giroscopio, discesa con lo scroll.
-- `src/scene/` — cielo (shader), terrazza, piazza, edifici, cattedrale, luci, post-processing (AO leggera su desktop, bloom solo sulle luci).
+- `src/intro.js` — **la regia del film**: keyframe della camera (tempo, posizione, inclinazione) e momenti dei testi. Per ritoccare la ripresa si cambiano solo questi numeri.
+- `src/camera.js` — segue il film, poi camera da seduti con deriva lentissima e parallax mouse/giroscopio; con lo scroll torna a guardare nel patio.
+- `src/scene/casona.js` — il patio coloniale a due piani con la cucina: fogón, legna, pentole, pass con i piatti, farolitos, tavoli al piano alto.
+- `src/scene/fire.js` — fiamme procedurali, braci che salgono, fumo, luce del fuoco.
+- `src/scene/clay.js` — il materiale "argilla": foschia che sale dal suolo, occlusione del patio, pavimenti a mosaico de pasta, vento sulle chiome.
+- `src/scene/` (resto) — cielo con nuvole (shader), terrazza, piazza, alberi, edifici, cattedrale, zanates, post-processing (bloom solo sulle luci, grana e vignettatura).
 - `src/fallback.js` — gradiente CSS del cielo se WebGL non è disponibile.
 
 Note di regia: la composizione è stilizzata, non topografica. La camera guarda a sud dal lato nord della piazza
@@ -72,7 +84,7 @@ Note di regia: la composizione è stilizzata, non topografica. La camera guarda 
 - Pixel ratio massimo 2, che scende da solo se il dispositivo non regge (min. 1).
 - Geometria fusa in poche mesh, alberi istanziati, nessuna texture.
 - Ombre ricalcolate solo quando il sole si sposta davvero; il rendering si ferma quando la sezione "La cocina" copre la scena.
-- Su mobile niente ambient occlusion e shadow map più piccola.
+- Occlusione ambientale analitica nello shader (niente GTAO in screen-space: più pulita e più leggera); su mobile shadow map più piccola.
 
 ## Deploy (Vercel o Netlify)
 

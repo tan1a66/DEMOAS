@@ -8,35 +8,36 @@
 //   hemiSky, hemiGround, hemiI  luz ambiental (HemisphereLight): tiñe la piedra crema
 //   exposure                exposición del tone mapping
 //   fog                     densidad de la bruma (funde la ciudad con el horizonte)
+//   cloudLit / cloudShade   nubes: lado iluminado y lado en sombra
 // Para retocar un momento del día, basta con cambiar los hex de su keyframe.
 
 const KEYFRAMES = [
   // ---- día: azul claro tenue
   { alt: 60, zenith: '#8DAFD6', mid: '#B5CBE0', horizon: '#E6E6DF', glow: '#F2ECDF',
-    sun: '#FFF3E0', sunI: 2.4, hemiSky: '#E3E1DA', hemiGround: '#E9D7B9', hemiI: 1.65, exposure: 1.06, fog: 0.0030 },
+    sun: '#FFF3E0', sunI: 2.4, hemiSky: '#E6E2D8', hemiGround: '#EBD8B8', hemiI: 1.95, exposure: 1.08, fog: 0.0021, cloudLit: '#FBF8F1', cloudShade: '#C3CDDB' },
   { alt: 25, zenith: '#8CAED2', mid: '#B6C9DA', horizon: '#E9E3D5', glow: '#F4E6CB',
-    sun: '#FFEED6', sunI: 2.4, hemiSky: '#E5DED0', hemiGround: '#E7D2B1', hemiI: 1.6, exposure: 1.05, fog: 0.0030 },
+    sun: '#FFEED6', sunI: 2.4, hemiSky: '#E7DFCF', hemiGround: '#E8D3B0', hemiI: 1.85, exposure: 1.06, fog: 0.0022, cloudLit: '#FFF7EA', cloudShade: '#C2C6D2' },
   // ---- golden hour: oro y durazno
   { alt: 9, zenith: '#A6B0C8', mid: '#E6C3A6', horizon: '#F1C990', glow: '#F7C46E',
-    sun: '#FFBF6E', sunI: 3.3, hemiSky: '#E6C1A4', hemiGround: '#C99872', hemiI: 1.05, exposure: 1.04, fog: 0.0026 },
+    sun: '#FFBF6E', sunI: 3.3, hemiSky: '#E6C1A4', hemiGround: '#C99872', hemiI: 1.05, exposure: 1.04, fog: 0.0026, cloudLit: '#FFE2B4', cloudShade: '#B6A6B6' },
   { alt: 3, zenith: '#8F86AB', mid: '#ECA98E', horizon: '#F0AE76', glow: '#F59A3A',
-    sun: '#FFA04C', sunI: 3.0, hemiSky: '#DDA08C', hemiGround: '#A9705A', hemiI: 0.95, exposure: 1.05, fog: 0.0026 },
+    sun: '#FFA04C', sunI: 3.0, hemiSky: '#DDA08C', hemiGround: '#A9705A', hemiI: 0.95, exposure: 1.05, fog: 0.0026, cloudLit: '#FFC48C', cloudShade: '#A2879C' },
   // ---- atardecer: naranja habanero, rosa, violeta en el horizonte
   { alt: -0.5, zenith: '#5F5189', mid: '#D9808F', horizon: '#94608F', glow: '#F08A24',
-    sun: '#FF7C34', sunI: 0.8, hemiSky: '#D88A8C', hemiGround: '#8A5A5E', hemiI: 0.95, exposure: 1.08, fog: 0.0028 },
+    sun: '#FF7C34', sunI: 0.8, hemiSky: '#D88A8C', hemiGround: '#8A5A5E', hemiI: 0.95, exposure: 1.08, fog: 0.0028, cloudLit: '#FF9C5C', cloudShade: '#7B5878' },
   { alt: -4, zenith: '#3A3A6E', mid: '#7D5B88', horizon: '#76517C', glow: '#DE6B36',
-    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#8C6E9A', hemiGround: '#4E3B4E', hemiI: 0.85, exposure: 1.12, fog: 0.0028 },
+    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#8C6E9A', hemiGround: '#4E3B4E', hemiI: 0.85, exposure: 1.12, fog: 0.0028, cloudLit: '#F28C72', cloudShade: '#4E4270' },
   // ---- blue hour: índigo con el horizonte todavía cálido
   { alt: -8, zenith: '#252A55', mid: '#333A6A', horizon: '#4A4472', glow: '#B05A45',
-    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#4E5A96', hemiGround: '#2E2A44', hemiI: 0.75, exposure: 1.15, fog: 0.0026 },
+    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#4E5A96', hemiGround: '#2E2A44', hemiI: 0.75, exposure: 1.15, fog: 0.0026, cloudLit: '#B5637C', cloudShade: '#2C2D57' },
   { alt: -12, zenith: '#1D1E3A', mid: '#262744', horizon: '#3A2F42', glow: '#6E3E36',
-    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#3F4A80', hemiGround: '#24212F', hemiI: 0.6, exposure: 1.2, fog: 0.0024 },
+    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#3F4A80', hemiGround: '#24212F', hemiI: 0.6, exposure: 1.2, fog: 0.0024, cloudLit: '#523A50', cloudShade: '#1E1F38' },
   // ---- noche: casi negro cálido, con estrellas
   { alt: -18, zenith: '#1A1512', mid: '#1D1815', horizon: '#2A211C', glow: '#30241D',
-    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#36406E', hemiGround: '#1D1A22', hemiI: 0.5, exposure: 1.25, fog: 0.0022 },
+    sun: '#FF6A3A', sunI: 0.0, hemiSky: '#36406E', hemiGround: '#1D1A22', hemiI: 0.5, exposure: 1.25, fog: 0.0022, cloudLit: '#3B2D27', cloudShade: '#1B1613' },
 ];
 
-const COLOR_KEYS = ['zenith', 'mid', 'horizon', 'glow', 'sun', 'hemiSky', 'hemiGround'];
+export const COLOR_KEYS = ['zenith', 'mid', 'horizon', 'glow', 'sun', 'hemiSky', 'hemiGround', 'cloudLit', 'cloudShade'];
 const NUM_KEYS = ['sunI', 'hemiI', 'exposure', 'fog'];
 
 const hexToRgb = (hex) => {

@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GeoBag, arcadeGeometry, at, rng } from './build.js';
 import { GROUND_Y } from './plaza.js';
+import { palmGeometry } from './trees.js';
 
 /** Recoge ventanas (planos) para dibujarlas con dos InstancedMesh: apagadas y encendidas. */
 class Windows {
@@ -40,7 +41,7 @@ class Windows {
  * Casa colonial en coordenadas locales: fachada en z = 0 mirando a +Z, base en y = 0,
  * centrada en x. Con `portal`, la planta baja es un portal de arcos.
  */
-function colonialBlock(bag, win, base, { width, height, depth = 14, portal = false, bays }) {
+function colonialBlock(bag, win, base, { width, height, depth = 14, portal = false, bays, upperArcade = false }) {
   const n = bays ?? Math.max(2, Math.round(width / 3.6));
   const step = width / n;
   const floor1 = portal ? 5.2 : 4.8;
@@ -48,7 +49,13 @@ function colonialBlock(bag, win, base, { width, height, depth = 14, portal = fal
   if (portal) {
     const recess = 3.2;
     bag.addMatrix(new THREE.BoxGeometry(width, height, depth - recess).translate(0, height / 2, -recess - (depth - recess) / 2), base);
-    bag.addMatrix(new THREE.BoxGeometry(width, height - floor1, recess).translate(0, floor1 + (height - floor1) / 2, -recess / 2), base);
+    if (upperArcade) {
+      // Galería alta abierta: forjado y techo; la arcada va delante.
+      bag.addMatrix(new THREE.BoxGeometry(width, 0.35, recess).translate(0, floor1 + 0.1, -recess / 2), base);
+      bag.addMatrix(new THREE.BoxGeometry(width, 0.6, recess).translate(0, height - 0.3, -recess / 2), base);
+    } else {
+      bag.addMatrix(new THREE.BoxGeometry(width, height - floor1, recess).translate(0, floor1 + (height - floor1) / 2, -recess / 2), base);
+    }
     bag.addMatrix(
       arcadeGeometry({ width, height: floor1, depth: 0.7, arches: n, archWidth: step * 0.7, archHeight: floor1 - 0.7 }),
       base,
@@ -63,16 +70,39 @@ function colonialBlock(bag, win, base, { width, height, depth = 14, portal = fal
       win.add(base, -width / 2 + step * (i + 0.5), 1.9, 0.03, 1.5, 3.2, win.rand() < 0.3);
     }
   }
-  // Planta alta: balcones con puerta-ventana.
-  for (let i = 0; i < n; i++) {
-    const x = -width / 2 + step * (i + 0.5);
-    win.add(base, x, floor1 + 2.3, 0.03, 1.15, 2.5);
-    bag.addMatrix(new THREE.BoxGeometry(1.6, 0.14, 0.5).translate(x, floor1 + 1.0, 0.25), base);
-    bag.addMatrix(new THREE.BoxGeometry(1.6, 0.5, 0.04).translate(x, floor1 + 1.3, 0.48), base);
+  if (upperArcade) {
+    // Planta alta también en arcos (como el Palacio Municipal), con antepecho.
+    const h2 = height - floor1 - 0.9;
+    bag.addMatrix(
+      arcadeGeometry({ width, height: h2, depth: 0.5, arches: n, archWidth: step * 0.62, archHeight: h2 - 0.6, sill: 1.0 }).translate(0, floor1 + 0.25, 0),
+      base,
+    );
+    for (let i = 0; i < n; i++) win.add(base, -width / 2 + step * (i + 0.5), floor1 + 2.0, -3.18, step * 0.5, 2.8, win.rand() < 0.6);
+  } else {
+    // Planta alta: balcones con puerta-ventana, marco y cornisilla.
+    for (let i = 0; i < n; i++) {
+      const x = -width / 2 + step * (i + 0.5);
+      win.add(base, x, floor1 + 2.3, 0.03, 1.15, 2.5);
+      bag.addMatrix(new THREE.BoxGeometry(1.6, 0.14, 0.5).translate(x, floor1 + 1.0, 0.25), base);
+      bag.addMatrix(new THREE.BoxGeometry(1.6, 0.5, 0.04).translate(x, floor1 + 1.3, 0.48), base);
+      bag.addMatrix(new THREE.BoxGeometry(1.55, 0.16, 0.24).translate(x, floor1 + 3.75, 0.12), base);
+      for (const sx of [-0.68, 0.68]) bag.addMatrix(new THREE.BoxGeometry(0.16, 2.7, 0.1).translate(x + sx, floor1 + 2.35, 0.05), base);
+    }
   }
-  // Cornisa y pretil.
+  // Pilastras entre vanos: ritman la fachada.
+  for (let i = 0; i <= n; i++) {
+    const x = -width / 2 + step * i;
+    bag.addMatrix(new THREE.BoxGeometry(0.45, height - floor1 - 0.4, 0.18).translate(x, floor1 + (height - floor1 - 0.4) / 2, 0.09), base);
+  }
+  // Cornisa escalonada y pretil con remates.
   bag.addMatrix(new THREE.BoxGeometry(width + 0.3, 0.35, 0.5).translate(0, height - 0.55, 0.12), base);
+  bag.addMatrix(new THREE.BoxGeometry(width + 0.15, 0.18, 0.34).translate(0, height - 0.8, 0.06), base);
   bag.addMatrix(new THREE.BoxGeometry(width, 0.7, 0.3).translate(0, height + 0.35, -0.15), base);
+  for (let i = 0; i <= n; i++) {
+    const x = Math.min(width / 2 - 0.25, Math.max(-width / 2 + 0.25, -width / 2 + step * i));
+    bag.addMatrix(new THREE.BoxGeometry(0.42, 0.5, 0.42).translate(x, height + 0.95, -0.15), base);
+    bag.addMatrix(new THREE.SphereGeometry(0.2, 10, 6).translate(x, height + 1.38, -0.15), base);
+  }
   // Impostas entre plantas.
   bag.addMatrix(new THREE.BoxGeometry(width + 0.1, 0.18, 0.2).translate(0, floor1 + 0.15, 0.05), base);
 }
@@ -128,7 +158,7 @@ export function buildBuildings(mat) {
   }
   // Palacio Municipal: dos plantas con portal y la torre del reloj al centro.
   const palX = x + 13;
-  colonialBlock(near, win, at(palX, G, southZ), { width: 26, height: 12.5, portal: true, bays: 7 });
+  colonialBlock(near, win, at(palX, G, southZ), { width: 26, height: 12.5, portal: true, bays: 7, upperArcade: true });
   clockTower(near, win, at(palX, G + 12.5, southZ - 3.5));
   x += 26;
   for (const [w, h, portal] of [[9, 9.8, false], [14, 12, true], [16, 12, true], [12, 11, false], [14, 12, true]]) {
@@ -172,6 +202,10 @@ export function buildBuildings(mat) {
   for (const [tx, tz, h] of [[62, -180, 20], [-105, -230, 17], [130, -260, 22], [22, -300, 18]]) {
     churchTower(far, at(tx, G, tz), h);
   }
+  // Cocoteros asomando sobre los techos: la silueta de Yucatán.
+  [[38, -128, 15], [44, -134, 13], [-62, -140, 14], [86, -170, 16], [-30, -190, 15], [12, -150, 13.5], [118, -150, 14]].forEach(([px, pz, h], i) => {
+    far.addMatrix(palmGeometry(h, i + 3), at(px, G, pz, i * 1.7));
+  });
 
   // Los edificios reciben sombra pero no la proyectan: al atardecer sus sombras larguísimas
   // dejarían a oscuras la fachada de la catedral, que es justo la que debe encenderse.

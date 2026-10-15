@@ -1,10 +1,10 @@
-// Cámara a la altura de los ojos de una persona sentada en la terraza.
-// Deriva lentísima + paralaje (ratón en escritorio, giroscopio en móvil) + bajada con el scroll.
+// Cámara: la película de entrada (cocina → cielo → terraza, ver intro.js) y después los ojos de
+// una persona sentada en la terraza. Deriva lentísima + paralaje (ratón en escritorio,
+// giroscopio en móvil). Con el scroll vuelve a asomarse al patio, hacia el fuego.
 
 import * as THREE from 'three';
 import { REDUCED_MOTION } from './config.js';
-
-const EYE = new THREE.Vector3(0, 1.22, 1.0);
+import { INTRO_KEYS, INTRO_END, SCROLL_KEYS, makePath } from './intro.js';
 
 export class CameraRig {
   constructor() {
@@ -14,7 +14,10 @@ export class CameraRig {
     this.scroll = 0; // 0 = hero completo, 1 = sección siguiente
     this.scrollSmooth = 0;
     this.tilt = 0;
+    this.introT = INTRO_END; // segundos de película; INTRO_END = ya sentados
     this.target = new THREE.Vector3();
+    this.base = new THREE.Vector3();
+    this.paths = null;
     this.initPointer();
     this.initGyro();
   }
@@ -36,6 +39,7 @@ export class CameraRig {
     // Inclinación hacia arriba: más cielo en vertical (el cielo es el protagonista).
     this.tilt = aspect < 1 ? 3.5 : 2.2;
     cam.updateProjectionMatrix();
+    this.paths = { intro: makePath(INTRO_KEYS, this.tilt), scroll: makePath(SCROLL_KEYS, this.tilt) };
   }
 
   initPointer() {
@@ -58,7 +62,7 @@ export class CameraRig {
    */
   initGyro() {
     if (REDUCED_MOTION || typeof DeviceOrientationEvent === 'undefined') return;
-    this.base = null;
+    this.gyroBase = null;
     const onOrient = (e) => {
       if (e.beta == null || e.gamma == null) return;
       this.gyroActive = true;
@@ -68,12 +72,12 @@ export class CameraRig {
       if (angle === 90) [x, y] = [y, -x];
       else if (angle === -90 || angle === 270) [x, y] = [-y, x];
       // La referencia sigue despacio a la postura de la mano: el centro se recoloca solo.
-      if (!this.base) this.base = { x, y };
-      this.base.x += (x - this.base.x) * 0.01;
-      this.base.y += (y - this.base.y) * 0.01;
+        if (!this.gyroBase) this.gyroBase = { x, y };
+      this.gyroBase.x += (x - this.gyroBase.x) * 0.01;
+      this.gyroBase.y += (y - this.gyroBase.y) * 0.01;
       this.input.set(
-        THREE.MathUtils.clamp((x - this.base.x) / 14, -1, 1),
-        THREE.MathUtils.clamp((y - this.base.y) / 14, -1, 1),
+        THREE.MathUtils.clamp((x - this.gyroBase.x) / 14, -1, 1),
+        THREE.MathUtils.clamp((y - this.gyroBase.y) / 14, -1, 1),
       );
     };
     const listen = () => window.addEventListener('deviceorientation', onOrient);
@@ -93,26 +97,40 @@ export class CameraRig {
   update(t, dt) {
     if (!REDUCED_MOTION) this.smooth.lerp(this.input, 1 - Math.exp(-dt / 0.9));
     this.scrollSmooth += (this.scroll - this.scrollSmooth) * (1 - Math.exp(-dt / 0.25));
+    const s = this.scrollSmooth;
 
-    // Deriva continua, lentísima (se apaga con prefers-reduced-motion).
-    const drift = REDUCED_MOTION ? 0 : 1;
-    const dx = Math.sin(t * 0.043) * 0.16 * drift;
-    const dy = Math.sin(t * 0.031 + 1.0) * 0.035 * drift;
-    const yaw = Math.sin(t * 0.027 + 0.4) * 0.6 * drift;
+    // Pose base: la película mientras dura; después, la terraza (y el patio con el scroll).
+    let pitch;
+    let yaw;
+    const inIntro = this.introT < INTRO_END;
+    if (inIntro) {
+      const p = this.paths.intro;
+      p.pos.at(this.introT, this.base);
+      pitch = p.pitch.at(this.introT);
+      yaw = p.yaw.at(this.introT);
+    } else {
+      const p = this.paths.scroll;
+      p.pos.at(s, this.base);
+      pitch = p.pitch.at(s);
+      yaw = p.yaw.at(s);
+    }
+
+    // Deriva y paralaje: entran suavemente al final de la película y se apagan con el scroll.
+    const settle = inIntro ? THREE.MathUtils.smoothstep(this.introT, INTRO_END - 1.4, INTRO_END) : 1;
+    const w = REDUCED_MOTION ? 0 : settle * (1 - s);
+    const dx = Math.sin(t * 0.043) * 0.16 * w;
+    const dy = Math.sin(t * 0.031 + 1.0) * 0.035 * w;
+    yaw += (Math.sin(t * 0.027 + 0.4) * 0.6 + this.smooth.x * 1.1) * w;
+    pitch -= this.smooth.y * 0.6 * w;
 
     const cam = this.camera;
-    const s = this.scrollSmooth;
-    cam.position.set(
-      EYE.x + dx + this.smooth.x * 0.2,
-      EYE.y + dy - this.smooth.y * 0.07 - s * 0.62, // el scroll baja la cámara tras la balaustrada
-      EYE.z,
-    );
-    const yawRad = THREE.MathUtils.degToRad(yaw + this.smooth.x * 1.1);
-    const pitch = THREE.MathUtils.degToRad(this.tilt - this.smooth.y * 0.6 - s * 3.5);
+    cam.position.set(this.base.x + dx + this.smooth.x * 0.2 * w, this.base.y + dy - this.smooth.y * 0.07 * w, this.base.z);
+    const yawRad = THREE.MathUtils.degToRad(yaw);
+    const pitchRad = THREE.MathUtils.degToRad(pitch);
     this.target.set(
-      cam.position.x + Math.sin(yawRad) * 60,
-      cam.position.y + Math.tan(pitch) * 60,
-      cam.position.z - Math.cos(yawRad) * 60,
+      cam.position.x + Math.sin(yawRad) * Math.cos(pitchRad) * 60,
+      cam.position.y + Math.sin(pitchRad) * 60,
+      cam.position.z - Math.cos(yawRad) * Math.cos(pitchRad) * 60,
     );
     cam.lookAt(this.target);
   }

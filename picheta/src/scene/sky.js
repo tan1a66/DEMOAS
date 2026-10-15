@@ -26,12 +26,30 @@ const fragmentShader = /* glsl */ `
   uniform float uMoon;
   uniform float uMoonPhase;
   uniform float uMoonLight;
+  uniform vec3 uCloudLit;
+  uniform vec3 uCloudShade;
+  uniform float uCloudCover;
   varying vec3 vDir;
 
   float hash13(vec3 p) {
     p = fract(p * 0.1031);
     p += dot(p, p.zyx + 31.32);
     return fract((p.x + p.y) * p.z);
+  }
+  float vn2(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5453);
+    float b = fract(sin(dot(i + vec2(1, 0), vec2(127.1, 311.7))) * 43758.5453);
+    float c = fract(sin(dot(i + vec2(0, 1), vec2(127.1, 311.7))) * 43758.5453);
+    float d = fract(sin(dot(i + vec2(1, 1), vec2(127.1, 311.7))) * 43758.5453);
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+  }
+  float cloudFbm(vec2 p) {
+    float v = 0.0, a = 0.5;
+    mat2 r = mat2(0.8, -0.6, 0.6, 0.8);
+    for (int i = 0; i < 5; i++) { v += a * vn2(p); p = r * p * 2.05 + 3.7; a *= 0.5; }
+    return v;
   }
   float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -88,6 +106,23 @@ const fragmentShader = /* glsl */ `
       col += vec3(0.55, 0.58, 0.68) * pow(max(dot(d, md), 0.0), 4000.0) * 0.08 * uMoon * uMoonLight;
     }
 
+    // Nubes: una capa plana vista en perspectiva (se aprietan hacia el horizonte). Iluminadas
+    // por el lado del sol y, al atardecer, encendidas desde abajo con los colores de la paleta.
+    if (d.y > 0.0) {
+      vec2 uv = d.xz / (d.y + 0.09) * 0.62 + vec2(uTime * 0.0035, uTime * 0.0012);
+      float cover = mix(0.45, 0.58, smoothstep(0.05, 0.6, d.y)) - uCloudCover;
+      float n = cloudFbm(uv);
+      float dens = smoothstep(cover, cover + 0.26, n);
+      vec2 toSun = normalize(uSunDir.xz + vec2(1e-4)) * 0.12;
+      float n2 = cloudFbm(uv + toSun);
+      float lit = clamp(0.55 + (n - n2) * 4.0, 0.0, 1.0);
+      float fwd = pow(max(dot(d, normalize(uSunDir)), 0.0), 7.0);
+      vec3 cc = mix(uCloudShade, uCloudLit, clamp(lit * 0.85 + fwd * 0.6, 0.0, 1.0));
+      cc += uCloudLit * fwd * 0.5 * (1.0 - dens);
+      float a = dens * smoothstep(0.012, 0.14, d.y) * 0.92;
+      col = mix(col, cc, a);
+    }
+
     // Tramado contra el "banding" de los degradados (sobre todo en móviles).
     col += (hash12(gl_FragCoord.xy) - 0.5) / 255.0;
 
@@ -112,6 +147,9 @@ export function buildSky() {
     uMoon: { value: 0 },
     uMoonPhase: { value: 0.5 },
     uMoonLight: { value: 1 },
+    uCloudLit: { value: new THREE.Color() },
+    uCloudShade: { value: new THREE.Color() },
+    uCloudCover: { value: 0 },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,

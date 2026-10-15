@@ -7,6 +7,10 @@ import { sunsetOn } from './sun.js';
 import { UI } from './ui.js';
 import { startFallback } from './fallback.js';
 
+// La página empieza siempre arriba: el hero es una película que arranca en la cocina.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+scrollTo(0, 0);
+
 const clock = new Clock();
 // El timelapse va más despacio alrededor de la puesta de sol de hoy (+20 min: hora dorada → azul).
 const sunset = toMerida(sunsetOn(fromMerida(new Date(clock.today().getTime() + 12 * 3600e3))));
@@ -16,14 +20,13 @@ ui.update(true);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** Quita el loader y lanza la entrada de los textos (esperando a las fuentes, como mucho 1,2 s). */
-let revealed = false;
-async function reveal() {
-  if (revealed) return;
-  revealed = true;
-  await Promise.race([document.fonts?.ready, sleep(1200)]);
-  document.body.classList.add('is-loaded');
-  ui.reveal();
+/** Quita el loader (esperando a las fuentes, como mucho 1,2 s). Devuelve una promesa. */
+let loaded = null;
+function hideLoader() {
+  loaded ??= Promise.race([document.fonts?.ready, sleep(1200)]).then(() => {
+    document.body.classList.add('is-loaded');
+  });
+  return loaded;
 }
 
 function hasWebGL2() {
@@ -38,7 +41,8 @@ function hasWebGL2() {
 const fallback = () => {
   document.getElementById('gl').hidden = true;
   startFallback(clock, ui);
-  reveal();
+  clock.startTimelapse();
+  hideLoader().then(() => ui.reveal());
 };
 
 // ?nogl=1 fuerza el respaldo CSS (para probarlo).
@@ -47,7 +51,7 @@ if (!hasWebGL2() || new URLSearchParams(location.search).has('nogl')) {
 } else {
   import('./webgl.js')
     .then(({ startWebGL }) =>
-      startWebGL({ canvas: document.getElementById('gl'), clock, ui, onFirstFrame: reveal, onFail: fallback }),
+      startWebGL({ canvas: document.getElementById('gl'), clock, ui, onFirstFrame: hideLoader, onFail: fallback }),
     )
     .catch((err) => {
       console.error(err);
@@ -56,4 +60,6 @@ if (!hasWebGL2() || new URLSearchParams(location.search).has('nogl')) {
 }
 
 // Si algo tarda demasiado, nunca dejamos al cliente mirando el loader.
-setTimeout(reveal, 6000);
+setTimeout(() => {
+  if (!document.body.classList.contains('is-loaded')) hideLoader().then(() => ui.reveal());
+}, 8000);

@@ -124,6 +124,7 @@ export class UI {
    * camino tinta y velo serían del mismo color): el texto se funde, cambia el tono y reaparece.
    */
   setTone(day) {
+    if (this.forceNight) day = 0; // en la cocina siempre es "de noche": tinta crema
     const next = this.tone === 'day' ? (day > 0.4 ? 'day' : 'night') : day > 0.6 ? 'day' : 'night';
     if (next === this.tone) return;
     const body = document.body;
@@ -143,10 +144,34 @@ export class UI {
     }, 600);
   }
 
-  /** Arranca la animación de entrada de los textos. */
-  reveal() {
+  /**
+   * Coreografía de la película de entrada:
+   *   'reset' todo oculto · 'fire' "Abajo, el fuego." · 'sky' "Arriba, Mérida." ·
+   *   'done' subtítulo, reloj y botón · 'all' todo a la vez (sin película).
+   */
+  stage(name) {
+    const b = document.body.classList;
+    if (name === 'reset') {
+      b.remove('is-in', 'intro-fire', 'intro-sky');
+      this.forceNight = true;
+      this.started = false;
+      return;
+    }
     this.started = true;
-    document.body.classList.add('is-in');
+    if (name === 'fire') {
+      this.forceNight = true;
+      b.add('intro-fire');
+    }
+    if (name === 'sky' || name === 'done' || name === 'all') {
+      this.forceNight = false;
+      b.add('intro-fire', 'intro-sky');
+    }
+    if (name === 'done' || name === 'all') b.add('is-in');
+  }
+
+  /** Entrada sin película (respaldo sin WebGL, movimiento reducido). */
+  reveal() {
+    this.stage('all');
   }
 
   // ---------------------------------------------------------------- control horario (tecla T)

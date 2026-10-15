@@ -63,7 +63,7 @@ export class Clock {
         to,
         duration: (Number(params.get('dur')) || CONFIG.timelapse.durationSec) * 1000,
         hold: CONFIG.timelapse.holdSec * 1000,
-        start: performance.now(),
+        start: null, // arranca al terminar la película de entrada (startTimelapse)
       };
     } else if (t !== null) {
       this.mode = 'fixed';
@@ -100,9 +100,15 @@ export class Clock {
     this.tl.table = cum.map((c) => c / cum[N]);
   }
 
+  /** Pone en marcha (o reinicia) el timelapse. Hasta entonces el cielo espera en `from`. */
+  startTimelapse() {
+    if (this.mode === 'timelapse') this.tl.start = performance.now();
+  }
+
   /** Minutos del timelapse (pueden pasar de 1440: 25:00 = 01:00 del día siguiente). */
   timelapseMin() {
     const { from, to, duration, hold, start, table } = this.tl;
+    if (start === null) return from;
     const t = (performance.now() - start) % (duration + hold);
     const k = Math.min(t / duration, 1);
     if (!table) return from + (to - from) * k;
@@ -120,7 +126,7 @@ export class Clock {
 
   /** Progreso 0–1 del timelapse (para la barra fina de la grabación). */
   timelapseProgress() {
-    if (this.mode !== 'timelapse') return 0;
+    if (this.mode !== 'timelapse' || this.tl.start === null) return 0;
     const { duration, hold, start } = this.tl;
     return Math.min(((performance.now() - start) % (duration + hold)) / duration, 1);
   }

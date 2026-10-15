@@ -3,6 +3,7 @@
 
 import * as THREE from 'three';
 import { GeoBag, rng } from './build.js';
+import { canopyGeometries, trunkGeometry } from './trees.js';
 
 export const GROUND_Y = -9.5; // nivel de la calle respecto al suelo de la terraza
 
@@ -72,7 +73,6 @@ export function buildPlaza(mat) {
   clay.add(new THREE.CylinderGeometry(1.2, 1.4, 0.7, 8), { x: cx, y: top + 0.6, z: cz });
 
   // ---------------------------------------------------------------- laureles
-  // Copas: icosaedros facetados, a veces dos bolas juntas para una silueta más blanda.
   const trees = [];
   for (const tri of triangles) {
     const [a, b, c] = tri;
@@ -95,43 +95,38 @@ export function buildPlaza(mat) {
     for (const x of [x0 + 1.6, x1 - 1.6]) trees.push({ p: new THREE.Vector2(x, z + rand() * 3), r: 2.4 + rand() * 0.8, h: 4.0 + rand() });
   }
 
-  const canopyGeo = new THREE.IcosahedronGeometry(1, 1);
-  const trunkGeo = new THREE.CylinderGeometry(0.22, 0.32, 1, 5);
-  const blobs = [];
-  for (const t of trees) {
-    blobs.push({ x: t.p.x, y: top + planterH + t.h, z: t.p.y, s: t.r });
-    if (rand() > 0.35) {
-      const ang = rand() * Math.PI * 2;
-      blobs.push({
-        x: t.p.x + Math.cos(ang) * t.r * 0.6,
-        y: top + planterH + t.h - t.r * 0.25,
-        z: t.p.y + Math.sin(ang) * t.r * 0.6,
-        s: t.r * 0.68,
-      });
-    }
-  }
-  const canopies = new THREE.InstancedMesh(canopyGeo, mat.clay, blobs.length);
-  const trunks = new THREE.InstancedMesh(trunkGeo, mat.clay, trees.length);
+  // Copas: varias variantes de "nube" de arcilla, instanciadas. Giran solo en Y para que
+  // la base aplanada quede siempre abajo.
+  const variants = canopyGeometries(4, 5);
+  const byVariant = variants.map(() => []);
+  trees.forEach((t, i) => byVariant[i % variants.length].push(t));
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
-  const e = new THREE.Euler();
-  blobs.forEach((b, i) => {
-    e.set(rand() * 3, rand() * 3, rand() * 3);
-    q.setFromEuler(e);
-    m.compose(new THREE.Vector3(b.x, b.y, b.z), q, new THREE.Vector3(b.s, b.s * 0.82, b.s));
-    canopies.setMatrixAt(i, m);
-  });
-  trees.forEach((t, i) => {
-    const h = t.h + planterH;
-    m.compose(new THREE.Vector3(t.p.x, top + h / 2, t.p.y), q.identity(), new THREE.Vector3(1, h, 1));
-    trunks.setMatrixAt(i, m);
-  });
-  for (const im of [canopies, trunks]) {
+  const up = new THREE.Vector3(0, 1, 0);
+  variants.forEach((geo, v) => {
+    const list = byVariant[v];
+    const im = new THREE.InstancedMesh(geo, mat.foliage, list.length);
+    list.forEach((t, i) => {
+      q.setFromAxisAngle(up, rand() * Math.PI * 2);
+      m.compose(new THREE.Vector3(t.p.x, top + planterH + t.h, t.p.y), q, new THREE.Vector3(t.r * 1.15, t.r * 0.95, t.r * 1.15));
+      im.setMatrixAt(i, m);
+    });
     im.castShadow = true;
     im.receiveShadow = true;
     im.computeBoundingSphere();
     group.add(im);
-  }
+  });
+  const trunks = new THREE.InstancedMesh(trunkGeometry(), mat.clay, trees.length);
+  trees.forEach((t, i) => {
+    const h = t.h + planterH;
+    q.setFromAxisAngle(up, rand() * Math.PI * 2);
+    m.compose(new THREE.Vector3(t.p.x, top, t.p.y), q, new THREE.Vector3(1, h, 1));
+    trunks.setMatrixAt(i, m);
+  });
+  trunks.castShadow = true;
+  trunks.receiveShadow = true;
+  trunks.computeBoundingSphere();
+  group.add(trunks);
 
   // ---------------------------------------------------------------- farolas
   const lampPos = [];
