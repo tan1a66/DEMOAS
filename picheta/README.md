@@ -4,9 +4,9 @@ Demo dell'hero del nuovo sito di Picheta (cucina yucateca contemporanea, terrazz
 La scena 3D è argilla color crema: l'unico colore è il cielo **reale** sopra Mérida in questo momento,
 la luce che cade sugli edifici e il fuoco della cucina.
 
-**Il film d'apertura** (~7,5 s): "Abajo, el fuego." — si parte in cucina, davanti al fogón nel patio della
+**Il film d'apertura** (~7,5 s): "Fuego lento." — si parte in cucina, davanti al fogón nel patio della
 casona; la camera segue le braci su per il patio tra i portali e i farolitos, sbuca sopra il tetto e si posa
-sulla terrazza davanti alla piazza: "Arriba, Mérida.". Scrollando, la camera torna a guardare giù nel patio,
+sulla terrazza davanti alla piazza: "Cielo abierto.". Scrollando, la camera torna a guardare giù nel patio,
 verso il fuoco, mentre sale la sezione "La cocina".
 
 Vite + Three.js + `suncalc`, JavaScript vanilla, una sola pagina.

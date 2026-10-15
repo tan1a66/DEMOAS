@@ -146,7 +146,7 @@ export class UI {
 
   /**
    * Coreografía de la película de entrada:
-   *   'reset' todo oculto · 'fire' "Abajo, el fuego." · 'sky' "Arriba, Mérida." ·
+   *   'reset' todo oculto · 'fire' primera línea ("Fuego lento.") · 'sky' segunda ("Cielo abierto.") ·
    *   'done' subtítulo, reloj y botón · 'all' todo a la vez (sin película).
    */
   stage(name) {

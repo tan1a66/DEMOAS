@@ -1,4 +1,4 @@
-// La película de entrada: "Abajo, el fuego. Arriba, Mérida."
+// La película de entrada: "Fuego lento. Cielo abierto."
 // La cámara empieza en la cocina, frente al fogón del patio; sigue las brasas hacia arriba
 // entre los portales, sale al cielo y se sienta en la terraza frente a la plaza.
 //
@@ -22,7 +22,7 @@ export const INTRO_END = INTRO_KEYS[INTRO_KEYS.length - 1].t;
 // Momentos de la coreografía de textos.
 export const STAGES = { fire: 0.5, sky: 5.0, done: 6.7 };
 
-// Al bajar con el scroll, la cámara vuelve a asomarse al patio: abajo, el fuego.
+// Al bajar con el scroll, la cámara vuelve a asomarse al patio, hacia el fuego.
 export const SCROLL_KEYS = [
   { t: 0, p: [0.0, 1.22, 1.0], pitch: null, yaw: 0 },
   { t: 0.25, p: [0.0, 2.2, 3.0], pitch: -24, yaw: 0 },
