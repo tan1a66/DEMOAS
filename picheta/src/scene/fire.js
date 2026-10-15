@@ -1,5 +1,5 @@
 // El fuego del fogón: llamas (shader procedural), brasas que suben por el patio y humo.
-// Es la otra fuente de color de la escena, junto al cielo: "Fuego lento".
+// Es la otra fuente de color de la escena, junto al cielo: "Del fogón al cielo de Mérida".
 
 import * as THREE from 'three';
 

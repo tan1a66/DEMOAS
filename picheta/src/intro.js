@@ -1,4 +1,4 @@
-// La película de entrada: "Fuego lento. Cielo abierto."
+// La película de entrada: "Del fogón al cielo de Mérida."
 // La cámara empieza en la cocina, frente al fogón del patio; sigue las brasas hacia arriba
 // entre los portales, sale al cielo y se sienta en la terraza frente a la plaza.
 //

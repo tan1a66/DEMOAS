@@ -4,7 +4,7 @@ import { toMerida } from './time.js';
 
 export const STRINGS = {
   es: {
-    title: ['Fuego lento.', 'Cielo abierto.'],
+    title: ['Del fogón', 'al cielo de Mérida.'],
     kicker: (now) => `El cielo de Mérida, ahora · ${fmt.es(now)}`,
     subtitle: (sunset, after) =>
       after
@@ -24,7 +24,7 @@ export const STRINGS = {
     slider: { live: 'En vivo', label: 'Hora de Mérida' },
   },
   en: {
-    title: ['Slow fire.', 'Open sky.'],
+    title: ['From the hearth', 'to the Mérida sky.'],
     kicker: (now) => `The sky over Mérida, now · ${fmt.en(now)}`,
     subtitle: (sunset, after) =>
       after
