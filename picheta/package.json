@@ -1,0 +1,23 @@
+{
+  "name": "picheta-cielo-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Picheta — hero \"El cielo de Mérida, hoy\" (demo para el cliente).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:single": "node scripts/build-single.mjs"
+  },
+  "dependencies": {
+    "suncalc": "^2.1.1",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}
