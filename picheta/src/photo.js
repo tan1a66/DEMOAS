@@ -16,7 +16,10 @@ import { Embers } from './embers.js';
 // ---------------------------------------------------------------- fotos
 // Cada foto en dos tamaños: -m (móvil) y -d (escritorio).
 const SIZE = IS_MOBILE || Math.max(screen.width, screen.height) < 1100 ? 'm' : 'd';
-const file = (name) => `/hero/${name}-${SIZE}.webp`;
+const file = (name) => {
+  const path = `/hero/${name}-${SIZE}.webp`;
+  return window.__PICHETA_FILES?.[path] ?? path; // versión en un solo archivo (npm run build:single)
+};
 const KITCHEN = 'cocina';
 const PLATES = ['terraza-dia', 'terraza-dorada', 'terraza-azul', 'terraza-noche'];
 

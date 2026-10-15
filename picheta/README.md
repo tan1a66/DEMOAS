@@ -24,6 +24,15 @@ npm run build      # build di produzione in dist/
 npm run preview    # serve dist/ in locale
 ```
 
+### Un solo file HTML
+
+```bash
+npm run build:single   # → dist-single/picheta.html (~5 MB, foto e codice dentro)
+```
+
+Si apre con un doppio clic (anche offline, tranne i font di Google) o si manda per email/WhatsApp.
+I parametri qui sotto funzionano anche lì (`picheta.html?t=18:10`, `?timelapse=1`, `?mode=3d`).
+
 ## Modalità per la presentazione
 
 | URL / tasto | Cosa fa |
