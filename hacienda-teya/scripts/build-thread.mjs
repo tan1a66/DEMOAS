@@ -32,7 +32,8 @@ const DEBUG_DIR = debugIdx > 0 ? process.argv[debugIdx + 1] : null;
 const SIZE = 560; // dimensione del font in pixel per la rasterizzazione (più alto = più preciso)
 const PAD = 60; // margine attorno al testo nella bitmap
 
-// Le due impaginazioni: una riga (desktop/orizzontale) e due righe (mobile/verticale).
+// Le impaginazioni: il nome su una riga (desktop) e su due (mobile), più le
+// parole cucite delle sezioni.
 // dx/dy in em, relativi all'inizio della prima riga.
 const LAYOUTS = {
   wide: [{ text: 'Hacienda Teya', dx: 0, dy: 0 }],
@@ -40,6 +41,11 @@ const LAYOUTS = {
     { text: 'Hacienda', dx: 0, dy: 0 },
     { text: 'Teya', dx: 1.05, dy: 0.84 },
   ],
+  // parole "cucite" nelle sezioni (titoli di Eventos e Trova)
+  bodas: [{ text: 'Bodas', dx: 0, dy: 0 }],
+  corporativos: [{ text: 'Corporativos', dx: 0, dy: 0 }],
+  familiares: [{ text: 'Familiares', dx: 0, dy: 0 }],
+  trova: [{ text: 'Trova', dx: 0, dy: 0 }],
 };
 
 // ── 1. Font → comandi vettoriali ─────────────────────────────────────────────

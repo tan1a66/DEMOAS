@@ -23,6 +23,16 @@ export const QUALITY = IS_MOBILE
       fabricSegments: [90, 30], // suddivisioni del lino (onde del vento)
       dust: 450, // particelle di polvere nella luce
       bloom: true,
+      // mondo (fase 3)
+      ao: false, // SSAO (N8AO) disattivato su mobile
+      fieldRows: 6, // file di henequén per lato
+      fieldZMax: 14,
+      fieldLeaves: 10,
+      fieldLeafSegments: [5, 1],
+      treeCount: 6,
+      treeCards: 160,
+      nightLights: 4, // PointLight accese la sera
+      worldShadowSize: 1024,
     }
   : {
       pixelRatio: Math.min(devicePixelRatio, 2),
@@ -35,6 +45,15 @@ export const QUALITY = IS_MOBILE
       fabricSegments: [180, 60],
       dust: 1400,
       bloom: true,
+      ao: true,
+      fieldRows: 12,
+      fieldZMax: 16,
+      fieldLeaves: 16,
+      fieldLeafSegments: [7, 2],
+      treeCount: 10,
+      treeCards: 380,
+      nightLights: 7,
+      worldShadowSize: 2048,
     };
 
 // Palette: dalle foto dell'hacienda (rojo almagre, cal, cantera) + henequén
@@ -46,7 +65,7 @@ export const PALETTE = {
   fiber: '#e9d7a8', // fibra di henequén (crema/paglia)
   agave: '#7f9b98', // foglia: verde-grigio azzurrato
   gold: '#e8a94e', // luce del tramonto
-  soil: '#8a3d26', // terra rossa dello Yucatán (kancab)
+  soil: '#7e3923', // terra rossa dello Yucatán (kancab)
 };
 
 // Filo di henequén e fascia di lino
@@ -71,6 +90,21 @@ export const LINKS = {
   reservarHacienda: 'https://www.opentable.com.mx/r/hacienda-teya-yucatan',
   reservarSantaLucia: 'https://www.opentable.com.mx/r/teya-santa-lucia-merida',
   reservarViva: '#', // TODO: link OpenTable di Teya Viva (non trovato)
+  menu: '#', // TODO: link al menù
+};
+
+// WhatsApp per sede: numeri da confermare col cliente (null = pulsante segnaposto)
+export const WHATSAPP = {
+  hacienda: null, // es. '529990000000'
+  viva: null,
+  santaLucia: null,
+  eventos: null, // "Cotizar mi evento"
+};
+
+export const INSTAGRAM = {
+  hacienda: 'https://www.instagram.com/haciendateya/',
+  viva: 'https://www.instagram.com/teyaviva/',
+  santaLucia: 'https://www.instagram.com/teyasantalucia/',
 };
 
 // Debug / registrazione: ?t=2.5 ferma l'apertura a 2,5 s · ?capture espone window.__teya

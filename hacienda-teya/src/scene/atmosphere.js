@@ -18,19 +18,22 @@ export const SUN_DIR = new THREE.Vector3(-0.62, 0.3, -0.72).normalize();
 const SKY_GLSL = /* glsl */ `
   uniform vec3 uSunDir;
   uniform vec3 uZenith;
+  uniform vec3 uMid;
   uniform vec3 uHorizon;
   uniform vec3 uGround;
   uniform vec3 uSun;
   uniform float uSunPower;
   vec3 skyColor(vec3 dir) {
     float h = dir.y;
-    vec3 c = mix(uHorizon, uZenith, smoothstep(0.0, 0.55, h));
+    // orizzonte caldo → fascia chiara → azzurro dello zenit (niente grigio tra arancio e blu)
+    vec3 c = mix(uHorizon, uMid, smoothstep(0.0, 0.14, h));
+    c = mix(c, uZenith, smoothstep(0.1, 0.62, h));
     float s = max(0.0, dot(dir, uSunDir));
     c += uSun * (pow(s, 6.0) * 0.6 + pow(s, 64.0) * 1.5 + pow(s, 900.0) * uSunPower);
     // banda calda sull'orizzonte dal lato del sole
     c += uSun * 0.35 * exp(-abs(h) * 14.0) * (0.35 + 0.65 * s);
     // sotto l'orizzonte e appena sopra: stesso colore della nebbia → niente linea netta
-    c = mix(uGround, c, smoothstep(-0.01, 0.16, h));
+    c = mix(uGround, c, smoothstep(-0.01, 0.07, h));
     return c;
   }
 `;
@@ -42,6 +45,7 @@ function skyMaterial(params) {
     uniforms: {
       uSunDir: { value: SUN_DIR.clone() },
       uZenith: { value: new THREE.Color(params.zenith) },
+      uMid: { value: new THREE.Color(params.mid || params.horizon).lerp(new THREE.Color(params.zenith), params.mid ? 0 : 0.5) },
       uHorizon: { value: new THREE.Color(params.horizon) },
       uGround: { value: new THREE.Color(params.ground) },
       uSun: { value: new THREE.Color(params.sun) },

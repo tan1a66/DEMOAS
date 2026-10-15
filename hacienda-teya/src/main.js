@@ -1,9 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
-//  Hacienda Teya — apertura 3D
-//  pianta di henequén → la spina in punta al cogollo si stacca e tira fuori la
-//  fibra (ago e filo dalla stessa pianta) → ricama "Hacienda Teya" sul lino
-//  rojo almagre → "Desde 1683" + "Reservar mesa". Nessuna schermata di
-//  caricamento: l'apertura stessa parte al primo fotogramma.
+//  Hacienda Teya — esperienza 3D
+//
+//  1. Apertura (≈ 5 s, nessuna schermata di caricamento): la spina in punta al
+//     cogollo dell'henequén si stacca, tira fuori la fibra e ricama "Hacienda
+//     Teya" sul lino rojo almagre → "Desde 1683" + "Reservar mesa".
+//  2. Scroll: il lino vola via, la camera si allontana e la pianta diventa una
+//     delle tante del campo; la portada dell'hacienda appare nella luce
+//     dorata, la camera attraversa l'arco ed entra nel cortile; la luce passa
+//     dal pomeriggio alla sera (Eventos) e alla notte (Trova).
 // ─────────────────────────────────────────────────────────────────────────────
 import '@fontsource/cormorant-garamond/latin-500.css';
 import '@fontsource/cormorant-garamond/latin-500-italic.css';
@@ -14,13 +18,18 @@ import './styles.css';
 
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { QUALITY, PALETTE, INTRO, LINKS, DEBUG, IS_MOBILE, THREAD } from './config.js';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { QUALITY, PALETTE, INTRO, DEBUG, IS_MOBILE, THREAD } from './config.js';
 import { createAgave } from './scene/agave.js';
 import { placeText } from './scene/layout.js';
 import { createLinenBand, createFabricUniforms, RAKE_DIR } from './scene/fabric.js';
 import { Embroidery, STITCH } from './scene/embroidery.js';
-import { createSunsetEnvironment, createSkyDome, createLights, createGround, createDust, SUN_DIR } from './scene/atmosphere.js';
+import { createSunsetEnvironment, createSkyDome, createLights, createDust } from './scene/atmosphere.js';
 import { createPost } from './scene/post.js';
+import { createWorld } from './world/index.js';
+import { MOODS, createMoodState, mixMood } from './world/timeOfDay.js';
+import { createScroll, buildKeys, sampleCamera, sampleMood } from './scroll.js';
+import { initSections } from './ui/sections.js';
 
 // ── Renderer, scena, camera ──────────────────────────────────────────────────
 const canvas = document.getElementById('gl');
@@ -35,18 +44,20 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PALETTE.night);
 scene.fog = new THREE.FogExp2(PALETTE.night, 0.06);
-scene.environment = createSunsetEnvironment(renderer);
+const proceduralEnv = createSunsetEnvironment(renderer);
+let hdriEnv = null; // HDRI di tramonto vero, caricato dopo l'apertura
+scene.environment = proceduralEnv;
 scene.environmentIntensity = 0.32;
 
-const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, 0.1, 600);
 
-// ── Oggetti ──────────────────────────────────────────────────────────────────
+// ── Oggetti dell'apertura ────────────────────────────────────────────────────
 const sky = createSkyDome();
 const lights = createLights(QUALITY);
-const ground = createGround();
 const agave = createAgave(QUALITY);
 agave.group.scale.setScalar(1.12);
 agave.group.updateMatrixWorld();
+const agaveFill = { sky: agave.uniforms.uSkyFill.value.clone(), ground: agave.uniforms.uGroundFill.value.clone() };
 const dust = createDust(QUALITY.dust);
 dust.material.uniforms.uPixelRatio.value = renderer.getPixelRatio();
 // lino + ricamo: il "porta-fascia" sta nel centro della fascia; i punti sono suoi figli
@@ -55,12 +66,17 @@ const bandHolder = new THREE.Group();
 const embroidery = new Embroidery(QUALITY, fabricUniforms);
 bandHolder.add(embroidery.local);
 let band = null;
-scene.add(sky, lights.group, ground, agave.group, dust, bandHolder, embroidery.world);
+lights.group.add(lights.fill.target, lights.rim.target);
+scene.add(sky, lights.group, agave.group, dust, bandHolder, embroidery.world);
 
 const post = DEBUG.noPost ? null : createPost(renderer, scene, camera, QUALITY);
 
-// ── Inquadratura: si adatta al formato dello schermo ─────────────────────────
-// Orizzontale: scritta su una riga sopra la pianta. Verticale: su due righe.
+// ── Il mondo (costruito a fine apertura, per non rallentarla) ────────────────
+let world = null;
+let keys = null;
+const mood = createMoodState();
+
+// ── Inquadratura dell'apertura: si adatta al formato dello schermo ───────────
 const rest = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 34 };
 let framing = null;
 let place = null;
@@ -91,6 +107,14 @@ function computeFraming() {
   };
 }
 
+// campo visivo del mondo: in verticale si apre per mantenere la larghezza
+function worldFov() {
+  const aspect = innerWidth / innerHeight;
+  if (aspect >= 1) return 40;
+  const h = THREE.MathUtils.degToRad(40);
+  return THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(h / 2) / aspect)), 40, 72);
+}
+
 function applyFraming() {
   framing = computeFraming();
   rest.pos.copy(framing.pos);
@@ -109,6 +133,7 @@ function applyFraming() {
   document.body.classList.toggle('is-tall', framing.tall);
   if (changed) buildBand();
   positionOverlay();
+  if (world) keys = buildKeys(rest, framing.tall);
 }
 
 // (ri)costruisce la fascia di lino e il ricamo per l'impaginazione corrente
@@ -158,22 +183,10 @@ const state = {
   fabric: 0, // luce radente sul lino
 };
 
-function applyState() {
-  const L = state.light;
-  lights.sun.intensity = 3.2 * L;
-  lights.fill.intensity = 0.6 * L;
-  lights.rim.intensity = 0.7 * L;
-  fabricUniforms.uRakeColor.value.set('#ffc68a').multiplyScalar(1.5 * state.fabric);
-  fabricUniforms.uLight.value = L;
-  scene.environmentIntensity = 0.06 + 0.26 * L;
-  agave.uniforms.uLight.value = L;
-  dust.material.uniforms.uOpacity.value = L;
-  agave.setOpen(state.open);
-}
-
 // ── Timeline dell'apertura (≈ 5 s) ───────────────────────────────────────────
 // Il ricamo non è un tween: legge il tempo della timeline (vedi embroidery.update)
 const ui = {
+  heroUi: document.querySelector('.hero__ui'),
   since: document.querySelectorAll('[data-since]'),
   lines: document.querySelectorAll('.hero__line'),
   cta: document.getElementById('ctaReservar'),
@@ -182,8 +195,6 @@ const ui = {
   caption: document.getElementById('heroCaption'),
   skip: document.getElementById('skip'),
 };
-ui.cta.href = LINKS.reservarHacienda;
-document.querySelectorAll('[data-link="reservar"]').forEach((a) => (a.href = LINKS.reservarHacienda));
 
 const intro = gsap.timeline({ paused: true, onComplete: finishIntro });
 intro
@@ -197,22 +208,60 @@ intro
   .fromTo(ui.skip, { opacity: 0 }, { opacity: 1, duration: 0.5 }, 0.4)
   .to(ui.skip, { opacity: 0, duration: 0.3 }, INTRO.ctaAt + 0.1);
 
+let introDone = false;
 function finishIntro() {
-  document.body.classList.add('intro-done');
+  if (introDone) return;
+  introDone = true;
   ui.skip.hidden = true;
+  ensureWorld();
+  document.body.classList.add('intro-done');
+  lenis.start();
+  ScrollTrigger.refresh();
+  keys = buildKeys(rest, framing.tall);
+  loadHdri();
 }
 
-// "Saltar": avanza rapidamente alla fine (non un taglio brusco)
-ui.skip.addEventListener('click', () => {
+// "Saltar" (o il primo scroll durante l'apertura): avanza rapidamente alla fine
+function skipIntro() {
+  if (introDone || intro.progress() > 0.97) return;
   intro.pause();
-  gsap.to(intro, { progress: 1, duration: 0.6, ease: 'power2.inOut' });
-});
+  gsap.to(intro, { progress: 1, duration: 0.6, ease: 'power2.inOut', onComplete: finishIntro });
+}
+ui.skip.addEventListener('click', skipIntro);
+for (const ev of ['wheel', 'touchmove', 'keydown']) addEventListener(ev, () => !introDone && skipIntro(), { passive: true });
 
-// ── Ciclo di rendering ───────────────────────────────────────────────────────
-const clock = new THREE.Clock();
-let worldTime = 0;
-const sunView = new THREE.Vector3();
-// ── Regia della camera ───────────────────────────────────────────────────────
+// ── Scroll ───────────────────────────────────────────────────────────────────
+const lenis = createScroll();
+lenis.stop();
+let scrollOverride = null; // per la registrazione fotogramma per fotogramma
+const scrollProgress = () => (scrollOverride !== null ? scrollOverride : introDone ? lenis.progress || 0 : 0);
+
+function ensureWorld() {
+  if (world) return;
+  world = createWorld(QUALITY);
+  world.group.visible = false;
+  scene.add(world.group);
+  // compila gli shader del mondo adesso, non al primo scroll
+  world.group.visible = true;
+  if (renderer.compileAsync) renderer.compileAsync(scene, camera).catch(() => {});
+  world.group.visible = false;
+}
+
+async function loadHdri() {
+  try {
+    const [{ default: url }, { EXRLoader }] = await Promise.all([import('@pmndrs/assets/hdri/sunset.exr'), import('three/examples/jsm/loaders/EXRLoader.js')]);
+    const tex = await new EXRLoader().loadAsync(url);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    hdriEnv = pmrem.fromEquirectangular(tex).texture;
+    pmrem.dispose();
+    tex.dispose();
+  } catch (e) {
+    console.warn('HDRI non caricato, resta il cielo procedurale', e);
+  }
+}
+
+// ── Regia della camera durante l'apertura ────────────────────────────────────
 // 0–0,75 s   inquadratura larga sulla pianta che si accende
 // 0,75–1,6 s segue la spina che sale e si avvicina al lino, dove nasce la "H"
 // 1,6–2,4 s  primo piano: si vedono trama, ago e filo che attraversano i fori
@@ -236,6 +285,7 @@ function computeShots() {
 }
 
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const smooth = (a, b, x) => THREE.MathUtils.smoothstep(x, a, b);
 const _p = new THREE.Vector3();
 const _t = new THREE.Vector3();
 
@@ -262,8 +312,15 @@ function cameraPose(t, pos, target) {
 }
 
 const camTarget = new THREE.Vector3();
-function updateCamera(dt) {
-  cameraPose(intro.time(), camera.position, camTarget);
+function updateCamera(dt, s) {
+  if (!keys || s <= 1e-5) {
+    cameraPose(intro.time(), camera.position, camTarget);
+    camera.fov = rest.fov;
+  } else {
+    sampleCamera(keys, s, camera.position, camTarget);
+    camera.fov = THREE.MathUtils.lerp(rest.fov, worldFov(), smooth(0, fieldS() * 0.8, s));
+  }
+  camera.updateProjectionMatrix();
   // parallax col mouse
   const k = 1 - Math.exp(-dt * 3);
   pointer.sx += (pointer.x - pointer.sx) * k;
@@ -273,20 +330,137 @@ function updateCamera(dt) {
   camera.lookAt(camTarget);
 }
 
+// inizio del capitolo "campo" in [0,1] (fine della prima transizione)
+const fieldS = () => (keys && keys.cam[1] ? keys.cam[1].s : 0.08);
+
+// ── Luce: rampa dell'apertura + ora del giorno guidata dallo scroll ──────────
+const sunView = new THREE.Vector3();
+const focus = new THREE.Vector3();
+const heroShadow = { l: -3.4, r: 3.4, t: 3.4, b: -2.2 };
+let shadowMode = 'hero';
+
+function applyLight(s) {
+  if (keys) sampleMood(keys, s, mood);
+  else mixMood(mood, MOODS.stage, MOODS.stage, 0);
+  // durante l'apertura (s = 0) la luce sale con la rampa dell'intro
+  const gain = s > 0.001 ? 1 : state.light;
+  const hero = s <= 0.001;
+
+  lights.sun.color.copy(mood.sunColor);
+  lights.sun.intensity = mood.sunI * gain;
+  lights.fill.color.copy(mood.fillColor);
+  lights.fill.intensity = mood.fillI * gain;
+  lights.rim.intensity = mood.rimI * gain;
+  scene.fog.color.copy(mood.fog);
+  scene.fog.density = mood.fogDensity;
+  const su = sky.material.uniforms;
+  su.uZenith.value.copy(mood.zenith);
+  su.uMid.value.copy(mood.mid);
+  su.uHorizon.value.copy(mood.horizon);
+  su.uSun.value.copy(mood.sunGlow);
+  su.uGround.value.copy(mood.skyGround);
+  su.uSunDir.value.copy(mood.sunDir);
+  scene.environment = mood.hdri > 0.5 && hdriEnv ? hdriEnv : proceduralEnv;
+  scene.environmentIntensity = hero ? 0.06 + 0.26 * state.light : mood.env;
+
+  // il sole (e la sua ombra) segue la zona inquadrata
+  if (hero) {
+    focus.set(0, 0.6, 0.6);
+    lights.sun.position.copy(mood.sunDir).multiplyScalar(9).add(new THREE.Vector3(0, 0.5, 0));
+    if (shadowMode !== 'hero') setShadowBox(heroShadow, 2, 20);
+    shadowMode = 'hero';
+  } else {
+    focus.copy(camTarget).lerp(camera.position, 0.35);
+    focus.y = 0;
+    lights.sun.position.copy(focus).addScaledVector(mood.sunDir, 90);
+    if (shadowMode !== 'world') {
+      const h = IS_MOBILE ? 20 : 26;
+      setShadowBox({ l: -h, r: h, t: h, b: -h }, 10, 220);
+      lights.sun.shadow.mapSize.set(QUALITY.worldShadowSize, QUALITY.worldShadowSize);
+      lights.sun.shadow.map?.dispose();
+      lights.sun.shadow.map = null;
+      lights.sun.shadow.normalBias = 0.04;
+    }
+    shadowMode = 'world';
+  }
+  lights.sun.target.position.copy(focus);
+  lights.fill.position.copy(focus).add(new THREE.Vector3(2.5, 2.2, 6));
+  lights.rim.position.copy(focus).add(new THREE.Vector3(3, 5, -4));
+  lights.fill.target.position.copy(focus);
+  lights.rim.target.position.copy(focus);
+
+  // luce del ricamo e dell'apertura
+  fabricUniforms.uRakeColor.value.set('#ffc68a').multiplyScalar(1.5 * state.fabric);
+  fabricUniforms.uLight.value = state.light;
+  agave.uniforms.uLight.value = state.light * (1 - mood.night * 0.6);
+  // la pianta protagonista: nel mondo in pieno giorno perde la luce "da palcoscenico"
+  const stage = 1 - smooth(0, fieldS(), s);
+  agave.uniforms.uSkyFill.value.copy(agaveFill.sky).multiplyScalar(0.2 + 0.8 * stage);
+  agave.uniforms.uGroundFill.value.copy(agaveFill.ground).multiplyScalar(0.2 + 0.8 * stage);
+  agave.mesh.material.envMapIntensity = 0.85 + 0.95 * stage;
+  dust.material.uniforms.uOpacity.value = gain * (1 - mood.night * 0.75);
+  agave.setOpen(state.open);
+}
+
+function setShadowBox(b, near, far) {
+  const sc = lights.sun.shadow.camera;
+  sc.left = b.l;
+  sc.right = b.r;
+  sc.top = b.t;
+  sc.bottom = b.b;
+  sc.near = near;
+  sc.far = far;
+  sc.updateProjectionMatrix();
+}
+
+// ── Il lino vola via al primo scroll (resta legato alla pianta come un aquilone)
+function updateBandFlight(s) {
+  const k = smooth(0, fieldS() * 0.75, s);
+  bandHolder.position.copy(place.band.origin).add(_p.set(-k * 1.5, k * k * 18, -k * 7));
+  bandHolder.rotation.set(-k * 0.55, 0, Math.sin(k * 5) * 0.12 * k);
+  const gone = k > 0.995;
+  bandHolder.visible = !gone;
+  embroidery.world.visible = !gone;
+  // l'interfaccia dell'apertura sfuma
+  const o = 1 - smooth(0, 0.012, s);
+  ui.heroUi.style.opacity = o;
+  ui.heroUi.style.visibility = o < 0.01 ? 'hidden' : 'visible';
+  ui.topbar.classList.toggle('is-scrolled', s > 0.01);
+}
+
+// ── Ciclo di rendering ───────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+let worldTime = 0;
+
 function frame(dt, render = true) {
   worldTime += dt;
-  applyState();
-  updateCamera(dt);
+  const s = scrollProgress();
+  updateCamera(dt, s);
+  applyLight(s);
+  updateBandFlight(s);
   fabricUniforms.uWindTime.value = worldTime;
   embroidery.update(intro.time(), dt, worldTime);
   agave.update(worldTime);
   dust.material.uniforms.uTime.value = worldTime;
-  // direzione del sole nello spazio vista (per la traslucenza delle foglie)
-  sunView.copy(SUN_DIR).transformDirection(camera.matrixWorldInverse);
+
+  // direzioni nello spazio vista (traslucenza delle foglie, luce radente)
+  sunView.copy(mood.sunDir).transformDirection(camera.matrixWorldInverse);
   agave.uniforms.uSunDirView.value.copy(sunView);
   fabricUniforms.uSunDirView.value.copy(sunView);
   fabricUniforms.uRakeDirView.value.copy(RAKE_DIR).transformDirection(camera.matrixWorldInverse);
   agave.uniforms.uUpView.value.set(0, 1, 0).transformDirection(camera.matrixWorldInverse);
+
+  if (world) {
+    world.group.visible = s > 0.0005;
+    world.update(worldTime, mood);
+    const fu = world.field.uniforms;
+    fu.uGrow.value = smooth(0.002, fieldS() * 0.9, s) * 1.08;
+    fu.uSunDirView.value.copy(sunView);
+    fu.uUpView.value.copy(agave.uniforms.uUpView.value);
+    fu.uLight.value = 1 - mood.night * 0.6;
+    // la polvere segue la zona inquadrata
+    dust.position.set(camTarget.x * 0.6 + camera.position.x * 0.4, 0, camTarget.z * 0.6 + camera.position.z * 0.4).multiplyScalar(s > 0.001 ? 1 : 0);
+  }
   if (!render) return;
   if (post) post.render(dt);
   else renderer.render(scene, camera);
@@ -305,12 +479,15 @@ function onResize() {
 }
 addEventListener('resize', onResize);
 applyFraming();
+initSections();
 document.body.classList.toggle('is-mobile', IS_MOBILE);
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (DEBUG.capture) {
-  // registrazione fotogramma per fotogramma: window.__teya.frame(t)
+  // registrazione fotogramma per fotogramma: window.__teya.frame(t) e .scroll(s)
   let simT = 0;
+  let gsapBase = null;
+  ensureWorld();
   window.__teya = {
     duration: intro.duration(),
     // avanza la simulazione a 30 fps fino a t (senza disegnare), poi disegna t
@@ -323,6 +500,40 @@ if (DEBUG.capture) {
       }
       simT = t;
       intro.time(t, false);
+      worldTime = t - 1 / 30;
+      frame(1 / 30);
+    },
+    // scroll: s ∈ [0,1] a fine apertura; time = tempo del mondo (vento, lucine)
+    async scroll(s, time = 8) {
+      if (!introDone) {
+        intro.progress(1, false);
+        finishIntro();
+      }
+      if (!hdriEnv) await loadHdri();
+      scrollOverride = s;
+      worldTime = time;
+      for (let i = 0; i < 20; i++) frame(1 / 30, false); // assesta fili e ombre
+      frame(1 / 30);
+      return keys.cam.map((k) => +k.s.toFixed(4));
+    },
+    // video del percorso: un fotogramma allo scroll s e al tempo t (secondi).
+    // Anche l'HTML scorre lì e il tempo di GSAP (comparse, parole cucite)
+    // avanza con quello del video invece che con l'orologio reale.
+    async journey(s, t) {
+      if (!introDone) {
+        intro.progress(1, false);
+        finishIntro();
+      }
+      if (!hdriEnv) await loadHdri();
+      if (gsapBase === null) {
+        // da qui il tempo di GSAP lo dà il video, non il ticker
+        gsapBase = gsap.ticker.time - t;
+        gsap.ticker.remove(gsap.updateRoot);
+      }
+      scrollOverride = s;
+      window.scrollTo(0, s * (document.documentElement.scrollHeight - innerHeight));
+      ScrollTrigger.update();
+      gsap.updateRoot(gsapBase + t);
       worldTime = t - 1 / 30;
       frame(1 / 30);
     },

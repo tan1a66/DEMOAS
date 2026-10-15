@@ -13,39 +13,250 @@
     />
   </head>
   <body>
-    <!-- Scena 3D (henequén + filo) -->
+    <!-- Scena 3D: apertura (henequén + ricamo) e poi l'hacienda guidata dallo scroll -->
     <canvas id="gl" aria-hidden="true"></canvas>
 
     <header class="topbar" id="topbar">
-      <a class="brand" href="#inicio" aria-label="Hacienda San Ildefonso Teya, inicio">
-        <span class="brand__small">Hacienda</span>
-        <span class="brand__name">San Ildefonso Teya</span>
-      </a>
-      <a class="topbar__cta" data-link="reservar" href="#" target="_blank" rel="noopener">Reservar</a>
+      <a class="brand" href="#inicio" aria-label="Hacienda Teya, inicio">Hacienda Teya</a>
+      <nav class="nav" aria-label="Secciones">
+        <a href="#historia">Historia</a>
+        <a href="#restaurante">Restaurante</a>
+        <a href="#eventos">Eventos</a>
+        <a href="#casas">Nuestras casas</a>
+        <a href="#trova">Trova</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <a class="topbar__cta" data-link="reservar" href="#">Reservar</a>
     </header>
 
     <main>
-      <section class="hero" id="inicio" aria-label="Inicio">
-        <!-- Il nome lo scrive il filo in 3D; qui resta per lettori di schermo e motori di ricerca -->
+      <!-- ── Apertura ─────────────────────────────────────────────────────── -->
+      <section class="chapter hero" id="inicio" data-chapter data-cam="hero" data-mood="stage" aria-label="Inicio">
+        <!-- Il nome lo ricama il filo in 3D; qui resta per lettori di schermo e motori di ricerca -->
         <h1 class="sr-only">Hacienda Teya</h1>
-
-        <!-- Sotto la scritta 3D: la posizione arriva da main.js (--hero-text-bottom) -->
-        <p class="hero__since">
-          <span class="hero__line" aria-hidden="true"></span>
-          <span class="hero__since-text" data-since>Desde 1683</span>
-          <span class="hero__line" aria-hidden="true"></span>
-        </p>
-        <div class="hero__cta">
-          <a class="btn" id="ctaReservar" href="#" target="_blank" rel="noopener">Reservar mesa</a>
+        <div class="hero__ui">
+          <!-- Sotto la fascia di lino: la posizione arriva da main.js (--hero-text-bottom) -->
+          <p class="hero__since">
+            <span class="hero__line" aria-hidden="true"></span>
+            <span class="hero__since-text" data-since>Desde 1683</span>
+            <span class="hero__line" aria-hidden="true"></span>
+          </p>
+          <div class="hero__cta">
+            <a class="btn" id="ctaReservar" data-link="reservar" href="#">Reservar mesa</a>
+          </div>
+          <p class="hero__caption" id="heroCaption">
+            Cocina yucateca <i aria-hidden="true">·</i> Bodas y eventos <i aria-hidden="true">·</i> Mérida, Yucatán
+          </p>
+          <div class="hero__scroll" id="scrollCue" aria-hidden="true">
+            <span>Desliza para entrar</span>
+            <span class="hero__scroll-thread"></span>
+          </div>
         </div>
+      </section>
 
-        <p class="hero__caption" id="heroCaption">
-          Cocina yucateca <i aria-hidden="true">·</i> Bodas y eventos <i aria-hidden="true">·</i> Mérida, Yucatán
-        </p>
+      <!-- ── Il campo di henequén e la portada ───────────────────────────── -->
+      <section class="chapter chapter--pass" data-chapter data-cam="campo" data-mood="golden" style="--h: 150vh">
+        <p class="pass-caption"><span>Tierra de henequén</span><small>Carretera Mérida–Cancún · km 12.5</small></p>
+      </section>
 
-        <div class="hero__scroll" id="scrollCue" aria-hidden="true">
-          <span>Desliza para entrar</span>
-          <span class="hero__scroll-thread"></span>
+      <!-- ── Nuestra historia ─────────────────────────────────────────────── -->
+      <section class="chapter chapter--panel chapter--left" id="historia" data-chapter data-cam="historia" data-mood="golden" style="--h: 190vh">
+        <div class="panel" data-reveal>
+          <p class="kicker">Nuestra historia</p>
+          <h2 class="title">Desde 1683, en el camino a Mérida</h2>
+          <p class="lead">
+            La Hacienda San Ildefonso Teya nació en 1683, cuando Yucatán era todavía una tierra de fincas coloniales, caminos blancos y
+            campos que se perdían en el horizonte.
+          </p>
+          <p>
+            Más de tres siglos después, sus muros color almagre y sus arcos encalados siguen recibiendo a quien llega por la carretera.
+            En la Casa Principal, las recetas de familia —heredadas de generación en generación— se cocinan con la paciencia de siempre:
+            el recado molido a mano, el fuego lento, las tortillas recién hechas.
+          </p>
+          <dl class="facts">
+            <div><dt>1683</dt><dd>Fundación de la hacienda</dd></div>
+            <div><dt>+25</dt><dd>Años de cocina yucateca</dd></div>
+            <div><dt>2</dt><dd>Reconocimientos nacionales CANIRAC</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ── La camera attraversa l'arco ──────────────────────────────────── -->
+      <section class="chapter chapter--pass" data-chapter data-cam="arco" data-mood="golden" style="--h: 160vh">
+        <p class="pass-caption"><span>Bienvenidos a casa</span></p>
+      </section>
+
+      <!-- ── El restaurante ───────────────────────────────────────────────── -->
+      <section class="chapter chapter--panel chapter--right" id="restaurante" data-chapter data-cam="restaurante" data-mood="golden" style="--h: 210vh">
+        <div class="panel panel--wide" data-reveal>
+          <p class="kicker">El restaurante</p>
+          <h2 class="title">La cocina de Yucatán, en la Casa Principal</h2>
+          <p class="lead">
+            Achiote, naranja agria, recados molidos a mano y el fuego lento del pib. Cocinamos como en las casas yucatecas: sin prisa y con
+            orgullo, para que cada platillo cuente de dónde viene.
+          </p>
+          <ul class="dishes">
+            <li class="dish">
+              <figure class="dish__photo"><span>Foto · Cochinita pibil</span></figure>
+              <h3>Cochinita pibil</h3>
+              <p>Cerdo marinado en achiote y naranja agria, cocido lentamente en hoja de plátano.</p>
+            </li>
+            <li class="dish">
+              <figure class="dish__photo"><span>Foto · Sopa de lima</span></figure>
+              <h3>Sopa de lima</h3>
+              <p>Caldo de pollo perfumado con lima yucateca y tiras de tortilla dorada.</p>
+            </li>
+            <li class="dish">
+              <figure class="dish__photo"><span>Foto · Relleno negro</span></figure>
+              <h3>Relleno negro</h3>
+              <p>Pavo en recado de chiles tatemados, con su but y huevo cocido.</p>
+            </li>
+            <li class="dish">
+              <figure class="dish__photo"><span>Foto · Queso relleno</span></figure>
+              <h3>Queso relleno</h3>
+              <p>Queso de bola relleno de picadillo, bañado en salsa de tomate y kol.</p>
+            </li>
+          </ul>
+          <div class="actions">
+            <a class="btn" data-link="reservarHacienda" href="#">Reservar mesa</a>
+            <a class="btn btn--ghost" data-link="menu" href="#">Ver el menú</a>
+          </div>
+          <p class="note">Platillos y fotografías de ejemplo: se sustituyen con el menú y las fotos de la casa.</p>
+        </div>
+      </section>
+
+      <!-- ── Eventos y celebraciones ──────────────────────────────────────── -->
+      <section class="chapter chapter--panel chapter--left chapter--events" id="eventos" data-chapter data-cam="eventos" data-mood="sunset" style="--h: 280vh">
+        <div class="panel" data-reveal>
+          <p class="kicker">Eventos y celebraciones</p>
+          <h2 class="title">Aquí, los días importantes se vuelven historia</h2>
+          <p class="lead">
+            Jardines centenarios, arcos encalados y la luz dorada de la tarde yucateca. Cuando cae el sol se encienden las luces del jardín
+            y la hacienda es toda suya.
+          </p>
+          <div class="events">
+            <article class="event">
+              <svg class="stitched" data-word="bodas"></svg>
+              <h3>Bodas en la hacienda</h3>
+              <p>Una ceremonia entre arcos y árboles centenarios, una cena larga bajo las luces del jardín y la pista abierta hasta tarde.</p>
+            </article>
+            <article class="event">
+              <svg class="stitched" data-word="corporativos"></svg>
+              <h3>Eventos corporativos</h3>
+              <p>Reuniones, lanzamientos, cenas de fin de año y convenciones a minutos de Mérida, con cocina propia y la logística resuelta.</p>
+            </article>
+            <article class="event">
+              <svg class="stitched" data-word="familiares"></svg>
+              <h3>Celebraciones familiares</h3>
+              <p>Bautizos, primeras comuniones, XV años, aniversarios y comidas de domingo: la mesa grande, como en casa.</p>
+            </article>
+          </div>
+          <div class="actions">
+            <a class="btn" data-link="cotizar" href="#">Cotizar mi evento</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Nuestras casas ───────────────────────────────────────────────── -->
+      <section class="chapter chapter--panel chapter--center" id="casas" data-chapter data-cam="casas" data-mood="blue" style="--h: 190vh">
+        <div class="panel panel--cards">
+          <p class="kicker">Nuestras casas</p>
+          <h2 class="title">Tres casas, una misma cocina</h2>
+          <div class="cards">
+            <article class="card card--hacienda" data-reveal>
+              <p class="card__place">Carretera Mérida–Cancún km 12.5</p>
+              <h3>Hacienda Teya</h3>
+              <p>Arquitectura colonial que se combina con lo contemporáneo.</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarHacienda" href="#">Reservar</a>
+                <a class="link" data-link="waHacienda" href="#">WhatsApp</a>
+                <a class="link" data-link="igHacienda" href="#">@haciendateya</a>
+              </div>
+            </article>
+            <article class="card card--viva" data-reveal>
+              <p class="card__place">Paseo 60 · Centro, Mérida</p>
+              <h3>Teya Viva</h3>
+              <p>Ambiente vibrante, energía moderna y encanto urbano.</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarViva" href="#">Reservar</a>
+                <a class="link" data-link="waViva" href="#">WhatsApp</a>
+                <a class="link" data-link="igViva" href="#">@teyaviva</a>
+              </div>
+            </article>
+            <article class="card card--lucia" data-reveal>
+              <p class="card__place">Parque Santa Lucía · Centro, Mérida</p>
+              <h3>Teya Santa Lucía</h3>
+              <p>Ambiente bohemio, arte, cultura y gastronomía.</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarSantaLucia" href="#">Reservar</a>
+                <a class="link" data-link="waSantaLucia" href="#">WhatsApp</a>
+                <a class="link" data-link="igSantaLucia" href="#">@teyasantalucia</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Noches de trova ──────────────────────────────────────────────── -->
+      <section class="chapter chapter--panel chapter--left" id="trova" data-chapter data-cam="trova" data-mood="night" style="--h: 170vh">
+        <div class="panel" data-reveal>
+          <p class="kicker">Teya Santa Lucía</p>
+          <svg class="stitched stitched--big" data-word="trova"></svg>
+          <h2 class="title">Noches de Trova</h2>
+          <p class="lead">
+            Viernes y sábado, desde las 21:00, la trova yucateca —guitarras, requinto y boleros de siempre— llena las noches del Parque
+            Santa Lucía. Una mesa con vista al parque, una buena copa y las canciones que todos conocen.
+          </p>
+          <p class="when"><span>Viernes y sábado</span><span>Desde las 21:00</span></p>
+          <div class="actions">
+            <a class="btn" data-link="reservarSantaLucia" href="#">Reservar en Santa Lucía</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Contacto ─────────────────────────────────────────────────────── -->
+      <section class="chapter chapter--contact" id="contacto" data-chapter data-cam="contacto" data-mood="night" style="--h: 150vh">
+        <div class="contact" data-reveal>
+          <p class="kicker">Contacto</p>
+          <h2 class="title">Le esperamos</h2>
+          <div class="contact__grid">
+            <article>
+              <h3>Hacienda Teya</h3>
+              <p>Carretera Mérida–Cancún km 12.5,<br />Teya, Yuc.</p>
+              <p><a href="tel:+529993935600">+52 999 393 5600</a></p>
+              <p class="hours">Lunes a jueves 12:00–18:00<br />Viernes a domingo 9:00–18:00</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarHacienda" href="#">Reservar</a>
+                <a class="link" data-link="waHacienda" href="#">WhatsApp</a>
+                <a class="link" data-link="igHacienda" href="#">@haciendateya</a>
+              </div>
+            </article>
+            <article>
+              <h3>Teya Viva</h3>
+              <p>Calle 60 #346 int. Paseo 60,<br />Centro, Mérida</p>
+              <p><a href="tel:+529991410248">+52 999 141 0248</a></p>
+              <p class="hours">Martes a jueves 12:00–24:00<br />Viernes a lunes 8:00–24:00</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarViva" href="#">Reservar</a>
+                <a class="link" data-link="waViva" href="#">WhatsApp</a>
+                <a class="link" data-link="igViva" href="#">@teyaviva</a>
+              </div>
+            </article>
+            <article>
+              <h3>Teya Santa Lucía</h3>
+              <p>C. 60 #468, Parque Santa Lucía,<br />Centro, Mérida</p>
+              <p class="hours">Lunes a domingo 8:00–24:00</p>
+              <div class="card__actions">
+                <a class="btn btn--small" data-link="reservarSantaLucia" href="#">Reservar</a>
+                <a class="link" data-link="waSantaLucia" href="#">WhatsApp</a>
+                <a class="link" data-link="igSantaLucia" href="#">@teyasantalucia</a>
+              </div>
+            </article>
+          </div>
+          <footer class="footer">
+            <span>Hacienda Teya · Desde 1683</span>
+            <span>Propuesta de experiencia web 3D · Alessia Studio</span>
+          </footer>
         </div>
       </section>
     </main>

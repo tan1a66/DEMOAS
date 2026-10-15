@@ -514,10 +514,13 @@ export class Embroidery {
     return V3(ev.pos.x + this.origin.x, ev.pos.y + this.origin.y, this.origin.z);
   }
 
+  // foro k nel mondo: passa dal gruppo del lino, così segue la fascia anche
+  // quando vola via al primo scroll
   holeWorld(k, windT, zOff, out) {
     const ev = this.events[k];
     const z = fabricWave(ev.pos.x / this.em, ev.pos.y / this.em, windT) * this.em;
-    return out.set(ev.pos.x + this.origin.x, ev.pos.y + this.origin.y, this.origin.z + z + zOff);
+    this.local.updateWorldMatrix(true, false);
+    return this.local.localToWorld(out.set(ev.pos.x, ev.pos.y, z + zOff));
   }
 
   /**

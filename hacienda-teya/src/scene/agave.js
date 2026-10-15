@@ -35,7 +35,7 @@ const channel = (t) => 0.02 * Math.pow(1 - t, 0.7); // profondità del canale su
 const thickness = (t) => 0.016 * Math.pow(1 - t, 0.8) + 0.002;
 const upperZ = (u, t) => channel(t) * u * u;
 
-export function createLeafGeometry(segL, segW) {
+export function createLeafGeometry(segL, segW, { teeth = true } = {}) {
   const pos = [];
   const uv = [];
   const kind = []; // 0 = lamina, 1 = dentini e spina
@@ -74,7 +74,7 @@ export function createLeafGeometry(segL, segW) {
     kind.push(1, 1, 1);
     idx.push(s, s + 1, s + 2);
   };
-  for (const edge of [-1, 1]) {
+  for (const edge of teeth ? [-1, 1] : []) {
     for (let t = 0.07; t < 0.93; t += 0.016 + rand() * 0.006) {
       const w = leafWidth(t) / 2;
       const z = upperZ(edge, t);
@@ -113,6 +113,10 @@ const VERT_PARS = /* glsl */ `
   attribute float aDry;    // 1 = foglia secca a terra
   uniform float uTime;
   uniform float uWind;
+  #ifdef AGAVE_GROW
+    attribute float aDelay;
+    uniform float uGrow;
+  #endif
   varying vec2 vLeafUv;
   varying vec3 vTint;
   varying float vDry;
@@ -122,6 +126,10 @@ const VERT_PARS = /* glsl */ `
 // flessione: la punta scende verso il lato inferiore (−Z locale) ∝ y²; il vento oscilla
 const VERT_BEGIN = /* glsl */ `
   vec3 transformed = vec3(position);
+  #ifdef AGAVE_GROW
+    // campo: ogni pianta spunta dal terreno col suo ritardo (aDelay)
+    transformed *= smoothstep(aDelay, aDelay + 0.12, uGrow);
+  #endif
   float y2 = transformed.y * transformed.y;
   float gust = sin(uTime * 1.07 + aPhase) * 0.6 + sin(uTime * 2.31 + aPhase * 1.7) * 0.25;
   transformed.x += y2 * uWind * gust;
@@ -135,13 +143,14 @@ const VERT_NORMAL = /* glsl */ `
   #endif
 `;
 
-export function createAgaveMaterial() {
+export function createAgaveMaterial({ grow = false } = {}) {
   const uniforms = {
     uTime: { value: 0 },
     uWind: { value: 0.012 },
     uSunDirView: { value: new THREE.Vector3(0, 0, -1) },
     uTransColor: { value: new THREE.Color('#ffb15e').multiplyScalar(0.55) },
     uLight: { value: 1 }, // 0→1 durante l'apertura
+    uGrow: { value: 1 }, // solo per il campo: 0 = piante sotto terra, 1 = tutte cresciute
     uUpView: { value: new THREE.Vector3(0, 1, 0) }, // "su" nello spazio vista
     uSkyFill: { value: new THREE.Color('#6f8fa3').multiplyScalar(0.55) }, // luce fredda del cielo
     uGroundFill: { value: new THREE.Color('#8a4a2c').multiplyScalar(0.25) }, // rimbalzo della terra rossa
@@ -229,10 +238,16 @@ export function createAgaveMaterial() {
         }`,
       );
   };
+  if (grow) {
+    mat.defines = { AGAVE_GROW: '' };
+  }
+  mat.customProgramCacheKey = () => (grow ? 'agave-field' : 'agave-hero');
   mat.userData.uniforms = uniforms;
 
   // materiale per le ombre con la stessa deformazione (flessione + vento)
   const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
+  if (grow) depth.defines = { AGAVE_GROW: '' };
+  depth.customProgramCacheKey = () => (grow ? 'agave-field-depth' : 'agave-hero-depth');
   depth.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -295,7 +310,7 @@ const AX_Y = new THREE.Vector3(0, 1, 0);
 const AX_X = new THREE.Vector3(1, 0, 0);
 
 // matrice della foglia: T(base) · Ry(azimut) · Rx(−inclinazione) · Ry(rollio) · S
-function leafMatrix(L, open, target) {
+export function leafMatrix(L, open, target) {
   const o = THREE.MathUtils.clamp((open - L.delay) / (1 - L.delay * 0.9), 0, 1);
   const eased = 1 - Math.pow(1 - o, 3);
   const tilt = L.dry ? L.tilt : L.tilt * (0.18 + 0.82 * eased);
