@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Picheta · Cocina yucateca contemporánea · Plaza Grande, Mérida</title>
+    <meta
+      name="description"
+      content="Terraza sobre la Plaza Grande de Mérida. Cocina yucateca contemporánea. Abajo, el fuego. Arriba, Mérida."
+    />
+    <!-- Demo para el cliente: que no la indexen los buscadores. Quitar al publicar el sitio real. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1A1512" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,0..100;1,9..144,300..600,0..100&family=Inter+Tight:wght@400;500;600&display=swap"
+    />
+    <style>
+      /* Loader crítico en línea: se ve antes de que cargue cualquier JS o CSS. */
+      .loader { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: #efe6d6; transition: opacity 0.9s ease, visibility 0.9s; }
+      .loader-inner { display: grid; justify-items: center; gap: 14px; }
+      .loader-mark { font: 500 13px/1 'Inter Tight', system-ui, sans-serif; letter-spacing: 0.42em; padding-left: 0.42em; color: #1a1512; }
+      .loader-line { width: 72px; height: 1px; background: rgba(26, 21, 18, 0.18); overflow: hidden; position: relative; }
+      .loader-line::after { content: ''; position: absolute; inset: 0; background: #c2441c; transform-origin: left; animation: load 1.4s cubic-bezier(0.6, 0, 0.3, 1) infinite; }
+      @keyframes load { 0% { transform: scaleX(0); } 60% { transform: scaleX(1); } 100% { transform: scaleX(1); opacity: 0; } }
+      .is-loaded .loader { opacity: 0; visibility: hidden; }
+    </style>
+  </head>
+  <body>
+    <div class="loader" aria-hidden="true">
+      <div class="loader-inner"><span class="loader-mark">PICHETA</span><span class="loader-line"></span></div>
+    </div>
+
+    <!-- Escena: lienzo fijo detrás de todo. La sección de la cocina sube y lo tapa. -->
+    <div class="stage" aria-hidden="true">
+      <canvas id="gl"></canvas>
+      <div class="sky-fallback" id="sky-fallback" hidden>
+        <svg class="skyline" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMax slice">
+          <path
+            d="M0 320V214h40v-10h60v14h44v-22h70v-62h8v-28h4v-10h4v10h4v28h8v34h70v-12h28v12h66v-34h8v-28h4v-10h4v10h4v28h8v62h60v-8h64v18h56v-30h10v-26l9-14 9 14v26h10v30h70v-10h58v16h68v-6h66v-10h40V320Z"
+          />
+          <path class="skyline-near" d="M0 320V262h1000v58Z" />
+        </svg>
+      </div>
+      <div class="scrim"></div>
+    </div>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Picheta">
+        <!-- LOGO: para usar el logo real, guardar el archivo en /public/logo.png y sustituir el <span> por:
+             <img class="brand-logo" src="/logo.png" alt="Picheta" /> -->
+        <span class="brand-word">PICHETA</span>
+      </a>
+      <nav class="lang" aria-label="Idioma / Language">
+        <button type="button" data-lang="es" aria-pressed="true">ES</button>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="hero-copy">
+          <p class="kicker reveal" id="kicker"></p>
+          <h1 class="title reveal" id="title"></h1>
+          <p class="subtitle reveal" id="subtitle"></p>
+        </div>
+        <a class="scroll-hint reveal" id="scroll-hint" href="#cocina"><span></span></a>
+      </section>
+
+      <!-- Separador: cenefa inspirada en los mosaicos de pasta de Mérida. -->
+      <div class="mosaic-band" aria-hidden="true">
+        <svg width="100%" height="100%">
+          <defs>
+            <pattern id="mosaico" width="56" height="56" patternUnits="userSpaceOnUse" x="50%">
+              <rect width="56" height="56" fill="#1A1512" />
+              <rect x="0.5" y="0.5" width="55" height="55" fill="none" stroke="#EFE6D6" stroke-opacity="0.14" />
+              <g fill="none" stroke="#EFE6D6" stroke-opacity="0.5">
+                <path d="M0 12A12 12 0 0 0 12 0M44 0A12 12 0 0 0 56 12M56 44A12 12 0 0 0 44 56M12 56A12 12 0 0 0 0 44" />
+                <path d="M28 7 49 28 28 49 7 28Z" stroke-opacity="0.3" />
+              </g>
+              <g fill="#C2441C">
+                <path id="petalo" d="M28 28C24.2 23.6 24.2 18 28 13.5 31.8 18 31.8 23.6 28 28Z" />
+                <use href="#petalo" transform="rotate(90 28 28)" />
+                <use href="#petalo" transform="rotate(180 28 28)" />
+                <use href="#petalo" transform="rotate(270 28 28)" />
+                <circle cx="0" cy="0" r="3" />
+                <circle cx="56" cy="0" r="3" />
+                <circle cx="0" cy="56" r="3" />
+                <circle cx="56" cy="56" r="3" />
+              </g>
+              <g fill="#EFE6D6" fill-opacity="0.55">
+                <circle cx="28" cy="28" r="2.2" />
+                <path d="M28 2.5 30 5 28 7.5 26 5ZM28 48.5 30 51 28 53.5 26 51ZM2.5 28 5 26 7.5 28 5 30ZM48.5 28 51 26 53.5 28 51 30Z" />
+              </g>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#mosaico)" />
+        </svg>
+      </div>
+
+      <section class="cocina" id="cocina" aria-labelledby="cocina-title">
+        <div class="cocina-grid">
+          <header class="cocina-head">
+            <p class="eyebrow" id="cocina-kicker">La cocina</p>
+            <h2 class="cocina-title" id="cocina-title"></h2>
+          </header>
+          <!-- Fotos: sustituir los archivos de /public/photos/ (01.jpg, 02.jpg, 03.jpg) por las del restaurante. -->
+          <figure class="ph ph-1"><img src="/photos/01.jpg" alt="" width="1200" height="1500" loading="lazy" decoding="async" /></figure>
+          <figure class="ph ph-2"><img src="/photos/02.jpg" alt="" width="1600" height="1200" loading="lazy" decoding="async" /></figure>
+          <figure class="ph ph-3"><img src="/photos/03.jpg" alt="" width="1200" height="1500" loading="lazy" decoding="async" /></figure>
+          <p class="address" id="address"></p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Único botón fijo: reserva. El texto cambia con la hora de Mérida. -->
+    <a class="cta reveal" id="cta" href="https://picheta.mx/reservas/">
+      <span class="cta-label" id="cta-label"></span>
+      <svg class="cta-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" /></svg>
+    </a>
+
+    <!-- Control horario para la presentación: aparece con la tecla T (o con ?slider). -->
+    <div class="timebar" id="timebar" hidden>
+      <span class="timebar-label" id="slider-label">Hora de Mérida</span>
+      <span class="timebar-time" id="slider-time"></span>
+      <input id="slider" type="range" min="0" max="1439" step="1" aria-labelledby="slider-label" />
+      <button type="button" id="slider-live">En vivo</button>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
