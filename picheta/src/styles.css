@@ -141,6 +141,31 @@ img {
   will-change: transform, opacity;
   pointer-events: none;
 }
+.photo-gl {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* Vuelo con el scroll: un tramo vacío entre el hero y la cocina (la escena es fija). */
+.flight {
+  display: none;
+  height: 80svh;
+}
+.title-in-scene .flight {
+  display: block;
+}
+/* Con profundidad, el titular se dibuja dentro de la escena (entre el cielo y las torres):
+   el <h1> sigue ahí para lectores de pantalla y buscadores. */
+.title-in-scene #title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .photo-embers {
   position: absolute;
   inset: 0;

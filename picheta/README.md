@@ -4,9 +4,13 @@ Demo dell'hero del nuovo sito di Picheta (cucina yucateca contemporanea, terrazz
 
 **Due versioni della stessa idea:**
 
-- **Foto (predefinita)** — fotografie realistiche generate con Higgsfield. La terrazza davanti alla cattedrale
-  esiste in quattro luci (giorno, golden hour, ora blu, notte) e la pagina sceglie e sfuma quella giusta in base
-  all'altezza **reale** del sole su Mérida in questo momento.
+- **Foto in profondità (predefinita)** — fotografie realistiche generate con Higgsfield, ognuna con la sua
+  mappa di profondità (Depth Anything V2): la camera si muove *dentro* la foto (le luci passano davanti alla
+  cattedrale, la cattedrale davanti al cielo), il titolo sta nella scena tra le torri e le ghirlande, le nuvole
+  avanzano, di notte le lampadine tremolano e le stelle brillano, passano gli zanates. Scrollando si vola verso
+  la cattedrale. La terrazza esiste in quattro luci (giorno, golden hour, ora blu, notte) e la pagina sceglie e
+  sfuma quella giusta in base all'altezza **reale** del sole su Mérida in questo momento.
+  Senza WebGL2 (o con `?flat`) le stesse foto senza profondità.
 - **3D in argilla** (`?mode=3d`) — la scena Three.js color crema in cui l'unico colore è il cielo reale.
   È anche il ripiego automatico se le foto non si caricano.
 
@@ -62,7 +66,10 @@ L'ora è sempre quella di Mérida (UTC−6 fisso, `America/Merida` non ha ora le
   - `terraza-dia`, `terraza-dorada`, `terraza-azul`, `terraza-noche` (`-m/-d.webp`) — la terrazza, quadrata,
     **stessa inquadratura** in tutte e quattro (si sfumano una sull'altra).
   Il punto dell'inquadratura (cosa resta visibile quando lo schermo taglia la foto) e la posizione del fogón
-  (da dove partono le braci) si regolano in `FRAME`, in `src/photo.js`. Quale luce a quale altezza del sole:
+  (da dove partono le braci) si regolano in `FRAME`, in `src/photo.js`.
+  Le mappe di profondità sono `terraza-depth.png` (una per le quattro luci, che sono allineate) e `cocina-depth.png`
+  (bianco = vicino, nero = cielo): se si cambiano le foto vanno rifatte (Depth Anything V2, poi curva e dilatazione
+  come descritto in `src/depth.js`); piano fermo e piano del titolo in `DEPTH`. Quale luce a quale altezza del sole:
   `EVENING` / `MORNING`, nello stesso file.
 - **Foto** della sezione "La cocina": `public/photos/01.jpg`, `02.jpg`, `03.jpg` (anche queste generate con IA:
   sostituirle con foto vere del ristorante). Proporzioni: 01 e 03 verticali 3:4, 02 orizzontale 4:3
@@ -88,7 +95,9 @@ Prima delle 05:00 la notte appartiene ancora al giorno precedente (all'01:30 di 
 - `src/main.js` — avvio: orologio, interfaccia, poi carica le foto (`photo.js`) o la scena WebGL con `import()`
   (in modalità foto three.js non viene nemmeno scaricato).
 - `src/photo.js` — **modalità foto**: film d'apertura sulla foto verticale della cucina, sfumature tra le quattro luci
-  della terrazza, deriva lentissima e parallax. `src/embers.js` — le braci che salgono dal fogón (canvas 2D).
+  della terrazza, camera, titolo, volo con lo scroll. `src/depth.js` — il renderer WebGL2 delle foto in profondità
+  (parallax con occlusione, titolo nella scena, nuvole, stelle, lampadine, fuoco, zanates, grana).
+  `src/embers.js` — le braci che salgono dal fogón (canvas 2D).
 - `src/film.js` — orologio del film e momenti dei testi, comune alle due modalità (tasto R, `?intro=0`, `?introAt=`).
 - `src/pointer.js` — mouse / giroscopio / tocco per il parallax.
 - `src/time.js` — orologio di Mérida, `?t=`, timelapse, slider.
