@@ -1,5 +1,5 @@
 // Picheta — "El cielo de Mérida, hoy".
-// Punto de entrada: reloj de Mérida, interfaz y, si hay WebGL2, la escena 3D.
+// Punto de entrada: reloj de Mérida, interfaz y la escena: fotos (por defecto) o 3D (?mode=3d).
 
 import './styles.css';
 import { Clock, fromMerida, toMerida } from './time.js';
@@ -45,10 +45,13 @@ const fallback = () => {
   hideLoader().then(() => ui.reveal());
 };
 
-// ?nogl=1 fuerza el respaldo CSS (para probarlo).
-if (!hasWebGL2() || new URLSearchParams(location.search).has('nogl')) {
-  fallback();
-} else {
+// Escena 3D (?mode=3d, o si las fotos no cargan). Sin WebGL2, el degradado CSS.
+const start3D = () => {
+  if (!hasWebGL2() || params.has('nogl')) {
+    fallback();
+    return;
+  }
+  document.getElementById('gl').hidden = false;
   import('./webgl.js')
     .then(({ startWebGL }) =>
       startWebGL({ canvas: document.getElementById('gl'), clock, ui, onFirstFrame: hideLoader, onFail: fallback }),
@@ -56,6 +59,19 @@ if (!hasWebGL2() || new URLSearchParams(location.search).has('nogl')) {
     .catch((err) => {
       console.error(err);
       fallback();
+    });
+};
+
+// Por defecto, el modo foto (no necesita WebGL). ?nogl=1 fuerza el respaldo CSS (para probarlo).
+const params = new URLSearchParams(location.search);
+if (params.get('mode') === '3d' || params.has('nogl')) {
+  start3D();
+} else {
+  import('./photo.js')
+    .then(({ startPhoto }) => startPhoto({ clock, ui, onFirstFrame: hideLoader, onFail: start3D }))
+    .catch((err) => {
+      console.error(err);
+      start3D();
     });
 }
 

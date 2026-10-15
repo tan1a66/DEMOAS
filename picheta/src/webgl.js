@@ -9,6 +9,7 @@ import { createScene, skyDirection, LIGHT_AZIMUTH_SCALE } from './scene/index.js
 import { createPost } from './scene/post.js';
 import { CameraRig } from './camera.js';
 import { INTRO_END, STAGES } from './intro.js';
+import { createIntro } from './film.js';
 
 /** Acerca la paleta mostrada a la paleta objetivo (transiciones lentísimas). */
 function blendPalette(cur, target, k) {
@@ -61,51 +62,7 @@ export async function startWebGL({ canvas, clock, ui, onFirstFrame, onFail }) {
   // ---------------------------------------------------------------- película de entrada
   // Cocina → patio → cielo → terraza (intro.js). ?intro=0 la salta; R la repite.
   const timer = new THREE.Timer();
-  const freezeAt = parseFloat(new URLSearchParams(location.search).get('introAt')); // depuración: congela la toma
-  const intro = {
-    skip: REDUCED_MOTION || new URLSearchParams(location.search).get('intro') === '0',
-    start: null, // segundos del timer en que empieza (al quitarse el loader)
-    done: {},
-    running: false,
-    time(t) {
-      if (this.skip) return INTRO_END;
-      if (Number.isFinite(freezeAt)) return freezeAt;
-      if (this.start === null) return 0;
-      return t - this.start;
-    },
-    play() {
-      ui.stage('reset');
-      this.done = {};
-      this.skip = false;
-      this.running = true;
-      this.start = timer.getElapsed();
-      if (clock.mode === 'timelapse') clock.tl.start = null; // el cielo espera a la película
-    },
-    finish() {
-      this.start = timer.getElapsed() - INTRO_END;
-    },
-    stages(t) {
-      if (this.skip || this.start === null) return;
-      const it = this.time(t);
-      for (const [name, at] of Object.entries(STAGES)) {
-        if (!this.done[name] && it >= at) {
-          this.done[name] = true;
-          ui.stage(name);
-          if (name === 'done') clock.startTimelapse();
-        }
-      }
-      if (it >= INTRO_END) this.running = false;
-    },
-  };
-  addEventListener('keydown', (e) => {
-    if ((e.key === 'r' || e.key === 'R') && !REDUCED_MOTION && !e.target.closest?.('input, textarea')) {
-      scrollTo({ top: 0, behavior: 'instant' });
-      intro.play();
-    }
-  });
-  document.getElementById('slider-intro')?.addEventListener('click', () => {
-    if (!REDUCED_MOTION) intro.play();
-  });
+  const intro = createIntro({ ui, clock, end: INTRO_END, stages: STAGES, now: () => timer.getElapsed() });
 
   // ---------------------------------------------------------------- scroll
   const hero = document.getElementById('hero');

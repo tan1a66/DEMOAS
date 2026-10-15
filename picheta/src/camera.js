@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { REDUCED_MOTION } from './config.js';
 import { INTRO_KEYS, INTRO_END, SCROLL_KEYS, makePath } from './intro.js';
+import { PointerInput } from './pointer.js';
 
 export class CameraRig {
   constructor() {
@@ -18,8 +19,7 @@ export class CameraRig {
     this.target = new THREE.Vector3();
     this.base = new THREE.Vector3();
     this.paths = null;
-    this.initPointer();
-    this.initGyro();
+    this.pointer = new PointerInput();
   }
 
   /** Encuadre según la proporción: en vertical se abre el campo para que quepan catedral y torre. */
@@ -42,59 +42,8 @@ export class CameraRig {
     this.paths = { intro: makePath(INTRO_KEYS, this.tilt), scroll: makePath(SCROLL_KEYS, this.tilt) };
   }
 
-  initPointer() {
-    window.addEventListener(
-      'pointermove',
-      (e) => {
-        if (e.pointerType === 'touch' && this.gyroActive) return;
-        this.input.set((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
-        // En táctil el paralaje es más suave (es solo el respaldo del giroscopio).
-        if (e.pointerType === 'touch') this.input.multiplyScalar(0.5);
-      },
-      { passive: true },
-    );
-    document.addEventListener('pointerleave', () => this.input.set(0, 0));
-  }
-
-  /**
-   * Giroscopio: en Android funciona directamente; en iOS hace falta pedir permiso con un gesto.
-   * Si no hay permiso, queda el paralaje táctil y la deriva automática.
-   */
-  initGyro() {
-    if (REDUCED_MOTION || typeof DeviceOrientationEvent === 'undefined') return;
-    this.gyroBase = null;
-    const onOrient = (e) => {
-      if (e.beta == null || e.gamma == null) return;
-      this.gyroActive = true;
-      let x = e.gamma;
-      let y = e.beta;
-      const angle = screen.orientation?.angle ?? window.orientation ?? 0;
-      if (angle === 90) [x, y] = [y, -x];
-      else if (angle === -90 || angle === 270) [x, y] = [-y, x];
-      // La referencia sigue despacio a la postura de la mano: el centro se recoloca solo.
-        if (!this.gyroBase) this.gyroBase = { x, y };
-      this.gyroBase.x += (x - this.gyroBase.x) * 0.01;
-      this.gyroBase.y += (y - this.gyroBase.y) * 0.01;
-      this.input.set(
-        THREE.MathUtils.clamp((x - this.gyroBase.x) / 14, -1, 1),
-        THREE.MathUtils.clamp((y - this.gyroBase.y) / 14, -1, 1),
-      );
-    };
-    const listen = () => window.addEventListener('deviceorientation', onOrient);
-    const needsPermission = typeof DeviceOrientationEvent.requestPermission === 'function';
-    if (!needsPermission) {
-      listen();
-      return;
-    }
-    const ask = () => {
-      DeviceOrientationEvent.requestPermission()
-        .then((r) => r === 'granted' && listen())
-        .catch(() => {}); // sin permiso: respaldo táctil
-    };
-    window.addEventListener('touchend', ask, { once: true, passive: true });
-  }
-
   update(t, dt) {
+    this.input.set(this.pointer.x, this.pointer.y);
     if (!REDUCED_MOTION) this.smooth.lerp(this.input, 1 - Math.exp(-dt / 0.9));
     this.scrollSmooth += (this.scroll - this.scrollSmooth) * (1 - Math.exp(-dt / 0.25));
     const s = this.scrollSmooth;
