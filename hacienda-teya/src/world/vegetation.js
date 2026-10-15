@@ -13,7 +13,13 @@ import { createLeafGeometry, createAgaveMaterial, rosetteLayout, leafMatrix, mul
 import { SITE } from './hacienda.js';
 
 // ── Campo di henequén ────────────────────────────────────────────────────────
-export const FIELD = { rowStep: 2.4, plantStep: 1.9 };
+export const FIELD = {
+  rowStep: 2.4,
+  plantStep: 1.9,
+  // spiazzo davanti alla portada dove si stendeva la fibra ad asciugare
+  yard: { x0: -16.5, x1: -3.5, z0: -53, z1: -41.5 },
+};
+const inRect = (x, z, r, pad = 0) => x > r.x0 - pad && x < r.x1 + pad && z > r.z0 - pad && z < r.z1 + pad;
 
 export function createField(quality) {
   const rnd = mulberry32(2024);
@@ -28,6 +34,7 @@ export function createField(quality) {
       const px = x + (rnd() - 0.5) * 0.3;
       const pz = z + (rnd() - 0.5) * 0.4;
       if (Math.hypot(px, pz) < 1.2) continue; // posto della pianta protagonista
+      if (inRect(px, pz, FIELD.yard, 0.8)) continue; // spiazzo dei tendederos
       const dist = Math.hypot(px, pz);
       plants.push({ x: px, z: pz, rot: rnd() * Math.PI * 2, s: 0.85 + rnd() * 0.3, delay: 0.04 + dist / 75 + rnd() * 0.05 });
     }
@@ -79,7 +86,7 @@ export function createField(quality) {
 }
 
 // ── Texture disegnate al volo ────────────────────────────────────────────────
-function leafClusterTexture(seed, hue = 95) {
+export function leafClusterTexture(seed, hue = 95, lum = 16, sat = 34) {
   const rnd = mulberry32(seed);
   const c = document.createElement('canvas');
   c.width = c.height = 256;
@@ -93,7 +100,7 @@ function leafClusterTexture(seed, hue = 95) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rnd() * Math.PI * 2);
-    ctx.fillStyle = `hsl(${hue + rnd() * 22 - 8}, ${34 + rnd() * 22}%, ${16 + rnd() * 22}%)`;
+    ctx.fillStyle = `hsl(${hue + rnd() * 22 - 8}, ${sat + rnd() * 22}%, ${lum + rnd() * 22}%)`;
     ctx.beginPath();
     ctx.ellipse(0, 0, l * 0.5, l * 0.2, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -142,7 +149,7 @@ function frondTexture() {
 
 // materiale delle foglie: alpha test, normali "sferiche" passate per istanza,
 // leggero ondeggiare e un po' di luce che filtra (controluce)
-function foliageMaterial(map, uniforms) {
+export function foliageMaterial(map, uniforms) {
   const mat = new THREE.MeshStandardMaterial({ map, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.78 });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniforms.uTime;
@@ -452,10 +459,12 @@ export function createVegetation(quality, mats, uniforms) {
     [SITE.gateX - 1.6, SITE.gateZ + 0.5, 0, 0.9],
     [SITE.gateX + 1.6, SITE.gateZ + 0.5, 0, 0.9],
   ];
+  group.userData.modern = []; // cose di oggi: spariscono nelle epoche passate
   potSpots.forEach(([x, z, y, s], i) => {
     const p = createPotPlant({ seed: 11 + i, mats, uniforms, scale: s });
     p.position.set(x, y, z);
     group.add(p);
+    if (i >= 6) group.userData.modern.push(p); // i vasi davanti alla portada
   });
   return group;
 }

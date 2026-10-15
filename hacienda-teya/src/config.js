@@ -31,6 +31,8 @@ export const QUALITY = IS_MOBILE
       fieldLeafSegments: [5, 1],
       treeCount: 6,
       treeCards: 160,
+      gardenTrees: 4, // alberi del giardino di oggi
+      scrubStep: 3.8, // passo della boscaglia (monte), in metri
       nightLights: 4, // PointLight accese la sera
       worldShadowSize: 1024,
     }
@@ -52,6 +54,8 @@ export const QUALITY = IS_MOBILE
       fieldLeafSegments: [7, 2],
       treeCount: 10,
       treeCards: 380,
+      gardenTrees: 8,
+      scrubStep: 2.5,
       nightLights: 7,
       worldShadowSize: 2048,
     };

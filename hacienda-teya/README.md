@@ -31,8 +31,8 @@ all'inizio del capitolo e scivola su quella "out" alla fine: si muove poco mentr
 | Capitolo | Camera | Luce |
 |---|---|---|
 | Hero | posa finale dell'apertura | palco |
-| Campo | il lino vola via legato al filo, la pianta diventa una delle tante e il campo cresce a onda | dorata |
-| Nuestra historia | facciata d'ingresso con gli archi, "HACIENDA SAN ILDEFONSO TEYA", 1683 | dorata |
+| Campo · "Antes" | il lino vola via legato al filo, il colore se ne va (foto d'epoca in seppia): la pianta diventa una delle tante del campo di henequén, con il binario e i carrelli di pencas | dorata, seppia |
+| Nuestra historia | linea del tempo in 7 tappe davanti alla portada: il 3D passa dal henequén all'abbandono (il campo appassisce, cresce il monte, l'intonaco cade), al restauro e a oggi (prato, alberi, torna il colore) | dorata, seppia → colore |
 | Bienvenidos | si passa sotto l'arco, cancelli aperti, cortile e Casa Principal | dorata |
 | El Restaurante | la Casa Principal con la loggia e il lampadario | dorata |
 | Eventos | la tavolata sul prato sotto le luci appese, che si accendono a onda | tramonto |
@@ -41,7 +41,16 @@ all'inizio del capitolo e scivola su quella "out" alla fine: si muove poco mentr
 | Contacto | vista aerea notturna | notte |
 
 Il filo torna come motivo: parole "cucite" (Bodas, Corporativos, Familiares, Trova) con la stessa linea
-centrale del titolo, impunture sotto i titoli, bordi tratteggiati dei pannelli.
+centrale del titolo, impunture sotto i titoli, bordi tratteggiati dei pannelli, la linea del tempo della storia.
+
+### Antes → Hoy (linea del tempo)
+Tappe in `#historia` (`index.html`): 1683 fondazione · secoli XVII–XIX bestiame e mais · fine '800 henequén ·
+prima metà del '900 abbandono · 1974 rinascita · 1987–1991 restauro · 1995–oggi ristorante (dati forniti dal cliente).
+L'avanzamento nel capitolo sceglie la tappa (GSAP) e l'epoca del 3D (`src/world/era.js`, `STOP_ERA`):
+- `src/world/epochs.js`: binario Decauville, carrelli di pencas, tendederos con la fibra, monte (boscaglia istanziata), alberi del giardino
+- `src/world/materials.js` → `RUIN_GLSL`: intonaco caduto con la muratura a vista, muffa; il terreno passa da solchi a monte a prato
+- `src/scene/post.js` → `MemoryEffect`: viraggio seppia da foto d'epoca (grigio freddo negli anni dell'abbandono), grana, polvere, graffi
+- cliccando una data della linea del tempo si scorre fino a quella tappa
 
 ## Struttura
 - `scripts/build-thread.mjs`: **genera `src/data/thread-paths.json`** (`npm run thread`).

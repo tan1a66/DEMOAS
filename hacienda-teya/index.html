@@ -56,32 +56,89 @@
 
       <!-- ── Il campo di henequén e la portada ───────────────────────────── -->
       <section class="chapter chapter--pass" data-chapter data-cam="campo" data-mood="golden" style="--h: 150vh">
-        <p class="pass-caption"><span>Tierra de henequén</span><small>Carretera Mérida–Cancún · km 12.5</small></p>
+        <p class="pass-caption"><span>Antes</span><small>Cuando el henequén era el oro verde de Yucatán</small></p>
       </section>
 
-      <!-- ── Nuestra historia ─────────────────────────────────────────────── -->
-      <section class="chapter chapter--panel chapter--left" id="historia" data-chapter data-cam="historia" data-mood="golden" style="--h: 190vh">
-        <div class="panel" data-reveal>
+      <!-- Nuestra historia: la linea del tempo guida anche il 3D (Antes → Hoy, vedi src/world/era.js).
+           Le tappe (data-stop) sono 7: se se ne aggiungono, aggiornare STOP_ERA in era.js -->
+      <section class="chapter chapter--panel chapter--left chapter--history" id="historia" data-chapter data-cam="historia" data-mood="golden" style="--h: 560vh">
+        <div class="panel panel--history" data-reveal>
           <p class="kicker">Nuestra historia</p>
-          <h2 class="title">Desde 1683, en el camino a Mérida</h2>
-          <p class="lead">
-            La Hacienda San Ildefonso Teya nació en 1683, cuando Yucatán era todavía una tierra de fincas coloniales, caminos blancos y
-            campos que se perdían en el horizonte.
-          </p>
-          <p>
-            Más de tres siglos después, sus muros color almagre y sus arcos encalados siguen recibiendo a quien llega por la carretera.
-            En la Casa Principal, las recetas de familia —heredadas de generación en generación— se cocinan con la paciencia de siempre:
-            el recado molido a mano, el fuego lento, las tortillas recién hechas.
-          </p>
+          <h2 class="title">La hacienda, antes y hoy</h2>
+          <ol class="timeline" aria-label="Línea del tiempo">
+            <li><button type="button" data-stop="0">1683</button></li>
+            <li><button type="button" data-stop="1">XVII–XIX</button></li>
+            <li><button type="button" data-stop="2">XIX</button></li>
+            <li><button type="button" data-stop="3">XX</button></li>
+            <li><button type="button" data-stop="4">1974</button></li>
+            <li><button type="button" data-stop="5">1987</button></li>
+            <li><button type="button" data-stop="6">1995</button></li>
+          </ol>
+          <div class="stops">
+            <article class="stop" data-stop="0">
+              <p class="stop__when">1683</p>
+              <h3 class="stop__title">La fundación</h3>
+              <p>
+                Doña Ildefonsa Antonia Marcos Bermejo Calderón y de la Helguera, esposa del conde de Miraflores, funda la hacienda a las
+                afueras de Mérida.
+              </p>
+            </article>
+            <article class="stop" data-stop="1">
+              <p class="stop__when">Siglos XVII–XIX</p>
+              <h3 class="stop__title">Ganado y maíz</h3>
+              <p>
+                Durante casi doscientos años es una de las fincas ganaderas y agrícolas más grandes y prósperas de Yucatán, con extensos
+                campos de maíz.
+              </p>
+            </article>
+            <article class="stop" data-stop="2">
+              <p class="stop__when">Finales del siglo XIX</p>
+              <h3 class="stop__title">El oro verde</h3>
+              <p>
+                La revolución industrial pide fibra al mundo entero y Teya se convierte en una próspera hacienda henequenera. El henequén
+                es el oro verde de Yucatán.
+              </p>
+            </article>
+            <article class="stop" data-stop="3">
+              <p class="stop__when">Primera mitad del siglo XX</p>
+              <h3 class="stop__title">El abandono</h3>
+              <p>
+                Con el declive del henequén y el reparto agrario —los ejidos nacen en 1937—, la casa principal queda abandonada y poco a
+                poco se vuelve ruina.
+              </p>
+            </article>
+            <article class="stop" data-stop="4">
+              <p class="stop__when">1974</p>
+              <h3 class="stop__title">El renacer</h3>
+              <p>
+                Don Jorge Carlos Cárdenas Gutiérrez adquiere las ruinas en un trato que se volvió leyenda: parte del pago fue un Dodge
+                Dart.
+              </p>
+            </article>
+            <article class="stop" data-stop="5">
+              <p class="stop__when">1987–1991</p>
+              <h3 class="stop__title">La restauración</h3>
+              <p>
+                Comienza una restauración minuciosa del conjunto colonial, de influencias neoclásicas. La casa de máquinas, la capilla y
+                los salones históricos vuelven a la vida.
+              </p>
+            </article>
+            <article class="stop" data-stop="6">
+              <p class="stop__when">1995 – hoy</p>
+              <h3 class="stop__title">La hacienda, hoy</h3>
+              <p>
+                En 1995 abre el restaurante de cocina tradicional yucateca. Hoy Teya es un referente gastronómico, cultural y de eventos,
+                que ha recibido incluso a personalidades internacionales.
+              </p>
+            </article>
+          </div>
           <dl class="facts">
             <div><dt>1683</dt><dd>Fundación de la hacienda</dd></div>
-            <div><dt>+25</dt><dd>Años de cocina yucateca</dd></div>
+            <div><dt>1995</dt><dd>Abre el restaurante</dd></div>
             <div><dt>2</dt><dd>Reconocimientos nacionales CANIRAC</dd></div>
           </dl>
         </div>
       </section>
-
-      <!-- ── La camera attraversa l'arco ──────────────────────────────────── -->
       <section class="chapter chapter--pass" data-chapter data-cam="arco" data-mood="golden" style="--h: 160vh">
         <p class="pass-caption"><span>Bienvenidos a casa</span></p>
       </section>

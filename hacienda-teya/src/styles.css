@@ -350,6 +350,7 @@ main {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--cal);
+  text-shadow: 0 1px 2px rgba(20, 11, 8, 0.9), 0 0 18px rgba(20, 11, 8, 0.8);
 }
 
 /* ── Pannelli di testo ────────────────────────────────────────────────────── */
@@ -436,6 +437,114 @@ main {
   font-size: 0.74rem;
   line-height: 1.4;
   color: var(--ink-soft);
+}
+
+/* ── Nuestra historia: linea del tempo cucita ─────────────────────────────── */
+/* un filo tratteggiato con 7 nodi; la parte già "cucita" è piena (--p = 0…1) */
+.timeline {
+  --p: 0;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.timeline::before,
+.timeline::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  height: 0;
+  border-top: 1px dashed var(--stitch);
+}
+.timeline::after {
+  right: auto;
+  width: calc((100% - 12px) * var(--p));
+  border-top: 2px solid var(--fiber);
+  top: 5.5px;
+}
+.timeline li {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 12px;
+}
+.timeline button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: 600 0.56rem/1 var(--sans);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--ink-soft);
+  transition: color 0.4s;
+}
+/* il nodo: un punto francese */
+.timeline button::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(233, 215, 168, 0.45);
+  background: rgba(20, 11, 8, 0.9);
+  transition: background 0.4s, border-color 0.4s, transform 0.4s;
+}
+.timeline li.is-done button::before {
+  background: var(--fiber);
+  border-color: var(--fiber);
+}
+.timeline li.is-active button {
+  color: var(--fiber);
+}
+.timeline li.is-active button::before {
+  background: var(--gold);
+  border-color: var(--fiber);
+  transform: scale(1.35);
+}
+.timeline button:focus-visible {
+  outline: 1px solid var(--fiber);
+  outline-offset: 4px;
+}
+/* le tappe: una alla volta, nello stesso spazio (niente salti di layout) */
+.stops {
+  display: grid;
+  margin-top: 26px;
+}
+/* (la dissolvenza tra le tappe la fa GSAP, vedi initTimeline in sections.js) */
+.stop {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  pointer-events: none;
+}
+.stop.is-active {
+  pointer-events: auto;
+}
+.stop__when {
+  margin: 0;
+  font: italic 500 clamp(2.1rem, 3.2vw, 2.9rem) / 1 var(--serif);
+  color: var(--fiber);
+}
+.stop__title {
+  margin: 6px 0 10px;
+  font: 600 0.7rem/1.2 var(--sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.stop p:last-child {
+  margin: 0;
+  line-height: 1.6;
 }
 .actions {
   display: flex;
@@ -779,6 +888,31 @@ svg.stitched--big {
     margin-top: 40vh;
     padding: 0 14px;
   }
+  /* la storia resta ferma in basso mentre sopra il 3D cambia epoca */
+  .chapter--history .panel--history {
+    position: sticky;
+    top: 44vh;
+    margin-top: 44vh;
+    padding: 20px 20px 22px;
+  }
+  .panel--history .title,
+  .panel--history .stitch-line,
+  .panel--history .facts {
+    display: none;
+  }
+  .panel--history .timeline {
+    margin-top: 16px;
+  }
+  .panel--history .stops {
+    margin-top: 18px;
+  }
+  .timeline button {
+    font-size: 0.5rem;
+    letter-spacing: 0.02em;
+  }
+  .timeline li:not(.is-active) button {
+    color: transparent;
+  }
   .cards,
   .contact__grid {
     grid-template-columns: 1fr;
@@ -816,8 +950,24 @@ svg.stitched--big {
     top: auto;
     margin-top: 30vh;
   }
+  /* tranne la storia, che resta ferma ma più compatta */
+  .chapter--history .panel--history {
+    position: sticky;
+    top: 64px;
+    margin-top: 0;
+  }
+  .panel--history .title,
+  .panel--history .stitch-line,
+  .panel--history .facts {
+    display: none;
+  }
 }
 @media (max-width: 640px) {
+  .pass-caption small {
+    max-width: 84vw;
+    line-height: 1.7;
+    letter-spacing: 0.2em;
+  }
   .brand {
     font-size: 0.9rem;
     letter-spacing: 0.26em;

@@ -28,9 +28,11 @@ export const SHOTS = {
     out: { pos: V(-1.2, 3.4, 1.5), target: V(1.6, 3.6, -45) },
     subject: V(1.5, 3, -40),
   },
+  // linea del tempo (Antes → Hoy): gru lenta che sale e allarga il quadro,
+  // perché si veda il paesaggio che cambia attorno alla portada
   historia: {
-    in: { pos: V(0.5, 2.5, -27), target: V(-9.5, 4.3, -58) },
-    out: { pos: V(2.0, 2.3, -36), target: V(-7.5, 4.1, -58) },
+    in: { pos: V(9.5, 3.4, -24), target: V(-3.5, 3.6, -58) },
+    out: { pos: V(15, 8.5, -19), target: V(-2.5, 2.4, -60) },
     subject: V(SITE.gateX, 4.4, SITE.gateZ),
   },
   arco: {
@@ -84,10 +86,12 @@ export function buildKeys(heroPose, portrait) {
   const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
   const cam = [];
   const mood = [];
+  const chapters = {}; // inizio e fine di ogni capitolo in [0,1]
   for (const el of document.querySelectorAll('[data-chapter]')) {
     const name = el.dataset.cam;
     const sIn = THREE.MathUtils.clamp(el.offsetTop / max, 0, 1);
     const sOut = THREE.MathUtils.clamp((el.offsetTop + el.offsetHeight - innerHeight) / max, sIn, 1);
+    chapters[name] = { sIn, sOut };
     const m = MOODS[el.dataset.mood];
     mood.push({ s: sIn, m }, { s: Math.max(sOut, sIn + 1e-4), m });
     if (name === 'hero') {
@@ -114,7 +118,7 @@ export function buildKeys(heroPose, portrait) {
   cam.sort((a, b) => a.s - b.s);
   const posCurve = new THREE.CatmullRomCurve3(cam.map((k) => k.pos), false, 'centripetal');
   const tgtCurve = new THREE.CatmullRomCurve3(cam.map((k) => k.target), false, 'centripetal');
-  return { cam, mood, posCurve, tgtCurve };
+  return { cam, mood, posCurve, tgtCurve, chapters };
 }
 
 // posizione della camera per lo scroll s ∈ [0,1]

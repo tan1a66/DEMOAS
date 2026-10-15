@@ -29,6 +29,7 @@ import { createPost } from './scene/post.js';
 import { createWorld } from './world/index.js';
 import { MOODS, createMoodState, mixMood } from './world/timeOfDay.js';
 import { createScroll, buildKeys, sampleCamera, sampleMood } from './scroll.js';
+import { eraAt, eraState } from './world/era.js';
 import { initSections } from './ui/sections.js';
 
 // ── Renderer, scena, camera ──────────────────────────────────────────────────
@@ -428,6 +429,21 @@ function updateBandFlight(s) {
   ui.topbar.classList.toggle('is-scrolled', s > 0.01);
 }
 
+// ── Antes → Hoy ──────────────────────────────────────────────────────────────
+// Al primo scroll il colore se ne va (si entra nel ricordo del henequén); la
+// linea del tempo di Historia porta il mondo fino a oggi (vedi world/era.js)
+const era = eraState(0);
+function updateEra(s) {
+  const h = keys && keys.chapters.historia;
+  const p = h ? THREE.MathUtils.clamp((s - h.sIn) / Math.max(h.sOut - h.sIn, 1e-4), 0, 1) : 0;
+  eraState(eraAt(p), era);
+  era.past *= smooth(0.0, fieldS() * 0.7, s);
+  if (post && post.memory) {
+    post.memory.past.value = era.past;
+    post.memory.cool.value = era.cool;
+  }
+}
+
 // ── Ciclo di rendering ───────────────────────────────────────────────────────
 const clock = new THREE.Clock();
 let worldTime = 0;
@@ -438,6 +454,7 @@ function frame(dt, render = true) {
   updateCamera(dt, s);
   applyLight(s);
   updateBandFlight(s);
+  updateEra(s);
   fabricUniforms.uWindTime.value = worldTime;
   embroidery.update(intro.time(), dt, worldTime);
   agave.update(worldTime);
@@ -452,7 +469,7 @@ function frame(dt, render = true) {
 
   if (world) {
     world.group.visible = s > 0.0005;
-    world.update(worldTime, mood);
+    world.update(worldTime, mood, era);
     const fu = world.field.uniforms;
     fu.uGrow.value = smooth(0.002, fieldS() * 0.9, s) * 1.08;
     fu.uSunDirView.value.copy(sunView);
@@ -479,7 +496,7 @@ function onResize() {
 }
 addEventListener('resize', onResize);
 applyFraming();
-initSections();
+initSections({ scrollTo: (y) => lenis.scrollTo(y, { duration: 1.8 }) });
 document.body.classList.toggle('is-mobile', IS_MOBILE);
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

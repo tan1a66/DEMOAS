@@ -47,20 +47,52 @@ export const NOISE_GLSL = /* glsl */ `
   }
 `;
 
+// Muro in rovina (anni dell'abbandono): pittura sbiadita e polverosa, intonaco
+// caduto a chiazze con la muratura di pietra a vista, muffa e colature scure.
+// amount: 0 = muro in ordine, 1 = rovina piena
+export const RUIN_GLSL = /* glsl */ `
+  void ruin(inout vec3 c, inout float h, vec3 P, vec3 N, float px, float amount, float mid) {
+    if (amount < 0.001) return;
+    float lum = dot(c, vec3(0.3, 0.59, 0.11));
+    c = mix(c, mix(vec3(lum), c, 0.5) * vec3(1.06, 0.97, 0.88), amount * 0.65);
+    // dove cade l'intonaco: più in basso, dove sale l'umidità
+    float pn = wfbm(P * 0.62 + 11.0, px * 0.62) + 0.22 * smoothstep(1.8, 0.0, P.y);
+    float thr = 1.1 - 0.46 * amount;
+    float hole = smoothstep(thr, thr + 0.035, pn);
+    // muratura di pietre irregolari (coordinate sul piano del muro)
+    vec2 wq = abs(N.y) > 0.7 ? P.xz : (abs(N.z) > abs(N.x) ? P.xy : P.zy);
+    vec2 sv = wvoronoi(wq * vec2(3.0, 4.4));
+    float joint = (1.0 - smoothstep(0.03, 0.1, sv.x)) * (1.0 - smoothstep(0.2, 0.5, px * 4.4));
+    vec3 stoneC = vec3(0.47, 0.42, 0.35) * (0.7 + 0.4 * sv.y) * (0.82 + 0.25 * mid);
+    stoneC = mix(stoneC, vec3(0.2, 0.17, 0.14), joint * 0.85);
+    // il bordo spezzato dell'intonaco, più chiaro
+    float rim = smoothstep(thr - 0.06, thr, pn) * (1.0 - hole);
+    c = mix(c, vec3(0.8, 0.75, 0.67), rim * 0.45 * amount);
+    c = mix(c, stoneC, hole);
+    float mold = smoothstep(0.52, 0.85, wn3(vec3(P.x * 2.1 + P.z * 2.1, P.y * 0.33, 5.0)));
+    c *= 1.0 - 0.5 * mold * amount;
+    h = mix(h, -0.8 + (1.0 - joint) * 0.45 + mid * 0.2, hole);
+  }
+`;
+
 // Inietta in un MeshStandardMaterial una funzione di superficie in GLSL che
 // riceve posizione e normale in coordinate mondo e restituisce colore,
 // ruvidità e altezza (per il rilievo).
 //   body: codice GLSL che scrive  sCol (vec3), sRough (float), sH (float)
 //         e può leggere  P (vec3 mondo), N (vec3 normale mondo), px (m per pixel)
-function surfaceMaterial({ key, uniforms = {}, body, bump = 0.003, params = {} }) {
+//   shared: uniform già esistenti ({ value }) condivisi tra più materiali,
+//           per esempio l'epoca (uRuin, uWild, ...): si dichiarano float
+function surfaceMaterial({ key, uniforms = {}, shared = {}, body, bump = 0.003, params = {} }) {
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, ...params });
   const u = {};
   for (const [k, v] of Object.entries(uniforms)) u[k] = { value: v };
+  Object.assign(u, shared);
   mat.userData.uniforms = u;
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
     const decl = Object.entries(uniforms)
       .map(([k, v]) => `uniform ${v.isColor ? 'vec3' : v.isVector3 ? 'vec3' : v.isVector4 ? 'vec4' : v.isVector2 ? 'vec2' : 'float'} ${k};`)
+      .concat(Object.keys(shared).map((k) => `uniform float ${k};`))
       .join('\n');
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\nvarying vec3 vWNrm;')
@@ -86,6 +118,7 @@ function surfaceMaterial({ key, uniforms = {}, body, bump = 0.003, params = {} }
         varying vec3 vWNrm;
         ${decl}
         ${NOISE_GLSL}
+        ${RUIN_GLSL}
         float sH;`,
       )
       .replace(
@@ -121,11 +154,12 @@ function surfaceMaterial({ key, uniforms = {}, body, bump = 0.003, params = {} }
 }
 
 // ── Estuco rojo almagre ──────────────────────────────────────────────────────
-export function plasterMaterial(color = PALETTE.almagre) {
+export function plasterMaterial(color = PALETTE.almagre, era = {}) {
   return surfaceMaterial({
     key: 'plaster',
     bump: 0.006,
     uniforms: { uBase: new THREE.Color(color) },
+    shared: { uRuin: era.uRuin || { value: 0 } },
     body: /* glsl */ `
       float large = wn3(P * 0.33) * 0.6 + wn3(P * 0.9) * 0.4;
       float mid = wfbm(P * 2.6, px * 2.6);
@@ -139,19 +173,22 @@ export function plasterMaterial(color = PALETTE.almagre) {
       // schizzi di terra alla base dei muri
       float splash = smoothstep(0.8, 0.0, P.y) * (0.55 + 0.45 * mid);
       c = mix(c, c * vec3(0.6, 0.48, 0.42), splash * 0.7);
+      float h = fine * 0.75 + mid * 0.25;
+      ruin(c, h, P, N, px, uRuin, mid);
       sCol = c;
-      sH = fine * 0.75 + mid * 0.25;
+      sH = h;
       sRough = 0.93;
     `,
   });
 }
 
 // ── Bianco calce ─────────────────────────────────────────────────────────────
-export function calMaterial() {
+export function calMaterial(era = {}) {
   return surfaceMaterial({
     key: 'cal',
     bump: 0.003,
     uniforms: { uBase: new THREE.Color(PALETTE.cal) },
+    shared: { uRuin: era.uRuin || { value: 0 } },
     body: /* glsl */ `
       float large = wn3(P * 0.5);
       float mid = wfbm(P * 3.1, px * 3.1);
@@ -161,8 +198,10 @@ export function calMaterial() {
       float streak = smoothstep(0.6, 0.9, wn3(vec3(P.x * 4.0 + P.z * 4.0, P.y * 0.3, 3.1)));
       float splash = smoothstep(0.7, 0.0, P.y);
       c = mix(c, c * vec3(0.72, 0.68, 0.62), clamp(streak * 0.45 + splash * 0.6, 0.0, 1.0) * (0.5 + 0.5 * mid));
+      float h = fine * 0.7 + mid * 0.3;
+      ruin(c, h, P, N, px, uRuin * 0.85, mid);
       sCol = c;
-      sH = fine * 0.7 + mid * 0.3;
+      sH = h;
       sRough = 0.86;
     `,
   });
@@ -211,14 +250,15 @@ export function woodMaterial() {
 }
 
 // ── Ferro battuto ────────────────────────────────────────────────────────────
-export function ironMaterial() {
+export function ironMaterial(era = {}) {
   return surfaceMaterial({
     key: 'iron',
     bump: 0.001,
     params: { metalness: 0.55 },
     uniforms: { uBase: new THREE.Color('#1d1a17') },
+    shared: { uRuin: era.uRuin || { value: 0 } },
     body: /* glsl */ `
-      float rust = smoothstep(0.6, 0.85, wn3(P * 9.0));
+      float rust = smoothstep(0.6 - 0.45 * uRuin, 0.85 - 0.3 * uRuin, wn3(P * 9.0));
       sCol = mix(uBase, vec3(0.22, 0.09, 0.04), rust * 0.7);
       sH = rust;
       sRough = mix(0.5, 0.85, rust);
@@ -231,10 +271,18 @@ export function ironMaterial() {
 //   uRoad   = (centro x, mezza larghezza, z iniziale, z finale)
 //   uCourt  = (x min, x max, z min, z max)   cortile lastricato
 //   uLawnA/B= (x min, x max, z min, z max)   prati del giardino
-export function groundMaterial(regions) {
+//   uGardenC= (x, z) da dove si allarga il prato di oggi
+//  epoche (uniform condivisi): uField = solchi del henequén, uWild = lettiera
+//  del monte negli anni dell'abbandono, uGarden = prato che cresce dalla casa
+export function groundMaterial(regions, era = {}) {
   return surfaceMaterial({
     key: 'ground',
     bump: 0.012,
+    shared: {
+      uField: era.uField || { value: 1 },
+      uWild: era.uWild || { value: 0 },
+      uGarden: era.uGarden || { value: 0 },
+    },
     uniforms: {
       uSoil: new THREE.Color(PALETTE.soil),
       uSascab: new THREE.Color('#b9a988'),
@@ -245,6 +293,7 @@ export function groundMaterial(regions) {
       uLawnA: regions.lawnA,
       uLawnB: regions.lawnB,
       uRowStep: regions.rowStep,
+      uGardenC: regions.gardenCenter || new THREE.Vector2(0, 0),
     },
     body: /* glsl */ `
       vec2 q = P.xz;
@@ -255,10 +304,16 @@ export function groundMaterial(regions) {
       // terra rossa con solchi lungo le file di henequén, erbe secche a chiazze
       vec3 soil = uSoil * (0.7 + 0.45 * n1) * (0.86 + 0.24 * mid);
       float furrow = 0.5 + 0.5 * cos(6.2831 * q.x / uRowStep);
-      soil *= 0.84 + 0.16 * furrow;
+      float fk = 0.3 + 0.7 * uField; // senza henequén i solchi si spianano
+      soil *= 1.0 - 0.16 * fk * (1.0 - furrow);
       float weeds = smoothstep(0.45, 0.8, wfbm(vec3(q * 0.9, 7.0), px * 0.9)) * (0.6 + 0.4 * furrow);
       soil = mix(soil, vec3(0.2, 0.17, 0.08) * (0.8 + 0.4 * fine), weeds * 0.55);
-      float hSoil = fine * 0.6 + mid * 0.3 + furrow * 0.4;
+      float hSoil = fine * 0.6 + mid * 0.3 + furrow * 0.4 * fk;
+      // abbandono: il monte si riprende la terra (foglie secche, erba grigia)
+      float wildM = clamp(uWild * (0.75 + 0.6 * wn3(vec3(q * 0.3, 9.0))), 0.0, 1.0);
+      vec3 litter = mix(vec3(0.2, 0.16, 0.09), vec3(0.15, 0.16, 0.07), wn3(vec3(q * 1.7, 4.0))) * (0.75 + 0.5 * fine);
+      soil = mix(soil, litter, wildM * 0.85);
+      hSoil = mix(hSoil, fine * 0.8 + mid * 0.2, wildM);
 
       // strada bianca di sascab (bordi irregolari)
       float edge = uRoad.y + (wn3(vec3(q * 0.9, 5.0)) - 0.5) * 0.7;
@@ -289,6 +344,11 @@ export function groundMaterial(regions) {
       c = mix(c, sascab, road); h = mix(h, fine * 0.8, road);
       c = mix(c, stone, court); h = mix(h, hStone, court);
       c = mix(c, grass, lawn); h = mix(h, fine, lawn);
+      // oggi: il prato si allarga dalla casa verso la carretera
+      float gd = length(q - uGardenC) + (n1 - 0.5) * 14.0;
+      float gr = uGarden * 82.0;
+      float garden = smoothstep(gr, gr - 10.0, gd) * step(0.001, uGarden) * (1.0 - road) * (1.0 - court);
+      c = mix(c, grass * (0.95 + 0.1 * furrow), garden); h = mix(h, fine, garden);
       sCol = c;
       sH = h;
       sRough = mix(0.95, 0.88, court);
@@ -332,11 +392,11 @@ export function glowMaterial(color = '#ffb35c', uniforms) {
 // Set di materiali condivisi (si creano una volta sola)
 export function createMaterials(sharedUniforms) {
   return {
-    plaster: plasterMaterial(),
-    cal: calMaterial(),
+    plaster: plasterMaterial(PALETTE.almagre, sharedUniforms),
+    cal: calMaterial(sharedUniforms),
     cantera: canteraMaterial(),
     wood: woodMaterial(),
-    iron: ironMaterial(),
+    iron: ironMaterial(sharedUniforms),
     bronze: bronzeMaterial(),
     terracotta: terracottaMaterial(),
     glow: glowMaterial('#ffb35c', sharedUniforms),

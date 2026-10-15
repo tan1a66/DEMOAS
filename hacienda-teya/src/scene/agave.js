@@ -116,6 +116,7 @@ const VERT_PARS = /* glsl */ `
   #ifdef AGAVE_GROW
     attribute float aDelay;
     uniform float uGrow;
+    uniform float uWither;
   #endif
   varying vec2 vLeafUv;
   varying vec3 vTint;
@@ -129,6 +130,10 @@ const VERT_BEGIN = /* glsl */ `
   #ifdef AGAVE_GROW
     // campo: ogni pianta spunta dal terreno col suo ritardo (aDelay)
     transformed *= smoothstep(aDelay, aDelay + 0.12, uGrow);
+    // fine del henequén: le piante si afflosciano e spariscono, con lo stesso ordine
+    float wither = smoothstep(aDelay * 0.9, aDelay * 0.9 + 0.3, uWither);
+    transformed.y *= 1.0 - 0.45 * wither;
+    transformed *= 1.0 - wither;
   #endif
   float y2 = transformed.y * transformed.y;
   float gust = sin(uTime * 1.07 + aPhase) * 0.6 + sin(uTime * 2.31 + aPhase * 1.7) * 0.25;
@@ -151,6 +156,7 @@ export function createAgaveMaterial({ grow = false } = {}) {
     uTransColor: { value: new THREE.Color('#ffb15e').multiplyScalar(0.55) },
     uLight: { value: 1 }, // 0→1 durante l'apertura
     uGrow: { value: 1 }, // solo per il campo: 0 = piante sotto terra, 1 = tutte cresciute
+    uWither: { value: 0 }, // solo per il campo: 0 = henequén in piedi, ≥1.4 = sparito
     uUpView: { value: new THREE.Vector3(0, 1, 0) }, // "su" nello spazio vista
     uSkyFill: { value: new THREE.Color('#6f8fa3').multiplyScalar(0.55) }, // luce fredda del cielo
     uGroundFill: { value: new THREE.Color('#8a4a2c').multiplyScalar(0.25) }, // rimbalzo della terra rossa

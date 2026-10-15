@@ -141,8 +141,56 @@ function setLinks() {
   set('[data-link="igSantaLucia"]', INSTAGRAM.santaLucia);
 }
 
-export function initSections() {
+// linea del tempo di "Nuestra historia": la tappa attiva segue lo scroll del
+// capitolo (lo stesso avanzamento che guida l'epoca del 3D in main.js)
+function initTimeline(scrollTo) {
+  const chapter = document.querySelector('#historia');
+  const line = chapter && chapter.querySelector('.timeline');
+  if (!line) return;
+  const knots = [...line.querySelectorAll('li')];
+  const stops = [...chapter.querySelectorAll('.stop')];
+  const n = stops.length;
+  let active = -1;
+  const set = (p, instant = false) => {
+    // il filo arriva al nodo quando la sua tappa è a metà
+    line.style.setProperty('--p', Math.min(1, Math.max(0, (p * n - 0.5) / (n - 1))).toFixed(4));
+    const i = Math.min(n - 1, Math.floor(p * n));
+    if (i === active) return;
+    const prev = stops[active];
+    active = i;
+    knots.forEach((el, k) => {
+      el.classList.toggle('is-active', k === i);
+      el.classList.toggle('is-done', k < i);
+    });
+    stops.forEach((el, k) => el.classList.toggle('is-active', k === i));
+    if (instant) {
+      gsap.set(stops, { autoAlpha: 0, y: 10 });
+      gsap.set(stops[i], { autoAlpha: 1, y: 0 });
+      return;
+    }
+    if (prev) gsap.to(prev, { autoAlpha: 0, y: -8, duration: 0.4, ease: 'power2.in', overwrite: true });
+    gsap.fromTo(stops[i], { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.6, delay: 0.15, ease: 'power2.out', overwrite: true });
+  };
+  set(0, true);
+  ScrollTrigger.create({
+    trigger: chapter,
+    start: 'top top',
+    end: 'bottom bottom',
+    onUpdate: (self) => set(self.progress),
+    onRefresh: (self) => set(self.progress, true),
+  });
+  // clic su una data: si scorre fino al centro di quella tappa
+  line.querySelectorAll('button').forEach((b) =>
+    b.addEventListener('click', () => {
+      const k = Number(b.dataset.stop);
+      scrollTo(chapter.offsetTop + ((k + 0.5) / n) * (chapter.offsetHeight - innerHeight));
+    }),
+  );
+}
+
+export function initSections({ scrollTo = (y) => window.scrollTo({ top: y, behavior: 'smooth' }) } = {}) {
   setLinks();
+  initTimeline(scrollTo);
 
   // parole cucite: si cuciono quando entrano nello schermo
   document.querySelectorAll('svg.stitched').forEach((svg) => {
