@@ -1,12 +1,12 @@
 // HABITACIONES: se elige la habitación desde el citófono 3D. Al pulsar un timbre:
 // clic, el botón se hunde, se enciende el piloto y la habitación aparece con un
 // fundido; al lado, su planta en latón crece hasta su medida real.
-import { t, L, getLang, onLangChange, applyI18n } from '../i18n.js';
-import { motion, waLink } from '../config.js';
-import { ROOMS } from '../data.js';
-import { setImg } from '../util/images.js';
-import { playClick, playChime } from '../util/audio.js';
-import { backButton, pageFooter } from './index.js';
+import { t, L, getLang, onLangChange, applyI18n } from '../i18n.js?v=2';
+import { motion, waLink } from '../config.js?v=2';
+import { ROOMS } from '../data.js?v=2';
+import { setImg } from '../util/images.js?v=2';
+import { playClick, playChime } from '../util/audio.js?v=2';
+import { backButton, pageFooter, mobileSheet, sheetBar } from './index.js?v=2';
 
 // ───────────── planta a escala (SVG) ─────────────
 const S = 10;                 // unidades SVG por metro
@@ -184,7 +184,7 @@ const ICONS = {
 };
 
 export async function create({ root, engine, onBack }) {
-  const { createIntercom } = await import('../scenes/intercom.js');
+  const { createIntercom } = await import('../scenes/intercom.js?v=2');
   const el = document.createElement('section');
   el.className = 'page is-glass page-hab';
   el.id = 'page-habitaciones';
@@ -195,6 +195,7 @@ export async function create({ root, engine, onBack }) {
       <div class="hab-frame">
         <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span>
         <span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+        ${sheetBar('hab.toIntercom')}
         <div class="hab-scroll">
           <header class="hab-head">
             <p class="kicker" data-i18n="hab.kicker"></p>
@@ -202,6 +203,10 @@ export async function create({ root, engine, onBack }) {
             <p class="hab-lead" data-i18n="hab.lead"></p>
           </header>
           <div class="hab-keys" role="group" data-i18n-aria="hab.intercom"></div>
+          <button type="button" class="hab-peek-room" hidden>
+            <span class="lamp" aria-hidden="true"></span><span class="pr-name"></span><span class="pr-m2"></span>
+            <span class="pr-go"><span data-i18n="hab.view"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>
+          </button>
           <article class="hab-room" aria-live="polite" hidden>
             <figure class="hab-photo"><img class="a" alt="" /><img class="b" alt="" /></figure>
             <div class="hab-main">
@@ -258,6 +263,8 @@ export async function create({ root, engine, onBack }) {
 
   function fillRoom(r) {
     el.querySelector('.hab-name').textContent = L(r.name);
+    el.querySelector('.pr-name').textContent = L(r.name);
+    el.querySelector('.pr-m2').textContent = `${r.m2} m²`;
     el.querySelector('.d-guests').textContent = L(r.guests);
     el.querySelector('.d-beds').textContent = L(r.beds);
     el.querySelector('.hab-text').textContent = L(r.text);
@@ -271,6 +278,9 @@ export async function create({ root, engine, onBack }) {
     const first = !current;
     current = id;
     keys.querySelectorAll('.hab-key').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.room === id)));
+    // en el teléfono la fila de fichas se desliza hasta la elegida
+    const chip = keys.querySelector(`[data-room="${id}"]`);
+    if (chip && keys.scrollWidth > keys.clientWidth) keys.scrollTo({ left: chip.offsetLeft - (keys.clientWidth - chip.offsetWidth) / 2, behavior: motion.reduced ? 'auto' : 'smooth' });
     playClick();
     setTimeout(playChime, 160);
     el.classList.add('has-room');
@@ -289,19 +299,42 @@ export async function create({ root, engine, onBack }) {
     countUp(el.querySelector('.m2b'), prev ? prev.m2 : 0, r.m2);
     plan.show(r, true);
     if (first) el.querySelector('.hab-scroll').scrollTo({ top: 0 });
+    el.querySelector('.hab-peek-room').hidden = false;
+    // en el teléfono: se ve el botón hundirse y el piloto encenderse, y luego sube la ficha
+    if (sheet.mobile && !sheet.isOpen) {
+      clearTimeout(openTimer);
+      openTimer = setTimeout(() => sheet.open(), motion.reduced ? 60 : 650);
+    } else {
+      sheet.measure();
+    }
   }
 
   ic.on('select', (id) => showRoom(id));
   ic.on('hover', (id) => keys.querySelectorAll('.hab-key').forEach((b) => b.classList.toggle('is-hot', b.dataset.room === id)));
 
+  let openTimer = 0, pauseTimer = 0;
+  const scroller = el.querySelector('.hab-scroll');
+  const sheet = mobileSheet({
+    el, panel: el.querySelector('.hab-panel'), scroller,
+    // ficha abierta: el 3D queda detrás, se pausa para ahorrar batería
+    onOpen() { clearTimeout(pauseTimer); pauseTimer = setTimeout(() => { if (sheet.isOpen) engine.setActive(null); }, 520); },
+    onClose() { clearTimeout(pauseTimer); engine.setActive(ic); layout(); },
+    onMeasure: () => layout(),
+  });
+  el.querySelector('.hab-peek-room').addEventListener('click', () => sheet.open());
+
   function layout() {
     const w = engine.size.w, h = engine.size.h;
-    if (w / h < 0.9 || w < 760) {
-      ic.setLayout({ cx: 0.5, cy: 0.29 });
+    if (sheet.mobile) {
+      // citófono centrado en el espacio libre entre la barra superior y la ficha asomada
+      const peek = parseFloat(el.style.getPropertyValue('--peek')) || 200;
+      const top = 108;
+      const free = Math.max(200, h - peek - top);
+      ic.setLayout({ cx: 0.5, cy: (top + free / 2) / h, want: Math.min(0.66, (free * 0.84) / h) });
     } else {
       const panel = el.querySelector('.hab-panel').getBoundingClientRect();
       const free = panel.left > 0 ? panel.left : w * 0.5;
-      ic.setLayout({ cx: (free / 2) / w, cy: 0.52 });
+      ic.setLayout({ cx: (free / 2) / w, cy: 0.52, want: undefined });
     }
   }
   engine.onResize(() => { if (el.classList.contains('is-open')) layout(); });
@@ -309,13 +342,22 @@ export async function create({ root, engine, onBack }) {
   onLangChange(() => {
     applyI18n(el);
     renderKeys();
+    requestAnimationFrame(() => sheet.measure());
     ic.setCards(ROOMS.map((r) => L(r.card)));
     if (current) fillRoom(ROOMS.find((x) => x.id === current));
   });
 
   return {
     el, theme: 'dark', view: ic, ownCredit: true,
-    enter() { requestAnimationFrame(layout); },
-    exit() {},
+    enter() {
+      sheet.close(true);
+      document.body.classList.add('has-peek');
+      requestAnimationFrame(() => { sheet.measure(); layout(); });
+    },
+    exit() {
+      clearTimeout(openTimer); clearTimeout(pauseTimer);
+      sheet.close(true);
+      document.body.classList.remove('has-peek', 'sheet-open');
+    },
   };
 }

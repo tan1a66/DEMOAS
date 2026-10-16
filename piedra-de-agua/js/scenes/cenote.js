@@ -1,11 +1,11 @@
 // CENOTE: la cámara baja por la boca de un cenote. Bóveda de piedra caliza,
 // raíces colgantes, haz de luz desde lo alto y agua turquesa transparente.
 import * as THREE from 'three';
-import { QUALITY, motion } from '../config.js';
-import { plasterCanvas, vineLeafCanvas, rng, makeCanvas, fbm } from '../util/textures.js';
-import { toTexture } from '../util/gltex.js';
-import { merge } from './patio/geo.js';
-import { tween, ease, damp } from '../util/tween.js';
+import { QUALITY, motion } from '../config.js?v=2';
+import { plasterCanvas, vineLeafCanvas, rng, makeCanvas, fbm } from '../util/textures.js?v=2';
+import { toTexture } from '../util/gltex.js?v=2';
+import { merge } from './patio/geo.js?v=2';
+import { tween, ease, damp } from '../util/tween.js?v=2';
 
 function noise3(x, y, z) {
   // ruido barato a base de senos (suficiente para irregularidades de roca)
@@ -196,12 +196,14 @@ export function createCenote(engine) {
   const P0 = new THREE.Vector3(0.12, 19.5, 0.35), L0 = new THREE.Vector3(0, 0, 0);
   const P1 = new THREE.Vector3(4.1, 2.5, 2.5), L1 = new THREE.Vector3(-1.6, 3.0, -2.4);
   const look = new THREE.Vector3();
+  let insets = { top: 0, bottom: 0, right: 0 };
   const view = {
     scene, camera,
+    setInsets(i) { insets = { ...insets, ...i }; this.resize(engine.size.w, engine.size.h); },
     resize(w, h) {
       camera.aspect = w / h;
       camera.fov = w / h < 0.9 ? 72 : 62;
-      camera.setViewOffset(w, h, w / h < 0.9 || w < 760 ? 0 : w * 0.16, w / h < 0.9 ? h * 0.16 : 0, w, h);
+      camera.setViewOffset(w, h, insets.right / 2, (insets.bottom - insets.top) / 2, w, h);
       camera.updateProjectionMatrix();
       dust.material.uniforms.uPx.value = h * engine.renderer.getPixelRatio() / (2 * Math.tan((camera.fov * Math.PI) / 360));
     },

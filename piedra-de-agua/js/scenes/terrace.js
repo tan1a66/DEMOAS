@@ -2,11 +2,11 @@
 // guirnaldas de focos que se encienden una tras otra y, al fondo, la torre de la
 // Catedral. El cielo pasa del día al atardecer mientras se lee.
 import * as THREE from 'three';
-import { QUALITY, motion, IS_MOBILE } from '../config.js';
-import { plasterCanvas, vineLeafCanvas, makeCanvas } from '../util/textures.js';
-import { toTexture } from '../util/gltex.js';
-import { merge, place, box } from './patio/geo.js';
-import { damp, clamp, smoothstep, lerp } from '../util/tween.js';
+import { QUALITY, motion, IS_MOBILE } from '../config.js?v=2';
+import { plasterCanvas, vineLeafCanvas, makeCanvas } from '../util/textures.js?v=2';
+import { toTexture } from '../util/gltex.js?v=2';
+import { merge, place, box } from './patio/geo.js?v=2';
+import { damp, clamp, smoothstep, lerp } from '../util/tween.js?v=2';
 
 const SKY_VS = /* glsl */`
 varying vec3 vDir;

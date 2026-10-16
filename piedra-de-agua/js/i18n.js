@@ -60,6 +60,9 @@ const ES = {
   'hab.msg': 'Hola, me gustaría reservar la habitación «{room}» en el Hotel Piedra de Agua.',
   'hab.choose': 'Elija una habitación',
   'hab.intercom': 'Citófono de la casona',
+  'hab.view': 'Ver habitación',
+  'hab.toIntercom': 'Citófono',
+  'sheet.toggle': 'Abrir o cerrar el panel',
 
   // Servicios
   'ser.kicker': 'Servicios',
@@ -86,6 +89,8 @@ const ES = {
   'exp.act.lead': 'Experiencias dentro del hotel que enriquecen tu estancia.',
   'exp.indicative': 'Tiempos y distancias aproximados.',
   'exp.hotel': 'Piedra de Agua',
+  'exp.toMap': 'Mapa',
+  'exp.more': 'Leer más',
 
   // Contacto
   'con.kicker': 'Reservar · Contacto',
@@ -157,6 +162,9 @@ const EN = {
   'hab.msg': 'Hello, I would like to book the “{room}” at Hotel Piedra de Agua.',
   'hab.choose': 'Choose a room',
   'hab.intercom': 'The casona’s intercom',
+  'hab.view': 'View room',
+  'hab.toIntercom': 'Intercom',
+  'sheet.toggle': 'Open or close the panel',
 
   'ser.kicker': 'Services',
   'ser.title': 'The casona, at your service',
@@ -181,6 +189,8 @@ const EN = {
   'exp.act.lead': 'Experiences inside the hotel that enrich your stay.',
   'exp.indicative': 'Approximate times and distances.',
   'exp.hotel': 'Piedra de Agua',
+  'exp.toMap': 'Map',
+  'exp.more': 'Read more',
 
   'con.kicker': 'Book · Contact',
   'con.title': 'We await you on Calle 60',

@@ -1,7 +1,7 @@
 // Columna corintia procedural: basa ática, fuste estriado con éntasis,
 // capitel con dos coronas de hojas de acanto, volutas y ábaco de lados cóncavos.
 import * as THREE from 'three';
-import { merge, place, twoSided, SpiralCurve, tube } from './geo.js';
+import { merge, place, twoSided, SpiralCurve, tube } from './geo.js?v=2';
 
 function flutedShaft(y0, y1, r0, r1, flutes = 20, radial = 80, rows = 8) {
   const pos = [], uv = [], idx = [];

@@ -1,7 +1,7 @@
 // Renderizador compartido: un solo canvas WebGL, una escena activa a la vez.
 // Las escenas no visibles no se actualizan ni se dibujan.
 import * as THREE from 'three';
-import { QUALITY } from './config.js';
+import { QUALITY } from './config.js?v=2';
 
 export function hasWebGL() {
   try {

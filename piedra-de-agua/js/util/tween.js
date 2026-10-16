@@ -1,5 +1,5 @@
 // Interpolaciones mínimas (sin dependencias) con promesas.
-import { motion } from '../config.js';
+import { motion } from '../config.js?v=2';
 
 export const ease = {
   linear: (t) => t,

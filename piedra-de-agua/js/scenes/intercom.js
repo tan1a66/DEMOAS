@@ -3,12 +3,12 @@
 // botón de marfil que se hunde y piloto que se enciende.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { QUALITY, motion, IS_MOBILE } from '../config.js';
-import { stoneWallCanvases, makeCanvas, fbm } from '../util/textures.js';
-import { toTexture } from '../util/gltex.js';
-import { merge, place, box, tube } from './patio/geo.js';
-import { makeGlows } from './patio/lights.js';
-import { damp } from '../util/tween.js';
+import { QUALITY, motion, IS_MOBILE } from '../config.js?v=2';
+import { stoneWallCanvases, makeCanvas, fbm } from '../util/textures.js?v=2';
+import { toTexture } from '../util/gltex.js?v=2';
+import { merge, place, box, tube } from './patio/geo.js?v=2';
+import { makeGlows } from './patio/lights.js?v=2';
+import { damp } from '../util/tween.js?v=2';
 
 const PW = 0.36, PH = 0.74, PR = PW / 2; // placa: rectángulo + medio punto
 const ROWS = [0.19, 0.045, -0.1, -0.245];
@@ -358,7 +358,7 @@ export function createIntercom(engine, rooms) {
       camera.aspect = w / h;
       const portrait = w / h < 0.9;
       // distancia para que la placa ocupe la altura deseada
-      const want = portrait ? 0.36 : 0.78;
+      const want = layout.want ?? (portrait ? 0.36 : 0.78);
       layout.dist = (PH + PR + 0.08) / (2 * Math.tan((camera.fov * Math.PI) / 360) * want);
       camera.setViewOffset(w, h, (0.5 - layout.cx) * w, (0.5 - layout.cy) * h, w, h);
       camera.updateProjectionMatrix();

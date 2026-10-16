@@ -3,19 +3,19 @@
 // y vuelos hacia las cuatro puertas.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { QUALITY, motion, IS_MOBILE } from '../../config.js';
-import { tileCanvas, plasterCanvas, woodCanvas, limestoneCanvas, plaqueCanvas, plaqueGlowCanvas, makeCanvas } from '../../util/textures.js';
-import { toTexture } from '../../util/gltex.js';
-import { merge, place, box, worldUV, wallPieces } from './geo.js';
-import { corinthianColumn } from './column.js';
-import { railingBay } from './ironwork.js';
-import { makeLibertyDoor, makePortal } from './door.js';
-import { makeRibbons } from './ribbons.js';
-import { makeVines } from './vines.js';
-import { lanternGeometry, makeGlows, makeShafts, makeDust, makeLightPools } from './lights.js';
-import { tween, ease, damp, clamp, nextFrame } from '../../util/tween.js';
-import { t } from '../../i18n.js';
-import { playLatch, playWhoosh } from '../../util/audio.js';
+import { QUALITY, motion, IS_MOBILE } from '../../config.js?v=2';
+import { tileCanvas, plasterCanvas, woodCanvas, limestoneCanvas, plaqueCanvas, plaqueGlowCanvas, makeCanvas } from '../../util/textures.js?v=2';
+import { toTexture } from '../../util/gltex.js?v=2';
+import { merge, place, box, worldUV, wallPieces } from './geo.js?v=2';
+import { corinthianColumn } from './column.js?v=2';
+import { railingBay } from './ironwork.js?v=2';
+import { makeLibertyDoor, makePortal } from './door.js?v=2';
+import { makeRibbons } from './ribbons.js?v=2';
+import { makeVines } from './vines.js?v=2';
+import { lanternGeometry, makeGlows, makeShafts, makeDust, makeLightPools } from './lights.js?v=2';
+import { tween, ease, damp, clamp, nextFrame } from '../../util/tween.js?v=2';
+import { t } from '../../i18n.js?v=2';
+import { playLatch, playWhoosh } from '../../util/audio.js?v=2';
 
 // Medidas (metros)
 const A = 4.5;                 // semilado del patio abierto

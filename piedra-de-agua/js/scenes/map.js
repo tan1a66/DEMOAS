@@ -3,10 +3,10 @@
 // Mérida como punto luminoso "Piedra de Agua", pines, ruta punteada y modelos 3D.
 // Costas: Natural Earth 1:10m (dominio público).
 import * as THREE from 'three';
-import { QUALITY, motion, IS_MOBILE } from '../config.js';
-import { makeCanvas, fbm, rng } from '../util/textures.js';
-import { merge, place, box } from './patio/geo.js';
-import { tween, ease, damp, clamp } from '../util/tween.js';
+import { QUALITY, motion, IS_MOBILE } from '../config.js?v=2';
+import { makeCanvas, fbm, rng } from '../util/textures.js?v=2';
+import { merge, place, box } from './patio/geo.js?v=2';
+import { tween, ease, damp, clamp } from '../util/tween.js?v=2';
 
 const LAT0 = 20.3, LNG0 = -89.3, KM = 10;
 const KX = (111.32 * Math.cos((LAT0 * Math.PI) / 180)) / KM, KY = 111.32 / KM;
@@ -474,8 +474,10 @@ export async function createMap(engine, places, merida) {
   const labelsOut = pins.map((p) => ({ id: p.id, x: 0, y: 0, visible: false }));
   const meridaLabel = { id: 'merida', x: 0, y: 0, visible: false };
 
+  let insets = { top: 0, bottom: 0, right: 0 };
   const view = {
-    scene, camera, pins,
+    scene, camera,
+    setInsets(i) { insets = { ...insets, ...i }; this.resize(engine.size.w, engine.size.h); }, pins,
     on(name, fn) { if (name === 'pin') onPin = fn; if (name === 'labels') onLabels = fn; },
     async intro() {
       const o = overview();
@@ -491,8 +493,8 @@ export async function createMap(engine, places, merida) {
       p.model.visible = true;
       setRoute(p.pos);
       const portrait = engine.size.w / engine.size.h < 0.9;
-      const off = portrait ? new THREE.Vector3(1.6, 6.4, 6.2) : new THREE.Vector3(2.4, 4.2, 5.0);
-      await fly(p.pos.clone().add(off), p.pos.clone().add(new THREE.Vector3(portrait ? 0 : -1.1, 0.3, portrait ? 1.6 : 0)), 1.7);
+      const off = portrait ? new THREE.Vector3(2.2, 9.2, 9.0) : new THREE.Vector3(2.4, 4.2, 5.0);
+      await fly(p.pos.clone().add(off), p.pos.clone().add(new THREE.Vector3(portrait ? 0 : -1.1, 0.4, portrait ? 0.8 : 0)), 1.7);
     },
     async diveTarget(id) {
       // la cámara baja hacia la boca del cenote
@@ -509,8 +511,8 @@ export async function createMap(engine, places, merida) {
     },
     resize(w, h) {
       camera.aspect = w / h;
-      // en escritorio la maqueta se desplaza a la izquierda (panel a la derecha)
-      camera.setViewOffset(w, h, w / h < 0.9 || w < 760 ? 0 : w * 0.2, w / h < 0.9 ? h * 0.16 : 0, w, h);
+      // la escena se centra en el espacio libre que dejan el panel o la ficha inferior
+      camera.setViewOffset(w, h, insets.right / 2, (insets.bottom - insets.top) / 2, w, h);
       camera.updateProjectionMatrix();
     },
     onEnter() { active = true; },

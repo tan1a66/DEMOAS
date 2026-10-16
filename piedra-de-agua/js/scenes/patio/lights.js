@@ -1,8 +1,8 @@
 // Faroles de hierro y vidrio, halos de luz, haces que bajan del techo de cristal,
 // polvo luminoso y charcos de luz cálida en el suelo.
 import * as THREE from 'three';
-import { merge, place } from './geo.js';
-import { glowCanvas } from '../../util/textures.js';
+import { merge, place } from './geo.js?v=2';
+import { glowCanvas } from '../../util/textures.js?v=2';
 
 // Farol hexagonal colgante (origen en el centro del vidrio). Devuelve { iron, glass } geometrías.
 export function lanternGeometry(hq = true, { rod = 0.6 } = {}) {

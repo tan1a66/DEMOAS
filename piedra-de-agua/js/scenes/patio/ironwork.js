@@ -1,7 +1,7 @@
 // Hierro forjado de estilo liberty: barandales de los balcones, abanicos de los
 // sopraluces y rejillas de las puertas. Todo con tubos a lo largo de curvas.
 import * as THREE from 'three';
-import { merge, place, box, tube, bez, SpiralCurve } from './geo.js';
+import { merge, place, box, tube, bez, SpiralCurve } from './geo.js?v=2';
 
 function mirrorX(points, cx) { return points.map(([x, y]) => [2 * cx - x, y]); }
 

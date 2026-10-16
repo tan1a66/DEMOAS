@@ -1,8 +1,8 @@
 // Puertas: el portón colonial de la entrada (clavos de hierro, sopraluce de medio
 // punto con abanico liberty) y las cuatro puertas liberty del patio con placa de latón.
 import * as THREE from 'three';
-import { merge, place, box } from './geo.js';
-import { fanTransom, leafGrille, crest } from './ironwork.js';
+import { merge, place, box } from './geo.js?v=2';
+import { fanTransom, leafGrille, crest } from './ironwork.js?v=2';
 
 function raisedPanel(w, h, x, y0, z, depth = 0.03) {
   // marco biselado + campo en relieve

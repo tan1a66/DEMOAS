@@ -2,10 +2,10 @@
 // Simulación de ondas en GPU (ecuación de onda en texturas ping-pong), refracción,
 // cáusticas procedurales y hojas/flores flotando que el dedo empuja.
 import * as THREE from 'three';
-import { QUALITY, motion, IS_MOBILE } from '../config.js';
-import { floraAtlas, tileCanvas } from '../util/textures.js';
-import { toTexture } from '../util/gltex.js';
-import { playDrop } from '../util/audio.js';
+import { QUALITY, motion, IS_MOBILE } from '../config.js?v=2';
+import { floraAtlas, tileCanvas } from '../util/textures.js?v=2';
+import { toTexture } from '../util/gltex.js?v=2';
+import { playDrop } from '../util/audio.js?v=2';
 
 const QUAD_VS = /* glsl */`
 varying vec2 vUv;

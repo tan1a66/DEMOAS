@@ -1,6 +1,6 @@
 // Panel "Reservar · Contacto": dirección, mapa sencillo del Centro y WhatsApp.
-import { CONFIG, waLink } from './config.js';
-import { t, applyI18n, onLangChange } from './i18n.js';
+import { CONFIG, waLink } from './config.js?v=2';
+import { t, applyI18n, onLangChange } from './i18n.js?v=2';
 
 export function centroMapSVG() {
   // Cuadrícula del Centro: calles pares N–S (60 al centro), impares E–O.

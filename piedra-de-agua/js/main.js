@@ -1,9 +1,9 @@
 // Orquestación: carga → HOME (agua) → destello → portón → PATIO (hub) ⇄ secciones.
 // Este módulo no importa Three.js de forma estática: si la librería o WebGL no
 // están disponibles se muestra la versión estática con fotografías.
-import { IS_MOBILE, motion, waLink } from './config.js';
-import { t, applyI18n, setLang, getLang, onLangChange } from './i18n.js';
-import { unlockAudio, isSoundOn, setSound } from './util/audio.js';
+import { IS_MOBILE, motion, waLink } from './config.js?v=2';
+import { t, applyI18n, setLang, getLang, onLangChange } from './i18n.js?v=2';
+import { unlockAudio, isSoundOn, setSound } from './util/audio.js?v=2';
 
 const $ = (s, r = document) => r.querySelector(s);
 const body = document.body;
@@ -78,7 +78,7 @@ function hideLoader() {
 // ───────────── versión estática ─────────────
 async function goStatic(reason) {
   console.warn('Versión estática:', reason);
-  const { initStatic } = await import('./static.js');
+  const { initStatic } = await import('./static.js?v=2');
   els.canvas.hidden = true;
   els.home.hidden = true;
   body.classList.add('no-webgl');
@@ -92,7 +92,7 @@ async function showHome() {
   engine.setActive(home);
   hideLoader();
   home.intro.value = 0;
-  const { tween, ease } = await import('./util/tween.js');
+  const { tween, ease } = await import('./util/tween.js?v=2');
   tween({ duration: 1.6, easing: ease.outCubic, onUpdate: (v) => { home.intro.value = v; } });
   setTimeout(() => home.splash(), motion.reduced ? 50 : 650);
   requestAnimationFrame(() => body.classList.add('home-ready'));
@@ -104,7 +104,7 @@ async function enterCasona(e) {
   state.busy = true;
   keyboardIntro = e?.detail === 0; // activado con teclado
   unlockAudio();
-  const { tween, ease } = await import('./util/tween.js');
+  const { tween, ease } = await import('./util/tween.js?v=2');
   // luz cegadora: el agua se aclara y la pantalla queda en blanco
   els.flash.classList.remove('is-fading');
   els.flash.classList.add('is-on');
@@ -193,7 +193,7 @@ async function openSection(id, { instant = false } = {}) {
   if (state.busy || (state.phase !== 'hub' && !instant)) return;
   state.busy = true;
   els.hub.classList.add('is-busy');
-  sectionsMod ??= await import('./sections/index.js');
+  sectionsMod ??= await import('./sections/index.js?v=2');
   const secP = sectionsMod.getSection(id, { root: els.sections, engine, onBack: () => goPatio() });
   if (instant) {
     setVeil(true, 0.01);
@@ -257,7 +257,7 @@ window.addEventListener('popstate', () => {
 
 // ───────────── contacto ─────────────
 async function openContact() {
-  const { openContactPanel } = await import('./contact.js');
+  const { openContactPanel } = await import('./contact.js?v=2');
   openContactPanel($('#contact'));
 }
 els.reserve.addEventListener('click', openContact);
@@ -274,10 +274,10 @@ async function boot() {
   progress(0.08);
   let mods;
   try {
-    const eng = await import('./engine.js');
+    const eng = await import('./engine.js?v=2');
     if (!eng.hasWebGL()) throw new Error('WebGL no disponible');
     progress(0.2);
-    mods = await Promise.all([import('./scenes/home.js'), import('./scenes/patio/index.js'), fontsReady()]);
+    mods = await Promise.all([import('./scenes/home.js?v=2'), import('./scenes/patio/index.js?v=2'), fontsReady()]);
     engine = eng.engine.init(els.canvas);
   } catch (err) {
     return goStatic(err);

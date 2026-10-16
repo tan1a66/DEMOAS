@@ -1,10 +1,10 @@
 // NOSOTROS · "1845 / hoy": historia de la casona con un comparador antiguo/actual
 // (la misma foto revelada como albúmina de 1845 y a color hoy) y una línea de tiempo.
-import { t, onLangChange, applyI18n } from '../i18n.js';
-import { motion } from '../config.js';
-import { loadImage, placeholderURL } from '../util/images.js';
-import { makeCanvas, fbm, rng, placeholderCanvas } from '../util/textures.js';
-import { backButton, pageFooter } from './index.js';
+import { t, onLangChange, applyI18n } from '../i18n.js?v=2';
+import { motion } from '../config.js?v=2';
+import { loadImage, placeholderURL } from '../util/images.js?v=2';
+import { makeCanvas, fbm, rng, placeholderCanvas } from '../util/textures.js?v=2';
+import { backButton, pageFooter } from './index.js?v=2';
 
 const SCENES = [
   { id: 'patio', file: 'patio.jpg', key: 'nos.scene.patio' },

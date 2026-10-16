@@ -1,10 +1,10 @@
 // Versión estática (sin WebGL): los mismos contenidos con fotografías, en una sola página.
-import { t, L, onLangChange } from './i18n.js';
-import { CONFIG, waLink } from './config.js';
-import { ROOMS, SERVICES, PLACES, ACTIVATIONS } from './data.js';
-import { setImg } from './util/images.js';
-import { centroMapSVG } from './contact.js';
-import { henequenSVG } from './sections/nosotros.js';
+import { t, L, onLangChange } from './i18n.js?v=2';
+import { CONFIG, waLink } from './config.js?v=2';
+import { ROOMS, SERVICES, PLACES, ACTIVATIONS } from './data.js?v=2';
+import { setImg } from './util/images.js?v=2';
+import { centroMapSVG } from './contact.js?v=2';
+import { henequenSVG } from './sections/nosotros.js?v=2';
 
 const img = (names, alt, w = 1200, h = 800, cls = '') => `<img class="${cls}" data-src="${[].concat(names).join('|')}" data-w="${w}" data-h="${h}" alt="${alt}" loading="lazy" />`;
 

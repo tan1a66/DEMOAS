@@ -1,6 +1,6 @@
 // Enredaderas que cuelgan de los balcones: hojas instanciadas con balanceo en el shader.
 import * as THREE from 'three';
-import { vineLeafCanvas } from '../../util/textures.js';
+import { vineLeafCanvas } from '../../util/textures.js?v=2';
 
 // strands: [{ x, y, z, len, nx, nz }] puntos de anclaje en el borde del balcón.
 export function makeVines(strands, { maxLeaves = 2400, hq = true } = {}) {

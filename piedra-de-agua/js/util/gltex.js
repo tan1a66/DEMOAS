@@ -1,8 +1,8 @@
 // Conversión de canvas a texturas de Three.js y carga de fotos como textura.
 import * as THREE from 'three';
-import { loadImage } from './images.js';
-import { placeholderCanvas } from './textures.js';
-import { t } from '../i18n.js';
+import { loadImage } from './images.js?v=2';
+import { placeholderCanvas } from './textures.js?v=2';
+import { t } from '../i18n.js?v=2';
 
 export function toTexture(canvas, { repeat = 1, srgb = true, aniso = 4, wrap = true } = {}) {
   const tex = new THREE.CanvasTexture(canvas);

@@ -2,13 +2,13 @@
 // Pasan delante de la cámara en un arco suave; la foto entra en foco en el centro.
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { QUALITY, motion, IS_MOBILE } from '../config.js';
-import { plaqueCanvas } from '../util/textures.js';
-import { toTexture, loadTexture } from '../util/gltex.js';
-import { merge, place, tube } from './patio/geo.js';
-import { crest } from './patio/ironwork.js';
-import { makeRibbons } from './patio/ribbons.js';
-import { damp, clamp } from '../util/tween.js';
+import { QUALITY, motion, IS_MOBILE } from '../config.js?v=2';
+import { plaqueCanvas } from '../util/textures.js?v=2';
+import { toTexture, loadTexture } from '../util/gltex.js?v=2';
+import { merge, place, tube } from './patio/geo.js?v=2';
+import { crest } from './patio/ironwork.js?v=2';
+import { makeRibbons } from './patio/ribbons.js?v=2';
+import { damp, clamp } from '../util/tween.js?v=2';
 
 const FW = 1.8, FH = 2.3;           // marco exterior (rectángulo bajo el arco)
 const IW = 1.46, IH = 2.02;         // hueco de la foto

@@ -1,8 +1,8 @@
 // Carga de fotos con alternativa elegante: si una imagen falta se dibuja un
 // marcador con el nombre del archivo, sin romper la página.
-import { CONFIG } from '../config.js';
-import { t } from '../i18n.js';
-import { placeholderCanvas } from './textures.js';
+import { CONFIG } from '../config.js?v=2';
+import { t } from '../i18n.js?v=2';
+import { placeholderCanvas } from './textures.js?v=2';
 
 const cache = new Map();
 

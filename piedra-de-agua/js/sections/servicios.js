@@ -1,13 +1,13 @@
 // SERVICIOS: galería 3D de cuadros colgados de listones; al tocar uno se abre la
 // foto a pantalla completa con texto y WhatsApp. Bodas y Eventos abre la terraza en 3D.
-import { t, L, onLangChange, applyI18n } from '../i18n.js';
-import { waLink, motion } from '../config.js';
-import { SERVICES } from '../data.js';
-import { setImg } from '../util/images.js';
-import { backButton } from './index.js';
+import { t, L, onLangChange, applyI18n } from '../i18n.js?v=2';
+import { waLink, motion } from '../config.js?v=2';
+import { SERVICES } from '../data.js?v=2';
+import { setImg } from '../util/images.js?v=2';
+import { backButton } from './index.js?v=2';
 
 export async function create({ root, engine, onBack }) {
-  const [{ createGallery }, { createTerrace }] = await Promise.all([import('../scenes/gallery.js'), import('../scenes/terrace.js')]);
+  const [{ createGallery }, { createTerrace }] = await Promise.all([import('../scenes/gallery.js?v=2'), import('../scenes/terrace.js?v=2')]);
   const el = document.createElement('section');
   el.className = 'page is-glass page-ser';
   el.id = 'page-servicios';
@@ -102,6 +102,7 @@ export async function create({ root, engine, onBack }) {
     }
     detail.hidden = false;
     el.classList.add('has-detail');
+    document.body.classList.add('detail-open');
     requestAnimationFrame(() => detail.classList.add('is-open'));
     setTimeout(() => detail.querySelector('.ser-close').focus({ preventScroll: true }), 60);
   }
@@ -110,6 +111,7 @@ export async function create({ root, engine, onBack }) {
     if (detail.hidden) return;
     detail.classList.remove('is-open');
     el.classList.remove('has-detail');
+    document.body.classList.remove('detail-open');
     if (SERVICES[openIdx]?.scene3d) engine.setActive(gallery);
     setTimeout(() => { detail.hidden = true; el.querySelector('.ser-open').focus({ preventScroll: true }); }, motion.reduced ? 100 : 500);
     openIdx = -1;
@@ -126,6 +128,9 @@ export async function create({ root, engine, onBack }) {
   return {
     el, theme: 'dark', view: gallery,
     enter() { el.querySelector('.ser-caption').classList.add('is-in'); },
-    exit() { if (!detail.hidden) { detail.hidden = true; detail.classList.remove('is-open'); el.classList.remove('has-detail'); } },
+    exit() {
+      document.body.classList.remove('detail-open');
+      if (!detail.hidden) { detail.hidden = true; detail.classList.remove('is-open'); el.classList.remove('has-detail'); }
+    },
   };
 }
