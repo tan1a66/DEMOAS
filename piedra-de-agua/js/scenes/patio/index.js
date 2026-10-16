@@ -869,11 +869,14 @@ export async function createPatio(engine, { onProgress } = {}) {
         const d = doors[id];
         d.hoverT = hovered === id ? 1 : 0;
         d.hover = damp(d.hover, d.hoverT, 7, dt);
-        const ang = Math.max(d.hover * 0.3, d.open * 1.62);
+        const ang = Math.max(d.hover * 0.46, d.open * 1.62);
         d.leftPivot.rotation.y = ang;
         d.rightPivot.rotation.y = -ang;
         d.plaqueMat.emissiveIntensity = 0.12 + d.hover * 1.6 + d.open * 0.6;
-        d.glassMat.color.setRGB(1, 0.81, 0.56).multiplyScalar(0.9 + d.hover * 0.7 + d.open);
+        // vidrios ámbar apagados que se encienden: hay luz detrás de la puerta
+        const lit = Math.max(d.hover, d.open);
+        d.glassMat.color.setRGB(1, 0.78, 0.5).multiplyScalar(0.32 + lit * 1.5);
+        d.roomMat.color.setRGB(1, 0.84, 0.62).multiplyScalar(0.7 + lit * 1.9);
         plaqueGlows.setIntensity(i, d.hover * 0.85 + d.open * 0.3);
       });
       // portón
