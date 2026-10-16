@@ -271,7 +271,8 @@ function cenoteMarker(rock, dark, water) {
 export async function createMap(engine, places, merida) {
   const renderer = engine.renderer;
   const hq = QUALITY.tier === 'high';
-  const geo = await fetch('data/yucatan.geo.json').then((r) => r.json());
+  // en la versión de un solo archivo los datos vienen incrustados en la página
+  const geo = window.__PDA_GEO || await fetch('data/yucatan.geo.json').then((r) => r.json());
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#0a1d19');
   scene.fog = new THREE.Fog('#0a1d19', 60, 140);
