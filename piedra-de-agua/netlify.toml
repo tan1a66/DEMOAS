@@ -1,0 +1,14 @@
+# Sito statico, nessun comando di build.
+# Su Netlify: "Base directory" = piedra-de-agua (oppure trascinare la cartella su app.netlify.com/drop).
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
