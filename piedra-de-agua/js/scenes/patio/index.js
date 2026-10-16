@@ -420,6 +420,7 @@ export async function createPatio(engine, { onProgress } = {}) {
   const pools = makeLightPools([
     ...lanternSpots.slice(0, 9).map(([x, , z]) => ({ pos: new THREE.Vector3(x, 0.012, z), size: 3.2 })),
   ]);
+  if (!hq) pools.mat.color.multiplyScalar(1.6);
   scene.add(pools.mesh);
   await step(0.62);
 
@@ -590,7 +591,8 @@ export async function createPatio(engine, { onProgress } = {}) {
   scene.add(facadeLight, facadeLight.target);
   // calidez de los faroles en las galerías
   const warm = [];
-  for (const p of [[-3, 3.0, -gallM], [3, 3.0, -gallM], [0, 3.0, gallM - 0.5]]) {
+  // en móvil, menos luces dinámicas: los faroles brillan con halos y charcos de luz
+  for (const p of hq ? [[-3, 3.0, -gallM], [3, 3.0, -gallM], [0, 3.0, gallM - 0.5]] : []) {
     const L = new THREE.PointLight('#ffb866', hq ? 7 : 5, 7, 1.6);
     L.position.set(...p);
     scene.add(L);

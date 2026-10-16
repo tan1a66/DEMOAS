@@ -98,9 +98,11 @@ async function showHome() {
   requestAnimationFrame(() => body.classList.add('home-ready'));
 }
 
-async function enterCasona() {
+let keyboardIntro = false;
+async function enterCasona(e) {
   if (state.phase !== 'home' || state.busy) return;
   state.busy = true;
+  keyboardIntro = e?.detail === 0; // activado con teclado
   unlockAudio();
   const { tween, ease } = await import('./util/tween.js');
   // luz cegadora: el agua se aclara y la pantalla queda en blanco
@@ -141,6 +143,8 @@ function onHubReady() {
   engine.renderer.toneMappingExposure = 1;
   els.hub.hidden = false;
   requestAnimationFrame(() => els.hub.classList.add('is-ready'));
+  // quien entra con teclado continúa en las puertas
+  if (keyboardIntro) setTimeout(() => els.labels[1]?.focus({ preventScroll: true }), 300);
 }
 
 // ───────────── etiquetas de las puertas ─────────────

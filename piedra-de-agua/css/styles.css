@@ -1012,8 +1012,7 @@ body.on-light .topbar { background: linear-gradient(rgba(239, 230, 214, 0.96) 55
 .ser-close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.6; }
 
 @media (max-width: 760px), (max-aspect-ratio: 9/10) {
-  .ser-head { top: calc(112px + var(--safe-t)); }
-  .ser-head .sec-title { font-size: 1.6rem; }
+  .ser-head { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
   .ser-caption { bottom: calc(84px + var(--safe-b)); }
   .ser-text { font-size: 0.88rem; margin-bottom: 10px; }
   .ser-hint { display: none; }

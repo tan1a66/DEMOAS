@@ -429,7 +429,7 @@ export async function createMap(engine, places, merida) {
   const rig = { pos: new THREE.Vector3(0, 90, 60), look: center.clone(), mode: 'overview', focus: null, orbit: 0 };
   const overview = () => {
     const portrait = engine.size.w / engine.size.h < 0.9;
-    return { pos: center.clone().add(new THREE.Vector3(0.6, portrait ? 34 : 24, portrait ? 20 : 16.5)), look: center.clone().add(new THREE.Vector3(0, 0, portrait ? -0.5 : -1.2)) };
+    return { pos: center.clone().add(new THREE.Vector3(portrait ? -0.4 : 0.6, portrait ? 50 : 24, portrait ? 26 : 16.5)), look: center.clone().add(new THREE.Vector3(portrait ? -1.2 : 0, 0, portrait ? -0.2 : -1.2)) };
   };
   function fly(pos, look, duration = 1.6) {
     const p0 = rig.pos.clone(), l0 = rig.look.clone();
