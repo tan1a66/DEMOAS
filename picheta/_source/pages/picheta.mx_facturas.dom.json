@@ -1,0 +1,232 @@
+{
+ "title": "facturas",
+ "lang": "en",
+ "imgs": [
+  {
+   "src": "https://picheta.mx/resources/Picheta_logo-white.png",
+   "srcset": "https://picheta.mx/resources/Picheta_logo-white.png",
+   "dsrc": "",
+   "alt": "Logo Picheta",
+   "w": 800,
+   "h": 228
+  },
+  {
+   "src": "https://picheta.mx/resources/cloud-upload-outline.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "",
+   "w": 1024,
+   "h": 1024
+  },
+  {
+   "src": "https://picheta.mx/resources/create-outline.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "",
+   "w": 1024,
+   "h": 1024
+  }
+ ],
+ "bgs": [
+  "url(\"https://picheta.mx/resources/picheta-restaurante-bg.jpg\")",
+  "url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZlcnNpb249JzEuMScgd2lkdGg9JzMyJyBoZWlnaHQ9JzI0JyB2aWV3Qm94PScwIDAgMzIgMjQnPjxwb2x5Z29uIHBvaW50cz0nMCwwIDMyLDAgMTYsMjQnIHN0eWxlPSdmaWxsOiM4YThhOGEnPjwvcG9seWdvbj48L3N2Zz4=\")",
+  "url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZlcnNpb249JzEuMScgd2lkdGg9JzMyJyBoZWlnaHQ9JzI0JyB2aWV3Qm94PScwIDAgMzIgMjQnPjxwb2x5Z29uIHBvaW50cz0nMCwwIDMyLDAgMTYsMjQnIHN0eWxlPSdmaWxsOiM4YThhOGEnPjwvcG9seWdvbj48L3N2Zz4=\")",
+  "url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZlcnNpb249JzEuMScgd2lkdGg9JzMyJyBoZWlnaHQ9JzI0JyB2aWV3Qm94PScwIDAgMzIgMjQnPjxwb2x5Z29uIHBvaW50cz0nMCwwIDMyLDAgMTYsMjQnIHN0eWxlPSdmaWxsOiM4YThhOGEnPjwvcG9seWdvbj48L3N2Zz4=\")",
+  "url(\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZlcnNpb249JzEuMScgd2lkdGg9JzMyJyBoZWlnaHQ9JzI0JyB2aWV3Qm94PScwIDAgMzIgMjQnPjxwb2x5Z29uIHBvaW50cz0nMCwwIDMyLDAgMTYsMjQnIHN0eWxlPSdmaWxsOiM4YThhOGEnPjwvcG9seWdvbj48L3N2Zz4=\")"
+ ],
+ "links": [
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "Inicio"
+  },
+  {
+   "tag": "A",
+   "href": "mailto:facturacionclientes@picheta.mx",
+   "text": "facturacionclientes@picheta.mx"
+  },
+  {
+   "tag": "A",
+   "href": "mailto:facturacionclientes@picheta.mx",
+   "text": "facturacionclientes@picheta.mx"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "Inicio"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/?lang=en",
+   "text": "ENGLISH"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/?lang=es",
+   "text": "ESPAÑOL"
+  }
+ ],
+ "metas": [
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": "ie=edge"
+  },
+  {
+   "k": "viewport",
+   "v": "width=device-width, initial-scale=1.0, viewport-fit=cover"
+  },
+  {
+   "k": "theme-version",
+   "v": "6.22.3"
+  },
+  {
+   "k": "foundation-version",
+   "v": "6.9.0"
+  },
+  {
+   "k": null,
+   "v": "text/html; charset=utf-8"
+  },
+  {
+   "k": "generator",
+   "v": "RapidWeaver"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "mask-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.svg"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_medium.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_small.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/themes/foundation6/consolidated-28.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/fa5pro.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/wysiwyg-content.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "files/stacks_page_page28.css?rwcache=777327044"
+  },
+  {
+   "k": "dns-prefetch",
+   "v": "//fonts.googleapis.com"
+  },
+  {
+   "k": "preconnect",
+   "v": "https://fonts.googleapis.com"
+  },
+  {
+   "k": "preload",
+   "v": "files/stacks_page_page28.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/foundation.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/jquery.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/what-input.min.js?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Maven+Pro%7CMaven+Pro:bold%7CMaven+Pro%7CMaven+Pro:bold"
+  },
+  {
+   "k": "foundation-mq",
+   "v": null
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/utility.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/utility-extra.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/fa5-fonts/v4-shims.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Quicksand:400"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins:300,400"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/icon?family=Material+Icons"
+  }
+ ],
+ "fonts": [
+  "Quicksand, sans-serif",
+  "\"Gill Sans\", sans-serif",
+  "\"Font Awesome 5 Pro\"",
+  "\"Maven Pro\""
+ ],
+ "colors": {
+  "rgb(34, 34, 34)": 85,
+  "bg rgba(0, 0, 0, 0)": 231,
+  "rgb(231, 231, 231)": 4,
+  "rgb(255, 255, 255)": 13,
+  "bg rgb(71, 82, 46)": 7,
+  "bg rgba(255, 255, 255, 0)": 2,
+  "bg rgba(255, 255, 255, 0.91)": 2,
+  "rgba(255, 255, 255, 0.6)": 52,
+  "rgb(40, 40, 40)": 6,
+  "rgb(38, 34, 35)": 33,
+  "rgb(0, 0, 0)": 1,
+  "bg rgb(254, 254, 254)": 17,
+  "rgb(240, 65, 36)": 15,
+  "rgb(8, 8, 8)": 45,
+  "rgb(128, 128, 128)": 4,
+  "bg rgba(0, 0, 0, 0.5)": 2,
+  "bg rgb(210, 200, 193)": 2,
+  "rgb(71, 82, 46)": 2,
+  "rgb(239, 239, 239)": 1,
+  "rgba(255, 255, 255, 0.88)": 2
+ },
+ "jsonld": []
+}

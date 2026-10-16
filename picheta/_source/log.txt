@@ -1,0 +1,279 @@
+DNS picheta.mx 173.236.202.180
+DNS www.picheta.mx 173.236.202.180
+GOTO https://picheta.mx/
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  status 200 final https://picheta.mx/
+GOTO https://picheta.mx/menu/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/menu/
+  font https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2
+  font https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2
+GOTO https://picheta.mx/contacto/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/contacto/
+  font https://fonts.gstatic.com/s/roboto/v51/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUu9-KzpRiLCAt4Unrc-xIKmCU5qEp2iw.woff2
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUp9-KzpRiLCAt4Unrc-xIKmCU5oLlVnmhjtg.woff2
+GOTO https://picheta.mx/reservas/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/reservas/
+GOTO https://picheta.mx/autores/post/rodolfo-barrientos
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/autores/post/rodolfo-barrientos
+GOTO https://picheta.mx/?lang=en
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/?lang=en
+GOTO https://picheta.mx/?lang=es
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/?lang=es
+GOTO https://picheta.mx/historia/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/historia/
+GOTO https://picheta.mx/autores/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/autores/
+GOTO https://picheta.mx/noticias/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/noticias/
+GOTO https://picheta.mx/terraza-para-eventos/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/terraza-para-eventos/
+GOTO https://picheta.mx/facturas/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  font https://fonts.gstatic.com/s/mavenpro/v40/7Au9p_AqnyWWAxW2Wk3GzWQI.woff2
+  status 200 final https://picheta.mx/facturas/
+  font https://picheta.mx/rw_common/plugins/stacks/fa5-fonts/fa-regular-400.woff2
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fa5-fonts/fa-light-300.woff2
+GOTO https://picheta.mx/privacy-policy/
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/privacy-policy/
+GOTO https://picheta.mx/admin/
+  status 200 final https://picheta.mx/admin/
+GOTO https://picheta.mx/menu/?lang=en
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2
+  font https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2
+  status 200 final https://picheta.mx/menu/?lang=en
+GOTO https://picheta.mx/menu/?lang=es
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFQ.woff2
+  font https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  status 200 final https://picheta.mx/menu/?lang=es
+GOTO https://picheta.mx/contacto/?lang=en
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/contacto/?lang=en
+  font https://fonts.gstatic.com/s/roboto/v51/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUu9-KzpRiLCAt4Unrc-xIKmCU5qEp2iw.woff2
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUp9-KzpRiLCAt4Unrc-xIKmCU5oLlVnmhjtg.woff2
+GOTO https://picheta.mx/contacto/?lang=es
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/contacto/?lang=es
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUu9-KzpRiLCAt4Unrc-xIKmCU5qEp2iw.woff2
+  font https://fonts.gstatic.com/s/googlesanstext/v29/5aUp9-KzpRiLCAt4Unrc-xIKmCU5oLlVnmhjtg.woff2
+GOTO https://picheta.mx/reservas/?lang=en
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/reservas/?lang=en
+GOTO https://picheta.mx/reservas/?lang=es
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/reservas/?lang=es
+GOTO https://picheta.mx/sitemap/
+  status 200 final https://picheta.mx/sitemap/
+GOTO https://picheta.mx/historia/?lang=en
+  font https://picheta.mx/GillSansMTPro-Light.woff
+  font https://picheta.mx/font-gill-sans.woff
+  font https://picheta.mx/rw_common/plugins/stacks/fontawesome-webfont.woff2?v=4.7.0
+  font https://fonts.gstatic.com/s/quicksand/v37/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o58a-wg.woff2
+  font https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecg.woff2
+  status 200 final https://picheta.mx/historia/?lang=en
+LIVE pages ok: 22
+GOTO https://www.opentable.com.mx/r/picheta-merida
+  FAIL Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.opentable.com.mx/r/picheta-merida
+GOTO https://www.opentable.com/r/picheta-merida
+  FAIL Page.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://www.opentable.com/r/picheta-merida
+GET https://picheta.mx/robots.txt 200 text/plain; charset=utf-8 185
+GET https://picheta.mx/sitemap.xml 200 application/xml 167
+GET https://picheta.mx/sitemap_index.xml FAIL HTTP Error 404: Not Found
+GET https://picheta.mx/wp-sitemap.xml FAIL HTTP Error 404: Not Found
+GET https://picheta.mx/wp-json/wp/v2/media?per_page=100 FAIL HTTP Error 404: Not Found
+GET https://picheta.mx/wp-json/wp/v2/media?per_page=100&page=2 FAIL HTTP Error 404: Not Found
+GET https://picheta.mx/wp-json/wp/v2/pages?per_page=50 FAIL HTTP Error 404: Not Found
+immagini uniche: 116
+IMG ok 000 546 355 37988 https://maps.googleapis.com/maps/api/js/StaticMapService.GetMapImage?1m2&1i4211573&2i7388686&2e1&3u16&4m2&1u546&2u355&5m6&1e0&5ses-MX&6sus&10b1&12b1&1
+IMG tiny https://maps.gstatic.com/mapfiles/openhand_8_8.cur (32, 32)
+IMG decode FAIL https://picheta.mx/ cannot identify image file <_io.BytesIO object at 0x7f223f74cef0>
+IMG decode FAIL https://picheta.mx/?lang=en cannot identify image file <_io.BytesIO object at 0x7f223f74cef0>
+IMG decode FAIL https://picheta.mx/?lang=es cannot identify image file <_io.BytesIO object at 0x7f223f74cef0>
+IMG decode FAIL https://picheta.mx/Picheta-TERRAZA.mp4 cannot identify image file <_io.BytesIO object at 0x7f223f74cef0>
+IMG ok 001 2000 1333 555874 https://picheta.mx/autores/files/obgImage-259.jpg
+IMG ok 002 500 586 50334 https://picheta.mx/autores/files/small-14-805.png
+IMG ok 003 368 106 8566 https://picheta.mx/autores/files/small-165-E51.png
+IMG ok 004 368 106 8566 https://picheta.mx/autores/post/files/small-344.png
+IMG tiny https://picheta.mx/chef-hat-small-17px.png (17, 17)
+IMG ok 005 500 500 40458 https://picheta.mx/cms-data/gallery/blog/autores/chef-alex-mendez/alex-m%C3%A9ndez-cropped-sq.jpg
+IMG ok 006 500 500 53423 https://picheta.mx/cms-data/gallery/blog/autores/chef-david-cedina/david-cetina-cropped-sq.jpg
+IMG ok 007 500 500 38771 https://picheta.mx/cms-data/gallery/blog/autores/chef-mariana-azcorra/mesa-de-trabajo-1-sq.jpg
+IMG ok 008 500 500 50224 https://picheta.mx/cms-data/gallery/blog/autores/chef-marisela-chaia/marisela-chaia-cropped-sq.jpg
+IMG ok 009 500 500 47421 https://picheta.mx/cms-data/gallery/blog/autores/chel-vidal-el%C3%ADas/vial-el%C3%ADas-cropped-sq.jpg
+IMG ok 010 500 500 45612 https://picheta.mx/cms-data/gallery/blog/autores/geraldine-abraham/geraldine-abraham-cropped-sq.jpg
+IMG ok 011 500 500 36838 https://picheta.mx/cms-data/gallery/blog/autores/luis-barocho/picheta-new-12-cropped-sq.jpg
+IMG ok 012 500 500 26860 https://picheta.mx/cms-data/gallery/blog/autores/roberto-sol%C3%ADs/picheta-new-18-cropped-sq.jpg
+IMG ok 013 500 500 31239 https://picheta.mx/cms-data/gallery/blog/autores/rodolfo-barrientos/rodolfo-barrientos-sq.jpg
+IMG ok 014 1000 1000 117740 https://picheta.mx/cms-data/gallery/blog/autores/rodolfo-barrientos/rodolfo-barrientos.jpg
+IMG ok 015 500 500 59822 https://picheta.mx/cms-data/gallery/blog/news/2do-concurso-gastron%C3%B3mico-talento-picheta/talento-picheta2023-04-sq.jpg
+IMG ok 016 400 500 44940 https://picheta.mx/cms-data/gallery/blog/news/2do-concurso-gastron%C3%B3mico-talento-picheta/talento-picheta2023-04-th.jpg
+IMG ok 017 500 500 58392 https://picheta.mx/cms-data/gallery/blog/news/picheta-re%C3%BAne-a-chefs-y-amantes-de-la-cocina-en-un-concurso-lleno-de-sabor/copia-de-dsc08192-sq.jpg
+IMG ok 018 333 500 43505 https://picheta.mx/cms-data/gallery/blog/news/picheta-re%C3%BAne-a-chefs-y-amantes-de-la-cocina-en-un-concurso-lleno-de-sabor/copia-de-dsc08192-th.jpg
+IMG ok 019 500 500 68687 https://picheta.mx/cms-data/gallery/blog/news/restaurante-picheta---experiencia-sensorial-yucateca/mesero-picheta-sq.jpg
+IMG ok 020 436 500 60188 https://picheta.mx/cms-data/gallery/blog/news/restaurante-picheta---experiencia-sensorial-yucateca/mesero-picheta-th.jpg
+IMG ok 021 600 400 60402 https://picheta.mx/cms-data/gallery/home-gallery/picheta-000-th.jpg
+IMG ok 022 2000 1334 372928 https://picheta.mx/cms-data/gallery/home-gallery/picheta-000.jpg
+IMG ok 023 600 400 34098 https://picheta.mx/cms-data/gallery/home-gallery/picheta-001-th.jpg
+IMG ok 024 2000 1333 213346 https://picheta.mx/cms-data/gallery/home-gallery/picheta-001.jpg
+IMG ok 025 400 600 44981 https://picheta.mx/cms-data/gallery/home-gallery/picheta-002-th.jpg
+IMG ok 026 1333 2000 294614 https://picheta.mx/cms-data/gallery/home-gallery/picheta-002.jpg
+IMG ok 027 600 600 47985 https://picheta.mx/cms-data/gallery/home-gallery/picheta-003-th.jpg
+IMG ok 028 2000 2000 301717 https://picheta.mx/cms-data/gallery/home-gallery/picheta-003.jpg
+IMG ok 029 2000 1333 747682 https://picheta.mx/cms-data/image/home-header-1.jpg
+IMG ok 030 2000 2000 290752 https://picheta.mx/cms-data/image/home-header-2.jpg
+IMG ok 031 2000 2000 350436 https://picheta.mx/cms-data/image/home-header-3.jpg
+IMG ok 032 2000 1333 493650 https://picheta.mx/contacto/files/obgImage-77.jpg
+IMG ok 033 500 586 50334 https://picheta.mx/contacto/files/small-14-805.png
+IMG ok 034 368 106 8566 https://picheta.mx/contacto/files/small-165-E51.png
+IMG ok 035 500 586 50334 https://picheta.mx/files/small-14-805.png
+IMG ok 036 368 106 8566 https://picheta.mx/files/small-165-E51.png
+IMG ok 037 1333 2000 743945 https://picheta.mx/historia/files/obgImage-30.jpg
+IMG ok 038 500 586 50334 https://picheta.mx/historia/files/small-14-805.png
+IMG ok 039 368 106 8566 https://picheta.mx/historia/files/small-165-E51.png
+IMG ok 040 2000 1333 702374 https://picheta.mx/menu/files/obgImage-32.jpg
+IMG ok 041 500 586 50334 https://picheta.mx/menu/files/small-14-805.png
+IMG ok 042 368 106 8566 https://picheta.mx/menu/files/small-165-E51.png
+IMG ok 043 800 228 36259 https://picheta.mx/menu/files/small-667.png
+IMG ok 044 2000 1333 470280 https://picheta.mx/noticias/files/obgImage-31.jpg
+IMG ok 045 500 586 50334 https://picheta.mx/noticias/files/small-14-805.png
+IMG ok 046 368 106 8566 https://picheta.mx/noticias/files/small-165-E51.png
+IMG ok 047 1333 2000 397257 https://picheta.mx/privacy-policy/files/obgImage-30.jpg
+IMG ok 048 500 586 50334 https://picheta.mx/privacy-policy/files/small-14-805.png
+IMG ok 049 368 106 8566 https://picheta.mx/privacy-policy/files/small-165-E51.png
+IMG ok 050 2000 1333 544638 https://picheta.mx/reservas/files/obgImage-311.jpg
+IMG ok 051 368 106 8566 https://picheta.mx/reservas/files/small-165-E51.png
+IMG ok 052 800 800 883013 https://picheta.mx/resources/800x800.png
+IMG ok 053 500 601 29687 https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png
+IMG ok 054 None None 4640 https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.svg
+IMG ok 055 1200 1200 205737 https://picheta.mx/resources/Isotipo_Positivo-small.png
+IMG ok 056 368 106 8566 https://picheta.mx/resources/Picheta-small-black.png
+IMG ok 057 800 228 36259 https://picheta.mx/resources/Picheta_logo-white.png
+IMG ok 058 1024 1024 14839 https://picheta.mx/resources/cloud-upload-outline.png
+IMG ok 059 600 600 659814 https://picheta.mx/resources/corazon-picheta.png
+IMG ok 060 1024 1024 8475 https://picheta.mx/resources/create-outline.png
+IMG tiny https://picheta.mx/resources/favicon_medium.png (32, 32)
+IMG tiny https://picheta.mx/resources/favicon_small.png (16, 16)
+IMG ok 061 2000 1333 638505 https://picheta.mx/resources/picheta-restaurante-back.jpg
+IMG ok 062 2000 1333 154958 https://picheta.mx/resources/picheta-restaurante-bg.jpg
+IMG ok 063 800 228 36259 https://picheta.mx/rw_common/images/Picheta_logo-white.png
+IMG ok 064 1800 2700 161730 https://picheta.mx/terraza-para-eventos/files/bgimage-2129.jpg
+IMG ok 065 1500 1391 408285 https://picheta.mx/terraza-para-eventos/files/bgimage-2133.jpg
+IMG ok 066 1334 2000 243500 https://picheta.mx/terraza-para-eventos/files/imgFull-2375.jpg
+IMG ok 067 1800 2400 423227 https://picheta.mx/terraza-para-eventos/files/imgFull-2376.jpg
+IMG ok 068 1000 667 157251 https://picheta.mx/terraza-para-eventos/files/imgFull-2377.jpg
+IMG ok 069 1800 1800 1157832 https://picheta.mx/terraza-para-eventos/files/imgFull-2378.png
+IMG ok 070 232 350 27624 https://picheta.mx/terraza-para-eventos/files/imgThumb-2375.jpg
+IMG ok 071 262 350 26653 https://picheta.mx/terraza-para-eventos/files/imgThumb-2376.jpg
+IMG ok 072 350 232 33299 https://picheta.mx/terraza-para-eventos/files/imgThumb-2377.jpg
+IMG ok 073 350 350 235317 https://picheta.mx/terraza-para-eventos/files/imgThumb-2378.png
+IMG ok 074 2000 1334 282683 https://picheta.mx/terraza-para-eventos/files/slideshowImage-2325.jpg
+IMG ok 075 2000 2000 313477 https://picheta.mx/terraza-para-eventos/files/slideshowImage-686.jpg
+IMG ok 076 2000 2000 246201 https://picheta.mx/terraza-para-eventos/files/slideshowImage-688.jpg
+IMG ok 077 1800 1252 354637 https://picheta.mx/terraza-para-eventos/files/smImage-2446.jpg
+IMG ok 078 368 106 15156 https://picheta.mx/terraza-para-eventos/files/trailingImage-2078.png
+IMG FAIL https://restaurant.opentable.com.mx/badge/ot/DC2-2023.png The read operation timed out
+IMG ok 079 256 256 29048 https://www.google.com/maps/vt?pb=!1m5!1m4!1i13!2i2056!3i3607!4i256!2m1!1e1!3m12!2ses-MX!3sUS!5e289!12m3!1e37!2m1!1ssmartmaps!12m4!1e26!2m2!1sstyles!2
+IMG ok 080 256 256 13156 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16451!3i28862!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG ok 081 256 256 9054 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16451!3i28863!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG ok 082 256 256 16968 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16452!3i28862!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG ok 083 256 256 14752 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16452!3i28863!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG ok 084 256 256 12752 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16453!3i28862!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG ok 085 256 256 14830 https://www.google.com/maps/vt?pb=!1m5!1m4!1i16!2i16453!3i28863!4i256!2m3!1e0!2sm!3i799565400!2m3!1e2!2sspotlit!5i1!3m13!2ses-MX!3sUS!5e289!12m5!1e68!
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157698408&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157703910&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157712050&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157717919&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157721150&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157724248&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157729491&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157734614&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157738377&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157742512&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157746607&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157752629&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157755861&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157762591&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157770406&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157777727&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157782492&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157787219&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157790294&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG tiny https://www.google.com/pagead/1p-user-list/17463598854/?random=1792157795606&cv=11&fst=1792155600000&bg=ffffff&guid=ON&a (1, 1)
+IMG decode FAIL https://www.googletagmanager.com/a?v=3&t=l&pid=1595622553&rv=6ae1&tag_exp=115938465~115938469~118897920~118897930~120385 cannot identify image file <_io.BytesIO object at 0x7f223f728f90>

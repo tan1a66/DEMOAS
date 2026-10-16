@@ -1,0 +1,565 @@
+{
+ "title": "Terraza Picheta: Espacio de Lujo para Eventos en Mérida",
+ "lang": "es",
+ "imgs": [
+  {
+   "src": "https://picheta.mx/resources/Picheta-small-black.png",
+   "srcset": "https://picheta.mx/resources/Picheta-small-black.png",
+   "dsrc": "",
+   "alt": "",
+   "w": 368,
+   "h": 106
+  },
+  {
+   "src": "https://picheta.mx/cms-data/gallery/blog/autores/rodolfo-barrientos/rodolfo-barrientos-sq.jpg",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "Rodolfo Barrientos",
+   "w": 500,
+   "h": 500
+  },
+  {
+   "src": "https://picheta.mx/resources/Picheta_logo-white.png",
+   "srcset": "https://picheta.mx/resources/Picheta_logo-white.png",
+   "dsrc": "",
+   "alt": "",
+   "w": 800,
+   "h": 228
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/slideshowImage-2325.jpg",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "terraza-bar-picheta",
+   "w": 2000,
+   "h": 1334
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/slideshowImage-688.jpg",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "terraza-bar-picheta",
+   "w": 2000,
+   "h": 2000
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/slideshowImage-686.jpg",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "terraza-bar-picheta",
+   "w": 2000,
+   "h": 2000
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/imgThumb-2375.jpg",
+   "srcset": "",
+   "dsrc": "files/imgFull-2375.jpg",
+   "alt": "terraza Picheta merida",
+   "w": 232,
+   "h": 350
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/imgThumb-2377.jpg",
+   "srcset": "",
+   "dsrc": "files/imgFull-2377.jpg",
+   "alt": "terraza Picheta merida",
+   "w": 350,
+   "h": 232
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/imgThumb-2376.jpg",
+   "srcset": "",
+   "dsrc": "files/imgFull-2376.jpg",
+   "alt": "terraza Picheta merida",
+   "w": 262,
+   "h": 350
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/imgThumb-2378.png",
+   "srcset": "",
+   "dsrc": "files/imgFull-2378.png",
+   "alt": "terraza Picheta merida",
+   "w": 350,
+   "h": 350
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/smImage-2446.jpg",
+   "srcset": "files/smImage-2446.jpg",
+   "dsrc": "",
+   "alt": "",
+   "w": 1800,
+   "h": 1252
+  },
+  {
+   "src": "https://picheta.mx/terraza-para-eventos/files/trailingImage-2078.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "logo-picheta-white-terrace",
+   "w": 368,
+   "h": 106
+  }
+ ],
+ "bgs": [
+  "url(\"https://picheta.mx/terraza-para-eventos/files/imgThumb-2375.jpg\")",
+  "url(\"https://picheta.mx/terraza-para-eventos/files/imgThumb-2377.jpg\")",
+  "url(\"https://picheta.mx/terraza-para-eventos/files/imgThumb-2376.jpg\")",
+  "url(\"https://picheta.mx/terraza-para-eventos/files/imgThumb-2378.png\")",
+  "url(\"https://picheta.mx/terraza-para-eventos/files/bgimage-2133.jpg\")",
+  "url(\"https://picheta.mx/terraza-para-eventos/files/bgimage-2129.jpg\")"
+ ],
+ "links": [
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/post/rodolfo-barrientos",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/post/rodolfo-barrientos",
+   "text": "Chef Rodolfo Barrientos"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/?lang=en",
+   "text": "ENGLISH"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/?lang=es",
+   "text": "ESPAÑOL"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "INICIO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/historia/",
+   "text": "HISTORIA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/",
+   "text": "AUTORES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/ingredientes/",
+   "text": "INGREDIENTES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/",
+   "text": "MENÚ"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza/",
+   "text": "TERRAZA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/noticias/",
+   "text": "NOTICIAS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza/",
+   "text": "EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVA UNA MESA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "FACTURACIÓN"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "CONTACTO"
+  },
+  {
+   "tag": "A",
+   "href": "https://www.facebook.com/Picheta-780049155712027/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.instagram.com/pichetamx/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": "Plaza Central, Mérida\nCalle 61 #239 x 60 y 62\nEl Corazón de Centro"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "INICIO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/historia/",
+   "text": "HISTORIA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/",
+   "text": "AUTORES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/ingredientes/",
+   "text": "INGREDIENTES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/",
+   "text": "MENU"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza/",
+   "text": "TERRAZA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/contacto/",
+   "text": "CONTACTO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVAS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "FACTURACIÓN"
+  },
+  {
+   "tag": "A",
+   "href": "https://www.facebook.com/Picheta-780049155712027/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.instagram.com/pichetamx/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/?lang=en",
+   "text": "ENGLISH"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/?lang=es",
+   "text": "ESPAÑOL"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#reserva",
+   "text": "RESERVA ESPACIO PARA EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#1",
+   "text": "1"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#2",
+   "text": "2"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#3",
+   "text": "3"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#reserva",
+   "text": "RESERVA ESPACIO PARA EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#reserva",
+   "text": "RESERVA ESPACIO PARA EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/#reserva",
+   "text": "RESERVA ESPACIO PARA EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "mailto:eventos@picheta.mx",
+   "text": "eventos@picheta.mx"
+  }
+ ],
+ "metas": [
+  {
+   "k": "description",
+   "v": "Espacio de eventos de lujo en Mérida. Ideal para matrimonios, recepciones y eventos privados y corporativos. ¡Reserva ahora para vivir una experiencia inolvidable!"
+  },
+  {
+   "k": "og:type",
+   "v": "website"
+  },
+  {
+   "k": "og:title",
+   "v": "Picheta restaurante :: Comida Yucateca contemporanea"
+  },
+  {
+   "k": "og:image",
+   "v": "https://picheta.mx/resources/Isotipo_Positivo-small.png"
+  },
+  {
+   "k": "og:url",
+   "v": "https://picheta.mx/terraza-para-eventos/"
+  },
+  {
+   "k": "og:locale",
+   "v": "es_LA"
+  },
+  {
+   "k": "og:description",
+   "v": "Espacio de eventos de lujo en Mérida. Ideal para matrimonios, recepciones y eventos privados y corporativos. ¡Reserva ahora para vivir una experiencia inolvidable!"
+  },
+  {
+   "k": "og:site_name",
+   "v": "Picheta restaurante :: Comida Yucateca contemporanea"
+  },
+  {
+   "k": "canonical",
+   "v": "https://picheta.mx/terraza-para-eventos/"
+  },
+  {
+   "k": "alternate",
+   "v": "https://picheta.mx/terraza-para-eventos/?lang=en"
+  },
+  {
+   "k": "robots",
+   "v": "index, follow      "
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": "ie=edge"
+  },
+  {
+   "k": "viewport",
+   "v": "width=device-width, initial-scale=1.0, viewport-fit=cover"
+  },
+  {
+   "k": "theme-version",
+   "v": "6.22.3"
+  },
+  {
+   "k": "foundation-version",
+   "v": "6.9.0"
+  },
+  {
+   "k": null,
+   "v": "text/html; charset=utf-8"
+  },
+  {
+   "k": "generator",
+   "v": "RapidWeaver"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "mask-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.svg"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_medium.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_small.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/themes/foundation6/consolidated-29.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/wysiwyg-content.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/fa5pro.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "files/stacks_page_page29.css?rwcache=777327044"
+  },
+  {
+   "k": "dns-prefetch",
+   "v": "//fonts.googleapis.com"
+  },
+  {
+   "k": "preconnect",
+   "v": "https://fonts.googleapis.com"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/gsap/ScrollTrigger.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/gsap/gsap.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/imagesloaded.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/moment-with-locales.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/drift.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/onimpression.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/plugins/stacks/mustache.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "files/stacks_page_page29.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/foundation.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/jquery.min.js?rwcache=777327044"
+  },
+  {
+   "k": "preload",
+   "v": "../rw_common/themes/foundation6/what-input.min.js?rwcache=777327044"
+  },
+  {
+   "k": "foundation-mq",
+   "v": null
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/utility.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/utility-extra.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/fa5-fonts/v4-shims.css?rwcache=777327044"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Quicksand:400"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins:300,400"
+  }
+ ],
+ "fonts": [
+  "Quicksand, sans-serif",
+  "\"Gill Sans\", sans-serif",
+  "\"Font Awesome 5 Pro\""
+ ],
+ "colors": {
+  "rgb(34, 34, 34)": 373,
+  "bg rgba(0, 0, 0, 0.85)": 1,
+  "bg rgba(0, 0, 0, 0)": 561,
+  "bg rgb(0, 0, 0)": 1,
+  "rgb(255, 255, 255)": 63,
+  "rgb(238, 238, 238)": 1,
+  "rgb(255, 0, 0)": 2,
+  "bg rgb(255, 255, 255)": 1,
+  "bg rgba(255, 255, 255, 0)": 2,
+  "rgb(63, 88, 41)": 120,
+  "rgb(42, 42, 41)": 6,
+  "bg rgb(229, 229, 229)": 1,
+  "bg rgb(63, 88, 41)": 6,
+  "rgba(251, 251, 251, 0.9)": 1,
+  "bg rgba(0, 0, 0, 0.7)": 4,
+  "rgb(187, 187, 187)": 4,
+  "bg rgba(0, 0, 0, 0.5)": 1,
+  "rgb(10, 10, 10)": 5,
+  "bg rgb(254, 254, 254)": 5,
+  "rgb(62, 67, 71)": 4,
+  "rgb(0, 0, 0)": 5,
+  "bg rgb(139, 89, 57)": 1,
+  "rgb(134, 146, 144)": 1,
+  "bg rgba(0, 0, 0, 0.78)": 1
+ },
+ "jsonld": [
+  "\n{\n    \"@context\"     : \"https://schema.org\",\n    \"@type\"        : \"LocalBusiness\",\n    \"@id\"          : \"https://picheta.mx/mybusiness\",\n    \"name\"         : \"Picheta\",\n    \"url\"          : \"https://picheta.mx/\",\n    \"logo\"         : \"https://picheta.mx/resources/Picheta-small-black.png\",\n    \"description\"  : \"Company description\",\n    \"telephone\"    : \"+521 9999 80 29 45\",\n    \"address\": {\n        \"@type\"           : \"PostalAddress\",\n        \"streetAddress\"   : \"Calle 61 #239 x 60 y 62\",\n        \"addressLocality\" : \"Merida\",\n        \"addressRegion\"   : \"YUC\",\n        \"postalCode\"      : \"97000\",\n        \"addressCountry\"  : \"MX\"\n    },\n    \"geo\": {\n        \"@type\"     : \"GeoCoordinates\",\n        \"latitude\"  : 20.967767,\n        \"longitude\" : -89.623552\n    },\n    \"openingHoursSpecification\": [{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Monday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Tuesday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Wednesday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Thursday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Friday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Saturday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Sunday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    }],\n    \"sameAs\": [\n        \"https://www.facebook.com/pichetamx/\",\n        \"https://www.instagram.com/pichetamx/\",\n        \"https://www.tripadvisor.com/Profile/pichetamx\"\n    ]\n    \n}\n"
+ ]
+}

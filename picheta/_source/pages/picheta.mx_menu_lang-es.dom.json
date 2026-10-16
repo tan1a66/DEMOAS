@@ -1,0 +1,1099 @@
+{
+ "title": "Picheta :: Menú",
+ "lang": "es",
+ "imgs": [
+  {
+   "src": "https://picheta.mx/menu/files/small-165-E51.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "logo-picheta-white",
+   "w": 368,
+   "h": 106
+  },
+  {
+   "src": "https://picheta.mx/cms-data/gallery/blog/autores/rodolfo-barrientos/rodolfo-barrientos-sq.jpg",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "Rodolfo Barrientos",
+   "w": 500,
+   "h": 500
+  },
+  {
+   "src": "https://picheta.mx/menu/files/small-667.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "logotipo picheta",
+   "w": 800,
+   "h": 228
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/chef-hat-small-17px.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "hat icon",
+   "w": 17,
+   "h": 17
+  },
+  {
+   "src": "https://picheta.mx/menu/files/small-14-805.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "Logo-picheta-footer",
+   "w": 500,
+   "h": 586
+  },
+  {
+   "src": "https://restaurant.opentable.com.mx/badge/ot/DC2-2023.png",
+   "srcset": "",
+   "dsrc": "",
+   "alt": "",
+   "w": 0,
+   "h": 0
+  }
+ ],
+ "bgs": [],
+ "links": [
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVA UNA MESA"
+  },
+  {
+   "tag": "A",
+   "href": "https://www.facebook.com/Picheta-780049155712027/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.instagram.com/pichetamx/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://wa.me/529995060339",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "javascript:void(0)",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/post/rodolfo-barrientos",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/post/rodolfo-barrientos",
+   "text": "Chef Rodolfo Barrientos"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/?lang=en",
+   "text": "ENGLISH"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/?lang=es",
+   "text": "ESPAÑOL"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "INICIO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/historia/",
+   "text": "HISTORIA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/",
+   "text": "AUTORES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/",
+   "text": "MENÚ"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVA UNA MESA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/noticias/",
+   "text": "CONCURSO GASTRONOMICO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/",
+   "text": "EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "FACTURACIÓN"
+  },
+  {
+   "tag": "A",
+   "href": "https://www.facebook.com/Picheta-780049155712027/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.instagram.com/pichetamx/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://wa.me/529995060339",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": "Plaza Central, MéridaCalle 61 #239 x 60 y 62El Corazón de Centro"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/",
+   "text": "INICIO"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/historia/",
+   "text": "HISTORIA"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/autores/",
+   "text": "AUTORES"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/",
+   "text": "MENU"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/terraza-para-eventos/",
+   "text": "EVENTOS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVAS"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "FACTURACIÓN"
+  },
+  {
+   "tag": "A",
+   "href": "https://www.facebook.com/Picheta-780049155712027/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.instagram.com/pichetamx/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/NULgGQEDMtPBipmX7",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://wa.me/529995060339",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/?lang=en",
+   "text": "ENGLISH"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/menu/?lang=es",
+   "text": "ESPAÑOL"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/reservas/",
+   "text": "RESERVA UNA MESA"
+  },
+  {
+   "tag": "A",
+   "href": "https://goo.gl/maps/AhNc2CfzgBRLikqb6",
+   "text": "Ver en Google Maps"
+  },
+  {
+   "tag": "A",
+   "href": "tel:9995060339",
+   "text": "+52 9995 06 03 39"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/privacy-policy/",
+   "text": "Privacy policy"
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/facturas/",
+   "text": "Facturas"
+  },
+  {
+   "tag": "A",
+   "href": "http://www.opentable.com.mx/restaurant/profile/1088797/reserve?rid=1088797&restref=1088797",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://picheta.mx/admin/",
+   "text": ""
+  },
+  {
+   "tag": "A",
+   "href": "https://www.holalorostudio.com/",
+   "text": "Holaloro Studio"
+  }
+ ],
+ "metas": [
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": "description",
+   "v": "Picheta ofrece la mejor Gastronomía Yucateca Contemporánea, Chefs residentes y autores invitados, crean platillos únicos a partir de ingredientes locales."
+  },
+  {
+   "k": "og:type",
+   "v": "website"
+  },
+  {
+   "k": "og:title",
+   "v": "Picheta :: Menú"
+  },
+  {
+   "k": "og:image",
+   "v": "/cms-data/image/home-header-1.jpg"
+  },
+  {
+   "k": "og:url",
+   "v": "https://picheta.mx/menu/"
+  },
+  {
+   "k": "og:locale",
+   "v": "es_LA"
+  },
+  {
+   "k": "og:description",
+   "v": "Picheta ofrece la mejor Gastronomía Yucateca Contemporánea, Chefs residentes y autores invitados, crean platillos únicos a partir de ingredientes locales."
+  },
+  {
+   "k": "og:site_name",
+   "v": "Picheta :: Gastronomía Yucateca Contemporánea"
+  },
+  {
+   "k": "canonical",
+   "v": "https://picheta.mx/menu/"
+  },
+  {
+   "k": "alternate",
+   "v": "https://picheta.mx/menu/?lang=en"
+  },
+  {
+   "k": "robots",
+   "v": "index, follow      "
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": "ie=edge"
+  },
+  {
+   "k": "viewport",
+   "v": "width=device-width, initial-scale=1, user-scalable=yes"
+  },
+  {
+   "k": "theme-version",
+   "v": "1.8.1"
+  },
+  {
+   "k": "foundation-version",
+   "v": "5.5.4"
+  },
+  {
+   "k": "modernizr-version",
+   "v": "3.6.0"
+  },
+  {
+   "k": null,
+   "v": "text/html; charset=utf-8"
+  },
+  {
+   "k": "generator",
+   "v": "RapidWeaver"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "apple-touch-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "mask-icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.svg"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_medium.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/favicon_small.png"
+  },
+  {
+   "k": "icon",
+   "v": "https://picheta.mx/resources/Isotipo_Auxiliar_Positivo.png"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/themes/foundation/consolidated.css?rwcache=803567924"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/stacks.css?rwcache=803567924"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/wysiwyg-content.css?rwcache=803567924"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/d-hover.css?rwcache=803567924"
+  },
+  {
+   "k": "stylesheet",
+   "v": "files/stacks_page_page1.css?rwcache=803567924"
+  },
+  {
+   "k": "stylesheet",
+   "v": "../rw_common/plugins/stacks/font-awesome.min.css?rwcache=803567924"
+  },
+  {
+   "k": "dns-prefetch",
+   "v": "//fonts.googleapis.com"
+  },
+  {
+   "k": "preconnect",
+   "v": "https://fonts.googleapis.com"
+  },
+  {
+   "k": "formatter",
+   "v": "Stacks v5.3.2 (6389)"
+  },
+  {
+   "k": " CMS Core",
+   "v": "1.15.2"
+  },
+  {
+   "k": "Sections Fix Pro",
+   "v": "3.1.1"
+  },
+  {
+   "k": "Title",
+   "v": "1.15.2"
+  },
+  {
+   "k": "Page Language",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Padding",
+   "v": "6.24.1"
+  },
+  {
+   "k": "Limelight Animations",
+   "v": "1.2.1"
+  },
+  {
+   "k": "3 Column Foundation",
+   "v": "1.9.5"
+  },
+  {
+   "k": "Icon",
+   "v": "1.0.0"
+  },
+  {
+   "k": "Robots",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Font Styles",
+   "v": "1.5.2"
+  },
+  {
+   "k": "Agent",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Google Font Pro",
+   "v": "1.5.2"
+  },
+  {
+   "k": "Page Title",
+   "v": "2.10.2"
+  },
+  {
+   "k": "SectionsBox",
+   "v": "1.0.8"
+  },
+  {
+   "k": "Navigation Styles",
+   "v": "1.2.1"
+  },
+  {
+   "k": "Target",
+   "v": "2.4.0"
+  },
+  {
+   "k": "Font Pro Style",
+   "v": "1.5.2"
+  },
+  {
+   "k": "2 Column Foundation",
+   "v": "1.9.5"
+  },
+  {
+   "k": "Background",
+   "v": "3.1.2"
+  },
+  {
+   "k": "ButtonPlus2",
+   "v": "2.0.5"
+  },
+  {
+   "k": "G Sheet",
+   "v": "1.2.1"
+  },
+  {
+   "k": "Stacks",
+   "v": "1.2.1"
+  },
+  {
+   "k": "Paper Torn",
+   "v": "1.4.1"
+  },
+  {
+   "k": "SideBar",
+   "v": "1.1.0"
+  },
+  {
+   "k": "Agent URL",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Blog List",
+   "v": "1.15.2"
+  },
+  {
+   "k": "Layout",
+   "v": "1.15.2"
+  },
+  {
+   "k": "1 Column Foundation",
+   "v": "1.9.5"
+  },
+  {
+   "k": "Hover Effects",
+   "v": "2.0.5"
+  },
+  {
+   "k": "MovingBox 2",
+   "v": "2.4.5"
+  },
+  {
+   "k": "Limelight",
+   "v": "1.2.1"
+  },
+  {
+   "k": "ButtonPlus2 Master",
+   "v": "2.0.5"
+  },
+  {
+   "k": "Image",
+   "v": "1.9.5"
+  },
+  {
+   "k": "Pro Styles",
+   "v": "3.1.2"
+  },
+  {
+   "k": "Text",
+   "v": "1.0.0"
+  },
+  {
+   "k": "Lang Rule",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Lang Redirect",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Magic Marker2",
+   "v": "2.1.4"
+  },
+  {
+   "k": "Header Pro",
+   "v": "1.2.2"
+  },
+  {
+   "k": "Structured Data - Local Business",
+   "v": "2.10.2"
+  },
+  {
+   "k": "BluePrint SVG",
+   "v": "1.1.0"
+  },
+  {
+   "k": "Block Grid Item",
+   "v": "1.9.3"
+  },
+  {
+   "k": "Chroma Fixed Styles",
+   "v": "1.1.1"
+  },
+  {
+   "k": "Facebook - Open Graph",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Visibility - Show Hide",
+   "v": "3.1.2"
+  },
+  {
+   "k": "Overlay",
+   "v": "3.1.2"
+  },
+  {
+   "k": "Agent Lang",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Gallery Image",
+   "v": "1.15.2"
+  },
+  {
+   "k": "Paragraph Pro",
+   "v": "1.2.1"
+  },
+  {
+   "k": "Paint",
+   "v": "1.4.1"
+  },
+  {
+   "k": "Animate Elements",
+   "v": "3.1.1"
+  },
+  {
+   "k": "Agent Lang Rules",
+   "v": "1.15.0"
+  },
+  {
+   "k": "Page Description",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Sections Pro",
+   "v": "3.1.1"
+  },
+  {
+   "k": "Seams",
+   "v": "1.4.1"
+  },
+  {
+   "k": "Box",
+   "v": "1.0.0"
+  },
+  {
+   "k": "Block Grid",
+   "v": "1.9.3"
+  },
+  {
+   "k": "Alternate Language (hreflang)",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Swatches",
+   "v": "6.24.1"
+  },
+  {
+   "k": "Font Families",
+   "v": "1.5.2"
+  },
+  {
+   "k": " Site Styles",
+   "v": "1.9.5"
+  },
+  {
+   "k": "Chroma Pro",
+   "v": "1.1.1"
+  },
+  {
+   "k": "Web Font Pro",
+   "v": "1.5.2"
+  },
+  {
+   "k": "SEO Meta Tags",
+   "v": "2.10.2"
+  },
+  {
+   "k": "Pen Legacy",
+   "v": "1.10.1"
+  },
+  {
+   "k": "BluePrint ONE",
+   "v": "1.1.0"
+  },
+  {
+   "k": "Canonical URL",
+   "v": "2.10.2"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins%7CPoppins:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins%7CPoppins:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins%7CPoppins:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Montserrat%7CMontserrat:bold"
+  },
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Quicksand:400"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/css?family=Poppins:300,400"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/icon?family=Material+Icons"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://cdn.linearicons.com/free/1.0.0/icon-font.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/icon?family=Material+Icons"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://cdn.linearicons.com/free/1.0.0/icon-font.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://fonts.googleapis.com/icon?family=Material+Icons"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://cdn.linearicons.com/free/1.0.0/icon-font.min.css"
+  },
+  {
+   "k": "stylesheet",
+   "v": "https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+  }
+ ],
+ "fonts": [
+  "Quicksand, sans-serif",
+  "\"Gill Sans\", sans-serif",
+  "FontAwesome",
+  "Poppins, Roboto, sans-serif"
+ ],
+ "colors": {
+  "rgb(42, 42, 41)": 442,
+  "bg rgba(0, 0, 0, 0)": 1184,
+  "bg rgb(20, 20, 20)": 1,
+  "rgb(255, 255, 255)": 156,
+  "bg rgba(6, 105, 209, 0)": 9,
+  "rgb(240, 240, 240)": 33,
+  "rgb(63, 88, 41)": 20,
+  "bg rgba(255, 255, 255, 0)": 3,
+  "bg rgb(229, 229, 229)": 1,
+  "bg rgb(255, 255, 255)": 3,
+  "rgba(255, 255, 255, 0.6)": 464,
+  "rgb(31, 31, 31)": 58,
+  "rgb(0, 0, 0)": 29,
+  "bg rgb(228, 228, 228)": 1
+ },
+ "jsonld": [
+  "\n{\n    \"@context\"     : \"https://schema.org\",\n    \"@type\"        : \"LocalBusiness\",\n    \"@id\"          : \"https://picheta.mx/mybusiness\",\n    \"name\"         : \"Picheta\",\n    \"url\"          : \"https://picheta.mx/\",\n    \"logo\"         : \"https://picheta.mx/resources/Picheta-small-black.png\",\n    \"description\"  : \"Company description\",\n    \"telephone\"    : \"+521 9999 80 29 45\",\n    \"address\": {\n        \"@type\"           : \"PostalAddress\",\n        \"streetAddress\"   : \"Calle 61 #239 x 60 y 62\",\n        \"addressLocality\" : \"Merida\",\n        \"addressRegion\"   : \"YUC\",\n        \"postalCode\"      : \"97000\",\n        \"addressCountry\"  : \"MX\"\n    },\n    \"geo\": {\n        \"@type\"     : \"GeoCoordinates\",\n        \"latitude\"  : 20.967767,\n        \"longitude\" : -89.623552\n    },\n    \"openingHoursSpecification\": [{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Monday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Tuesday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Wednesday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Thursday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Friday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Saturday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    },{\n        \"@type\"     : \"OpeningHoursSpecification\",\n        \"dayOfWeek\" : \"Sunday\",\n        \"opens\"     : \"17:00\",\n        \"closes\"    : \"00:00\"\n    }],\n    \"sameAs\": [\n        \"https://www.facebook.com/pichetamx/\",\n        \"https://www.instagram.com/pichetamx/\",\n        \"https://www.tripadvisor.com/Profile/pichetamx\"\n    ]\n    \n}\n"
+ ]
+}

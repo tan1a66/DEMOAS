@@ -1,0 +1,46 @@
+{
+ "title": "Enter the passcode to login",
+ "lang": "",
+ "imgs": [],
+ "bgs": [],
+ "links": [
+  {
+   "tag": "FORM",
+   "href": "https://picheta.mx/admin/files/stacks_in_181_4_pagesafe.php",
+   "text": ""
+  }
+ ],
+ "metas": [
+  {
+   "k": null,
+   "v": null
+  },
+  {
+   "k": null,
+   "v": "ie=edge"
+  },
+  {
+   "k": "viewport",
+   "v": "width=device-width,initial-scale=1.0"
+  },
+  {
+   "k": "ROBOTS",
+   "v": "NOINDEX, NOFOLLOW"
+  },
+  {
+   "k": "stylesheet",
+   "v": "files/stacks_in_181_4_pagesafe.css?rwcache=803517020"
+  }
+ ],
+ "fonts": [
+  "\"Helvetica Neue\", sans-serif"
+ ],
+ "colors": {
+  "rgb(255, 255, 255)": 68,
+  "bg rgba(0, 0, 0, 0)": 69,
+  "rgb(240, 65, 36)": 1,
+  "rgb(34, 34, 34)": 1,
+  "bg rgb(255, 255, 255)": 1
+ },
+ "jsonld": []
+}
