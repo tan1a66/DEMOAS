@@ -43,7 +43,7 @@ export async function create({ root, engine, onBack }) {
           </div>
           <article class="exp-place" hidden>
             <button type="button" class="exp-back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span data-i18n="exp.back"></span></button>
-            <figure class="exp-photo"><img alt="" /></figure>
+            <figure class="exp-photo"><img alt="" /><figcaption class="exp-credit" hidden><a target="_blank" rel="noopener"></a></figcaption></figure>
             <h2 class="exp-name"></h2>
             <p class="exp-meta"></p>
             <p class="exp-text"></p>
@@ -91,11 +91,24 @@ export async function create({ root, engine, onBack }) {
   }));
   el.querySelector('.exp-back').addEventListener('click', () => backToMap());
 
+  // crédito de la foto (licencias libres de Wikimedia Commons): solo si se está usando esa foto
+  let photoFrom = null;
+  function fillCredit(p) {
+    const cap = el.querySelector('.exp-credit');
+    const fromWeb = p.credit && photoFrom?.id === p.id && /^https?:/.test(photoFrom.name);
+    cap.hidden = !fromWeb;
+    if (!fromWeb) return;
+    const a = cap.querySelector('a');
+    a.href = p.credit.url;
+    a.textContent = `${t('exp.photo')}: ${p.credit.by} · ${L(p.credit.license)} · Wikimedia Commons`;
+  }
+
   function fillPlace(p) {
     el.querySelector('.exp-name').textContent = L(p.name);
     el.querySelector('.exp-text').textContent = L(p.text);
     el.querySelector('.d-tour').textContent = L(p.tour);
     el.querySelector('.d-dist').textContent = `${p.km} km · ${L(p.drive)}`;
+    fillCredit(p);
     el.querySelector('.exp-meta').textContent = `${L(p.tour)} · ${p.km} km`;
     el.querySelector('.exp-cta').href = waLink(t('exp.msg', { place: L(p.name) }));
   }
@@ -110,7 +123,12 @@ export async function create({ root, engine, onBack }) {
     fillPlace(p);
     const img = el.querySelector('.exp-photo img');
     img.alt = L(p.name);
-    setImg(img, p.photo, 1200, 800);
+    photoFrom = null;
+    setImg(img, p.photo, 1200, 800).then((res) => {
+      if (current !== id) return;
+      photoFrom = { id, name: res.ok ? res.name : '' };
+      fillCredit(p);
+    });
     overEl.hidden = true;
     placeEl.hidden = false;
     placeEl.classList.remove('is-in');

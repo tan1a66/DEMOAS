@@ -23,7 +23,8 @@ export function loadImage(names) {
   if (!cache.has(key)) {
     cache.set(key, (async () => {
       for (const n of list) {
-        const img = await tryLoad(CONFIG.imagesPath + n);
+        // nombres locales en /images; las URL completas (p. ej. Wikimedia Commons) tal cual
+        const img = await tryLoad(/^https?:\/\//.test(n) ? n : CONFIG.imagesPath + n);
         if (img) return { ok: true, img, name: n };
       }
       return { ok: false, img: null, name: list[0] };

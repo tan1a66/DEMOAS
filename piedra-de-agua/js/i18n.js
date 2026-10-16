@@ -97,6 +97,7 @@ const ES = {
 
   // Experiencias
   'exp.kicker': 'Experiencias',
+  'exp.photo': 'Foto',
   'exp.title': 'Yucatán desde la casona',
   'exp.hint': 'Elige un destino en el mapa',
   'exp.from': 'Desde Piedra de Agua',
@@ -216,6 +217,7 @@ const EN = {
   'res.note': 'Menu and opening hours: to be confirmed with the hotel.',
 
   'exp.kicker': 'Experiences',
+  'exp.photo': 'Photo',
   'exp.title': 'Yucatán from the casona',
   'exp.hint': 'Choose a destination on the map',
   'exp.from': 'From Piedra de Agua',

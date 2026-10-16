@@ -131,7 +131,9 @@ export const PLACES = [
       es: 'Una de las Nuevas Siete Maravillas del Mundo: la pirámide de Kukulcán, el Juego de Pelota y el Cenote Sagrado.',
       en: 'One of the New Seven Wonders of the World: the Kukulcán pyramid, the Ball Court and the Sacred Cenote.',
     },
-    photo: ['exp-chichen-itza.jpg'],
+    // una foto propia en images/exp-chichen-itza.jpg tiene prioridad; si no, Wikimedia Commons
+    photo: ['exp-chichen-itza.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/1280px-Chichen_Itza_3.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Chichen_Itza_3.jpg?width=1280'],
+    credit: { by: 'Daniel Schwen', license: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/wiki/File:Chichen_Itza_3.jpg' },
   },
   {
     id: 'uxmal', kind: 'pyramid-round', lat: 20.3594, lng: -89.7713,
@@ -141,7 +143,9 @@ export const PLACES = [
       es: 'La joya del estilo Puuc: la Pirámide del Adivino y el Cuadrángulo de las Monjas, con fachadas de mosaico de piedra.',
       en: 'The jewel of the Puuc style: the Pyramid of the Magician and the Nunnery Quadrangle, with stone-mosaic façades.',
     },
-    photo: ['exp-uxmal.jpg'],
+    // una foto propia en images/exp-uxmal.jpg tiene prioridad; si no, Wikimedia Commons
+    photo: ['exp-uxmal.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Pyramid_of_the_Magician_(8264902976).jpg/1280px-Pyramid_of_the_Magician_(8264902976).jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Pyramid_of_the_Magician_(8264902976).jpg?width=1280'],
+    credit: { by: 'Rob Young', license: 'CC BY 2.0', url: 'https://commons.wikimedia.org/wiki/File:Pyramid_of_the_Magician_(8264902976).jpg' },
   },
   {
     id: 'cenotes', kind: 'cenote', lat: 20.73, lng: -89.28,
@@ -151,7 +155,9 @@ export const PLACES = [
       es: 'Nada en agua turquesa bajo bóvedas de piedra caliza, entre raíces colgantes y haces de luz que entran desde lo alto.',
       en: 'Swim in turquoise water beneath limestone vaults, among hanging roots and shafts of light from above.',
     },
-    photo: ['exp-cenotes.jpg'],
+    // una foto propia en images/exp-cenotes.jpg tiene prioridad; si no, Wikimedia Commons
+    photo: ['exp-cenotes.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Cenote_Suytun_2009_06.jpg/1280px-Cenote_Suytun_2009_06.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/Cenote_Suytun_2009_06.jpg?width=1280'],
+    credit: { by: 'Daniel Lobo', license: 'CC BY 2.0', url: 'https://commons.wikimedia.org/wiki/File:Cenote_Suytun_2009_06.jpg' },
   },
   {
     id: 'celestun', kind: 'flamingo', lat: 20.8597, lng: -90.3997,
@@ -161,7 +167,9 @@ export const PLACES = [
       es: 'Reserva de la Biosfera donde miles de flamencos rosados se alimentan en la ría, entre manglares.',
       en: 'A Biosphere Reserve where thousands of pink flamingos feed in the estuary among mangroves.',
     },
-    photo: ['exp-celestun.jpg'],
+    // una foto propia en images/exp-celestun.jpg tiene prioridad; si no, Wikimedia Commons
+    photo: ['exp-celestun.jpg', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/FLAMINGOS.jpg/1280px-FLAMINGOS.jpg', 'https://commons.wikimedia.org/wiki/Special:FilePath/FLAMINGOS.jpg?width=1280'],
+    credit: { by: 'José Carlos Bernabé Corona Campillo', license: 'CC BY-SA 4.0', url: 'https://commons.wikimedia.org/wiki/File:FLAMINGOS.jpg' },
   },
   {
     id: 'izamal', kind: 'convent', lat: 20.9314, lng: -89.0178,
@@ -171,7 +179,9 @@ export const PLACES = [
       es: 'La Ciudad Amarilla: un convento franciscano del siglo XVI levantado sobre una pirámide maya.',
       en: 'The Yellow City: a 16th-century Franciscan convent built on top of a Maya pyramid.',
     },
-    photo: ['exp-izamal.jpg'],
+    // una foto propia en images/exp-izamal.jpg tiene prioridad; si no, Wikimedia Commons
+    photo: ['exp-izamal.jpg', 'https://upload.wikimedia.org/wikipedia/commons/8/83/Izamal.JPG', 'https://commons.wikimedia.org/wiki/Special:FilePath/Izamal.JPG'],
+    credit: { by: 'RichardMarcJ', license: { es: 'Dominio público', en: 'Public domain' }, url: 'https://commons.wikimedia.org/wiki/File:Izamal.JPG' },
   },
 ];
 
