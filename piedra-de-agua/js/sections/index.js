@@ -1,11 +1,12 @@
 // Registro de secciones (se cargan bajo demanda la primera vez que se abren).
 import { t } from '../i18n.js?v=2';
 
-export const SECTION_IDS = ['nosotros', 'habitaciones', 'servicios', 'experiencias'];
+export const SECTION_IDS = ['nosotros', 'habitaciones', 'restaurante', 'servicios', 'experiencias'];
 
 const loaders = {
   nosotros: () => import('./nosotros.js?v=2'),
   habitaciones: () => import('./habitaciones.js?v=2'),
+  restaurante: () => import('./restaurante.js?v=2'),
   servicios: () => import('./servicios.js?v=2'),
   experiencias: () => import('./experiencias.js?v=2'),
 };

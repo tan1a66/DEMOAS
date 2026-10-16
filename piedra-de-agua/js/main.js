@@ -149,6 +149,7 @@ function onHubReady() {
 
 // ───────────── etiquetas de las puertas ─────────────
 function placeLabels(list) {
+  const boxes = {};
   for (const o of list) {
     const el = els.labelsById[o.id];
     let x = o.x, y = o.y;
@@ -162,7 +163,22 @@ function placeLabels(list) {
     }
     x = Math.min(Math.max(x, m + w / 2), engine.size.w - m - w / 2);
     y = Math.min(Math.max(y - h - 18, 110), engine.size.h - 150);
-    el.style.transform = `translate3d(${(x - w / 2).toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    boxes[o.id] = { el, x, y, w, h, off: o.off };
+  }
+  // el restaurante queda entre Habitaciones y Servicios: en pantallas estrechas
+  // sube un escalón (con un filete más largo) para no tocar a sus vecinas
+  // (o baja sobre su puerta si arriba también choca con otra etiqueta)
+  const f = boxes.restaurante;
+  if (f && f.off === 0) {
+    const y0 = f.y, step = f.h + 14;
+    const clear = (y) => Object.entries(boxes).every(([id, b]) => id === 'restaurante'
+      || Math.abs(b.x - f.x) >= (b.w + f.w) / 2 + 8 || Math.abs(b.y - y) >= f.h + 6);
+    const y = [y0, y0 - step, y0 + step].find(clear) ?? y0 - step;
+    f.y = y;
+    f.el.style.setProperty('--stem', `${Math.max(0, 14 + y0 - y)}px`);
+  }
+  for (const b of Object.values(boxes)) {
+    b.el.style.transform = `translate3d(${(b.x - b.w / 2).toFixed(1)}px, ${b.y.toFixed(1)}px, 0)`;
   }
 }
 
@@ -296,7 +312,7 @@ async function boot() {
   progress(1);
 
   const deep = location.hash.replace('#/', '');
-  const deepSection = ['nosotros', 'habitaciones', 'servicios', 'experiencias'].includes(deep) ? deep : null;
+  const deepSection = ['nosotros', 'habitaciones', 'restaurante', 'servicios', 'experiencias'].includes(deep) ? deep : null;
   const startPatio = () => createPatio(engine, {
     onProgress: (p) => { els.flashBar.style.width = `${Math.round(p * 100)}%`; },
   }).then((v) => {

@@ -30,10 +30,12 @@ const FACADE = { z: 10.5, t: 0.7 };
 const HUB = new THREE.Vector3(0, 1.62, 4.85);
 const HUB_PITCH = 0.12;
 
-export const DOOR_IDS = ['nosotros', 'habitaciones', 'servicios', 'experiencias'];
+export const DOOR_IDS = ['nosotros', 'habitaciones', 'restaurante', 'servicios', 'experiencias'];
 const DOOR_DEFS = {
   nosotros: { side: 'west', pos: [-W, -3] },
   habitaciones: { side: 'north', pos: [-3, -W] },
+  // el restaurante, al fondo y en el eje de la entrada: la puerta que se ve primero
+  restaurante: { side: 'north', pos: [0, -W] },
   servicios: { side: 'north', pos: [3, -W] },
   experiencias: { side: 'east', pos: [W, -3] },
 };
@@ -212,7 +214,7 @@ export async function createPatio(engine, { onProgress } = {}) {
     const d = DOOR_DEFS[id];
     openings[d.side].push({ c: SIDES[d.side].local(d.pos[0], d.pos[1]), w: 1.7, h: 3.67 });
   }
-  const roomDoorAt = { north: [0], south: [-3, 3], west: [0, -3], east: [0, 3] };
+  const roomDoorAt = { north: [], south: [-3, 3], west: [0, -3], east: [0, 3] };
   const wallLen = 2 * W + 2 * WT;
   for (const [side, def] of Object.entries(SIDES)) {
     const m = new THREE.Matrix4().compose(
@@ -528,7 +530,9 @@ export async function createPatio(engine, { onProgress } = {}) {
     hit.position.set(0, 2.35, 0.3);
     hit.userData.door = id;
     door.group.add(hit);
-    doors[id] = { ...door, id, map, emap, plaqueMat, normal, center, plaqueWorld, hit, hover: 0, hoverT: 0, open: 0, openT: 0, label };
+    // el restaurante está "abierto": vidrios y placa ya un poco encendidos
+    const base = id === 'restaurante' ? 0.5 : 0;
+    doors[id] = { ...door, id, map, emap, plaqueMat, normal, center, plaqueWorld, hit, hover: 0, hoverT: 0, open: 0, openT: 0, label, base };
   }
   const hitList = DOOR_IDS.map((id) => doors[id].hit);
   // halos sobre las placas (se encienden al pasar el puntero)
@@ -872,12 +876,12 @@ export async function createPatio(engine, { onProgress } = {}) {
         const ang = Math.max(d.hover * 0.46, d.open * 1.62);
         d.leftPivot.rotation.y = ang;
         d.rightPivot.rotation.y = -ang;
-        d.plaqueMat.emissiveIntensity = 0.12 + d.hover * 1.6 + d.open * 0.6;
+        d.plaqueMat.emissiveIntensity = 0.12 + d.base * 0.9 + d.hover * 1.6 + d.open * 0.6;
         // vidrios ámbar apagados que se encienden: hay luz detrás de la puerta
-        const lit = Math.max(d.hover, d.open);
+        const lit = Math.max(d.hover, d.open, d.base);
         d.glassMat.color.setRGB(1, 0.78, 0.5).multiplyScalar(0.32 + lit * 1.5);
         d.roomMat.color.setRGB(1, 0.84, 0.62).multiplyScalar(0.7 + lit * 1.9);
-        plaqueGlows.setIntensity(i, d.hover * 0.85 + d.open * 0.3);
+        plaqueGlows.setIntensity(i, Math.max(d.base * 0.8, d.hover * 0.85) + d.open * 0.3);
       });
       // portón
       const pa = ease.inOutSine(portalState.open) * 1.68;
