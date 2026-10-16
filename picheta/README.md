@@ -34,44 +34,51 @@ Cada ruta es un HTML estático real (build multipágina de Vite): funciona en cu
 
 ## El recorrido
 
-| | Escena | Fotografía (todas reales) |
-| --- | --- | --- |
-| Portada | *La ciudad, desde otra perspectiva.* — ENTRAR / AGENDAR | La terraza al atardecer |
-| 01 | *Un lugar sobre lo cotidiano.* — 3D: al bajar, la cámara avanza sobre la terraza | Panorámica de la terraza y la Catedral |
-| 02 | *El espacio lo cambia todo.* — 3D: se entra en el salón abovedado; “+350 años” | Salón abovedado, muros de piedra, balcón, sala privada |
-| 03 | *Mérida, desde otra altura.* — **interacción firma**, vuelo 3D sobre la ciudad | Torre de la Catedral desde la calle → vista aérea oficial |
-| 04 | *La luz transforma el momento.* — también “Galería” | Día → hora dorada → última luz → hora azul → noche |
-| 05 | *Una experiencia que va más allá de la mesa.* — 3D | Plato en la terraza, manos de cocina |
-| — | *La propuesta gastronómica.* → Explorar menú | Un solo plato, pequeño |
-| — | Ubicación: dirección, horario, contacto | Vídeo aéreo real de la plaza, de fondo |
-| 06 | *El siguiente momento puede ser tuyo.* → Agendar una mesa (OpenTable) — 3D | La barra de la terraza al anochecer |
+El corazón del sitio es un **recorrido en primera persona** por los espacios reales de Picheta: se desplaza la página y
+se camina. Un solo lienzo WebGL2 a pantalla completa (`src/scenes/Walk.tsx` + `src/lib/walkRenderer.ts`), guion en
+`src/data/walk.ts`, textos en `src/i18n` (`walk`).
 
-**ENTRAR**: la composición se retira, la cámara avanza dentro de la foto de la portada hacia la Catedral, la imagen se
-funde con la panorámica y la ventana se abre a pantalla completa (1,4 s); el foco pasa a la escena 01. También entra con
-la rueda, un gesto hacia arriba o ↓ / Espacio. En iPhone, el toque en ENTRAR pide permiso para usar el giroscopio.
-**AGENDAR** es un enlace normal a `/agendar/`: funciona desde el primer instante, sin esperar ninguna animación.
+| | Momento | Foto real | Texto (ES) |
+| --- | --- | --- | --- |
+| 01 | Llegas al centro: caminas hacia las torres | Campanario de la Catedral desde la calle | *Llegas al centro.* |
+| — | La entrada: todo se oscurece, como al cruzar una puerta en penumbra | — | *Una entrada discreta… en un edificio de más de 350 años.* |
+| 02 | Caminas por el salón; las mesas pasan a los lados | Salón abovedado | *El espacio lo cambia todo.* |
+| 03 | Te asomas al balcón | Mesa junto al balcón de herrería | *Te asomas al balcón.* |
+| 04 | Sales a la luz y llegas al barandal; giras hacia la Catedral | Panorámica de la terraza | *Un lugar sobre lo cotidiano.* |
+| 05 | Te sientas, llega el plato | Plato en la terraza | *Una experiencia que va más allá de la mesa.* · “Ofrecemos comida con corazón.” |
+| 06 | Cae la tarde | La terraza al atardecer | *La luz transforma el momento.* |
+| 07 | Llega la noche | La barra al anochecer | *Y llega la noche.* |
+| 08 | Te elevas sobre la ciudad | Vista aérea (vídeo oficial) | *Mérida, desde otra altura.* |
+| — | Invitación | — | *El siguiente momento puede ser tuyo.* → Agendar una mesa (OpenTable) |
 
-**Interacción firma (escena 03)**: escenario fijo durante el desplazamiento. Empieza con un detalle arquitectónico —el
-campanario de la Catedral visto desde la calle— en una ventana vertical estrecha; la ventana se abre mientras la cámara
-retrocede y panea, y sobre la calle se funde la vista aérea real del centro (fotograma del vídeo oficial de Picheta)
-convertida en relieve 3D: al seguir bajando, la cámara se eleva y se inclina sobre la ciudad, las luces de las calles
-titilan y el ratón o el giroscopio dejan mirar alrededor. En móvil es la misma idea con una ventana centrada y un
-recorrido más corto. Con `prefers-reduced-motion`, composición fija.
+**Lo que lo hace humano**: la cámara sigue al desplazamiento con inercia (tiene peso); al avanzar se balancea con los
+pasos —subida y bajada, un leve vaivén y una inclinación mínima de la cabeza— y, cuando se deja de desplazar, se queda
+quieta y respira. El ratón o el giroscopio del teléfono giran la cabeza. Entre espacios: oscuridad al cruzar la entrada,
+luz al salir a la terraza y, en el resto, el espacio nuevo aparece "desde lo cercano", como al entrar en él.
+Riel de capítulos a la derecha (clic para ir), "Saltar el recorrido" y anclas de navegación (`#lugar`, `#experiencia`,
+`#galeria`). Sin WebGL2 acelerado o con `prefers-reduced-motion`: el mismo relato, una foto por pantalla.
 
-**Escena 04**: en escritorio, el desplazamiento vertical mueve una secuencia horizontal y el fondo pasa del marfil del día
-a una umbra cálida y al carbón de la noche (el encabezado cambia de tono con ella). En móvil, carrusel nativo.
+**ENTRAR**: la composición se retira, la cámara avanza dentro de la foto de la portada hacia la Catedral, todo se funde a
+negro y el recorrido nace de la oscuridad en la calle (1,3 s). También entra con la rueda, un gesto hacia arriba o
+↓ / Espacio. En iPhone, el toque en ENTRAR pide permiso para usar el giroscopio. **AGENDAR** es un enlace normal a
+`/agendar/`: funciona desde el primer instante, sin esperar ninguna animación.
+
+Después del recorrido: *La propuesta gastronómica* (→ menú, con cocina de autores, sala privada y terraza para eventos)
+y *Ubicación* (dirección, horario, contacto; de fondo, el vuelo nocturno real sobre la plaza).
 
 ## 3D: fotos con profundidad
 
 - **Mapas de profundidad** (`public/depth/*.png`, blanco cerca, negro lejos): Depth Anything V2 (Large) calculado sobre
-  cada foto real (job temporal de GitHub Actions, ya eliminado). Nueve fotos: portada, panorámica, salón abovedado,
-  balcón, campanario, vista aérea, plato en la terraza, mesa en la terraza y barra al anochecer.
+  cada foto real (job temporal de GitHub Actions, ya eliminado): campanario, salón abovedado, balcón, panorámica, plato,
+  atardecer, barra al anochecer, vista aérea (y una mesa de la terraza, de reserva).
 - **Renderizador** (`src/lib/depthRenderer.ts`, ≈ 200 líneas, sin dependencias): un pase WebGL2 con *parallax occlusion
   mapping*: para cada píxel busca, de cerca a lejos, qué superficie de la foto se ve con la cámara desplazada, así el
   primer plano tapa de verdad a la Catedral y la Catedral al cielo. El *dolly* acerca la cámara (lo cercano crece más).
-- **Componente** (`src/components/DepthPhoto.tsx`): la `<Picture>` normal queda debajo (carga rápida, texto alternativo)
-  y el lienzo reutiliza esa misma imagen como textura. El contexto WebGL se crea cuando la foto se acerca a la pantalla
-  y se libera al alejarse; solo se dibuja lo visible.
+- **Recorrido** (`src/lib/walkRenderer.ts`): el mismo principio con dos espacios en el mismo pase para las transiciones
+  (oscuridad, luz, fundido por profundidad), viñeta y grano de película. Carga el espacio actual y los vecinos, y libera
+  los lejanos (memoria de GPU acotada).
+- **Portada** (`src/components/DepthPhoto.tsx`): la `<Picture>` normal queda debajo (carga rápida, texto alternativo) y
+  el lienzo reutiliza esa misma imagen como textura.
 - **Cámara**: ratón en escritorio, giroscopio en móvil (`src/lib/motion.ts`), deriva lenta cuando no hay movimiento y
   movimientos ligados al desplazamiento por escena (amplitud, plano de foco y centro del dolly en cada escena).
 - **Seguridad de rendimiento**: sin WebGL2, con WebGL por software (equipos sin aceleración gráfica) o con
@@ -123,7 +130,7 @@ Notas:
   el isotipo (anillo) es el SVG oficial (`src/components/Isotype.tsx`, favicon).
 - **Vídeo** (`public/video/`): fragmento aéreo de `picheta.mx/Picheta-TERRAZA.mp4` (4,25 s → 8,95 s), sin audio,
   1280 px (móvil) y 1920 px (escritorio), de fondo en Ubicación. Solo se descarga cuando esa sección está cerca; el
-  primer fotograma es la vista aérea en 3D de la escena 03.
+  primer fotograma es la vista aérea en 3D del final del recorrido.
 
 Para regenerar las variantes (por ejemplo, con fotos nuevas):
 

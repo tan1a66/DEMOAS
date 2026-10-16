@@ -4,19 +4,14 @@ import { scrollToId, useReducedMotion } from '../lib/hooks';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
 import { Welcome } from '../scenes/Welcome';
-import { Reveal } from '../scenes/Reveal';
-import { Space } from '../scenes/Space';
-import { Height } from '../scenes/Height';
-import { Light } from '../scenes/Light';
-import { Experience } from '../scenes/Experience';
+import { Walk } from '../scenes/Walk';
 import { Gastronomy } from '../scenes/Gastronomy';
 import { Location } from '../scenes/Location';
-import { Invitation } from '../scenes/Invitation';
 
 type Phase = 'welcome' | 'entering' | 'entered';
 
 /** Duración de la transición ENTRAR (debe coincidir con home.css → .welcome.is-entering). */
-const ENTER_MS = 1400;
+const ENTER_MS = 1300;
 
 /** Un enlace con ancla (/#ubicacion, desde el menú o las reservaciones) va directo a esa sección. */
 function initialPhase(): Phase {
@@ -55,7 +50,9 @@ export function Home() {
       () => {
         setPhase('entered');
         // El foco acompaña al recorrido (teclado y lectores de pantalla).
-        document.getElementById('reveal-title')?.focus({ preventScroll: true });
+        const start = document.getElementById('contenido');
+        start?.setAttribute('tabindex', '-1');
+        start?.focus({ preventScroll: true });
       },
       reduced ? 60 : ENTER_MS,
     );
@@ -72,14 +69,9 @@ export function Home() {
       <div className="home" inert={phase === 'welcome'}>
         <main id="contenido">
           <h1 className="visually-hidden">{t.meta.home.title}</h1>
-          <Reveal active={phase !== 'welcome'} />
-          <Space />
-          <Height />
-          <Light />
-          <Experience />
+          <Walk entered={phase === 'entered'} />
           <Gastronomy />
           <Location />
-          <Invitation />
         </main>
         <Footer />
       </div>

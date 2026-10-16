@@ -4,11 +4,9 @@ import { SITE } from '../config/site';
 import { Arrow } from '../components/Arrow';
 import { LangSwitch } from '../components/LangSwitch';
 import { Logo } from '../components/Logo';
-import { Picture } from '../components/Picture';
-import { DepthPhoto, overscanFor, type CameraMove } from '../components/DepthPhoto';
+import { DepthPhoto, type CameraMove } from '../components/DepthPhoto';
 import { rich } from '../components/Title';
 import { requestMotionPermission } from '../lib/motion';
-import { REVEAL_DEPTH } from './Reveal';
 
 interface WelcomeProps {
   phase: 'welcome' | 'entering';
@@ -94,10 +92,8 @@ export function Welcome({ phase, onEnter }: WelcomeProps) {
         </p>
       </div>
 
-      {/* Capa de transición: la misma imagen y el mismo encuadre que la escena 01, para un fundido sin cortes */}
-      <div className="welcome__next" aria-hidden="true">
-        <Picture id="terraza-panoramica" sizes="100vw" decorative style={{ transform: `scale(${overscanFor(REVEAL_DEPTH.strength)})` }} />
-      </div>
+      {/* ENTRAR: después del avance de la cámara, todo se funde a negro y el recorrido nace de la oscuridad */}
+      <div className="welcome__veil" aria-hidden="true" />
 
       <div className="welcome__top">
         <div className="welcome__brand">

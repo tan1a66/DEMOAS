@@ -36,6 +36,15 @@ export function Gastronomy() {
           <Arrow />
         </a>
       </div>
+      <ul className="gastronomy__points">
+        {g.points.map((p, i) => (
+          <li key={p.title} className="fade" style={{ '--d': `${500 + i * 110}ms` } as CSSProperties}>
+            <span className="gastronomy__point-n">0{i + 1}</span>
+            <h3 className="gastronomy__point-title">{p.title}</h3>
+            <p>{p.text}</p>
+          </li>
+        ))}
+      </ul>
       <Picture
         id="plato-salmon"
         sizes="(max-width: 760px) 60vw, 20vw"

@@ -56,57 +56,38 @@ export const en: Dict = {
     scroll: 'or scroll',
   },
 
-  reveal: {
-    index: '01',
-    kicker: 'The terrace',
-    title: ['A place above', 'the *everyday.*'],
-    text: 'A new way to experience Mérida — between architecture, the horizon and moments that stay with you.',
-    scroll: 'Discover',
-  },
-
-  space: {
-    index: '02',
-    kicker: 'The architecture',
-    title: ['Space', 'changes *everything.*'],
-    lead: 'A building more than 350 years old, in the heart of downtown Mérida.',
-    text: 'A discreet entrance opens onto stone walls, timber and warm light — a place made for experiencing food with every sense.',
-    figure: '350+',
-    figureLabel: 'years: the age of the building Picheta calls home',
-    captions: ['The dining room', 'Stone, timber and light', 'The balcony', 'Private room for eight'],
-  },
-
-  height: {
-    index: '03',
-    kicker: 'Another perspective',
-    title: ['Mérida,', 'from another *height.*'],
-    text: 'From the street, the towers of the Cathedral. From above, the whole square and the city opening out around it.',
-    caption: 'Downtown Mérida from the air · a frame from Picheta’s official film, given depth',
-    hint: { pointer: 'Move the cursor to look around', touch: 'Tilt your phone to look around' },
-    scale: ['Street level', 'From the air'],
-  },
-
-  light: {
-    index: '04',
-    kicker: 'The terrace and the light',
-    title: ['Light', 'transforms', 'the *moment.*'],
-    text: 'From the clarity of day into the night: the same terrace, a different atmosphere.',
-    frames: ['Daylight', 'Golden hour', 'Last light', 'Blue hour', 'After dark'],
-    label: 'Gallery: the terrace at different hours',
-    hint: 'Swipe',
-  },
-
-  experience: {
-    index: '05',
-    kicker: 'The experience',
-    title: ['An experience', 'that goes beyond', 'the *table.*'],
-    text: 'A contemporary take on Yucatecan cuisine, in a setting made for discovering, sharing and savouring.',
-    quote: 'We offer food with heart — an experience of experiences: vibrant, passionate, warm, exciting and deeply Yucatecan.',
-    quoteSource: 'Picheta’s philosophy',
-    points: [
-      { title: 'Author’s cuisine', text: 'Resident chefs and guest authors create unique dishes from local ingredients.' },
-      { title: 'Private dining room', text: 'An intimate room for gatherings of up to eight.' },
-      { title: 'Terrace for events', text: 'From weddings and receptions to corporate events, with the Cathedral as the backdrop.' },
+  walk: {
+    label: 'The walk',
+    hint: { pointer: 'Scroll to walk', touch: 'Swipe to walk' },
+    skip: 'Skip the walk',
+    rail: ['Street', 'Dining room', 'Balcony', 'Terrace', 'Table', 'Sunset', 'Night', 'Above'],
+    entrance: { line: 'A discreet entrance…', sub: '…in a building more than 350 years old.' },
+    beats: [
+      { kicker: 'Downtown Mérida', title: ['You arrive', 'in the *old town.*'], sub: 'The Cathedral towers lead the way.' },
+      { kicker: 'The dining room', title: ['Space', 'changes *everything.*'], sub: 'Stone, timber and warm light.' },
+      { kicker: 'The balcony', title: ['You lean out', 'over the *balcony.*'], sub: 'Outside, the old town keeps its rhythm.' },
+      {
+        kicker: 'The terrace',
+        title: ['A place above', 'the *everyday.*'],
+        sub: 'Up here the city opens out: the Cathedral, the square, the sky.',
+      },
+      {
+        kicker: 'The table',
+        title: ['An experience that goes', 'beyond the *table.*'],
+        quote: 'We offer food with heart.',
+        source: 'Picheta’s philosophy',
+      },
+      { kicker: 'Sunset', title: ['Light', 'transforms the *moment.*'], sub: 'The sky turns pink over the Cathedral.' },
+      { kicker: 'Night', title: ['And then', '*night* falls.'], sub: 'The bar lights up.' },
+      { kicker: 'Another perspective', title: ['Mérida,', 'from another *height.*'], sub: 'Below, the square in lights.' },
     ],
+    finale: {
+      title: ['The next moment', 'could be *yours.*'],
+      primary: 'Book a table',
+      secondary: 'Walk again',
+      note: 'Online reservations through OpenTable, Picheta’s official booking system.',
+    },
+    photoNote: 'Real photographs of Picheta, given 3D depth',
   },
 
   gastronomy: {
@@ -115,6 +96,11 @@ export const en: Dict = {
     text: 'A contemporary interpretation of Yucatecan flavours.',
     detail: 'Starters, main courses and desserts, with creations by resident chefs and guest authors.',
     cta: 'Explore the menu',
+    points: [
+      { title: 'Author’s cuisine', text: 'Resident chefs and guest authors create unique dishes from local ingredients.' },
+      { title: 'Private dining room', text: 'An intimate room for gatherings of up to eight.' },
+      { title: 'Terrace for events', text: 'From weddings and receptions to corporate events, with the Cathedral as the backdrop.' },
+    ],
   },
 
   location: {
@@ -129,13 +115,6 @@ export const en: Dict = {
     whatsapp: 'WhatsApp',
     days: { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' },
     range: (from: string, to: string) => `${from} to ${to}`,
-  },
-
-  invitation: {
-    title: ['The next moment', 'could be *yours.*'],
-    primary: 'Book a table',
-    secondary: 'Explore again',
-    note: 'Online reservations through OpenTable, Picheta’s official booking system.',
   },
 
   footer: {
