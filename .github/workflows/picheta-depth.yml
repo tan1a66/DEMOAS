@@ -1,0 +1,71 @@
+# TEMPORANEO: mappe di profondità (Depth Anything V2 Large) per le foto reali della demo Picheta.
+# L'ambiente di sviluppo non scarica i modelli; il runner di GitHub sì. Va rimosso dopo l'uso.
+name: Picheta · profondità
+on:
+  push:
+    branches: [claude/serene-pasteur-g45xkd]
+    paths: ['.github/workflows/picheta-depth.yml']
+permissions:
+  contents: write
+jobs:
+  depth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/serene-pasteur-g45xkd
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1
+          pip install transformers==4.46.3 pillow==11.3.0 numpy==2.1.3
+      - name: Depth Anything V2
+        run: |
+          python3 - <<'PY'
+          import numpy as np, torch
+          from pathlib import Path
+          from PIL import Image, ImageFilter
+          from transformers import AutoImageProcessor, AutoModelForDepthEstimation
+          torch.set_num_threads(4)
+          name = 'depth-anything/Depth-Anything-V2-Large-hf'
+          proc = AutoImageProcessor.from_pretrained(name)
+          model = AutoModelForDepthEstimation.from_pretrained(name).eval()
+          src = Path('picheta/public/img'); out = Path('picheta/public/depth'); out.mkdir(parents=True, exist_ok=True)
+          photos = {
+            'terraza-atardecer': '1600', 'terraza-panoramica': '1600', 'salon-boveda': '1600',
+            'catedral-calle': '1333', 'aereo-merida': '1600', 'terraza-barra-noche': '1600',
+            'terraza-plato': '1600', 'terraza-mesa': '1334', 'balcon': '1600',
+          }
+          r14 = lambda v: max(14, int(round(v / 14)) * 14)
+          for pid, w in photos.items():
+              im = Image.open(src / f'{pid}-{w}.jpg').convert('RGB')
+              W, H = im.size
+              short = 770
+              ih, iw = (short, r14(short * W / H)) if W >= H else (r14(short * H / W), short)
+              inputs = proc(images=im, return_tensors='pt', size={'height': ih, 'width': iw}, keep_aspect_ratio=False)
+              with torch.no_grad():
+                  d = model(**inputs).predicted_depth[None]
+              ow = 1024 if W >= H else round(1024 * W / H)
+              oh = round(ow * H / W)
+              d = torch.nn.functional.interpolate(d, size=(oh, ow), mode='bicubic', align_corners=False)[0, 0].numpy()
+              lo, hi = np.percentile(d, 0.5), np.percentile(d, 99.5)
+              a = np.clip((d - lo) / (hi - lo), 0, 1)
+              img = Image.fromarray((a * 255 + 0.5).astype(np.uint8), 'L')
+              # dilatación de lo cercano (los bordes del primer plano tapan el fondo) y suavizado ligero
+              img = img.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(1.2))
+              img.save(out / f'{pid}.png', optimize=True)
+              print(pid, (W, H), inputs['pixel_values'].shape, (ow, oh), float(lo), float(hi), flush=True)
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add picheta/public/depth
+          git commit -m "Picheta: mappe di profondità delle foto reali (Depth Anything V2)"
+          for i in 1 2 3 4; do
+            git pull --rebase origin claude/serene-pasteur-g45xkd && git push origin HEAD:claude/serene-pasteur-g45xkd && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
