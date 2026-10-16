@@ -39,7 +39,10 @@ js/config.js          numero WhatsApp, indirizzo, livelli di qualità (desktop /
 js/i18n.js            testi ES / EN
 js/scenes/home.js     superficie d'acqua: simulazione onde su GPU, rifrazione, caustiche, foglie e fiori
 js/scenes/patio/      portone, zaguán e patio: colonne corinzie, ferro battuto liberty, nastri, rampicanti, luci
-js/sections/          Nosotros, Habitaciones, Servicios, Experiencias
+js/sections/          Nosotros, Habitaciones, Servicios, Experiencias (UI)
+js/scenes/            intercom.js (citofono), gallery.js (servizi), terrace.js (bodas), map.js + cenote.js (esperienze)
+js/data.js            testi di camere, servizi, luoghi e attivazioni (ES/EN)
+data/yucatan.geo.json coste e stati (Natural Earth 1:10m, dominio pubblico)
 js/contact.js         pannello Reservar / Contacto con mappa del Centro
 js/static.js          versione con foto se WebGL non è disponibile
 js/util/              texture procedurali (mattonelle di pasta, calce, legno, targhe in ottone), foto con segnaposto, audio, tween
@@ -49,4 +52,8 @@ js/util/              texture procedurali (mattonelle di pasta, calce, legno, ta
 - [x] HOME: acqua interattiva (mouse e tocco), foglie e petali, titolo e "Entrar a la casona"
 - [x] TRANSIZIONE: flash bianco → portone 3D con chiodi e sopraluce liberty → ingresso nel patio
 - [x] PATIO: hub 3D con 4 porte, targhe in ottone, hover/tap, volo della camera e ritorno
-- [ ] NOSOTROS · HABITACIONES · SERVICIOS · EXPERIENCIAS (in lavorazione)
+- [x] NOSOTROS: slider 1845/hoy (foto "invecchiata" in tempo reale), timeline, motivo henequén
+- [x] HABITACIONES: citofono 3D in ottone, pianta della stanza che cresce fino ai m² reali
+- [x] SERVICIOS: quadri liberty appesi ai nastri, foto a schermo intero + WhatsApp; Bodas = terrazza 3D dal giorno al tramonto
+- [x] EXPERIENCIAS: plastico 3D della penisola (coste Natural Earth), pin, rotta, modelli, discesa nel cenote, Activaciones
+- [x] Versione statica senza WebGL
