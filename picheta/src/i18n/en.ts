@@ -80,9 +80,8 @@ export const en: Dict = {
     kicker: 'Another perspective',
     title: ['Mérida,', 'from another *height.*'],
     text: 'From the street, the towers of the Cathedral. From above, the whole square and the city opening out around it.',
-    caption: 'Downtown Mérida from the air · excerpt from Picheta’s official film',
-    pause: 'Pause video',
-    play: 'Play video',
+    caption: 'Downtown Mérida from the air · a frame from Picheta’s official film, given depth',
+    hint: { pointer: 'Move the cursor to look around', touch: 'Tilt your phone to look around' },
     scale: ['Street level', 'From the air'],
   },
 

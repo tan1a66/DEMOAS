@@ -306,6 +306,37 @@ ol {
   background-image: linear-gradient(135deg, var(--charcoal-3), var(--charcoal-2));
 }
 
+/* Fotografía con profundidad (DepthPhoto): la foto normal debajo y el lienzo WebGL encima */
+.depth {
+  position: relative;
+  overflow: hidden;
+}
+
+.depth__media {
+  position: absolute;
+  inset: 0;
+}
+
+.depth__media > .picture {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--overscan, 1));
+}
+
+.depth__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.9s var(--ease);
+}
+
+.depth.is-live .depth__canvas {
+  opacity: 1;
+}
+
 /* Revelado editorial: la foto se abre desde abajo y se asienta */
 .reveal-photo {
   clip-path: inset(100% 0 0 0);
@@ -313,7 +344,8 @@ ol {
   transition-delay: var(--d, 0ms);
 }
 
-.reveal-photo img {
+picture.reveal-photo > img,
+.depth.reveal-photo > .depth__media {
   transform: scale(1.14);
   transition: transform 1.9s var(--ease-out);
   transition-delay: var(--d, 0ms);
@@ -323,7 +355,8 @@ ol {
   clip-path: inset(0 0 0 0);
 }
 
-.reveal-photo.is-in img {
+picture.reveal-photo.is-in > img,
+.depth.reveal-photo.is-in > .depth__media {
   transform: none;
 }
 
@@ -358,7 +391,8 @@ ol {
   .line__inner,
   .fade,
   .reveal-photo,
-  .reveal-photo img {
+  .reveal-photo img,
+  .reveal-photo .depth__media {
     transform: none !important;
     opacity: 1 !important;
     clip-path: none !important;

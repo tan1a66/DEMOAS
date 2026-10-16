@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type Ref } from 'react';
 import { PHOTOS, type PhotoId } from '../data/photos';
 import { useLang } from '../i18n';
 
@@ -12,13 +12,17 @@ interface PictureProps {
   style?: CSSProperties;
   /** Imagen decorativa (el texto cercano ya la describe). */
   decorative?: boolean;
+  /** Encuadre forzado (object-position) para esta aparición de la foto. */
+  position?: string;
+  /** Acceso al <img> (las fotos 2.5D lo reutilizan como textura, sin descargarlo dos veces). */
+  imgRef?: Ref<HTMLImageElement>;
 }
 
 /**
  * Fotografía responsiva: AVIF con respaldo JPEG, dimensiones explícitas (sin saltos de layout),
  * color medio de fondo mientras carga, encuadre por pantalla (--pos / --pos-m) y un respaldo sobrio si falla.
  */
-export function Picture({ id, sizes, className = '', priority = false, style, decorative = false }: PictureProps) {
+export function Picture({ id, sizes, className = '', priority = false, style, decorative = false, position, imgRef }: PictureProps) {
   const { lang } = useLang();
   const photo = PHOTOS[id];
   const [failed, setFailed] = useState(false);
@@ -27,8 +31,8 @@ export function Picture({ id, sizes, className = '', priority = false, style, de
   const fallback = `${photo.base}-${photo.jpeg[photo.jpeg.length - 1] ?? 1080}.jpg`;
 
   const css = {
-    '--pos': photo.position ?? '50% 50%',
-    '--pos-m': photo.positionCompact ?? photo.position ?? '50% 50%',
+    '--pos': position ?? photo.position ?? '50% 50%',
+    '--pos-m': position ?? photo.positionCompact ?? photo.position ?? '50% 50%',
     backgroundColor: photo.color,
     ...style,
   } as CSSProperties;
@@ -48,6 +52,7 @@ export function Picture({ id, sizes, className = '', priority = false, style, de
     <picture className={`picture ${className}`} style={css}>
       <source type="image/avif" srcSet={avif} sizes={sizes} />
       <img
+        ref={imgRef}
         src={fallback}
         srcSet={jpeg}
         sizes={sizes}

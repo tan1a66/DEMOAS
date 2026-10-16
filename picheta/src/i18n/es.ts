@@ -81,9 +81,8 @@ export const es = {
     kicker: 'Otra perspectiva',
     title: ['Mérida,', 'desde otra *altura.*'],
     text: 'Desde la calle, las torres de la Catedral. Desde arriba, la plaza entera y la ciudad que se abre a su alrededor.',
-    caption: 'El centro de Mérida desde el aire · fragmento del vídeo oficial de Picheta',
-    pause: 'Pausar vídeo',
-    play: 'Reproducir vídeo',
+    caption: 'El centro de Mérida desde el aire · fotograma del vídeo oficial de Picheta, con profundidad',
+    hint: { pointer: 'Mueve el cursor para mirar', touch: 'Inclina el teléfono para mirar' },
     scale: ['Desde la calle', 'Desde el aire'],
   },
 

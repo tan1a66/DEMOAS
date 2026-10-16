@@ -3,6 +3,7 @@ import { useLang } from '../i18n';
 import { useInView } from '../lib/hooks';
 import { NAV_IDS } from '../lib/nav';
 import { Picture } from '../components/Picture';
+import { DepthPhoto } from '../components/DepthPhoto';
 import { Title } from '../components/Title';
 
 /** Escena 05 — La experiencia: el espacio conecta con la cocina, sin convertirse en catálogo. */
@@ -20,10 +21,14 @@ export function Experience() {
       aria-labelledby="experience-title"
     >
       <div ref={mediaRef} className="experience__media">
-        <Picture
+        <DepthPhoto
           id="terraza-plato"
           sizes="(max-width: 760px) 100vw, 46vw"
           className={`experience__main reveal-photo ${mediaIn ? 'is-in' : ''}`}
+          strength={0.032}
+          focus={0.55}
+          dollyCenter={[0.5, 0.7]}
+          camera={({ through }) => ({ dolly: (through - 0.5) * 0.35 })}
         />
         <Picture
           id="cocina-manos"

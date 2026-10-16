@@ -6,9 +6,13 @@ import { NAV_IDS } from '../lib/nav';
 import { Arrow } from '../components/Arrow';
 import { HoursList } from '../components/HoursList';
 import { Isotype } from '../components/Isotype';
+import { AmbientVideo } from '../components/AmbientVideo';
 import { Title } from '../components/Title';
 
-/** Ubicación: solo datos publicados en picheta.mx (dirección, horario, teléfono, WhatsApp). */
+/**
+ * Ubicación: solo datos publicados en picheta.mx (dirección, horario, teléfono, WhatsApp).
+ * De fondo, el vuelo nocturno real sobre la plaza (vídeo oficial de Picheta).
+ */
 export function Location() {
   const { t } = useLang();
   const l = t.location;
@@ -21,6 +25,9 @@ export function Location() {
       data-theme="dark"
       aria-labelledby="location-title"
     >
+      <div className="location__bg" aria-hidden="true">
+        <AmbientVideo className="location__video" />
+      </div>
       <Isotype className="location__mark" />
       <div className="location__head">
         <p className="kicker label fade">

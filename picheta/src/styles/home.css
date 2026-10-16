@@ -228,13 +228,13 @@
   opacity: 1;
   clip-path: inset(0 0 0 0);
   transition:
-    opacity 0.28s var(--ease),
-    clip-path 0.95s var(--ease-in-out) 0.22s;
+    opacity 0.4s var(--ease) 0.42s,
+    clip-path 0.95s var(--ease-in-out) 0.45s;
 }
 
 .welcome.is-entering .welcome__next .picture img {
   transform: none;
-  transition: transform 1.2s var(--ease-out) 0.05s;
+  transition: transform 1.3s var(--ease-out) 0.4s;
 }
 
 .welcome.is-entering .welcome__title .line__inner {
@@ -480,7 +480,8 @@
   overflow: hidden;
 }
 
-.plate__frame .picture {
+.plate__frame .picture,
+.plate__frame .depth {
   width: 100%;
   height: 100%;
 }
@@ -634,8 +635,7 @@
 
 .height__street,
 .height__air,
-.height__air-still,
-.height__video {
+.height__air-still {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -644,8 +644,7 @@
 
 /* La torre principal ocupa el 27–58 % del ancho de la foto: al inicio la imagen se desplaza a la derecha
    para encuadrarla en la ventana, y vuelve a su sitio mientras la ventana se abre (paneo + retroceso). */
-.height__street img {
-  object-position: 50% 16%;
+.height__street .depth__media {
   transform: translateX(calc((1 - var(--es)) * var(--shift))) scale(calc(1.2 - 0.2 * var(--es)));
   transform-origin: 66% 45%;
   will-change: transform;
@@ -656,11 +655,6 @@
   transform: scale(calc(1.2 - 0.2 * var(--fs)));
   will-change: opacity, transform;
   background: var(--charcoal);
-}
-
-.height__video {
-  object-fit: cover;
-  object-position: 50% 60%;
 }
 
 /* Velo para leer el texto cuando la imagen ya ocupa toda la pantalla */
@@ -753,10 +747,22 @@
   color: var(--ivory-dim);
 }
 
-.height__toggle {
-  min-height: 44px;
-  padding: 0 4px;
-  border-bottom: 1px solid var(--line-on-dark);
+.height__hint {
+  color: var(--ivory-dim);
+}
+
+.hint--touch {
+  display: none;
+}
+
+@media (hover: none) {
+  .hint--pointer {
+    display: none;
+  }
+
+  .hint--touch {
+    display: inline;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1203,6 +1209,32 @@
   overflow: hidden;
 }
 
+.location__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.location__video,
+.location__bg .picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 60%;
+  opacity: 0.42;
+}
+
+.location__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, var(--charcoal) 0%, rgba(18, 17, 15, 0.82) 38%, rgba(18, 17, 15, 0.35) 100%),
+    linear-gradient(0deg, var(--charcoal) 0%, rgba(18, 17, 15, 0) 40%);
+}
+
 .location__mark {
   position: absolute;
   right: -5vw;
@@ -1210,7 +1242,7 @@
   width: clamp(240px, 34vw, 540px);
   height: auto;
   color: var(--ivory);
-  opacity: 0.07;
+  opacity: 0.06;
   pointer-events: none;
 }
 
@@ -1337,38 +1369,11 @@
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) and (min-width: 761px) {
-    .reveal__img img {
-      animation: drift-down linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 100%;
-    }
-
-    .invitation__img img {
-      animation: settle-in linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 50%;
-    }
-
     .space__b .plate__frame,
     .space__d .plate__frame {
       animation: drift-up linear both;
       animation-timeline: view();
     }
-  }
-}
-
-@keyframes drift-down {
-  to {
-    transform: translateY(14%) scale(1.06);
-  }
-}
-
-@keyframes settle-in {
-  from {
-    transform: scale(1.14);
-  }
-  to {
-    transform: none;
   }
 }
 

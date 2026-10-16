@@ -16,7 +16,7 @@ import { Invitation } from '../scenes/Invitation';
 type Phase = 'welcome' | 'entering' | 'entered';
 
 /** Duración de la transición ENTRAR (debe coincidir con home.css → .welcome.is-entering). */
-const ENTER_MS = 1250;
+const ENTER_MS = 1400;
 
 /** Un enlace con ancla (/#ubicacion, desde el menú o las reservaciones) va directo a esa sección. */
 function initialPhase(): Phase {

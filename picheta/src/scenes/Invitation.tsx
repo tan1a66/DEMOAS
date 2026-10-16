@@ -4,7 +4,7 @@ import { SITE } from '../config/site';
 import { scrollToId, useInView, useReducedMotion } from '../lib/hooks';
 import { NAV_IDS } from '../lib/nav';
 import { Arrow } from '../components/Arrow';
-import { Picture } from '../components/Picture';
+import { DepthPhoto } from '../components/DepthPhoto';
 import { Title } from '../components/Title';
 
 /** Escena 06 — Una invitación. La acción principal abre directamente el sistema oficial (OpenTable). */
@@ -16,7 +16,16 @@ export function Invitation() {
   return (
     <section ref={ref} id="agendar" className={`invitation ${inView ? 'is-in' : ''}`} data-theme="dark" aria-labelledby="invitation-title">
       <div className="invitation__media">
-        <Picture id="terraza-barra-noche" sizes="100vw" className="invitation__img" />
+        {/* La cámara se asienta al llegar (se aleja de la barra) y las luces respiran */}
+        <DepthPhoto
+          id="terraza-barra-noche"
+          sizes="100vw"
+          className="invitation__img"
+          strength={0.032}
+          focus={0.4}
+          dollyCenter={[0.62, 0.45]}
+          camera={({ through }) => ({ dolly: Math.max(0, 0.6 - through) * 0.6, sparkle: 0.7 })}
+        />
       </div>
       <div className="invitation__content">
         <Title lines={v.title} className="display invitation__title" id="invitation-title" />

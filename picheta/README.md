@@ -6,8 +6,10 @@ Mientras no se apruebe, las páginas llevan `noindex, nofollow`.
 
 > La ciudad, desde otra perspectiva.
 
-Vite + React 19 + TypeScript estricto. Sin librerías de animación: todo el movimiento es CSS guiado por una sola
-variable de progreso (`--p`) que escribe `src/lib/hooks.ts`.
+Vite + React 19 + TypeScript estricto, sin librerías de animación ni de 3D. Las fotos reales del restaurante se
+convierten en **escenas 2.5D**: cada una lleva un mapa de profundidad y un pequeño renderizador WebGL2 propio mueve la
+cámara *dentro* de la foto (ratón, giroscopio del teléfono y desplazamiento). El resto del movimiento es CSS guiado por
+una variable de progreso (`--p`) que escribe `src/lib/hooks.ts`.
 
 ```bash
 cd picheta
@@ -35,27 +37,47 @@ Cada ruta es un HTML estático real (build multipágina de Vite): funciona en cu
 | | Escena | Fotografía (todas reales) |
 | --- | --- | --- |
 | Portada | *La ciudad, desde otra perspectiva.* — ENTRAR / AGENDAR | La terraza al atardecer |
-| 01 | *Un lugar sobre lo cotidiano.* | Panorámica de la terraza y la Catedral |
-| 02 | *El espacio lo cambia todo.* — retícula editorial, “+350 años” | Salón abovedado, muros de piedra, balcón, sala privada |
-| 03 | *Mérida, desde otra altura.* — **interacción firma** | Torre de la Catedral desde la calle → vídeo aéreo oficial |
+| 01 | *Un lugar sobre lo cotidiano.* — 3D: al bajar, la cámara avanza sobre la terraza | Panorámica de la terraza y la Catedral |
+| 02 | *El espacio lo cambia todo.* — 3D: se entra en el salón abovedado; “+350 años” | Salón abovedado, muros de piedra, balcón, sala privada |
+| 03 | *Mérida, desde otra altura.* — **interacción firma**, vuelo 3D sobre la ciudad | Torre de la Catedral desde la calle → vista aérea oficial |
 | 04 | *La luz transforma el momento.* — también “Galería” | Día → hora dorada → última luz → hora azul → noche |
-| 05 | *Una experiencia que va más allá de la mesa.* | Plato en la terraza, manos de cocina |
+| 05 | *Una experiencia que va más allá de la mesa.* — 3D | Plato en la terraza, manos de cocina |
 | — | *La propuesta gastronómica.* → Explorar menú | Un solo plato, pequeño |
-| — | Ubicación: dirección, horario, contacto | — |
-| 06 | *El siguiente momento puede ser tuyo.* → Agendar una mesa (OpenTable) | La barra de la terraza al anochecer |
+| — | Ubicación: dirección, horario, contacto | Vídeo aéreo real de la plaza, de fondo |
+| 06 | *El siguiente momento puede ser tuyo.* → Agendar una mesa (OpenTable) — 3D | La barra de la terraza al anochecer |
 
-**ENTRAR**: la composición se retira, la foto de la portada se funde con la panorámica y la ventana se abre a pantalla
-completa (1,25 s); el foco pasa a la escena 01. También entra con la rueda, un gesto hacia arriba o ↓ / Espacio.
+**ENTRAR**: la composición se retira, la cámara avanza dentro de la foto de la portada hacia la Catedral, la imagen se
+funde con la panorámica y la ventana se abre a pantalla completa (1,4 s); el foco pasa a la escena 01. También entra con
+la rueda, un gesto hacia arriba o ↓ / Espacio. En iPhone, el toque en ENTRAR pide permiso para usar el giroscopio.
 **AGENDAR** es un enlace normal a `/agendar/`: funciona desde el primer instante, sin esperar ninguna animación.
 
 **Interacción firma (escena 03)**: escenario fijo durante el desplazamiento. Empieza con un detalle arquitectónico —el
 campanario de la Catedral visto desde la calle— en una ventana vertical estrecha; la ventana se abre mientras la cámara
-retrocede y panea, y sobre la calle se funde la vista aérea real del centro (fragmento del vídeo oficial de Picheta).
-En móvil es la misma idea con una ventana centrada y un recorrido más corto. Con `prefers-reduced-motion`, composición
-fija y fotograma del vídeo en lugar de reproducción automática.
+retrocede y panea, y sobre la calle se funde la vista aérea real del centro (fotograma del vídeo oficial de Picheta)
+convertida en relieve 3D: al seguir bajando, la cámara se eleva y se inclina sobre la ciudad, las luces de las calles
+titilan y el ratón o el giroscopio dejan mirar alrededor. En móvil es la misma idea con una ventana centrada y un
+recorrido más corto. Con `prefers-reduced-motion`, composición fija.
 
 **Escena 04**: en escritorio, el desplazamiento vertical mueve una secuencia horizontal y el fondo pasa del marfil del día
 a una umbra cálida y al carbón de la noche (el encabezado cambia de tono con ella). En móvil, carrusel nativo.
+
+## 3D: fotos con profundidad
+
+- **Mapas de profundidad** (`public/depth/*.png`, blanco cerca, negro lejos): Depth Anything V2 (Large) calculado sobre
+  cada foto real (job temporal de GitHub Actions, ya eliminado). Nueve fotos: portada, panorámica, salón abovedado,
+  balcón, campanario, vista aérea, plato en la terraza, mesa en la terraza y barra al anochecer.
+- **Renderizador** (`src/lib/depthRenderer.ts`, ≈ 200 líneas, sin dependencias): un pase WebGL2 con *parallax occlusion
+  mapping*: para cada píxel busca, de cerca a lejos, qué superficie de la foto se ve con la cámara desplazada, así el
+  primer plano tapa de verdad a la Catedral y la Catedral al cielo. El *dolly* acerca la cámara (lo cercano crece más).
+- **Componente** (`src/components/DepthPhoto.tsx`): la `<Picture>` normal queda debajo (carga rápida, texto alternativo)
+  y el lienzo reutiliza esa misma imagen como textura. El contexto WebGL se crea cuando la foto se acerca a la pantalla
+  y se libera al alejarse; solo se dibuja lo visible.
+- **Cámara**: ratón en escritorio, giroscopio en móvil (`src/lib/motion.ts`), deriva lenta cuando no hay movimiento y
+  movimientos ligados al desplazamiento por escena (amplitud, plano de foco y centro del dolly en cada escena).
+- **Seguridad de rendimiento**: sin WebGL2, con WebGL por software (equipos sin aceleración gráfica) o con
+  `prefers-reduced-motion`, se ve la foto normal. Si un dispositivo va lento, baja sola la resolución y la precisión;
+  si aun así no llega, el efecto se apaga para el resto de la visita.
+- `?gl=force` activa el 3D aunque el navegador use WebGL por software (solo para revisar en máquinas sin GPU).
 
 ## Fuentes y verificación
 
@@ -100,7 +122,8 @@ Notas:
 - **Logotipo**: la firma caligráfica oficial, vectorizada a partir de `Picheta_logo-white.png` (`src/components/Logo.tsx`);
   el isotipo (anillo) es el SVG oficial (`src/components/Isotype.tsx`, favicon).
 - **Vídeo** (`public/video/`): fragmento aéreo de `picheta.mx/Picheta-TERRAZA.mp4` (4,25 s → 8,95 s), sin audio,
-  1280 px (móvil) y 1920 px (escritorio). Solo se descarga cuando la escena 03 está cerca de la pantalla.
+  1280 px (móvil) y 1920 px (escritorio), de fondo en Ubicación. Solo se descarga cuando esa sección está cerca; el
+  primer fotograma es la vista aérea en 3D de la escena 03.
 
 Para regenerar las variantes (por ejemplo, con fotos nuevas):
 
@@ -141,5 +164,6 @@ poner `og:image` con URL absoluta.
 - Titulares con texto completo para lectores de pantalla; formularios con `aria-invalid`, mensajes de error
   asociados y región `role="status"`.
 - Primera pantalla sin pantallas de carga: la foto de la portada se precarga (AVIF) y el texto es visible al instante.
-  Imágenes diferidas con `loading="lazy"` y dimensiones explícitas. JS inicial ≈ 95 KB gzip (React incluido).
+  Imágenes diferidas con `loading="lazy"` y dimensiones explícitas. JS inicial ≈ 100 KB gzip (React y el renderizador 3D incluidos);
+  mapas de profundidad de 50–95 KB cada uno, cargados solo cuando su escena se acerca.
 - Profundidad ligada al desplazamiento con `animation-timeline: view()` donde el navegador la soporta (mejora progresiva).

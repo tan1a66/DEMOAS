@@ -5,7 +5,10 @@ import { Arrow } from '../components/Arrow';
 import { LangSwitch } from '../components/LangSwitch';
 import { Logo } from '../components/Logo';
 import { Picture } from '../components/Picture';
+import { DepthPhoto, overscanFor, type CameraMove } from '../components/DepthPhoto';
 import { rich } from '../components/Title';
+import { requestMotionPermission } from '../lib/motion';
+import { REVEAL_DEPTH } from './Reveal';
 
 interface WelcomeProps {
   phase: 'welcome' | 'entering';
@@ -22,6 +25,15 @@ export function Welcome({ phase, onEnter }: WelcomeProps) {
   const w = t.welcome;
   const rootRef = useRef<HTMLDivElement>(null);
   const enterRef = useRef<HTMLButtonElement>(null);
+  const enterAt = useRef(0);
+  if (phase === 'entering' && !enterAt.current) enterAt.current = performance.now();
+
+  // ENTRAR: la cámara avanza dentro de la foto hacia la Catedral antes del fundido.
+  const camera = (): CameraMove => {
+    if (!enterAt.current) return {};
+    const k = Math.min(1, (performance.now() - enterAt.current) / 1100);
+    return { dolly: 0.55 * k * k * k };
+  };
 
   // Desplazarse hacia abajo en la portada equivale a ENTRAR (rueda, gesto o teclado).
   useEffect(() => {
@@ -65,7 +77,17 @@ export function Welcome({ phase, onEnter }: WelcomeProps) {
   return (
     <div ref={rootRef} className={`welcome ${phase === 'entering' ? 'is-entering' : ''}`} data-theme="dark">
       <div className="welcome__photo">
-        <Picture id="terraza-atardecer" priority sizes="(max-width: 1023px) 100vw, 62vw" className="welcome__img" />
+        <DepthPhoto
+          id="terraza-atardecer"
+          priority
+          sizes="(max-width: 1023px) 100vw, 62vw"
+          className="welcome__img"
+          strength={0.036}
+          focus={0.3}
+          curve={0.6}
+          dollyCenter={[0.47, 0.45]}
+          camera={camera}
+        />
         <p className="welcome__caption" aria-hidden="true">
           <span className="welcome__caption-n">N.º 01</span>
           <span>{w.photo}</span>
@@ -74,7 +96,7 @@ export function Welcome({ phase, onEnter }: WelcomeProps) {
 
       {/* Capa de transición: la misma imagen y el mismo encuadre que la escena 01, para un fundido sin cortes */}
       <div className="welcome__next" aria-hidden="true">
-        <Picture id="terraza-panoramica" sizes="100vw" decorative />
+        <Picture id="terraza-panoramica" sizes="100vw" decorative style={{ transform: `scale(${overscanFor(REVEAL_DEPTH.strength)})` }} />
       </div>
 
       <div className="welcome__top">
@@ -102,7 +124,16 @@ export function Welcome({ phase, onEnter }: WelcomeProps) {
             {w.lead}
           </p>
           <div className="welcome__actions fade" style={{ '--d': '480ms' } as CSSProperties}>
-            <button ref={enterRef} type="button" className="btn btn--solid btn--lg" onClick={onEnter} aria-describedby="enter-hint">
+            <button
+              ref={enterRef}
+              type="button"
+              className="btn btn--solid btn--lg"
+              onClick={() => {
+                requestMotionPermission();
+                onEnter();
+              }}
+              aria-describedby="enter-hint"
+            >
               <span>{w.enter}</span>
               <Arrow />
             </button>
