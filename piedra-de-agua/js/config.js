@@ -1,9 +1,9 @@
 // Configuración general de la demo.
 
 export const CONFIG = {
-  // ⚠️ NÚMERO DE WHATSAPP PROVISIONAL: sustituir por el número real del hotel
+  // WhatsApp de contacto: +52 56 3858 1547
   // (formato internacional sin "+", espacios ni guiones; México móvil = 521 + 10 dígitos).
-  whatsapp: '5210000000000',
+  whatsapp: '5215638581547',
 
   address: 'Calle 60 #498, Centro, 97000 Mérida, Yuc., México',
   // Búsqueda para el enlace de Google Maps (sin coordenadas inventadas).

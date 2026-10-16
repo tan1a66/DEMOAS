@@ -20,11 +20,14 @@ Utili per rivedere le animazioni: `?slow=4` (tutto 4 volte più lento), `#/patio
 
 ## Da completare prima di mandarlo al cliente
 1. **Foto** in `images/` con i nomi indicati in `images/README.md`.
-2. **WhatsApp**: numero provvisorio in `js/config.js` → `whatsapp: '5210000000000'`.
-3. **Anteprima WhatsApp**: dopo la pubblicazione, in `index.html` sostituire `images/og-cover.jpg`
-   nei meta `og:image` / `twitter:image` con l'URL assoluto (es. `https://nome.netlify.app/images/og-cover.jpg`).
+2. **WhatsApp**: `js/config.js` → `whatsapp: '5215638581547'` (+52 56 3858 1547).
+3. **Anteprima WhatsApp**: i meta `og:image` / `og:url` in `index.html` puntano a
+   `https://piedradeagua-alessiastudio.netlify.app` (da cambiare se cambia il dominio).
 
 ## Pubblicazione
+Online su **https://piedradeagua-alessiastudio.netlify.app** — Netlify è collegato al repository
+(branch `claude/compassionate-goldberg-jib898`, base directory `piedra-de-agua`): ogni push si pubblica da solo.
+
 - **Netlify**: trascinare la cartella `piedra-de-agua` su app.netlify.com/drop, oppure collegare il repo con
   *Base directory* = `piedra-de-agua` (c'è già `netlify.toml`, nessun comando di build).
 - **Vercel**: nuovo progetto dal repo, *Root Directory* = `piedra-de-agua`, framework "Other", nessun build.
