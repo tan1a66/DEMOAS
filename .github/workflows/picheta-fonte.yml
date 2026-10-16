@@ -1,0 +1,35 @@
+# TEMPORANEO: istantanea del sito ufficiale di Picheta (pagine, screenshot, foto, logo, menu).
+# L'ambiente di sviluppo non raggiunge picheta.mx; il runner di GitHub sì. Va rimosso dopo l'uso.
+name: Picheta · fonte ufficiale
+on:
+  push:
+    branches: [claude/serene-pasteur-g45xkd]
+    paths: ['.github/picheta/fetch.py', '.github/workflows/picheta-fonte.yml']
+permissions:
+  contents: write
+jobs:
+  fonte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/serene-pasteur-g45xkd
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pillow==11.3.0 playwright==1.48.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Istantanea
+        run: python .github/picheta/fetch.py
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add picheta/_source
+          git commit -m "Picheta: istantanea del sito ufficiale (temporanea, per la ricerca)"
+          for i in 1 2 3 4; do
+            git pull --rebase origin claude/serene-pasteur-g45xkd && git push origin HEAD:claude/serene-pasteur-g45xkd && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
