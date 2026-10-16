@@ -1,0 +1,128 @@
+{
+  "terraza-atardecer": {
+    "width": 2000,
+    "height": 2000,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#a17057"
+  },
+  "terraza-panoramica": {
+    "width": 2000,
+    "height": 1334,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#3f5055"
+  },
+  "salon-boveda": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#705a52"
+  },
+  "salon-piedra": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#4c4e40"
+  },
+  "balcon": {
+    "width": 2000,
+    "height": 2000,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#7a604a"
+  },
+  "sala-privada": {
+    "width": 1500,
+    "height": 1391,
+    "widths": [640, 1080, 1500],
+    "jpeg": [1080, 1500],
+    "color": "#87705c"
+  },
+  "catedral-calle": {
+    "width": 1333,
+    "height": 2000,
+    "widths": [640, 1080, 1333],
+    "jpeg": [1080, 1333],
+    "color": "#6f676a"
+  },
+  "terraza-flores": {
+    "width": 1800,
+    "height": 2400,
+    "widths": [640, 1080, 1600, 1800],
+    "jpeg": [1080, 1600],
+    "color": "#8f9296"
+  },
+  "terraza-mesa": {
+    "width": 1334,
+    "height": 2000,
+    "widths": [640, 1080, 1334],
+    "jpeg": [1080, 1334],
+    "color": "#848278"
+  },
+  "terraza-servicio": {
+    "width": 2000,
+    "height": 2000,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#957b68"
+  },
+  "terraza-barra-noche": {
+    "width": 1800,
+    "height": 1252,
+    "widths": [640, 1080, 1600, 1800],
+    "jpeg": [1080, 1600],
+    "color": "#514b4a"
+  },
+  "terraza-plato": {
+    "width": 1800,
+    "height": 1800,
+    "widths": [640, 1080, 1600, 1800],
+    "jpeg": [1080, 1600],
+    "color": "#826d4f"
+  },
+  "terraza-brindis": {
+    "width": 1800,
+    "height": 2700,
+    "widths": [640, 1080, 1600, 1800],
+    "jpeg": [1080, 1600],
+    "color": "#969181"
+  },
+  "cocina-manos": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#323830"
+  },
+  "maiz": {
+    "width": 2000,
+    "height": 1333,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#3f3b2e"
+  },
+  "plato-salmon": {
+    "width": 2000,
+    "height": 2000,
+    "widths": [640, 1080, 1600, 2000],
+    "jpeg": [1080, 1600],
+    "color": "#523d24"
+  },
+  "barra-noche": {
+    "width": 1920,
+    "height": 1080,
+    "widths": [640, 1080, 1600, 1920],
+    "jpeg": [1080, 1600],
+    "color": "#221b18"
+  },
+  "aereo-merida": {
+    "width": 1920,
+    "height": 1080,
+    "widths": [640, 1080, 1600, 1920],
+    "jpeg": [1080, 1600],
+    "color": "#27221e"
+  }
+}

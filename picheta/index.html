@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Demo de rediseño: no indexar hasta que Picheta la apruebe y se publique en su dominio. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Picheta Mérida — La ciudad, desde otra perspectiva</title>
+    <meta
+      name="description"
+      content="Gastronomía yucateca contemporánea y cocina de autores en un edificio de más de 350 años, con terraza en la plaza central de Mérida y vista a la Catedral."
+    />
+    <meta name="theme-color" content="#12110f" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Picheta Mérida" />
+    <meta property="og:title" content="Picheta Mérida — La ciudad, desde otra perspectiva" />
+    <meta
+      property="og:description"
+      content="Gastronomía yucateca contemporánea y cocina de autores en un edificio de más de 350 años, con terraza en la plaza central de Mérida y vista a la Catedral."
+    />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image" content="/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Picheta Mérida — La ciudad, desde otra perspectiva" />
+    <meta
+      name="twitter:description"
+      content="Gastronomía yucateca contemporánea y cocina de autores en un edificio de más de 350 años, con terraza en la plaza central de Mérida y vista a la Catedral."
+    />
+    <link
+      rel="preload"
+      as="image"
+      type="image/avif"
+      href="/img/terraza-atardecer-1080.avif"
+      imagesrcset="/img/terraza-atardecer-640.avif 640w, /img/terraza-atardecer-1080.avif 1080w, /img/terraza-atardecer-1600.avif 1600w, /img/terraza-atardecer-2000.avif 2000w"
+      imagesizes="(max-width: 1023px) 100vw, 62vw"
+      fetchpriority="high"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Restaurant",
+        "name": "Picheta",
+        "url": "https://picheta.mx/",
+        "image": "/og.jpg",
+        "servesCuisine": ["Yucateca contemporánea", "Cocina de autor"],
+        "telephone": "+52 999 506 0339",
+        "email": "eventos@picheta.mx",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Calle 61 x 60 y 62, Plataforma Picheta Centro",
+          "addressLocality": "Mérida",
+          "addressRegion": "Yucatán",
+          "addressCountry": "MX"
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            "opens": "17:00",
+            "closes": "01:00"
+          },
+          { "@type": "OpeningHoursSpecification", "dayOfWeek": "Sunday", "opens": "17:00", "closes": "23:00" }
+        ],
+        "hasMenu": "https://picheta.mx/menu/",
+        "acceptsReservations": "https://www.opentable.com.mx/restaurant/profile/1088797/reserve?rid=1088797&restref=1088797",
+        "sameAs": [
+          "https://www.instagram.com/pichetamx/",
+          "https://www.facebook.com/Picheta-780049155712027/",
+          "https://www.tripadvisor.com.mx/Restaurant_Review-g150811-d19390540-Reviews-Picheta-Merida_Yucatan_Peninsula.html"
+        ]
+      }
+    </script>
+    <style>
+      html,
+      body {
+        background: #12110f;
+        color: #efe8dc;
+        margin: 0;
+      }
+      .noscript {
+        font:
+          16px/1.6 system-ui,
+          sans-serif;
+        padding: 40px 24px;
+        max-width: 640px;
+      }
+      .noscript a {
+        color: #efe8dc;
+      }
+    </style>
+  </head>
+  <body data-page="home">
+    <div id="root"></div>
+    <noscript>
+      <div class="noscript">
+        <p><strong>Picheta · Mérida</strong> — Gastronomía yucateca contemporánea + cocina de autores.</p>
+        <p>Calle 61 x 60 y 62, Plataforma Picheta Centro, Mérida, Yucatán · <a href="tel:+529995060339">+52 999 506 0339</a></p>
+        <p>
+          <a href="https://www.opentable.com.mx/restaurant/profile/1088797/reserve?rid=1088797&amp;restref=1088797"
+            >Reservar en OpenTable</a
+          >
+          · <a href="/menu/">Menú</a> · <a href="https://wa.me/529995060339">WhatsApp</a>
+        </p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/entries/home.tsx"></script>
+  </body>
+</html>

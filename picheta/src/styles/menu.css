@@ -1,0 +1,226 @@
+/* ═════════════════════════════════════════════════════════════════════════
+   MENÚ — página tipográfica, rápida y legible (sin animaciones)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+body:has(.menu-page) {
+  background: var(--paper);
+}
+
+.menu-page {
+  background: var(--paper);
+  color: var(--ink);
+  padding: calc(var(--header-h) + clamp(56px, 9vw, 120px)) var(--gutter) clamp(80px, 10vw, 140px);
+}
+
+.menu-page__head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+  row-gap: 28px;
+  padding-bottom: clamp(40px, 6vw, 72px);
+}
+
+.menu-page__head .kicker {
+  grid-column: 1 / -1;
+}
+
+.menu-page__title {
+  grid-column: 1 / span 8;
+  font-size: clamp(2.6rem, 6vw, 7rem);
+}
+
+.menu-page__intro {
+  grid-column: 9 / span 4;
+  align-self: end;
+  font-size: clamp(1.15rem, 1.5vw, 1.45rem);
+  color: var(--ink-soft);
+}
+
+/* Índice de categorías: fijo bajo el encabezado al desplazarse */
+.menu-page__index {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 10;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 0 var(--gutter);
+  background: rgba(243, 238, 229, 0.96);
+  border-top: 1px solid var(--line-on-light);
+  border-bottom: 1px solid var(--line-on-light);
+}
+
+.menu-page__index ul {
+  display: flex;
+  gap: clamp(20px, 3vw, 48px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.menu-page__index ul::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-page__index a {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 18px 0 16px;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-stretch: 118%;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.menu-page__index a[aria-current='true'] {
+  color: var(--ink);
+}
+
+.menu-page__index a[aria-current='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--ink);
+}
+
+.menu-page__count {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+}
+
+.menu-page__body {
+  max-width: 1320px;
+}
+
+.menu-cat {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(16px, 2vw, 32px);
+  padding: clamp(56px, 7vw, 96px) 0 0;
+  scroll-margin-top: calc(var(--header-h) + 60px);
+}
+
+.menu-cat__title {
+  grid-column: 1 / span 3;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-h) + 84px);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 3.2vw, 3.4rem);
+  line-height: 1;
+}
+
+.menu-cat__list {
+  grid-column: 4 / span 9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(28px, 4vw, 64px);
+}
+
+.dish {
+  padding: 22px 0 24px;
+  border-top: 1px solid var(--line-on-light);
+}
+
+.dish__row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dish__name {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(1.25rem, 1.5vw, 1.45rem);
+  line-height: 1.15;
+}
+
+.dish__leader {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 1px dotted rgba(18, 17, 15, 0.35);
+  transform: translateY(-4px);
+}
+
+.dish__price {
+  flex: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.dish__detail {
+  margin-top: 8px;
+  max-width: 46ch;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.dish__author {
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  color: var(--accent-ink);
+}
+
+.dish__by {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.menu-page__notes {
+  display: grid;
+  gap: 14px;
+  margin-top: clamp(64px, 8vw, 110px);
+  padding-top: 32px;
+  border-top: 1px solid var(--line-on-light);
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  max-width: 72ch;
+}
+
+.menu-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 32px;
+  margin-top: 18px;
+  color: var(--ink);
+}
+
+@media (max-width: 1100px) {
+  .menu-cat__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .menu-page__head,
+  .menu-cat {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-page__title,
+  .menu-page__intro,
+  .menu-cat__title,
+  .menu-cat__list {
+    grid-column: 1 / -1;
+  }
+
+  .menu-cat__title {
+    position: static;
+    margin-bottom: 18px;
+  }
+}
