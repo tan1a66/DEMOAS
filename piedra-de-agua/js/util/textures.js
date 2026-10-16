@@ -257,6 +257,73 @@ export function limestoneCanvas(size = 1024, seed = 21, { mortar = true, warm = 
   return c;
 }
 
+// Muro de mampostería de caliza a la vista: piedras irregulares asentadas en mortero de cal.
+// Devuelve { color, height } (el segundo sirve como bumpMap).
+export function stoneWallCanvases(size = 1024, seed = 41) {
+  const color = makeCanvas(size), height = makeCanvas(size);
+  const c = color.getContext('2d'), hgt = height.getContext('2d');
+  const rand = rng(seed);
+  c.fillStyle = '#b9ab90'; c.fillRect(0, 0, size, size);       // mortero de cal
+  hgt.fillStyle = '#3a3a3a'; hgt.fillRect(0, 0, size, size);
+  const rows = 10;
+  const rh = size / rows;
+  const stones = [];
+  for (let r = 0; r < rows; r++) {
+    let x = -rand() * rh;
+    while (x < size) {
+      const w = rh * (0.75 + rand() * 1.25);
+      const hh = rh * (0.72 + rand() * 0.2);
+      const y = r * rh + (rh - hh) / 2 + (rand() - 0.5) * rh * 0.1;
+      const j = () => (rand() - 0.5) * rh * 0.18;
+      const k = () => (rand() - 0.5) * rh * 0.1;
+      // polígono irregular de caras planas (esquinas desplazadas + puntos intermedios)
+      const pts = [
+        [x + j(), y + j()], [x + w * (0.35 + rand() * 0.3), y + k()], [x + w + j(), y + j()],
+        [x + w + k(), y + hh * (0.4 + rand() * 0.2)], [x + w + j(), y + hh + j()],
+        [x + w * (0.35 + rand() * 0.3), y + hh + k()], [x + j(), y + hh + j()], [x + k(), y + hh * (0.4 + rand() * 0.2)],
+      ];
+      stones.push({ pts, tone: rand(), x, y, w, h: hh });
+      x += w + rh * (0.07 + rand() * 0.07);
+    }
+  }
+  const path = (ctx, s, dx = 0, dy = 0) => {
+    ctx.beginPath();
+    s.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px + dx, py + dy) : ctx.moveTo(px + dx, py + dy)));
+    ctx.closePath();
+  };
+  const tones = [[214, 200, 172], [201, 186, 156], [222, 210, 184], [190, 176, 150], [208, 190, 158], [196, 186, 166]];
+  for (const s of stones) {
+    for (const dx of [-size, 0, size]) {
+      if (s.x + dx > size + rh || s.x + s.w + dx < -rh) continue;
+      const base = tones[Math.floor(s.tone * tones.length)];
+      // sombra en la junta (abajo a la derecha) y filo de luz (arriba a la izquierda)
+      c.save(); c.filter = 'blur(2px)'; path(c, s, dx + 2, 3); c.fillStyle = 'rgba(70,58,40,0.5)'; c.fill(); c.restore();
+      const g = c.createLinearGradient(s.x + dx, s.y, s.x + dx + s.w * 0.6, s.y + s.h);
+      g.addColorStop(0, `rgb(${base[0] + 10},${base[1] + 10},${base[2] + 8})`);
+      g.addColorStop(1, `rgb(${base[0] - 22},${base[1] - 22},${base[2] - 20})`);
+      c.fillStyle = g; path(c, s, dx); c.fill();
+      hgt.save(); hgt.filter = 'blur(1px)';
+      hgt.fillStyle = '#d0d0d0'; path(hgt, s, dx); hgt.fill();
+      hgt.restore();
+    }
+  }
+  // textura rugosa de la caliza y del mortero
+  for (const [ctx, amt] of [[c, 1], [hgt, 1.2]]) {
+    const img = ctx.getImageData(0, 0, size, size);
+    const d = img.data;
+    const n = fbm(size, size, { octaves: 5, px: 16, seed: seed + 2 });
+    const fine = fbm(size, size, { octaves: 2, px: 256, seed: seed + 5 });
+    for (let i = 0, p = 0; i < n.length; i++, p += 4) {
+      let v = (n[i] - 0.5) * 34 + (fine[i] - 0.5) * 22;
+      if (fine[i] > 0.8) v -= 22;
+      v *= amt;
+      d[p] += v; d[p + 1] += v; d[p + 2] += v * 0.92;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  return { color, height };
+}
+
 // ───────────────────────── Latón ─────────────────────────
 function brassFill(ctx, x, y, w, h, bright = 1) {
   const g = ctx.createLinearGradient(x, y, x, y + h);

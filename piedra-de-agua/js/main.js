@@ -204,6 +204,7 @@ async function openSection(id, { instant = false } = {}) {
   els.hub.hidden = true;
   if (location.hash !== `#/${id}`) history.pushState({ id }, '', `#/${id}`);
   body.classList.toggle('on-light', sec.theme === 'paper');
+  body.classList.toggle('own-credit', sec.theme === 'paper' || !!sec.ownCredit);
   engine.setActive(sec.view || null);
   sec.el.classList.add('is-open');
   sec.el.scrollTop = 0;
@@ -223,7 +224,7 @@ async function goPatio({ fromHistory = false } = {}) {
   await sleep(460);
   sec.el.classList.remove('is-open');
   await sec.exit?.();
-  body.classList.remove('on-light');
+  body.classList.remove('on-light', 'own-credit');
   engine.setActive(patio);
   els.hub.hidden = false;
   if (!fromHistory) history.pushState(null, '', '#/patio');
