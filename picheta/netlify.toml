@@ -1,0 +1,20 @@
+# Deploy su Netlify.
+# - Da Git: Base directory = picheta (il resto lo legge da qui).
+# - Senza Git: trascinare la cartella dist/ (o lo zip) su https://app.netlify.com/drop
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# I file con hash generati da Vite non cambiano mai: cache lunga.
+[[headers]]
+  for = "/assets/*-*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*-*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

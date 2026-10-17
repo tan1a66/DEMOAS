@@ -10,10 +10,22 @@ export const CONFIG = {
     logo: asset('logo-picheta.png'),
     // Escena 2: foto B/N de la cuadrícula del centro dentro del doble círculo de spray.
     map: asset('merida-mapa.jpg'),
+    // Escena 3 en versión fotográfica (opcional): portón del Pasaje y escalera hacia
+    // la luz, en B/N. Con las dos fotos la llegada es un travelling sobre ellas; sin
+    // ellas, el pasaje en 3D. focus: punto (0..1) hacia el que avanza la cámara.
+    llegada: {
+      entrada: null, // p. ej. asset('llegada-entrada.jpg')
+      escalera: null, // p. ej. asset('llegada-escalera.jpg')
+      focusEntrada: { x: 0.5, y: 0.5 },
+      focusEscalera: { x: 0.5, y: 0.36 },
+    },
     // Escena 4: busto de Picheta en GLB (opcional). null = busto estilizado provisional.
     bust: null, // p. ej. asset('busto-picheta.glb')
     // Escena 4: panorámica equirectangular de la terraza (opcional). null = terraza 3D.
     panorama: null, // p. ej. asset('terraza-360.jpg')
+    // Escena 4: foto real de la Catedral y la plaza al atardecer, como telón de fondo
+    // detrás de la terraza 3D (null = plaza 3D estilizada).
+    backdrop: asset('fotos/terraza-fondo.webp'),
     photos: {
       terraza: asset('fotos/terraza-atardecer.webp'),
       platillo: asset('fotos/platillo.webp'),
@@ -63,6 +75,9 @@ export const CONFIG = {
   },
 
   terraza: {
+    // Telón fotográfico: campo horizontal que ocupa (grados), ángulo del borde inferior
+    // respecto a la horizontal (queda escondido tras el pretil) y orientación.
+    backdrop: { hfovDeg: 50, bottomDeg: -14, yawDeg: 3 },
     // Segundos sin tocar nada (móvil) antes de sugerir "Toca los objetos…".
     hintDelay: 6,
     // Giro máximo de la mirada desde el centro (240° en total).

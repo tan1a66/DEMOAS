@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { CONFIG } from '../../config.js';
-import { buildSky, SUN_DIR } from './sky.js';
+import { buildSky, buildBackdrop, SUN_DIR } from './sky.js';
 import { buildPlaza } from './plaza.js';
 import { buildTerrace, HUB } from './terrace.js';
 import { PLACEMENT, engravingMaterial } from './objects.js';
@@ -54,6 +54,23 @@ export default class TerrazaScene {
       tex.colorSpace = THREE.SRGBColorSpace;
       S.background = tex;
       this.panorama = true;
+    } else if (CONFIG.assets.backdrop) {
+      // Foto real de la Catedral al atardecer como telón; el cielo procedural
+      // continúa a los lados con los colores de la foto.
+      const tex = await new THREE.TextureLoader().loadAsync(CONFIG.assets.backdrop);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      this.sky = buildSky({
+        top: '#7f8fbd',
+        high: '#b7a2b6',
+        accent: '#e2a184',
+        horizon: '#efc2ae',
+        sun: new THREE.Vector3(0.42, 0.02, -0.91).normalize(),
+        disc: 0,
+      });
+      this.backdrop = buildBackdrop(tex, CONFIG.terraza.backdrop);
+      S.add(this.sky.mesh, this.backdrop);
+      this.scene.fog.color.set('#c9a08e');
     } else {
       this.sky = buildSky();
       S.add(this.sky.mesh);
@@ -180,7 +197,7 @@ export default class TerrazaScene {
     Object.assign(this.engine.post.fx, { bloom: 1, ca: 1, flash: 0, blur: 0, dim: 0 });
     // En vertical se mira un poco hacia la Catedral y la mesa con la mejor vista.
     this.controls.yaw = this.engine.view.width / this.engine.view.height < 0.8 ? 0.24 : 0;
-    this.controls.pitch = -0.1;
+    this.controls.pitch = this.backdrop ? -0.05 : -0.1;
     this.focusAmt.f = 0;
     this.hintShown = false;
     this.lastTouch = this.engine.time;
@@ -346,6 +363,7 @@ export default class TerrazaScene {
       o.sprite.scale.setScalar(0.55 + breath * 0.15 + o.glow * 0.3);
       o.update?.(t, o.glow);
     }
+    if (this.backdrop) this.backdrop.position.copy(cam.position);
     if (this.sky) {
       this.sky.mesh.position.copy(cam.position);
       this.sky.uniforms.uTime.value = t;

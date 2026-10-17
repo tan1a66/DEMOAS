@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { CONFIG } from '../../config.js';
 import { loadImage } from '../intro/logoSampler.js';
-import { MapPlane, sampleRing } from './MapPlane.js';
+import { MapPlane, sampleRing, detectCircle } from './MapPlane.js';
 import { Streets, Marker } from './Streets.js';
 import { Landing } from './Landing.js';
 import { Labels } from '../../ui/Labels.js';
@@ -32,8 +32,25 @@ export default class InmersionScene {
   }
 
   async init() {
-    const M = CONFIG.map;
     const img = await loadImage(CONFIG.assets.map);
+    // Si la foto no es la de la configuración (otro mapa), se localiza el doble
+    // círculo automáticamente y los puntos de la plaza se reubican con él; la
+    // cuadrícula dibujada se sustituye por el brillo de las calles de la foto.
+    const M = structuredClone(CONFIG.map);
+    const found = detectCircle(img);
+    const C = CONFIG.map.circle;
+    this.sameMap = !!found && Math.abs(found.x - C.x) < 0.02 && Math.abs(found.y - C.y) < 0.02 && Math.abs(found.r - C.r) < 0.02;
+    if (found && !this.sameMap) {
+      const k = found.r / C.r;
+      const move = (p) => ({ x: found.x + (p.x - C.x) * k, y: found.y + (p.y - C.y) * k });
+      M.plaza = move(M.plaza);
+      M.catedral = move(M.catedral);
+      M.picheta = move(M.picheta);
+      M.grid = { ...M.grid, ...move(M.grid), step: M.grid.step * k };
+      M.streets = M.streets.map((st) => ({ ...st, at: st.axis === 'x' ? move({ x: st.at, y: 0 }).x : move({ x: 0, y: st.at }).y }));
+      M.circle = { ...M.circle, x: found.x, y: found.y, r: found.r };
+    }
+    this.M = M;
     const tex = new THREE.Texture(img);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = Math.min(8, this.engine.renderer.capabilities.getMaxAnisotropy());
@@ -41,6 +58,9 @@ export default class InmersionScene {
 
     this.map = new MapPlane(tex, this.q.mapSegments, M);
     this.streets = new Streets(M);
+    // Cuadrícula dibujada sólo si la foto es la configurada; si no, brillo de la foto.
+    this.streets.mesh.visible = this.sameMap;
+    this.map.uniforms.uStreetGlow.value = this.sameMap ? 0 : 1;
     this.pichetaW = MapPlane.toWorld(M.picheta);
     this.plazaW = MapPlane.toWorld(M.plaza);
     this.marker = new Marker(this.pichetaW);
@@ -57,7 +77,7 @@ export default class InmersionScene {
 
   buildDom() {
     const t = this.ctx.content.inmersion;
-    const M = CONFIG.map;
+    const M = this.M;
     const el = document.createElement('div');
     el.className = 'inm';
     el.hidden = true;
@@ -153,6 +173,7 @@ export default class InmersionScene {
     tl.to(this.cam.pos, { x: P.x + 0.4, y: endH, z: P.z + endH * 0.56, duration: reduced ? 1.2 : 6.6, ease: 'power2.inOut' }, reduced ? 0.4 : 2.3);
     tl.to(this.cam.target, { x: P.x, z: P.z - 0.5, duration: reduced ? 1.2 : 6.6, ease: 'power2.inOut' }, reduced ? 0.4 : 2.3);
     tl.to(this.streets.uniforms.uProgress, { value: 1, duration: reduced ? 1 : 5.6, ease: 'power1.inOut' }, reduced ? 0.6 : 3);
+    tl.fromTo(U.uStreets, { value: 0 }, { value: 1, duration: reduced ? 1 : 5.6, ease: 'power1.inOut' }, reduced ? 0.6 : 3);
     tl.to(this.dom.line, { opacity: 1, y: 0, duration: 1.8, ease: 'power3.out' }, reduced ? 0.5 : 3.4);
     tl.call(() => this.labelsIn(), null, reduced ? 1 : 6.6);
     tl.to(this.marker.uniforms.uFade, { value: 1, duration: 1.4 }, reduced ? 1 : 7.4);
@@ -162,7 +183,7 @@ export default class InmersionScene {
   }
 
   labelsIn() {
-    const order = [...CONFIG.map.streets.map((s) => s.name), 'plaza', 'catedral', 'picheta'];
+    const order = [...this.M.streets.map((s) => s.name), 'plaza', 'catedral', 'picheta'];
     order.forEach((id, i) => this.calls.push(gsap.delayedCall(i * 0.22, () => this.labels.show(id))));
   }
 
@@ -174,6 +195,7 @@ export default class InmersionScene {
     for (const c of this.calls) c.kill();
     const U = this.map.uniforms;
     const pk = this.pichetaW;
+    gsap.to(U.uStreets, { value: 1, duration: 0.6 });
     // Si se salta el descenso, todo queda en su estado final.
     U.uReveal.value = 1;
     U.uStone.value = 1;

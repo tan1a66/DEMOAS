@@ -15,6 +15,13 @@ npm run build      # build statica in dist/ (percorsi relativi: funziona in qual
 npm run preview    # serve dist/ in locale
 ```
 
+### Pubblicare su Netlify
+- **Senza Git (più veloce):** `npm run build` e trascinare la cartella `dist/` su
+  https://app.netlify.com/drop (oppure lo zip `picheta-netlify.zip` già pronto).
+- **Da Git:** nuovo sito da questo repository, *Base directory* = `picheta`; build e cartella da
+  pubblicare sono già in `netlify.toml`.
+Le rotte usano l'hash (`/#historia`), quindi non servono regole di redirect.
+
 ### Parametri utili nell'URL
 | URL | Cosa fa |
 |---|---|
@@ -60,15 +67,24 @@ Tutti in `public/assets/`; i percorsi sono in `src/config.js` (`CONFIG.assets`).
 | File | Note |
 |---|---|
 | `logo-picheta.png` | Logo ufficiale (i due cerchi a gesso). Basta un PNG con tratto chiaro su fondo scuro o trasparente (se è scuro su chiaro viene invertito). L'intro campiona i pixel e separa da sola i due anelli. |
-| `merida-mapa.jpg` | **Ora è un segnaposto** generato da `scripts/placeholder-map.py`. Sostituirlo con la foto vera e, se le posizioni cambiano, misurare sulla nuova foto (coordinate 0..1, x a destra, y in basso) i valori di `CONFIG.map`: centro e raggio del doppio cerchio (`circle`), griglia delle strade (`grid`: un incrocio, passo, rotazione), `plaza`, `catedral`, `picheta`. Le particelle atterrano sui pixel chiari del cerchio della foto, quindi il match cut funziona da solo. |
+| `merida-mapa.jpg` | **Ora è un segnaposto** generato da `scripts/placeholder-map.py`. Basta sostituirlo con la foto vera (stesso nome): il doppio cerchio viene **trovato automaticamente**, la plaza e il Pasaje Picheta si ricollocano col cerchio, le strade si accendono a partire dalla foto stessa e le particelle atterrano sui pixel chiari del cerchio (match cut). Per una precisione al metro, misurare sulla nuova foto (0..1, x a destra, y in basso) `CONFIG.map.circle`, `plaza`, `catedral`, `picheta` e la griglia `grid`. |
 | `busto-picheta.glb` | Opzionale: impostare `CONFIG.assets.bust = asset('busto-picheta.glb')`. Viene scalato all'altezza del busto provvisorio e riceve lo shader a incisione. |
 | `terraza-360.jpg` | Opzionale: panoramica equirettangolare della terrazza (`CONFIG.assets.panorama`). Se c'è, sostituisce cielo e piazza 3D; gli oggetti interattivi restano davanti. |
+| `fotos/terraza-fondo.webp` | Telón fotografico della terrazza (Cattedrale e piazza al tramonto, foto Higgsfield). Si regola in `CONFIG.terraza.backdrop` (ampiezza, altezza, orientamento); `CONFIG.assets.backdrop = null` torna alla piazza 3D. |
+| `llegada-entrada.jpg`, `llegada-escalera.jpg` | Opzionali (Scena 3 fotografica): portone del Pasaje e scala verso la luce, in B/N. Impostare `CONFIG.assets.llegada.entrada/escalera`: la Llegada diventa un travelling sulle due foto (avanzamento, sfocatura di velocità attraversando il portone, luce finale). Senza foto resta il pasaje 3D. `focusEntrada/focusEscalera`: punto verso cui avanza la camera. |
 | `fotos/*.webp` | Foto delle sezioni. **Sono le immagini generate per la demo precedente (Higgsfield)**: sostituirle con le foto reali (entrata, sala, terrazza, piatti, chef) mantenendo i nomi o cambiando `CONFIG.assets.photos`. |
 
 Gli **oggetti della terrazza** sono moduli indipendenti in `src/scenes/terraza/objects.js`
 (`buildBusto`, `buildCuchillos`, `buildPlato`, `buildMesaVista`, `buildTrofeo`, `buildTunkul`,
 `buildLogoPiso`): ognuno restituisce `{ group, hit, anchor, focus }`. Per usare un GLB vero basta
 caricarlo dentro `group` al posto della geometria provvisoria; posizione e rotazione sono in `PLACEMENT`.
+
+## Asset generati con Higgsfield
+Sul conto Higgsfield sono già pronti (ultime generazioni): mappa di Mérida nel doppio cerchio,
+portone del Pasaje, scala verso la luce, busto in gesso e il **modello 3D del busto (GLB)**.
+L'ambiente di sviluppo non poteva scaricarli dal CDN di Higgsfield: per usarli basta salvarli in
+`public/assets/` con i nomi `merida-mapa.jpg`, `llegada-entrada.jpg`, `llegada-escalera.jpg`,
+`busto-picheta.glb` e attivare le voci corrispondenti in `CONFIG.assets` (`llegada`, `bust`).
 
 ## Da confermare con il cliente
 - `src/config.js` → `links`: Instagram, pagina di Facturación, link OpenTable, numero WhatsApp

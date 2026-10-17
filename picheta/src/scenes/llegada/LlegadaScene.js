@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { CONFIG } from '../../config.js';
 import { stoneBlocks, floorSlabs, wood } from '../../gl/textures.js';
+import { PhotoRide } from './PhotoRide.js';
 
 // ESCENA 3 — LLEGADA (5–8 s): "Una discreta entrada…". El portón del Pasaje
 // se abre, la cámara recorre el pasillo de arcos y sube la escalera hacia la
@@ -24,8 +26,20 @@ export default class LlegadaScene {
     this._b = new THREE.Vector3();
   }
 
-  init() {
-    this.build();
+  async init() {
+    // Con las dos fotos del pasaje la llegada es fotográfica; si no, el pasaje en 3D.
+    const L = CONFIG.assets.llegada;
+    if (L?.entrada && L?.escalera) {
+      const load = async (url) => {
+        const t = await new THREE.TextureLoader().loadAsync(url);
+        t.colorSpace = THREE.SRGBColorSpace;
+        return t;
+      };
+      const [a, b] = await Promise.all([load(L.entrada), load(L.escalera)]);
+      this.photo = new PhotoRide(a, b, L);
+      this.scene.fog = null;
+      this.scene.add(this.photo.mesh);
+    } else this.build();
     this.buildDom();
     const skip = () => this.state === 'riding' && !this.ctx.overlayOpen() && this.finish(true);
     this.ctx.pointer.on('down', skip);
@@ -229,7 +243,7 @@ export default class LlegadaScene {
     this.dom.root.hidden = false;
     gsap.set([this.dom.l1, this.dom.l2], { opacity: 0, y: 10 });
     gsap.set(this.dom.skip, { opacity: 0 });
-    for (const d of this.doors) d.pivot.rotation.y = 0;
+    for (const d of this.doors || []) d.pivot.rotation.y = 0;
     this.ctx.chrome.reveal(false);
     Object.assign(this.engine.post.fx, { bloom: 1, ca: 1, flash: 0 });
     const cam = this.engine.camera;
@@ -239,6 +253,7 @@ export default class LlegadaScene {
     this.update(0, 0);
 
     const fast = this.q.reducedMotion;
+    if (this.photo) return this.enterPhoto(fast);
     const tl = (this.tl = gsap.timeline({ onComplete: () => this.finish(false) }));
     tl.to(this.dom.l1, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.1);
     tl.to('#veil', { opacity: 0, duration: 1.4, ease: 'power2.inOut' }, 0.9);
@@ -251,6 +266,38 @@ export default class LlegadaScene {
     tl.to(this.dom.l2, { opacity: 0, y: -6, duration: 0.9, ease: 'power2.in' }, fast ? 2.8 : 5.9);
     tl.to(this.engine.post.fx, { bloom: 2.6, duration: 1.6, ease: 'power2.in' }, fast ? 2.4 : 6.1);
     tl.to('#veil', { backgroundColor: '#f2e4cf', opacity: 1, duration: 0.9, ease: 'power2.in' }, fast ? 3.2 : 7.2);
+    this.ctx.sound.drum(0.35);
+    this.director.preload('terraza');
+  }
+
+  // Travelling fotográfico: hacia el portón, a través de él y escalera arriba hasta la luz.
+  enterPhoto(fast) {
+    const U = this.photo.uniforms;
+    U.uZoomA.value = 1;
+    U.uZoomB.value = 1;
+    U.uMix.value = 0;
+    U.uBlur.value = 0;
+    U.uLight.value = 0;
+    const d = fast ? 0.5 : 1;
+    const tl = (this.tl = gsap.timeline({ onComplete: () => this.finish(false) }));
+    tl.to(this.dom.l1, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.1);
+    tl.to('#veil', { opacity: 0, duration: 1.4, ease: 'power2.inOut' }, 0.7);
+    tl.to(this.dom.skip, { opacity: 1, duration: 0.8 }, 1.2);
+    // Paso lento hacia el portón…
+    tl.to(U.uZoomA, { value: 1.45, duration: 3.0 * d, ease: 'sine.inOut' }, 0.5);
+    tl.to(this.dom.l1, { opacity: 0, y: -8, duration: 0.9, ease: 'power2.in' }, 2.9 * d);
+    // …y lo cruzamos: aceleración, desenfoque de velocidad y fundido a la escalera.
+    tl.to(U.uZoomA, { value: 3.4, duration: 1.0 * d, ease: 'power2.in' }, 3.4 * d);
+    tl.to(U.uBlur, { value: 0.35, duration: 0.8 * d, ease: 'power2.in' }, 3.5 * d);
+    tl.to(U.uMix, { value: 1, duration: 0.7 * d, ease: 'power1.inOut' }, 3.9 * d);
+    tl.to(U.uBlur, { value: 0, duration: 0.9 * d, ease: 'power2.out' }, 4.4 * d);
+    // Escalera arriba, hacia la luz.
+    tl.fromTo(U.uZoomB, { value: 1.15 }, { value: 2.6, duration: 3.2 * d, ease: 'power1.in' }, 4.1 * d);
+    tl.to(this.dom.l2, { opacity: 1, y: 0, duration: 1.3, ease: 'power3.out' }, 4.4 * d);
+    tl.to(this.dom.l2, { opacity: 0, y: -6, duration: 0.9, ease: 'power2.in' }, 6.2 * d);
+    tl.to(U.uLight, { value: 1.4, duration: 1.2 * d, ease: 'power2.in' }, 6.2 * d);
+    tl.to(this.engine.post.fx, { bloom: 2.6, duration: 1.4, ease: 'power2.in' }, 6.1 * d);
+    tl.to('#veil', { backgroundColor: '#f2e4cf', opacity: 1, duration: 0.8, ease: 'power2.in' }, 7.0 * d);
     this.ctx.sound.drum(0.35);
     this.director.preload('terraza');
   }
@@ -272,6 +319,20 @@ export default class LlegadaScene {
   }
 
   update(dt, t) {
+    if (this.photo) {
+      // Paralaje leve con el ratón o el giroscopio y balanceo de los pasos.
+      const U = this.photo.uniforms;
+      const p = this.ctx.pointer;
+      const g = this.ctx.gyro;
+      g.update(dt);
+      const tx = g.active ? g.x : p.inside ? p.x / this.engine.view.width - 0.5 : 0;
+      const ty = g.active ? g.y : p.inside ? p.y / this.engine.view.height - 0.5 : 0;
+      const k = 1 - Math.exp(-dt * 2);
+      U.uShift.value.x += (tx * 0.02 - U.uShift.value.x) * k;
+      U.uShift.value.y += (-ty * 0.015 + Math.sin(t * 5.6) * 0.0025 - U.uShift.value.y) * k;
+      U.uAspect.value = this.engine.view.width / this.engine.view.height;
+      return;
+    }
     const u = Math.min(0.999, this.ride.t);
     const cam = this.engine.camera;
     this.path.getPointAt(u, this._a);

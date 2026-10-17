@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { NOISE } from '../../gl/noise.js';
+import { fitCircle } from '../intro/logoSampler.js';
 
 // Mérida desde arriba: la foto del mapa sobre un plano con relieve sacado de
 // su luminancia (las manzanas, más claras, se levantan un poco sobre las
@@ -40,7 +41,8 @@ float stoneTone(vec2 p) {
 const FRAG = /* glsl */ `
 uniform sampler2D tMap;
 uniform vec2 uCenter;
-uniform float uRadius, uReveal, uStone, uTime;
+uniform float uRadius, uReveal, uStone, uTime, uStreetGlow, uStreets;
+uniform vec2 uPlaza, uTexel;
 uniform vec3 uLightDir;
 varying vec2 vUv;
 varying vec3 vWorld;
@@ -64,6 +66,25 @@ void main() {
   vis = clamp(vis, 0.0, 1.0);
 
   vec3 col = vec3(lum) * shade * vis;
+
+  // Calles que se encienden, sacadas de la propia foto (sirve con cualquier mapa):
+  // píxeles más oscuros que su entorno dentro del círculo; la luz avanza en
+  // distancia "de cuadrícula" desde el borde hacia la plaza.
+  if (uStreetGlow > 0.0) {
+    float around = 0.0;
+    for (int i = 0; i < 4; i++) {
+      float a = float(i) * 1.5708;
+      around += dot(texture2D(tMap, vUv + vec2(cos(a), sin(a)) * uTexel * 5.0).rgb, vec3(0.299, 0.587, 0.114));
+    }
+    around *= 0.25;
+    float street = smoothstep(0.02, 0.1, around - lum) * (1.0 - smoothstep(0.86, 0.94, rd));
+    vec2 dp = abs(vUv - uPlaza) / uRadius;
+    float dm = (dp.x + dp.y) / 1.3;
+    float front = 1.0 - uStreets * 1.1;
+    float lit = smoothstep(front - 0.02, front + 0.02, dm);
+    float head = exp(-pow((dm - front) * 14.0, 2.0)) * step(0.001, uStreets) * (1.0 - uStreets);
+    col += vec3(1.0, 0.98, 0.94) * street * (lit * 0.28 + head * 1.6) * uStreetGlow;
+  }
   // Bordes de la foto: se funden con la misma piedra procedural del fondo,
   // así cualquier foto (con viñeta o sin ella) no deja un recuadro.
   vec2 e = min(vUv, 1.0 - vUv);
@@ -84,6 +105,10 @@ export class MapPlane {
       uReveal: { value: 0 },
       uStone: { value: 0 },
       uTime: { value: 0 },
+      uStreetGlow: { value: 0 },
+      uStreets: { value: 0 },
+      uPlaza: { value: new THREE.Vector2(map.plaza.x, 1 - map.plaza.y) },
+      uTexel: { value: new THREE.Vector2(1 / texture.image.width, 1 / texture.image.height) },
       uLightDir: { value: new THREE.Vector3(-0.5, 0.8, -0.35) },
     };
     const geo = new THREE.PlaneGeometry(MAP_SIZE, MAP_SIZE, segments, segments);
@@ -159,4 +184,53 @@ export function sampleRing(image, map, count) {
     }
   }
   return out;
+}
+
+// Busca el doble círculo de spray en cualquier foto: desde el centro, el anillo
+// más brillante en cada dirección; luego un ajuste de círculo sin valores
+// atípicos. Devuelve { x, y, r } (0..1) o null si no hay un anillo claro.
+export function detectCircle(image) {
+  const size = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  g.drawImage(image, 0, 0, size, size);
+  const d = g.getImageData(0, 0, size, size).data;
+  const lum = (x, y) => {
+    const i = ((y | 0) * size + (x | 0)) * 4;
+    return d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+  };
+  const xs = [];
+  const ys = [];
+  for (let k = 0; k < 180; k++) {
+    const a = (k / 180) * Math.PI * 2;
+    let best = -1;
+    let bestR = 0;
+    for (let r = size * 0.25; r < size * 0.495; r += 1) {
+      const x = size / 2 + Math.cos(a) * r;
+      const y = size / 2 + Math.sin(a) * r;
+      const v = lum(x, y) + lum(x + Math.cos(a), y + Math.sin(a)) + lum(x - Math.cos(a), y - Math.sin(a));
+      if (v > best) {
+        best = v;
+        bestR = r;
+      }
+    }
+    xs.push((size / 2 + Math.cos(a) * bestR) / size);
+    ys.push((size / 2 + Math.sin(a) * bestR) / size);
+  }
+  // Ajuste algebraico (Kåsa): no se sesga aunque el círculo no esté centrado.
+  const fit = (idx) => {
+    const f = fitCircle(xs, ys, idx);
+    return f ? { x: f.cx, y: f.cy, r: f.r } : { x: 0.5, y: 0.5, r: 0 };
+  };
+  let idx = xs.map((_, i) => i);
+  let c = fit(idx);
+  for (let it = 0; it < 3; it++) {
+    const res = idx.map((i) => Math.abs(Math.hypot(xs[i] - c.x, ys[i] - c.y) - c.r));
+    const med = [...res].sort((a, b) => a - b)[res.length >> 1];
+    idx = idx.filter((_, j) => res[j] <= Math.max(med * 2.5, 0.004));
+    c = fit(idx);
+  }
+  const ok = idx.length > 110 && c.r > 0.25 && c.r < 0.5;
+  return ok ? c : null;
 }
