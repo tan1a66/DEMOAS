@@ -1,4 +1,4 @@
-import { ROOMS } from '../scenes/casa/rooms.js';
+import { ROOMS } from '../scenes/mundo/spaces.js';
 
 // Rutas con hash: cada sala y cada sección tiene su URL (/#salon, /#menu…) para
 // poder compartirla, y el botón "atrás" del teléfono vuelve al estado anterior.

@@ -297,6 +297,38 @@ html.touch .intro-enter small { display: none; }
   .people { max-width: 340px; margin: 0 auto; }
 }
 
+/* Sección junto a su objeto: panel a un lado (abajo en el teléfono) y la casa sigue a la vista. */
+.panel.side { left: auto; width: min(620px, 50vw); }
+.panel.side .panel-scrim {
+  background: linear-gradient(90deg, rgba(14, 11, 9, 0.5), rgba(14, 11, 9, 0.82) 18%, rgba(14, 11, 9, 0.9));
+  -webkit-backdrop-filter: blur(18px) saturate(1.15); backdrop-filter: blur(18px) saturate(1.15);
+  border-left: 1px solid rgba(239, 236, 230, 0.08);
+}
+.panel.side .panel-back { left: clamp(24px, 3.4vw, 52px); }
+.panel.side .panel-content { padding: calc(var(--safe-top) + 15vh) clamp(24px, 3.4vw, 52px) 10vh; }
+.panel.side .sec-head { margin-bottom: 9vh; }
+.panel.side .sec-title { font-size: clamp(22px, 2.4vw, 36px); }
+.panel.side .sec-lead { font-size: clamp(20px, 1.8vw, 28px); }
+.panel.side .phrase { font-size: clamp(21px, 2vw, 30px); }
+.panel.side .text { margin: 6vh auto; font-size: clamp(17px, 1.25vw, 20px); }
+.panel.side .hist-step, .panel.side .hist-step.alt { grid-template-columns: 1fr; min-height: 0; margin-bottom: 10vh; gap: 24px; text-align: center; }
+.panel.side .hist-step.alt .hist-art { order: 0; }
+.panel.side .hist-art .ph { max-width: 280px; }
+.panel.side .people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel.side .cards { grid-template-columns: 1fr; }
+.panel.side .dish { width: min(86%, 380px); margin-left: calc(min(86%, 380px) / -2); }
+.casa-caption, .casa .labels { transition: opacity 0.8s var(--ease); }
+.casa.focus .casa-caption, .casa.focus .casa-index, .casa.focus .casa-foot { opacity: 0; pointer-events: none; }
+.casa.focus .casa-index button, .casa.focus .casa-foot button { pointer-events: none; }
+@media (max-width: 760px) {
+  .panel.side { top: auto; left: 0; width: auto; height: 72vh; height: 72svh; }
+  .panel.side .panel-scrim { border: 0; border-top: 1px solid rgba(239, 236, 230, 0.1); border-radius: 18px 18px 0 0; background: rgba(14, 11, 9, 0.86); }
+  .panel.side .panel-scroll { -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 48px, #000 96px); mask-image: linear-gradient(to bottom, transparent 0, transparent 48px, #000 96px); }
+  .panel.side .panel-back { top: 14px; left: var(--gutter); }
+  .panel.side .panel-content { padding: 84px var(--gutter) 8vh; }
+  .panel.side .people { grid-template-columns: 1fr; }
+}
+
 /* ---------- Etiquetas 3D (puntos de luz de las salas) ---------- */
 .labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .label3d {
@@ -307,7 +339,7 @@ html.touch .intro-enter small { display: none; }
 .label3d.left { flex-direction: row-reverse; }
 .label3d.left .label-dot { margin: 0 -2.5px 0 0; }
 .label3d.left .label-text { align-items: flex-end; }
-.label3d.behind { opacity: 0 !important; }
+.label3d.behind { opacity: 0 !important; pointer-events: none !important; }
 .label-dot { width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--chalk); box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); flex: none; }
 .label-text { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7); }
 .label-text small { font-size: 9px; letter-spacing: 0.24em; color: var(--chalk-soft); text-transform: none; font-family: var(--serif); font-style: italic; font-size: 14px; letter-spacing: 0.02em; }

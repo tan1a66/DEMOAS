@@ -24,12 +24,12 @@ export const content = {
     enterKey: 'o pulsa Intro',
   },
 
-  // La casa en 3D: una sala por foto real del restaurante, en el orden del recorrido.
+  // La casa en 3D: sus espacios en el orden del recorrido.
   casa: {
     indexLabel: 'Salas de Picheta',
     next: 'Seguir',
-    hintTouch: 'Desliza hacia arriba para recorrer la casa · toca los puntos de luz',
-    hintMouse: 'Desplázate para recorrer la casa · elige un punto de luz',
+    hintTouch: 'Arrastra para mirar · toca el suelo para caminar',
+    hintMouse: 'Arrastra para mirar · rueda o flechas para caminar · clic en el suelo para ir',
     subir: 'Subir a la terraza',
     rooms: [
       { name: 'La entrada', title: 'Bienvenidos a Picheta', sub: 'Cocina de autores en el corazón de Mérida', back: 'Volver a la entrada' },

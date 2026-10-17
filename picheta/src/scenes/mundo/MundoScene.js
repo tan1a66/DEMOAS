@@ -1,0 +1,701 @@
+import * as THREE from 'three';
+import gsap from 'gsap';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import '@fontsource/great-vibes/400.css';
+import { createMaterials, box } from './materials.js';
+import { buildSalon, SALON, SUN_DIR } from './salon.js';
+import { buildEntrada, ENTRADA } from './entrada.js';
+import { buildReservado, RESERVADO, TABLE_R } from './reservado.js';
+import { buildEscalera, STAIR, LANDING } from './escalera.js';
+import { buildTerraza, buildSky, TERRAZA, BAR, TERRACE_TABLES } from './terraza.js';
+import { Walker } from './Walker.js';
+import { Labels } from '../../ui/Labels.js';
+import { ROOMS, SPOTS } from './spaces.js';
+
+// LA CASA EN 3D: Picheta construida como un espacio de verdad (geometría,
+// materiales y luz física), inspirada en sus fotos: la entrada con la
+// escultura del logo, el salón bajo la bóveda de cuerdas, el reservado, la
+// escalera y la terraza frente a la Catedral. Se camina libremente
+// (arrastrar para mirar, rueda o teclas para avanzar, clic en el suelo para
+// ir); "Seguir" y el índice llevan de sala en sala por puertas y escaleras.
+
+const BASE = `${import.meta.env.BASE_URL}assets/`;
+
+// El camino de la casa (x, z): entrada → salón → reservado → escalera → terraza → vista.
+// Pasa por la vista de cada sala (puntos 0, 2, 7, 9, 12 y 15).
+const ROUTE = [
+  [-0.25, 5.4],
+  [0, 1.6],
+  [0, -0.5],
+  [-0.3, -12],
+  [-0.9, -20.4],
+  [-2.0, -20.75],
+  [-3.3, -20.85],
+  [-3.55, -23.0],
+  [-6.2, -22.95],
+  [-7.0, -22.9],
+  [-7.0, -26.5],
+  [-7.0, -30.3],
+  [-7.0, -32.4],
+  [-6.2, -33.3],
+  [-1.2, -33.35],
+  [-1.2, -36.2],
+];
+
+// Zonas de luz: sólo se encienden las lámparas de la zona y de las vecinas
+// que se ven por las puertas (todas las combinaciones se compilan al cargar).
+const AREAS = ['entrada', 'salon', 'reservado', 'escalera', 'terraza'];
+const NEAR = {
+  entrada: ['entrada', 'salon'],
+  salon: ['entrada', 'salon', 'reservado'],
+  reservado: ['salon', 'reservado', 'escalera'],
+  escalera: ['reservado', 'escalera', 'terraza'],
+  terraza: ['escalera', 'terraza'],
+};
+// Volumen de cada espacio (con muros y cubiertas): el encuadre de sombras
+// del sol se ajusta, en cada zona, a los espacios que se ven desde ella.
+const BOUNDS = {
+  entrada: [-1.8, 0, 0.6, 1.8, 3.6, 6.4],
+  salon: [-3.1, 0, -22, 2.6, 4.4, 0.6],
+  reservado: [-8.8, 0, -23.6, -3.02, 3.4, -16.8],
+  escalera: [-7.85, 0, -31.6, -6.15, 7.8, -23.6],
+  terraza: [-15.4, 4.4, -44.6, 3.1, 8.6, -29.6],
+};
+const ROOM_AREA = ['entrada', 'salon', 'reservado', 'escalera', 'terraza', 'terraza'];
+
+const V = (p) => new THREE.Vector3(p[0], 0, p[1]);
+
+export default class MundoScene {
+  constructor(engine, ctx, director) {
+    this.engine = engine;
+    this.ctx = ctx;
+    this.director = director;
+    this.q = ctx.quality;
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color('#0b0806');
+    this.scene.fog = new THREE.Fog('#d9a07c', 70, 420);
+    this.state = 'hidden';
+    this.index = 0;
+    this.area = null;
+    this.levels = { env: 0.22, hemiIn: 0.2, hemiOut: 0, sun: 20 };
+    this._p = new THREE.Vector3();
+  }
+
+  async init(progress = () => {}) {
+    const r = this.engine.renderer;
+    r.shadowMap.enabled = !!this.q.shadows;
+    r.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Reflejos: dentro, un estudio neutro muy bajo (la luz la ponen sol y
+    // lámparas); fuera, el propio cielo del atardecer.
+    const pmrem = new THREE.PMREMGenerator(r);
+    this.envIn = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const skyScene = new THREE.Scene();
+    skyScene.add(buildSky());
+    this.envOut = pmrem.fromScene(skyScene, 0, 0.1, 1000).texture;
+    pmrem.dispose();
+    this.scene.environment = this.envIn;
+    this.scene.environmentIntensity = 0.22;
+    progress(0.1);
+
+    const loader = new THREE.TextureLoader();
+    const photo = async (p) => {
+      const t = await loader.loadAsync(BASE + p);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 8;
+      return t;
+    };
+    await document.fonts.load('120px "Great Vibes"').catch(() => {});
+    const [cuadroSalon, cuadroReservado, catedral] = await Promise.all([
+      photo('mundo/cuadro-salon.webp'),
+      photo('mundo/cuadro-reservado.webp'),
+      photo('mundo/catedral.webp'),
+    ]);
+    progress(0.35);
+    const m = (this.m = createMaterials(this.q));
+    progress(0.6);
+    const assets = { cuadroSalon, cuadroReservado, catedral, signature: signatureTexture('Picheta') };
+    this.spaces = {
+      entrada: buildEntrada(m, this.q),
+      salon: buildSalon(m, assets, this.q),
+      reservado: buildReservado(m, assets, this.q),
+      escalera: buildEscalera(m, this.q),
+      terraza: buildTerraza(m, assets, this.q),
+    };
+    for (const s of Object.values(this.spaces)) this.scene.add(s.group);
+    this.scene.add(stairHut(m), exterior(m), sunBlockers());
+    progress(0.75);
+
+    // Un solo sol para toda la casa (entra por las ventanas del salón y baña la terraza).
+    const sun = (this.sun = this.spaces.salon.sun);
+    sun.parent.remove(sun, sun.target);
+    this.scene.add(sun, sun.target);
+    if (this.q.shadows) Object.assign(sun.shadow.camera, { near: 2, far: 76 });
+    sun.shadow.camera.layers.enable(BLOCKER_LAYER);
+    this.shadowFit = fitShadows();
+    // Los muros y techos hechos de planos también dan sombra: dentro, el sol
+    // sólo entra por las ventanas del salón.
+    for (const k of ['entrada', 'salon', 'reservado', 'escalera'])
+      this.spaces[k].group.traverse((o) => {
+        if (o.isMesh && o.geometry.type === 'PlaneGeometry' && !o.material.transparent && o.material !== m.window && Math.abs(o.rotation.x + Math.PI / 2) > 1e-3) o.castShadow = true;
+      });
+    // Cielo: el de la terraza también sirve de luz de relleno fuera.
+    this.hemiOut = this.spaces.terraza.lights.children.find((o) => o.isHemisphereLight);
+    this.spaces.terraza.lights.remove(this.hemiOut);
+    this.scene.add(this.hemiOut);
+    // Dentro: el rebote cálido de la piedra y la madera.
+    this.hemiIn = new THREE.HemisphereLight('#ffd9b0', '#3b2618', 0.2);
+    this.scene.add(this.hemiIn);
+    this.sky = buildSky();
+    this.scene.add(this.sky);
+
+    // Círculo de tiza en el suelo (hacia dónde se va).
+    const cursor = new THREE.Mesh(
+      new THREE.RingGeometry(0.2, 0.235, 64),
+      new THREE.MeshBasicMaterial({ color: '#f3ead9', transparent: true, opacity: 0, depthWrite: false, fog: false }),
+    );
+    cursor.rotation.x = -Math.PI / 2;
+    cursor.renderOrder = 10;
+    this.scene.add(cursor);
+
+    const floors = [this.spaces.escalera.group.children[0]];
+    this.scene.traverse((o) => o.isMesh && o.userData.floor !== false && o.geometry.type === 'PlaneGeometry' && Math.abs(o.rotation.x + Math.PI / 2) < 1e-3 && floors.push(o));
+    const Y = TERRAZA.y;
+    this.walker = new Walker(this.engine, this.ctx.pointer, this.ctx.gyro, {
+      regions: [
+        { x0: ENTRADA.x0 + 0.75, x1: ENTRADA.x1 - 0.45, z0: ENTRADA.z1 + 0.2, z1: ENTRADA.z0 - 0.5, y: 0 },
+        { x0: -0.6, x1: 0.6, z0: SALON.z0 - 0.4, z1: SALON.z0 + 0.4, y: 0 },
+        { x0: -1.2, x1: 0.7, z0: SALON.z1 + 1.0, z1: SALON.z0 - 0.2, y: 0 },
+        { x0: -2.4, x1: -1.1, z0: -21.25, z1: -20.25, y: 0 },
+        { x0: -3.5, x1: -2.3, z0: -21.25, z1: -20.25, y: 0 },
+        { x0: RESERVADO.x0 + 0.5, x1: RESERVADO.x1 - 0.38, z0: RESERVADO.z1 + 0.4, z1: RESERVADO.z0 - 0.5, y: 0 },
+        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: STAIR.z0 - 0.1, z1: RESERVADO.z1 + 0.5, y: 0 },
+        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: STAIR.z1, z1: STAIR.z0, ramp: { axis: 'z', from: STAIR.z0, len: STAIR.z1 - STAIR.z0, y0: 0, y1: STAIR.rise } },
+        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: LANDING.z1, z1: LANDING.z0, y: Y },
+        { x0: TERRAZA.x0 + 0.6, x1: TERRAZA.x1 - 0.4, z0: TERRAZA.z1 + 0.6, z1: LANDING.z1, y: Y },
+      ],
+      blocks: [
+        { x: TABLE_R.x, z: TABLE_R.z, r: TABLE_R.r + 0.55 },
+        { x0: TERRAZA.x0, x1: BAR.x1 + 0.75, z0: BAR.z1 - 0.3, z1: BAR.z0 + 0.3 },
+        ...TERRACE_TABLES.map((t) => ({ x: t.x, z: t.z, r: 0.9 })),
+      ],
+      floors,
+      cursor,
+    });
+    this.walker.blocked = () => this.ctx.overlayOpen() || this.state !== 'idle';
+    this.walker.planner = (from, to) => (this.clear(from, to) ? null : this.routePath(from, to));
+    // Con una sección abierta, tocar la casa la cierra.
+    this.ctx.pointer.on('down', () => this.state === 'focus' && this.ctx.panel.onClose());
+
+    this.buildDom();
+    progress(0.85);
+    // Se compilan todas las combinaciones de luces: andar por la casa no da tirones.
+    const cam = this.engine.camera;
+    for (const a of AREAS) {
+      this.setArea(a, true);
+      if (r.extensions.has('KHR_parallel_shader_compile')) await r.compileAsync(this.scene, cam);
+      else r.compile(this.scene, cam);
+    }
+    progress(1);
+    if (this.engine.manual) window.__picheta.mundo = this;
+  }
+
+  buildDom() {
+    const c = this.ctx.content.casa;
+    const el = document.createElement('div');
+    el.className = 'casa';
+    el.hidden = true;
+    el.innerHTML = `
+      <div class="casa-caption" aria-live="polite">
+        <p class="casa-kicker"></p>
+        <h2 class="casa-title"></h2>
+        <p class="casa-sub"></p>
+      </div>
+      <nav class="casa-index" aria-label="${c.indexLabel}">
+        ${ROOMS.map((r, i) => `<button type="button" data-i="${i}"><span class="ci-name">${c.rooms[i].name}</span><span class="ci-dot"></span></button>`).join('')}
+      </nav>
+      <div class="casa-foot">
+        <p class="casa-hint">${this.q.coarse ? c.hintTouch : c.hintMouse}</p>
+        <button class="casa-next" type="button"><span></span><i class="chev" aria-hidden="true"></i></button>
+      </div>`;
+    this.ctx.ui.appendChild(el);
+    this.dom = {
+      root: el,
+      kicker: el.querySelector('.casa-kicker'),
+      title: el.querySelector('.casa-title'),
+      sub: el.querySelector('.casa-sub'),
+      index: [...el.querySelectorAll('.casa-index button')],
+      next: el.querySelector('.casa-next'),
+      nextLabel: el.querySelector('.casa-next span'),
+    };
+    this.dom.index.forEach((b, i) => b.addEventListener('click', () => this.request(i)));
+    this.dom.next.addEventListener('click', () => {
+      if (this.index < ROOMS.length - 1) this.request(this.index + 1);
+      else this.ctx.navigate('reserva');
+    });
+    this.labels = new Labels(el, this.engine);
+    const nav = this.ctx.content.navLabels;
+    for (const s of SPOTS)
+      this.labels.add(s.id, {
+        text: nav[s.id],
+        sub: c.spotSubs[s.id],
+        world: new THREE.Vector3(...s.at),
+        kind: 'object',
+        onClick: () => this.ctx.navigate(s.id),
+      });
+  }
+
+  // ------------------------------------------------------------ zonas y luz
+
+  areaAt(x, z) {
+    if (z > SALON.z0) return 'entrada';
+    if (z < LANDING.z1 + 0.3) return 'terraza';
+    if (z < RESERVADO.z1) return 'escalera';
+    if (x < SALON.x0 - 0.2) return 'reservado';
+    return 'salon';
+  }
+
+  roomAt(x, z) {
+    const a = this.areaAt(x, z);
+    if (a === 'terraza') return x > -1.5 ? 5 : 4;
+    return AREAS.indexOf(a);
+  }
+
+  setArea(a, instant = false) {
+    if (a === this.area && !instant) return;
+    this.area = a;
+    for (const k of AREAS) this.spaces[k].lights.visible = NEAR[a].includes(k);
+    const out = a === 'terraza';
+    this.scene.environment = out ? this.envOut : this.envIn;
+    // el encuadre de sombras del sol sigue a la zona
+    const fit = this.shadowFit[a];
+    this.sun.target.position.copy(fit.center);
+    this.sun.position.copy(fit.center).addScaledVector(SUN_DIR, -36);
+    this.sun.target.updateMatrixWorld();
+    if (this.q.shadows) {
+      Object.assign(this.sun.shadow.camera, { left: -fit.hx, right: fit.hx, top: fit.hy, bottom: -fit.hy });
+      this.sun.shadow.camera.updateProjectionMatrix();
+    }
+    const to = { env: out ? 0.6 : 0.22, hemiIn: out ? 0 : 0.2, hemiOut: out ? 0.9 : a === 'escalera' ? 0.15 : 0, sun: out ? 7 : a === 'escalera' ? 12 : 20 };
+    const apply = () => {
+      this.scene.environmentIntensity = this.levels.env;
+      this.hemiIn.intensity = this.levels.hemiIn;
+      this.hemiOut.intensity = this.levels.hemiOut;
+      this.sun.intensity = this.levels.sun;
+    };
+    gsap.killTweensOf(this.levels);
+    if (instant) {
+      Object.assign(this.levels, to);
+      apply();
+    } else gsap.to(this.levels, { ...to, duration: 1.6, ease: 'sine.inOut', onUpdate: apply });
+    if (this.state !== 'hidden') this.ctx.sound.ambience(out ? 'plaza' : 'interior');
+  }
+
+  // ------------------------------------------------------------ caminos
+
+  // ¿Se puede ir en línea recta de a a b?
+  clear(a, b) {
+    const n = Math.ceil(a.distanceTo(b) / 0.2);
+    for (let i = 1; i <= n; i++) {
+      const t = i / n;
+      if (this.walker.floorAt(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t) === null) return false;
+    }
+    return true;
+  }
+
+  // Camino de a a b siguiendo el recorrido de la casa (por puertas y escalera).
+  routePath(from, to) {
+    const a = nearestOnRoute(from);
+    const b = nearestOnRoute(to);
+    const pts = [from.clone()];
+    if (b > a) for (let k = Math.floor(a) + 1; k <= Math.ceil(b) - 1; k++) pts.push(V(ROUTE[k]));
+    else for (let k = Math.ceil(a) - 1; k >= Math.floor(b) + 1; k--) pts.push(V(ROUTE[k]));
+    pts.push(new THREE.Vector3(to.x, 0, to.z));
+    // sin puntos amontonados
+    return pts.filter((p, i) => i === 0 || i === pts.length - 1 || (p.distanceTo(pts[i - 1]) > 0.7 && p.distanceTo(pts.at(-1)) > 0.7));
+  }
+
+  travel(pos, yaw, pitch, { quick = false } = {}) {
+    const to = V(pos);
+    const path = this.routePath(this.walker.target, to);
+    return this.walker.travelPath(path, yaw, pitch, quick ? { speed: 3, min: 1.6, max: 6 } : { speed: 1.5, min: 2.4, max: 9 });
+  }
+
+  // ------------------------------------------------------------ salas
+
+  async enter({ room = 0, from = null, instant = false } = {}) {
+    this.dom.root.hidden = false;
+    const post = this.engine.post;
+    post.setToneMapping('agx');
+    await post.setAO(!!this.q.ao, this.scene);
+    Object.assign(post.fx, { bloom: 1, ca: 0.45, flash: 0, blur: 0, dim: 0 });
+    post.look.threshold = 0.95;
+    post.look.knee = 0.97;
+    const cam = this.engine.camera;
+    cam.near = 0.05;
+    cam.far = 700;
+    this.applyFov();
+    this.walker.enabled = true;
+    this.index = room;
+    this.showIndex(room);
+    this.ctx.chrome.reveal(true);
+
+    if (from === 'intro') {
+      // Del círculo dibujado a los dos círculos de la escultura, a contraluz;
+      // la cámara se aparta y aparece la entrada.
+      this.state = 'arrive';
+      this.walker.place(new THREE.Vector3(0.45, 0, 3.3), Math.PI / 2, 0.36);
+      this.setArea('entrada', true);
+      this.ctx.sound.ambience('interior');
+      gsap.to('#veil', { opacity: 0, duration: 2.6, ease: 'power2.out' });
+      const v = ROOMS[0].view;
+      await new Promise((r) => gsap.delayedCall(1.1, r));
+      gsap.delayedCall(1.6, () => this.caption(room));
+      await this.walker.travelTo(V(v.pos), v.yaw, v.pitch ?? 0, 4.4, 'power2.inOut');
+      if (this.state === 'arrive') this.state = 'idle';
+    } else {
+      const v = ROOMS[room]?.view ?? ROOMS[0].view;
+      this.walker.place(V(v.pos), v.yaw, v.pitch ?? 0);
+      this.setArea(this.areaAt(v.pos[0], v.pos[1]), true);
+      this.ctx.sound.ambience(this.area === 'terraza' ? 'plaza' : 'interior');
+      this.state = 'idle';
+      gsap.to('#veil', { opacity: 0, duration: instant ? 0.6 : 1.2, ease: 'power2.out' });
+      this.caption(room);
+    }
+    this.dom.root.classList.add('ready');
+  }
+
+  applyFov() {
+    const { width, height } = this.engine.view;
+    const cam = this.engine.camera;
+    cam.fov = width / height < 0.8 ? 68 : width / height < 1.3 ? 60 : 52;
+    cam.updateProjectionMatrix();
+  }
+
+  // Nombre de la sala: entra con el plano y se retira para dejar ver la casa.
+  caption(i) {
+    const r = this.ctx.content.casa.rooms[i];
+    const { kicker, title, sub } = this.dom;
+    const els = [kicker, title, sub];
+    gsap.killTweensOf(els);
+    gsap
+      .timeline()
+      .to(els, { opacity: 0, duration: 0.35, ease: 'power2.in' })
+      .add(() => {
+        kicker.textContent = `${String(i + 1).padStart(2, '0')} · ${r.name}`;
+        title.textContent = r.title;
+        sub.textContent = r.sub;
+      })
+      .fromTo(els, { opacity: 0, y: 16 }, { opacity: (k) => (k === 0 ? 0.9 : 1), y: 0, duration: 1.2, ease: 'power3.out', stagger: 0.09 })
+      .to([title, sub], { opacity: 0, y: -6, duration: 1.4, ease: 'power2.inOut' }, '+=6.5');
+    this.showIndex(i);
+  }
+
+  showIndex(i) {
+    this.dom.index.forEach((b, k) => b.classList.toggle('on', k === i));
+    const c = this.ctx.content.casa;
+    this.dom.nextLabel.textContent = i < ROOMS.length - 1 ? `${c.next} · ${c.rooms[i + 1].name}` : this.ctx.content.navLabels.reserva;
+  }
+
+  // Ir a una sala (desde el índice, "Seguir" o la URL).
+  goTo(i, { quick = false } = {}) {
+    const v = ROOMS[i]?.view;
+    if (!v) return Promise.resolve();
+    this.index = i;
+    this.caption(i);
+    this.state = 'idle';
+    this.travelling = true;
+    return this.travel(v.pos, v.yaw, v.pitch ?? 0, { quick }).then(() => {
+      this.travelling = false;
+    });
+  }
+
+  request(i) {
+    if (this.state !== 'idle' || this.ctx.overlayOpen()) return;
+    this.index = i;
+    this.ctx.roomChanged(ROOMS[i].id);
+    this.goTo(i);
+  }
+
+  // Una sección se abre junto a su objeto: la cámara se acerca y la casa
+  // sigue viva al lado del panel.
+  focus(id) {
+    const s = SPOTS.find((p) => p.id === id);
+    this.state = 'focus';
+    this.labels.hideAll();
+    this.dom.root.classList.add('focus');
+    gsap.to(this.engine.post.fx, { dim: 0.12, duration: 1.2, ease: 'power2.inOut', overwrite: 'auto' });
+    if (!s) return Promise.resolve();
+    // en un teléfono el panel sube desde abajo: se mira un poco más alto
+    const portrait = this.engine.view.width / this.engine.view.height < 0.8;
+    return this.travel(s.view.pos, s.view.yaw, s.view.pitch + (portrait ? 0.12 : 0), { quick: true });
+  }
+
+  unfocus() {
+    if (this.state !== 'focus') return;
+    this.state = 'idle';
+    this.dom.root.classList.remove('focus');
+    this.walker.lastInput = this.engine.time;
+    gsap.to(this.engine.post.fx, { dim: 0, duration: 0.9, ease: 'power2.out', overwrite: 'auto' });
+  }
+
+  async exit() {
+    this.state = 'hidden';
+    this.walker.enabled = false;
+    this.walker.cancelTravel();
+    this.labels.hideAll();
+    this.dom.root.hidden = true;
+    this.dom.root.classList.remove('ready', 'focus');
+    this.ctx.sound.ambience(null);
+    const post = this.engine.post;
+    post.setToneMapping('linear');
+    post.setAO(false);
+    post.look.threshold = post.defaults.threshold;
+    post.look.knee = post.defaults.knee;
+    Object.assign(post.fx, { dim: 0 });
+    const cam = this.engine.camera;
+    cam.near = 0.05;
+    cam.far = 120;
+    cam.updateProjectionMatrix();
+  }
+
+  update(dt, t) {
+    if (this.state === 'hidden') return;
+    const w = this.walker;
+    const cam = this.engine.camera;
+    w.update(dt, cam);
+    this.setArea(this.areaAt(w.pos.x, w.pos.z));
+    for (const s of Object.values(this.spaces)) s.update(t);
+    this.sky.position.copy(cam.position);
+
+    // El índice sigue a quien camina (la URL también, sin llenar el historial).
+    if (this.state === 'idle' && !this.travelling) {
+      const i = this.roomAt(w.pos.x, w.pos.z);
+      if (i !== this.index) {
+        this.index = i;
+        this.ctx.roomChanged(ROOMS[i].id);
+        this.caption(i);
+      }
+    }
+    // Pista de controles: desaparece al moverse y vuelve si nadie toca nada.
+    const idle = t - w.lastInput > 14;
+    if (w.lastInput > 0) this.dom.root.classList.add('moved');
+    this.dom.root.classList.toggle('idle', idle);
+
+    // Puntos de luz de las secciones: aparecen al pararse cerca de su objeto.
+    const still = w.speed < 0.5 && !w.travel;
+    for (const s of SPOTS) {
+      const near = Math.hypot(cam.position.x - s.at[0], cam.position.z - s.at[2]) < 9;
+      const p = this._p.set(...s.at).project(cam);
+      const inView = p.z < 1 && Math.abs(p.x) < 0.92 && Math.abs(p.y) < 0.9;
+      this.labels.show(s.id, this.state === 'idle' && still && near && inView && ROOM_AREA[s.room] === this.area);
+    }
+    this.labels.update();
+  }
+
+  resize() {
+    if (this.director.name === 'casa') this.applyFov();
+  }
+}
+
+// Para cada zona: centro y medidas del encuadre del sol que abarca los
+// espacios visibles desde ella (en el plano perpendicular a los rayos).
+function fitShadows() {
+  const z = SUN_DIR.clone().negate();
+  const x = new THREE.Vector3(0, 1, 0).cross(z).normalize();
+  const y = z.clone().cross(x);
+  const out = {};
+  for (const a of AREAS) {
+    const lo = [Infinity, Infinity, Infinity];
+    const hi = [-Infinity, -Infinity, -Infinity];
+    for (const k of NEAR[a]) {
+      const b = BOUNDS[k];
+      for (const px of [b[0], b[3]])
+        for (const py of [b[1], b[4]])
+          for (const pz of [b[2], b[5]]) {
+            const p = new THREE.Vector3(px, py, pz);
+            [p.dot(x), p.dot(y), p.dot(z)].forEach((v, i) => {
+              lo[i] = Math.min(lo[i], v);
+              hi[i] = Math.max(hi[i], v);
+            });
+          }
+    }
+    const c = [0, 1, 2].map((i) => (lo[i] + hi[i]) / 2);
+    out[a] = {
+      center: x.clone().multiplyScalar(c[0]).addScaledVector(y, c[1]).addScaledVector(z, c[2]),
+      hx: (hi[0] - lo[0]) / 2 + 0.5,
+      hy: (hi[1] - lo[1]) / 2 + 0.5,
+    };
+  }
+  return out;
+}
+
+// Posición continua (índice + fracción) del punto del recorrido más cercano.
+function nearestOnRoute(p) {
+  let best = Infinity;
+  let s = 0;
+  for (let i = 0; i < ROUTE.length - 1; i++) {
+    const [ax, az] = ROUTE[i];
+    const [bx, bz] = ROUTE[i + 1];
+    const dx = bx - ax;
+    const dz = bz - az;
+    const t = THREE.MathUtils.clamp(((p.x - ax) * dx + (p.z - az) * dz) / (dx * dx + dz * dz), 0, 1);
+    const d = (ax + dx * t - p.x) ** 2 + (az + dz * t - p.z) ** 2;
+    if (d < best - 1e-6) {
+      best = d;
+      s = i + t;
+    }
+  }
+  return s;
+}
+
+// Muros gruesos invisibles que sólo cuentan para las sombras del sol: tapan
+// las rendijas de luz al pie de los muros que dan a poniente.
+const BLOCKER_LAYER = 5;
+function sunBlockers() {
+  const g = new THREE.Group();
+  // la cara que mira al sol: la sombra empieza en el exterior del muro, no en la junta
+  const mat = new THREE.MeshBasicMaterial({ shadowSide: THREE.FrontSide });
+  for (const [x0, y0, z0, x1, y1, z1] of [
+    [-2.3, -0.6, 0.4, -1.82, 4.2, 6.9], // entrada, oeste
+    [-2.3, -0.6, 6.42, 2.3, 4.2, 6.9], // entrada, sur
+    [-9.4, -0.6, -24.2, -8.81, 4, -16.2], // reservado, oeste
+    [-9.4, -0.6, -16.78, -3.0, 4, -16.3], // reservado, sur
+    [-8.2, -0.6, -31.4, -7.62, 8, -23.6], // escalera, oeste
+  ]) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), mat);
+    b.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    b.castShadow = true;
+    b.layers.set(BLOCKER_LAYER);
+    g.add(b);
+  }
+  return g;
+}
+
+// La caseta de la escalera sobre la azotea: muros encalados que siguen la
+// pendiente del techo, losa sobre el rellano y el dintel hacia la terraza.
+function stairHut(m) {
+  const g = new THREE.Group();
+  const top = STAIR.rise + 3.35;
+  const shape = new THREE.Shape();
+  // perfil en (z, y), extruido a lo ancho
+  shape.moveTo(-LANDING.z1 + 0.2, 4.2);
+  shape.lineTo(-LANDING.z1 + 0.2, top);
+  shape.lineTo(-STAIR.z1, top);
+  shape.lineTo(-STAIR.z1 - 4.7, 4.2);
+  shape.closePath();
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.22, bevelEnabled: false });
+  // el perfil se dibujó con z cambiada de signo: se gira para ponerlo en su sitio
+  geo.rotateY(Math.PI / 2);
+  for (const x of [STAIR.x0 - 0.24, STAIR.x1 + 0.02]) {
+    const w = new THREE.Mesh(geo, m.lime);
+    w.position.x = x;
+    w.castShadow = w.receiveShadow = true;
+    g.add(w);
+  }
+  const W = STAIR.x1 - STAIR.x0 + 0.5;
+  const xc = (STAIR.x0 + STAIR.x1) / 2;
+  const slab = box(W, 0.22, LANDING.z0 - LANDING.z1 + 0.6, m.lime, 1);
+  slab.position.set(xc, top - 0.11, (LANDING.z0 + LANDING.z1) / 2 - 0.1);
+  slab.castShadow = true;
+  g.add(slab);
+  const slopeLen = Math.hypot(4.7, top - 4.2);
+  const slope = box(W, 0.2, slopeLen, m.lime, 1);
+  slope.rotation.x = Math.atan2(top - 4.2, 4.7);
+  slope.position.set(xc, (top + 4.2) / 2 - 0.1, STAIR.z1 + 4.7 / 2);
+  slope.castShadow = true;
+  g.add(slope);
+  const lintel = box(W, top - (STAIR.rise + 2.45), 0.22, m.lime, 1);
+  lintel.position.set(xc, (top + STAIR.rise + 2.45) / 2, LANDING.z1 - 0.11 - 0.2);
+  g.add(lintel);
+  return g;
+}
+
+// Lo que se ve desde la terraza: la azotea de la casa, el pretil, la fachada
+// y la plaza abajo, con sus árboles, hasta la Catedral.
+function exterior(m) {
+  const g = new THREE.Group();
+  const T = TERRAZA;
+  const roofMat = new THREE.MeshStandardMaterial({ color: '#9a8672', roughness: 0.95 });
+  const roof = new THREE.Mesh(new THREE.PlaneGeometry(T.x1 - T.x0 + 1, ENTRADA.z0 - T.z0 + 1), roofMat);
+  roof.rotation.x = -Math.PI / 2;
+  roof.position.set((T.x0 + T.x1) / 2, T.y - 0.04, (ENTRADA.z0 + T.z0) / 2);
+  roof.receiveShadow = true;
+  roof.userData.floor = false;
+  g.add(roof);
+  // pretil al sur, a ambos lados de la caseta
+  for (const [x0, x1] of [
+    [T.x0 - 0.4, STAIR.x0 - 0.02],
+    [STAIR.x1 + 0.02, T.x1 + 0.1],
+  ]) {
+    const p = box(x1 - x0, 1.0, 0.3, m.lime, 2);
+    p.position.set((x0 + x1) / 2, T.y + 0.5, T.z0 + 0.15);
+    p.castShadow = p.receiveShadow = true;
+    g.add(p);
+  }
+  // la casa bajo la terraza (fachada hacia la plaza)
+  const mass = box(T.x1 - T.x0 + 0.2, T.y - 0.1, T.z0 - T.z1 + 0.6, m.lime, 3);
+  mass.position.set((T.x0 + T.x1) / 2, (T.y - 0.1) / 2, (T.z0 + T.z1) / 2 - 0.3);
+  g.add(mass);
+  // las casas vecinas y, al otro lado de la plaza, los portales
+  const colors = ['#dcc6a2', '#e3b9a1', '#d2a878', '#e9e0d0', '#c9b294', '#e6cfae'];
+  const mats = colors.map((c) => {
+    const mm = m.lime.clone();
+    mm.color = new THREE.Color(c).multiplyScalar(0.92);
+    return mm;
+  });
+  let k = 0;
+  for (const [x0, x1, z0, z1, h] of [
+    // al sur, detrás de la entrada
+    [-22, -9, 7, 22, 7.5],
+    [-9, -1, 7.5, 20, 9],
+    [-1, 6, 7.2, 18, 6.5],
+    // a poniente (a contraluz)
+    [-34, -17, -12, 6, 6.2],
+    [-30, -17, -30, -12, 8.5],
+    [-36, -17, -52, -30, 7],
+    [-16, -3, -2, 6, 5.6],
+    // al norte, tras el muro de la terraza
+    [-28, -12, -66, -46, 9.5],
+    [-12, 4, -62, -46.5, 8],
+    // la calle y los portales de la plaza
+    [4, 8.5, -28, 6, 7.2],
+    [78, 100, -52, -24, 11],
+    [76, 98, -78, -56, 9],
+    [70, 96, -150, -124, 12],
+    [26, 50, -160, -138, 10],
+    [10, 34, -176, -154, 9],
+  ]) {
+    const b = box(x1 - x0, h, z1 - z0, mats[k++ % mats.length], 3);
+    b.position.set((x0 + x1) / 2, h / 2, (z0 + z1) / 2);
+    g.add(b);
+    const cornice = box(x1 - x0 + 0.3, 0.35, z1 - z0 + 0.3, mats[(k + 2) % mats.length], 2);
+    cornice.position.set((x0 + x1) / 2, h + 0.17, (z0 + z1) / 2);
+    g.add(cornice);
+  }
+  // la plaza
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshStandardMaterial({ color: '#6a5d50', roughness: 1 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(0, -0.06, -60);
+  ground.userData.floor = false;
+  ground.receiveShadow = false;
+  g.add(ground);
+  return g;
+}
+
+// "Picheta" en letra de mano, blanco sobre transparente (máscara para el alambre).
+function signatureTexture(text) {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 370;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff';
+  g.font = '230px "Great Vibes", cursive';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(text, 512, 200);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}

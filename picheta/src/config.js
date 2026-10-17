@@ -8,10 +8,9 @@ export const CONFIG = {
   assets: {
     // Trazo claro sobre fondo oscuro (o transparente). La intro muestrea sus píxeles claros.
     logo: asset('logo-picheta.png'),
-    // La casa en 3D: las salas (fotos reales + mapas de profundidad en public/assets/casa/)
-    // y sus puntos de luz están en src/scenes/casa/rooms.js.
-    // Foto de portada de la versión sin WebGL.
-    hero: asset('casa/terraza.webp'),
+    // La casa en 3D está modelada en src/scenes/mundo/ (sus paradas y puntos de luz,
+    // en spaces.js); aquí sólo la foto de portada de la versión sin WebGL.
+    hero: asset('mundo/terraza.webp'),
     // Imágenes provisionales de cocina para Menú y Autores (generadas con IA): sustituir
     // por fotos de los platillos y retratos de los chefs.
     photos: {
@@ -42,10 +41,10 @@ export const CONFIG = {
   },
 
   // Calidad por nivel (ver core/quality.js). Intro: partículas del logo (trazo ~80 %,
-  // polvo ~18 %, destellos ~2 %). Casa: malla de cada sala (celdas a lo ancho).
+  // polvo ~18 %, destellos ~2 %). Casa 3D: resolución de las sombras del sol y oclusión ambiental.
   quality: {
-    high: { particles: 40000, dust: 520, ink: 3600, trail: 420, bloomLevels: 7, stoneSize: 2048, roomGrid: 240 },
-    mid: { particles: 24000, dust: 320, ink: 2600, trail: 320, bloomLevels: 6, stoneSize: 2048, roomGrid: 190 },
-    low: { particles: 14000, dust: 200, ink: 1800, trail: 240, bloomLevels: 5, stoneSize: 1024, roomGrid: 140 },
+    high: { particles: 40000, dust: 520, ink: 3600, trail: 420, bloomLevels: 7, stoneSize: 2048, shadows: 2048, ao: true },
+    mid: { particles: 24000, dust: 320, ink: 2600, trail: 320, bloomLevels: 6, stoneSize: 2048, shadows: 1536, ao: true },
+    low: { particles: 14000, dust: 200, ink: 1800, trail: 240, bloomLevels: 5, stoneSize: 1024, shadows: 1024, ao: false },
   },
 };

@@ -5,7 +5,7 @@ import { Pointer } from './core/Pointer.js';
 import { Sound } from './core/Sound.js';
 import { Director } from './core/Director.js';
 import { Router, SECTIONS, ROOM_IDS } from './core/Router.js';
-import { ROOM_OF } from './scenes/casa/rooms.js';
+import { ROOM_OF } from './scenes/mundo/spaces.js';
 import { Preloader } from './ui/Preloader.js';
 import { Chrome } from './ui/Chrome.js';
 import { Panel } from './ui/Panel.js';
@@ -66,11 +66,13 @@ export async function startExperience({ content, config }) {
   async function onRoute(route) {
     if (SECTIONS.includes(route)) {
       // Cada sección vive en una sala: si no estamos allí, se va a ella.
+      // La cámara va hasta el objeto de la sección y el panel se abre a su lado.
       const i = ROOM_OF[route];
       if (director.name !== 'casa') await director.go('casa', { room: i, instant: true, fade: !!director.current });
-      else if (director.current.index !== i) await director.current.goTo(i, { quick: true });
-      director.current.focus(route);
-      ctx.panel.open(route, { back: content.casa.rooms[i].back });
+      const arrived = director.current.focus(route);
+      await Promise.race([arrived, new Promise((r) => setTimeout(r, 1300))]);
+      if (router.current !== route) return;
+      ctx.panel.open(route, { back: content.casa.rooms[i].back, side: true });
       return;
     }
     ctx.panel.close();

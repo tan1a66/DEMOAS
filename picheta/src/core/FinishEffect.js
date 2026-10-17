@@ -43,8 +43,9 @@ export class FinishEffect extends Effect {
     this.uniforms.get('uDim').value = v;
   }
 
+  // La rodilla nunca llega a 1 (la compresión divide por 1 - rodilla).
   set knee(v) {
-    this.uniforms.get('uKnee').value = v;
+    this.uniforms.get('uKnee').value = Math.min(v, 0.98);
   }
 
   update() {

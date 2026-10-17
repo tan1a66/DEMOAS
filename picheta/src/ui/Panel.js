@@ -43,9 +43,11 @@ export class Panel {
     this.isOpen = false;
   }
 
-  open(id, { back = null } = {}) {
+  // side: el panel ocupa un lado (abajo en el teléfono) y la casa sigue a la vista.
+  open(id, { back = null, side = false } = {}) {
     if (!this.content.sections[id]) return;
     this.current = id;
+    this.el.classList.toggle('side', side);
     this.backLabel.textContent = back ?? this.content.ui.back;
     this.body.dataset.section = id;
     this.body.innerHTML = renderSection(id, this) + renderFooter(this);

@@ -26,8 +26,8 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 | URL | Cosa fa |
 |---|---|
 | `#entrada`, `#salon`, `#reservado`, `#escalera`, `#terraza`, `#vista` | Entra direttamente in una sala della casa |
-| `#historia`, `#autores`, `#menu`, `#reserva`, `#concurso`, `#eventos` | Apre la sezione sopra la sua sala (link condivisibili; il tasto "indietro" del telefono chiude la sezione) |
-| `?q=low` / `?q=mid` / `?q=high` | Forza il livello di qualità (particelle, densità delle sale, bloom, risoluzione) |
+| `#historia`, `#autores`, `#menu`, `#reserva`, `#concurso`, `#eventos` | La camera va fino all'oggetto della sezione e il pannello si apre accanto (link condivisibili; il tasto "indietro" del telefono chiude la sezione) |
+| `?q=low` / `?q=mid` / `?q=high` | Forza il livello di qualità (ombre, luci, AO, risoluzione) |
 | `?static` | Versione senza WebGL (la stessa che vede chi non ha WebGL2) |
 | `?capture` | Orologio manuale per registrare video fotogramma per fotogramma (`window.__picheta.step(n, fps)`) |
 
@@ -35,49 +35,53 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 1. **Il cerchio** (`src/scenes/intro/`): una linea di caricamento e subito la pagina che chiede di
    disegnare. Il logo, campionato dal PNG, entra in due anelli di gesso che si uniscono con un colpo di
    tamburo; "Dibuja un círculo para entrar" con la guida animata (bottone "Entrar" dopo 4 s, anche Invio).
-   Disegnato il cerchio, il logo esplode verso lo spettatore e dal buio emerge la scultura dei due cerchi.
-2. **La casa** (`src/scenes/casa/`): **un unico percorso 3D** attraverso sei sale ricostruite dalle foto
-   reali del ristorante. Ogni foto ha la sua mappa di profondità (Depth Anything V2) e diventa geometria
-   con la luce e i materiali veri; le sale sono messe una dopo l'altra nello stesso spazio e la camera le
-   attraversa senza stacchi: si entra dall'anello della scultura, si cammina lungo il salone fino alla
-   firma "Picheta", si gira attorno al tavolo del reservado, si salgono i gradini, si esce sulla terrazza
-   e si arriva alla balaustra davanti alla Cattedrale. Rotella, swipe verticale, "Seguir" o l'indice a
-   destra muovono la camera lungo il cammino; quando ci si ferma, la camera si posa dolcemente nella
-   sosta più vicina (dove la sala coincide con la foto) e compaiono i punti di luce. Tra una sala e
-   l'altra l'immagine sfuma mentre la camera continua ad avanzare.
-3. **Punti di luce → sezioni** (`src/ui/Panel.js`, `src/ui/sections.js`): pannelli sopra la sala sfocata.
-   Historia (una frase per schermata con incisioni originali), Autores, Menú (carte 3D da sfogliare),
-   Reserva (CTA OpenTable/WhatsApp, indirizzo, orari), Concurso ed Eventos (layout pronti).
+   Disegnato il cerchio, il logo esplode verso lo spettatore e dal buio emergono i due cerchi della
+   scultura, in controluce sulla pietra: la camera si allontana e si è dentro Picheta.
+2. **La casa** (`src/scenes/mundo/`): Picheta **modellata in 3D**, un unico edificio percorribile
+   ispirato alle foto reali (le foto non compaiono: servono da riferimento per misure, materiali e luce).
+   - *La entrada*: muro di pietra con la scultura dei due cerchi retroilluminata, la cava dei vini,
+     soffitto di corde.
+   - *El salón*: la volta di corde con la luce calda nascosta sulle cornici, la banquette verde, i
+     tavoli lunghi apparecchiati, le sedie blu trapuntate, i quadri, il sole del tramonto che entra
+     dalle finestre e disegna strisce sul pavimento.
+   - *El reservado*: muro di pietra con nicchie illuminate, il tavolo rotondo con otto sedie, le
+     lampade a cupola nere con l'interno arancio.
+   - *La escalera*: gradini di travertino, soffitto inclinato di corde, corrimano con la linea di luce.
+   - *La terraza* e *la vista*: pedana di legno, il muro antico con la firma "Picheta" e la ghirlanda
+     di lampadine, la barra nera sotto la pergola, i tavoli di marmo, le palme, il cielo del tramonto
+     e la Cattedrale di San Ildefonso.
 
-| Sala (foto) | Punto di luce | Sezione |
+   Si cammina liberamente: **trascinare** per guardare, **rotella / frecce / WASD** per avanzare,
+   **clic o tocco sul pavimento** per andare lì (se c'è un muro in mezzo si passa dalle porte).
+   **"Seguir"** e l'indice a destra fanno il percorso guidato, con un movimento di camera da film che
+   attraversa davvero porte e scala. Didascalie e URL seguono la sala in cui ci si trova.
+3. **Sezioni dentro il 3D** (`src/ui/Panel.js`, `src/ui/sections.js`): quando ci si ferma vicino a un
+   oggetto compare il suo punto di luce; toccandolo la camera si avvicina all'oggetto e la sezione si
+   apre in un pannello laterale (dal basso sul telefono) con la casa sempre visibile accanto. Historia
+   (una frase per schermata con incisioni originali), Autores, Menú (carte 3D da sfogliare), Reserva
+   (CTA OpenTable/WhatsApp, indirizzo, orari), Concurso ed Eventos.
+
+| Spazio | Punto di luce (oggetto) | Sezione |
 |---|---|---|
-| La entrada — la scultura dei due cerchi sulla pietra | la scultura | HISTORIA |
-| El salón — la volta di corde, le banquette verdi | la firma "Picheta" sul muro · un tavolo apparecchiato | AUTORES · MENÚ |
-| El reservado — il tavolo rotondo | il tavolo | EVENTOS |
-| La escalera | i gradini | (sale alla terrazza) |
-| La terraza — il bancone, la Cattedrale al tramonto | la barra | CONCURSO GASTRONÓMICO |
-| La vista — la Cattedrale di San Ildefonso | i tavoli davanti alla Cattedrale | RESERVA UNA MESA |
+| La entrada | la scultura dei due cerchi | HISTORIA |
+| El salón | un quadro · un tavolo apparecchiato | AUTORES · MENÚ |
+| El reservado | il tavolo rotondo | EVENTOS |
+| La terraza | la barra | CONCURSO GASTRONÓMICO |
+| La vista | il tavolo davanti alla Cattedrale | RESERVA UNA MESA |
 | (menu testuale e footer) | | INICIO · FACTURACIÓN |
 
-## Le foto della casa
-Sono in `public/assets/casa/` (`<sala>.webp` + `<sala>-depth.png`); sale, ordine, inquadrature e punti
-di luce in `src/scenes/casa/rooms.js` (coordinate 0..1 sulla foto).
-
-Per **aggiungere o sostituire una sala** con una foto nuova (meglio l'originale ad alta risoluzione,
-senza il velo scuro dei social; lo script comunque lo toglie):
-
-```bash
-pip install onnxruntime pillow numpy
-# modello Depth Anything V2 (licenza Apache-2.0):
-#   https://github.com/fabio-sim/Depth-Anything-ONNX/releases  → depth_anything_v2_vitb.onnx
-python3 scripts/preparar-fotos.py --modelo depth_anything_v2_vitb.onnx \
-    --salida public/assets/casa  salon=foto-salon.jpg terraza=foto-terraza.jpg
-```
-
-Poi in `rooms.js`: `fov` (campo verticale stimato della foto), `near`/`far` (distanza in metri di ciò
-che è più vicino e più lontano), `look` (punto al centro dello schermo nella sosta), `path` (il cammino
-della camera dentro la sala), `gap`/`rise` (distanza e dislivello fino alla sala successiva), `spots`
-(punti di luce), `overscan` (sale scure: in orizzontale si apre più della foto e i lati sfumano nel buio).
+## Come è costruita la casa
+- `spaces.js`: le soste delle sale (posizione e sguardo della camera) e i punti di luce delle sezioni.
+- `salon.js`, `entrada.js`, `reservado.js`, `escalera.js`, `terraza.js`: geometria, arredi e luci di
+  ogni spazio, in metri, nelle loro posizioni reali (porte e scala collegano gli spazi).
+- `materials.js` + `textures.js`: materiali fisici con texture procedurali (intonaco, pietra con la
+  palette della parete vera, corda, legno, trapuntato, travertino, maioliche, marmo, rattan).
+- `MundoScene.js`: il sole unico (ombre che seguono la zona), cielo e riflessi diversi dentro e fuori,
+  le luci accese solo vicino a dove ci si trova (tutte le combinazioni compilate al caricamento), il
+  percorso guidato, le sezioni, le didascalie.
+- `Walker.js`: la camera a piedi (pavimenti, rampa della scala, ostacoli, inerzia, leggero passo).
+- `public/assets/mundo/`: i due quadri (raddrizzati dalle foto), la Cattedrale ritagliata dal cielo e
+  la foto di copertina della versione senza WebGL.
 
 Le foto delle sezioni Menú e Autores (`public/assets/fotos/`) sono **immagini provvisorie generate con
 IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets.photos`).
@@ -87,26 +91,25 @@ IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets
 - `src/content/es.js`: orari (Lun–Sáb 17:00–00:00 · Dom 14:30–21:00), testo completo della storia,
   nomi e ritratti degli autores, menù reale (i piatti attuali sono esempi di cucina yucateca),
   contenuti di Concurso ed Eventos, didascalie delle sale
+- Misure e arredi della casa sono ricostruiti dalle foto: con una pianta del locale si possono
+  rendere esatti (`src/scenes/mundo/*.js`, coordinate in metri)
 
 ## Struttura
 - `src/main.js`: ingresso leggero (font, stili, testi); carica la parte 3D solo se c'è WebGL2
 - `src/experience.js`: avvio di motore, scene, interfaccia e rotte (deep link → la casa direttamente)
-- `src/core/`: `Engine` (renderer, camera, loop, DPR adattivo, modalità capture), `PostFX` (bloom,
-  vignetta, aberrazione minima, grana, sfocatura dietro i pannelli), `Director` (state manager con
+- `src/core/`: `Engine` (renderer, camera, loop, DPR adattivo, modalità capture), `PostFX` (ambient
+  occlusion N8AO, bloom, tone mapping AgX, vignetta, grana), `Director` (state manager con
   caricamento lazy delle scene), `Router` (hash + tasto indietro), `Pointer`, `Gyro`, `Sound`
 - `src/scenes/intro/`: il logo di particelle (simulazione GPU), il gesto del cerchio, l'esplosione
-- `src/scenes/casa/`: `rooms.js` (le sale e il cammino), `Room.js` (ricostruzione 3D di una foto:
-  superficie e fondo che riempie dietro le sagome), `CasaScene.js` (posizione delle sale nel mondo, curva
-  della camera, scroll e soste, dissolvenze, punti di luce, didascalie)
+- `src/scenes/mundo/`: la casa in 3D (vedi sopra)
 - `src/ui/`: precarga, barra + menu testuale, pannelli e sezioni, etichette 3D, cursore, versione statica
-- `scripts/preparar-fotos.py`: foto reali → WebP + mappa di profondità
 
 ## Prestazioni
 - Livelli `high / mid / low` (`src/core/quality.js`): iPhone → mid, Android medio → low.
 - DPR massimo 2 (1,5 su mobile) e riduzione automatica se il frame rate scende sotto ~45 fps.
-- Sale: maglia 240 / 190 / 140 celle di larghezza; si disegna una sola sala alla volta (due durante le
-  dissolvenze). Le profondità (~0,6 MB) e le prime due foto si caricano durante l'intro, le altre in
-  sottofondo, in ordine. Tutta la casa pesa ~2 MB.
+- La casa: luci accese solo nella zona in cui ci si trova e in quelle visibili dalle porte; ombre del
+  sole 2048 / 1536 / 1024; AO a metà risoluzione su mid e low. Nessun modello da scaricare: geometria
+  e texture sono generate nel browser; gli asset della casa pesano ~0,3 MB.
 - Audio tutto sintetizzato (nessun file).
 
 ## Audio (opzionale, spento di default)

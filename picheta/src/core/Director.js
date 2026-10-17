@@ -6,7 +6,7 @@ import gsap from 'gsap';
 //                         beforeRender(renderer) · resize(view) · scene (THREE.Scene)
 const LOADERS = {
   intro: () => import('../scenes/intro/IntroScene.js'),
-  casa: () => import('../scenes/casa/CasaScene.js'),
+  casa: () => import('../scenes/mundo/MundoScene.js'),
 };
 
 export class Director {
