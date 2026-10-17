@@ -3,7 +3,7 @@
 Demo del nuovo sito di **Picheta** (cucina yucateca contemporanea "de autores", Pasaje Picheta,
 Calle 61 #501, Mérida) come viaggio immersivo:
 
-**Intro → Inmersión → Llegada → Terraza (hub) → Secciones**
+**Il cerchio (intro) → La casa in 3D: entrada → salón → reservado → escalera → terraza → vista**
 
 Tutti i testi visibili sono in spagnolo (`src/content/es.js`).
 
@@ -20,95 +20,90 @@ npm run preview    # serve dist/ in locale
   https://app.netlify.com/drop (oppure lo zip `picheta-netlify.zip` già pronto).
 - **Da Git:** nuovo sito da questo repository, *Base directory* = `picheta`; build e cartella da
   pubblicare sono già in `netlify.toml`.
-Le rotte usano l'hash (`/#historia`), quindi non servono regole di redirect.
+Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redirect.
 
 ### Parametri utili nell'URL
 | URL | Cosa fa |
 |---|---|
-| `#historia`, `#autores`, `#menu`, `#reserva`, `#concurso`, `#eventos` | Apre direttamente la sezione sopra la terrazza (link condivisibili; il tasto "indietro" del telefono chiude la sezione) |
-| `#terraza` | Parte direttamente dalla terrazza |
-| `?q=low` / `?q=mid` / `?q=high` | Forza il livello di qualità (particelle, ombre, bloom, risoluzione) |
+| `#entrada`, `#salon`, `#reservado`, `#escalera`, `#terraza`, `#vista` | Entra direttamente in una sala della casa |
+| `#historia`, `#autores`, `#menu`, `#reserva`, `#concurso`, `#eventos` | Apre la sezione sopra la sua sala (link condivisibili; il tasto "indietro" del telefono chiude la sezione) |
+| `?q=low` / `?q=mid` / `?q=high` | Forza il livello di qualità (particelle, densità delle sale, bloom, risoluzione) |
 | `?static` | Versione senza WebGL (la stessa che vede chi non ha WebGL2) |
 | `?capture` | Orologio manuale per registrare video fotogramma per fotogramma (`window.__picheta.step(n, fps)`) |
 
-## Le scene
-1. **Intro** (`src/scenes/intro/`): il logo campionato dai pixel chiari del PNG, separato nei due anelli
-   (sinistra/destra), unione con colpo di tamburo, repulsione del cursore/dito simulata in GPU, scia,
-   gesto "Dibuja un círculo para entrar" (330°, raggio regolare) con guida animata attorno al logo e il
-   terzo cerchio che si materializza; bottone "Entrar" dopo 5 s (anche Invio); esplosione-portale.
-2. **Inmersión** (`src/scenes/inmersion/`): le particelle atterrano sul doppio cerchio spray della foto
-   (match cut), la mappa si rivela, rilievo dalla luminanza, discesa della camera, strade che si accendono
-   verso la Plaza Grande, punto pulsante su Calle 61 — Pasaje Picheta. Scroll, tap, swipe o Invio: tuffo.
-3. **Llegada** (`src/scenes/llegada/`): "Una discreta entrada…", portone che si apre, pasaje ad archi,
-   scala verso la luce (7,6 s; si salta con un tap o "Saltar").
-4. **Terraza** (`src/scenes/terraza/`): tramonto (primo e unico colore d'accento), Cattedrale, Plaza
-   Grande, Palacio Municipal; si guarda intorno trascinando (240°) o col giroscopio; gli oggetti respirano,
-   mostrano l'etichetta al passaggio del cursore / primo tap e al tocco la camera si avvicina e si apre la
-   sezione. Su mobile, dopo 6 s senza tocchi: "Toca los objetos para descubrir Picheta".
-5. **Secciones** (`src/ui/Panel.js`, `src/ui/sections.js`): pannelli sopra la terrazza sfocata e scurita.
-   Historia (una frase per schermata con incisioni originali), Autores (ritratti B/N con grana che si
-   colorano al passaggio), Menú (carte 3D da sfogliare), Reserva (CTA OpenTable/WhatsApp, indirizzo, orari),
-   Concurso ed Eventos (layout pronti con segnaposto).
+## Il percorso
+1. **Il cerchio** (`src/scenes/intro/`): una linea di caricamento e subito la pagina che chiede di
+   disegnare. Il logo, campionato dal PNG, entra in due anelli di gesso che si uniscono con un colpo di
+   tamburo; "Dibuja un círculo para entrar" con la guida animata (bottone "Entrar" dopo 4 s, anche Invio).
+   Disegnato il cerchio, il logo esplode verso lo spettatore e la polvere di gesso diventa la casa.
+2. **La casa** (`src/scenes/casa/`): sei sale **ricostruite in 3D dalle foto reali** del ristorante.
+   Ogni foto ha la sua mappa di profondità (Depth Anything V2): la sala diventa geometria vera con la luce
+   e i materiali reali, e la camera ci si muove dentro (parallasse col mouse o col giroscopio, sguardo
+   trascinando). Si avanza con la rotella, scorrendo in su sul telefono, con "Seguir" o con l'indice a
+   destra; tra una sala e l'altra la camera avanza, la sala si scioglie in polvere e la successiva si
+   forma con la stessa polvere. Nella scala la camera sale i gradini verso la luce della terrazza.
+3. **Punti di luce → sezioni** (`src/ui/Panel.js`, `src/ui/sections.js`): pannelli sopra la sala sfocata.
+   Historia (una frase per schermata con incisioni originali), Autores, Menú (carte 3D da sfogliare),
+   Reserva (CTA OpenTable/WhatsApp, indirizzo, orari), Concurso ed Eventos (layout pronti).
 
-| Oggetto nella terrazza | Sezione |
-|---|---|
-| Busto di Picheta (shader "incisione su legno") | HISTORIA |
-| Coltelli, grembiule col logo ricamato, tagliere | AUTORES |
-| Piatto fumante sul tavolo | MENÚ |
-| Tavolo con la vista migliore, candela, due sedie | RESERVA UNA MESA |
-| Coppa sul bancone del bar | CONCURSO GASTRONÓMICO |
-| Tunkul con ghirlanda di luci | EVENTOS |
-| I due cerchi del logo dipinti sul pavimento | INICIO |
-| (link nel footer e nel menu) | FACTURACIÓN |
+| Sala (foto) | Punto di luce | Sezione |
+|---|---|---|
+| La entrada — la scultura dei due cerchi sulla pietra | la scultura | HISTORIA |
+| El salón — la volta di corde, le banquette verdi | la firma "Picheta" sul muro · un tavolo apparecchiato | AUTORES · MENÚ |
+| El reservado — il tavolo rotondo | il tavolo | EVENTOS |
+| La escalera | i gradini | (sale alla terrazza) |
+| La terraza — il bancone, la Cattedrale al tramonto | la barra | CONCURSO GASTRONÓMICO |
+| La vista — la Cattedrale di San Ildefonso | i tavoli davanti alla Cattedrale | RESERVA UNA MESA |
+| (menu testuale e footer) | | INICIO · FACTURACIÓN |
 
-## Sostituire gli asset
-Tutti in `public/assets/`; i percorsi sono in `src/config.js` (`CONFIG.assets`).
+## Le foto della casa
+Sono in `public/assets/casa/` (`<sala>.webp` + `<sala>-depth.png`); sale, ordine, inquadrature e punti
+di luce in `src/scenes/casa/rooms.js` (coordinate 0..1 sulla foto).
 
-| File | Note |
-|---|---|
-| `logo-picheta.png` | Logo ufficiale (i due cerchi a gesso). Basta un PNG con tratto chiaro su fondo scuro o trasparente (se è scuro su chiaro viene invertito). L'intro campiona i pixel e separa da sola i due anelli. |
-| `merida-mapa.jpg` | **Ora è un segnaposto** generato da `scripts/placeholder-map.py`. Basta sostituirlo con la foto vera (stesso nome): il doppio cerchio viene **trovato automaticamente**, la plaza e il Pasaje Picheta si ricollocano col cerchio, le strade si accendono a partire dalla foto stessa e le particelle atterrano sui pixel chiari del cerchio (match cut). Per una precisione al metro, misurare sulla nuova foto (0..1, x a destra, y in basso) `CONFIG.map.circle`, `plaza`, `catedral`, `picheta` e la griglia `grid`. |
-| `busto-picheta.glb` | Opzionale: impostare `CONFIG.assets.bust = asset('busto-picheta.glb')`. Viene scalato all'altezza del busto provvisorio e riceve lo shader a incisione. |
-| `terraza-360.jpg` | Opzionale: panoramica equirettangolare della terrazza (`CONFIG.assets.panorama`). Se c'è, sostituisce cielo e piazza 3D; gli oggetti interattivi restano davanti. |
-| `fotos/terraza-fondo.webp` | Telón fotografico della terrazza (Cattedrale e piazza al tramonto, foto Higgsfield). Si regola in `CONFIG.terraza.backdrop` (ampiezza, altezza, orientamento); `CONFIG.assets.backdrop = null` torna alla piazza 3D. |
-| `llegada-entrada.jpg`, `llegada-escalera.jpg` | Opzionali (Scena 3 fotografica): portone del Pasaje e scala verso la luce, in B/N. Impostare `CONFIG.assets.llegada.entrada/escalera`: la Llegada diventa un travelling sulle due foto (avanzamento, sfocatura di velocità attraversando il portone, luce finale). Senza foto resta il pasaje 3D. `focusEntrada/focusEscalera`: punto verso cui avanza la camera. |
-| `fotos/*.webp` | Foto delle sezioni. **Sono le immagini generate per la demo precedente (Higgsfield)**: sostituirle con le foto reali (entrata, sala, terrazza, piatti, chef) mantenendo i nomi o cambiando `CONFIG.assets.photos`. |
+Per **aggiungere o sostituire una sala** con una foto nuova (meglio l'originale ad alta risoluzione,
+senza il velo scuro dei social; lo script comunque lo toglie):
 
-Gli **oggetti della terrazza** sono moduli indipendenti in `src/scenes/terraza/objects.js`
-(`buildBusto`, `buildCuchillos`, `buildPlato`, `buildMesaVista`, `buildTrofeo`, `buildTunkul`,
-`buildLogoPiso`): ognuno restituisce `{ group, hit, anchor, focus }`. Per usare un GLB vero basta
-caricarlo dentro `group` al posto della geometria provvisoria; posizione e rotazione sono in `PLACEMENT`.
+```bash
+pip install onnxruntime pillow numpy
+# modello Depth Anything V2 (licenza Apache-2.0):
+#   https://github.com/fabio-sim/Depth-Anything-ONNX/releases  → depth_anything_v2_vitb.onnx
+python3 scripts/preparar-fotos.py --modelo depth_anything_v2_vitb.onnx \
+    --salida public/assets/casa  salon=foto-salon.jpg terraza=foto-terraza.jpg
+```
 
-## Asset generati con Higgsfield
-Sul conto Higgsfield sono già pronti (ultime generazioni): mappa di Mérida nel doppio cerchio,
-portone del Pasaje, scala verso la luce, busto in gesso e il **modello 3D del busto (GLB)**.
-L'ambiente di sviluppo non poteva scaricarli dal CDN di Higgsfield: per usarli basta salvarli in
-`public/assets/` con i nomi `merida-mapa.jpg`, `llegada-entrada.jpg`, `llegada-escalera.jpg`,
-`busto-picheta.glb` e attivare le voci corrispondenti in `CONFIG.assets` (`llegada`, `bust`).
+Poi in `rooms.js`: `fov` (campo verticale stimato della foto), `near`/`far` (distanza in metri di ciò
+che è più vicino e più lontano), `look` (punto al centro dello schermo), `spots` (punti di luce),
+`overscan` (sale scure: in orizzontale si apre più della foto e i lati sfumano nel buio).
+
+Le foto delle sezioni Menú e Autores (`public/assets/fotos/`) sono **immagini provvisorie generate con
+IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets.photos`).
 
 ## Da confermare con il cliente
 - `src/config.js` → `links`: Instagram, pagina di Facturación, link OpenTable, numero WhatsApp
 - `src/content/es.js`: orari (Lun–Sáb 17:00–00:00 · Dom 14:30–21:00), testo completo della storia,
   nomi e ritratti degli autores, menù reale (i piatti attuali sono esempi di cucina yucateca),
-  contenuti di Concurso ed Eventos
+  contenuti di Concurso ed Eventos, didascalie delle sale
 
 ## Struttura
 - `src/main.js`: ingresso leggero (font, stili, testi); carica la parte 3D solo se c'è WebGL2
-- `src/experience.js`: avvio di motore, scene, interfaccia e rotte (deep link → terrazza direttamente)
+- `src/experience.js`: avvio di motore, scene, interfaccia e rotte (deep link → la casa direttamente)
 - `src/core/`: `Engine` (renderer, camera, loop, DPR adattivo, modalità capture), `PostFX` (bloom,
   vignetta, aberrazione minima, grana, sfocatura dietro i pannelli), `Director` (state manager con
   caricamento lazy delle scene), `Router` (hash + tasto indietro), `Pointer`, `Gyro`, `Sound`
-- `src/scenes/*`: una cartella per scena; ogni scena espone `init · enter · exit · update · resize`
-- `src/ui/`: preloader, barra + menu testuale, pannelli e sezioni, etichette 3D, cursore, versione statica
-- `src/gl/`: GLSL condivisi e texture procedurali (pietra, pasta yucateca, legno, facciate)
+- `src/scenes/intro/`: il logo di particelle (simulazione GPU), il gesto del cerchio, l'esplosione
+- `src/scenes/casa/`: `rooms.js` (le sale), `Room.js` (ricostruzione 3D di una foto: superficie, fondo
+  che riempie dietro le sagome, polvere per le transizioni), `CasaScene.js` (camera, navigazione,
+  transizioni, punti di luce, didascalie)
+- `src/ui/`: precarga, barra + menu testuale, pannelli e sezioni, etichette 3D, cursore, versione statica
+- `scripts/preparar-fotos.py`: foto reali → WebP + mappa di profondità
 
 ## Prestazioni
 - Livelli `high / mid / low` (`src/core/quality.js`): iPhone → mid, Android medio → low.
 - DPR massimo 2 (1,5 su mobile) e riduzione automatica se il frame rate scende sotto ~45 fps.
-- Particelle 40k / 24k / 14k, ombre solo da mid in su, scene caricate al bisogno (la terrazza si
-  precarica durante la mappa e la scala).
-- Texture procedurali (nessun download) + foto WebP; audio tutto sintetizzato (nessun file).
+- Sale: maglia 240 / 190 / 140 celle di larghezza e 110k / 70k / 42k particelle; si caricano due sale
+  durante l'intro e le altre in sottofondo, in ordine. Tutta la casa pesa ~2 MB.
+- Audio tutto sintetizzato (nessun file).
 
 ## Audio (opzionale, spento di default)
-Tamburo grave all'unione dei cerchi e nei momenti chiave; vento sulla mappa e nella scala; sulla
-terrazza brusio della piazza, campane lontane della Cattedrale e zanate.
+Tamburo grave all'unione dei cerchi e al disegno; nelle sale un brusio basso con bicchieri lontani; in
+terrazza il murmure della piazza, le campane della Cattedrale e gli zanates.

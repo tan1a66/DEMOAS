@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// Etiquetas HTML ancladas a puntos 3D (nombres de calles, objetos de la terraza).
+// Etiquetas HTML ancladas a puntos 3D (los puntos de luz de las salas).
 export class Labels {
   constructor(root, engine) {
     this.engine = engine;

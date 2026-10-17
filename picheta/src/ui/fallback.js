@@ -5,16 +5,20 @@ import { renderSection, renderFooter } from './sections.js';
 export function renderFallback(root, { content, config }) {
   document.documentElement.classList.add('static');
   const ids = Object.keys(content.sections);
+  // URL absoluta: una ruta relativa dentro de una variable CSS se resolvería contra la hoja de estilos.
+  const hero = new URL(config.assets.hero, location.href).href;
+  // Sin la casa 3D sólo quedan las secciones (las salas no existen aquí).
+  const nav = content.nav.map((row) => row.filter((it) => it.external || it.id === 'inicio' || ids.includes(it.id))).filter((row) => row.length);
   root.innerHTML = `
     <div class="static-page">
-      <header class="static-hero" id="inicio" style="--hero:url('${config.assets.photos.terraza}')">
+      <header class="static-hero" id="inicio" style="--hero:url('${hero}')">
         <img class="static-logo" src="${config.assets.logo}" alt="" width="220" height="200" crossorigin="anonymous" />
         <h1 class="brand">${content.brand}</h1>
         <p class="tagline">${content.tagline}</p>
       </header>
       <nav class="static-nav" aria-label="Navegación">
         <ul class="nav-list">
-          ${content.nav
+          ${nav
             .map(
               (row) =>
                 `<li>${row

@@ -29,9 +29,9 @@ export class Sound {
     return true;
   }
 
-  // Ambiente continuo: 'viento' (mapa y escalera), 'plaza' (terraza: murmullo,
-  // campanas lejanas y zanates) o null. Si el sonido está apagado se recuerda
-  // y arranca al activarlo.
+  // Ambiente continuo: 'interior' (las salas: rumor grave y copas lejanas),
+  // 'plaza' (terraza: murmullo, campanas lejanas y zanates) o null. Si el
+  // sonido está apagado se recuerda y arranca al activarlo.
   ambience(type) {
     this.wanted = type;
     if (!this.enabled || !this.ctx) return;
@@ -48,31 +48,33 @@ export class Sound {
     src.loop = true;
     const f = ctx.createBiquadFilter();
     f.type = type === 'plaza' ? 'bandpass' : 'lowpass';
-    f.frequency.value = type === 'plaza' ? 380 : 520;
+    f.frequency.value = type === 'plaza' ? 380 : 260;
     f.Q.value = 0.6;
     const g = ctx.createGain();
-    g.gain.value = type === 'plaza' ? 0.22 : 0.3;
+    g.gain.value = type === 'plaza' ? 0.22 : 0.16;
     // Respiración lenta del viento / de la gente.
     const lfo = ctx.createOscillator();
     lfo.frequency.value = 0.07;
     const lfoG = ctx.createGain();
-    lfoG.gain.value = type === 'plaza' ? 60 : 180;
+    lfoG.gain.value = type === 'plaza' ? 60 : 50;
     lfo.connect(lfoG).connect(f.frequency);
     src.connect(f).connect(g).connect(out);
     src.start();
     lfo.start();
     const amb = (this.amb = { type, out, nodes: [src, lfo], timers: [] });
+    const later = (fn, min, max) => {
+      const id = setTimeout(() => {
+        if (this.amb !== amb) return;
+        fn();
+        later(fn, min, max);
+      }, (min + Math.random() * (max - min)) * 1000);
+      amb.timers.push(id);
+    };
     if (type === 'plaza') {
-      const later = (fn, min, max) => {
-        const id = setTimeout(() => {
-          if (this.amb !== amb) return;
-          fn();
-          later(fn, min, max);
-        }, (min + Math.random() * (max - min)) * 1000);
-        amb.timers.push(id);
-      };
       later(() => this.bell(out), 9, 24);
       later(() => this.zanate(out), 3, 9);
+    } else {
+      later(() => this.clink(out), 5, 14);
     }
   }
 
@@ -107,6 +109,25 @@ export class Sound {
       g.connect(this.reverb);
       o.start(t);
       o.stop(t + 5);
+    }
+  }
+
+  // Copas que se tocan en otra mesa: dos parciales agudos, muy bajos.
+  clink(out) {
+    const ctx = this.ctx;
+    const t = ctx.currentTime + 0.02;
+    const f0 = 2400 + Math.random() * 900;
+    for (const [ratio, amp] of [
+      [1, 0.012],
+      [2.76, 0.006],
+    ]) {
+      const o = ctx.createOscillator();
+      o.frequency.value = f0 * ratio;
+      const g = env(ctx, t, amp, 0.002, 0.9);
+      o.connect(g).connect(out);
+      g.connect(this.reverb);
+      o.start(t);
+      o.stop(t + 1);
     }
   }
 

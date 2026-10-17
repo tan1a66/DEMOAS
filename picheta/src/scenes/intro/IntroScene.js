@@ -11,7 +11,7 @@ import { CircleGesture } from './CircleGesture.js';
 // Dos anillos de polvo de tiza entran por la izquierda y por la derecha, se
 // unen en el logo con un golpe de tambor y esperan a que el visitante dibuje
 // un tercer círculo (o pulse "Entrar"). Entonces el logo estalla hacia la
-// cámara como un portal y empieza la Inmersión.
+// cámara como un portal y el polvo de tiza forma la primera sala de la casa.
 
 const CAM_DIST = 6;
 const FOV = 35;
@@ -176,8 +176,8 @@ export default class IntroScene {
     const tl = (this.tl = gsap.timeline());
     tl.to(this.stone.uniforms.uFade, { value: 1, duration: 2.4, ease: 'power2.out' }, 0);
     tl.to(this.dust.uniforms.uFade, { value: 1, duration: 3 }, 0.4);
-    tl.to(L.uEnter, { value: 1, duration: 3.6, ease: 'none' }, 0.3);
-    tl.call(() => this.union(), null, 0.3 + 0.64 * 3.6);
+    tl.to(L.uEnter, { value: 1, duration: 2.7, ease: 'none' }, 0.3);
+    tl.call(() => this.union(), null, 0.3 + 0.64 * 2.7);
   }
 
   // Los dos círculos se han unido: golpe de tambor, aparece el nombre y,
@@ -186,7 +186,7 @@ export default class IntroScene {
     if (!quiet) this.impact(1);
     this.state = 'ready';
     this.ctx.chrome.reveal(true);
-    this.director.preload('inmersion');
+    this.director.preload('casa');
 
     const d = this.dom;
     gsap.fromTo(
@@ -247,7 +247,7 @@ export default class IntroScene {
 
     const L = this.logo.uniforms;
     const d = this.dom;
-    const tl = (this.tl = gsap.timeline({ onComplete: () => this.director.go('inmersion') }));
+    const tl = (this.tl = gsap.timeline());
     tl.to([...d.letters, d.tagline, d.hint, d.enter], {
       opacity: 0,
       y: -8,
@@ -262,6 +262,7 @@ export default class IntroScene {
       tl.to(this.ink.uniforms.uFade, { value: 0, duration: 0.8 }, 0.2);
       tl.to(this.stone.uniforms.uFade, { value: 0, duration: 1.2 }, 0.4);
       tl.to('#veil', { opacity: 1, duration: 0.6 }, 1.2);
+      tl.call(() => this.ctx.enterWorld(), null, 1.9);
       return;
     }
 
@@ -281,7 +282,8 @@ export default class IntroScene {
     tl.to(this.dust.uniforms.uRush, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.stone.uniforms.uZoom, { value: 0.42, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.engine.post.fx, { bloom: 2.3, ca: 7, duration: 2.4, ease: 'power2.in' }, tx + 0.4);
-    tl.to('#veil', { opacity: 1, duration: 0.5, ease: 'power1.in' }, tx + 2.45);
+    // En pleno estallido, el polvo pasa a la casa (que empieza con su propio polvo disperso).
+    tl.call(() => this.ctx.enterWorld(), null, tx + 1.8);
   }
 
   // Destino de cada mota del círculo dibujado: un punto del logo a su mismo ángulo.

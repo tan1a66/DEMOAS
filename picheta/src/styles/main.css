@@ -5,7 +5,7 @@
   --chalk: #efece6;
   --chalk-soft: rgba(239, 236, 230, 0.62);
   --chalk-faint: rgba(239, 236, 230, 0.28);
-  --achiote: #d9692b; /* único acento: sólo en la terraza */
+  --achiote: #d9692b; /* único acento de la interfaz */
   --sans: 'Jost', 'Futura', 'Century Gothic', system-ui, sans-serif;
   --serif: 'Cormorant Garamond', 'Cormorant', Georgia, serif;
   --gutter: clamp(16px, 3vw, 40px);
@@ -40,23 +40,14 @@ html.has-cursor #gl { cursor: none; }
 #ui a, #ui button { pointer-events: auto; }
 #veil { position: absolute; inset: 0; background: #0b0a0a; opacity: 0; pointer-events: none; }
 
-/* ---------- Precarga: un círculo trazado a mano ---------- */
+/* ---------- Precarga: una línea de tiza ---------- */
 .preloader {
   position: absolute; inset: 0;
   display: grid; place-items: center;
   background: #000;
 }
-.preloader svg { width: clamp(84px, 11vmin, 120px); height: auto; overflow: visible; transform-origin: 50% 50%; }
-.preloader path {
-  fill: none; stroke: var(--chalk); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
-  stroke-dasharray: 1; stroke-dashoffset: 1;
-  filter: drop-shadow(0 0 6px rgba(239, 236, 230, 0.35));
-}
-.preloader-pct {
-  position: absolute; top: calc(50% + clamp(74px, 9vmin, 96px));
-  font-size: 11px; letter-spacing: 0.4em; padding-left: 0.4em; color: var(--chalk-soft);
-  font-variant-numeric: tabular-nums;
-}
+.preloader-line { display: block; width: clamp(90px, 14vmin, 150px); height: 1px; background: rgba(239, 236, 230, 0.14); overflow: hidden; }
+.preloader-line i { display: block; height: 100%; background: var(--chalk); transform-origin: 0 50%; transform: scaleX(0); box-shadow: 0 0 8px rgba(239, 236, 230, 0.6); }
 
 /* ---------- Intro ---------- */
 .intro { position: absolute; inset: 0; pointer-events: none; }
@@ -136,7 +127,7 @@ html.touch .intro-enter small { display: none; }
 .topbar.visible a, .topbar.visible button, .topbar.nav-open button { pointer-events: auto; }
 #ui .topbar:not(.visible):not(.nav-open) a, #ui .topbar:not(.visible):not(.nav-open) button { pointer-events: none; }
 .wordmark { font-size: 13px; letter-spacing: 0.5em; text-decoration: none; transition: opacity 0.8s; }
-[data-scene='intro'] .wordmark, [data-scene='inmersion'] .wordmark, [data-scene='llegada'] .wordmark, .panel-open .wordmark { opacity: 0; pointer-events: none !important; }
+[data-scene='intro'] .wordmark, .panel-open .wordmark { opacity: 0; pointer-events: none !important; }
 .topbar-actions { display: flex; align-items: center; gap: clamp(18px, 2.4vw, 30px); margin-left: auto; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--chalk-soft); transition: color 0.4s; }
 .sound-toggle:hover, .sound-on .sound-toggle { color: var(--chalk); }
@@ -190,7 +181,7 @@ html.touch .intro-enter small { display: none; }
 .nav-foot a { text-decoration: none; }
 .credit { margin: 12px 0 0; font-size: 9.5px; letter-spacing: 0.22em; color: var(--chalk-faint); text-transform: none; }
 
-/* ---------- Paneles de sección (sobre la terraza desenfocada) ---------- */
+/* ---------- Paneles de sección (sobre la sala desenfocada) ---------- */
 .panel { position: absolute; inset: 0; z-index: 10; display: none; pointer-events: auto; user-select: text; -webkit-user-select: text; }
 .panel.open { display: block; }
 .panel-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14, 12, 11, 0.55), rgba(14, 12, 11, 0.78) 40%, rgba(14, 12, 11, 0.86)); }
@@ -306,7 +297,7 @@ html.touch .intro-enter small { display: none; }
   .people { max-width: 340px; margin: 0 auto; }
 }
 
-/* ---------- Etiquetas 3D (mapa y objetos de la terraza) ---------- */
+/* ---------- Etiquetas 3D (puntos de luz de las salas) ---------- */
 .labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .label3d {
   position: absolute; top: 0; left: 0; display: flex; align-items: center; gap: 10px;
@@ -320,9 +311,6 @@ html.touch .intro-enter small { display: none; }
 .label-dot { width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--chalk); box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); flex: none; }
 .label-text { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7); }
 .label-text small { font-size: 9px; letter-spacing: 0.24em; color: var(--chalk-soft); text-transform: none; font-family: var(--serif); font-style: italic; font-size: 14px; letter-spacing: 0.02em; }
-.label-street .label-dot { display: none; }
-.label-street .label-text { font-size: 9px; color: var(--chalk-soft); }
-.label-pin .label-dot { width: 8px; height: 8px; margin-left: -4px; }
 .label-object { transform-origin: 0 50%; }
 .label-object .label-text { font-size: 11px; padding: 9px 14px; background: rgba(20, 16, 14, 0.55); border: 1px solid rgba(255, 220, 180, 0.25); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .label-object.on { pointer-events: auto; cursor: pointer; }
@@ -330,45 +318,64 @@ html.touch .intro-enter small { display: none; }
 html.hover-object .cursor { width: 38px; height: 38px; margin: -19px 0 0 -19px; background: transparent; border-color: #ffd2a0; box-shadow: none; }
 html.hover-object #gl { cursor: pointer; }
 
-/* ---------- Escena 2: Inmersión ---------- */
-.inm { position: absolute; inset: 0; pointer-events: none; }
-.inm[hidden], .lle[hidden], .ter[hidden], .intro[hidden] { display: none; }
-.inm-line {
-  position: absolute; left: var(--gutter); right: var(--gutter); bottom: calc(var(--safe-bottom) + clamp(110px, 18vh, 190px));
-  margin: 0 auto; max-width: 20em; text-align: center;
-  font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(24px, 3vw, 42px); line-height: 1.25;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.75);
+/* ---------- La casa (salas en 3D) ---------- */
+.casa { position: absolute; inset: 0; pointer-events: none; }
+.casa[hidden], .intro[hidden] { display: none; }
+.casa-caption {
+  position: absolute; left: var(--gutter); top: calc(var(--safe-top) + clamp(70px, 12vh, 120px));
+  max-width: min(32em, calc(100% - 2 * var(--gutter)));
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.75), 0 0 2px rgba(0, 0, 0, 0.4);
 }
-.inm-hint {
-  position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + clamp(28px, 6vh, 64px)); transform: translateX(-50%);
-  display: inline-flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 14px;
-  font-size: 10.5px; letter-spacing: 0.36em; text-transform: uppercase; color: var(--chalk-soft);
-}
-.chev { width: 12px; height: 12px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); animation: chev 2.2s var(--ease) infinite; }
-@keyframes chev { 0%, 100% { transform: translateY(-4px) rotate(45deg); opacity: 0.4; } 50% { transform: translateY(4px) rotate(45deg); opacity: 1; } }
+.casa-kicker { margin: 0 0 14px; font-size: 10.5px; letter-spacing: 0.36em; text-transform: uppercase; color: var(--chalk-soft); opacity: 0; }
+.casa-title { margin: 0; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(34px, 4.6vw, 68px); line-height: 1.02; opacity: 0; }
+.casa-sub { margin: 14px 0 0; font-size: clamp(13px, 1.1vw, 15px); letter-spacing: 0.06em; color: rgba(239, 236, 230, 0.86); opacity: 0; }
 
-/* ---------- Escena 3: Llegada ---------- */
-.lle { position: absolute; inset: 0; pointer-events: none; }
-.lle-line {
-  position: absolute; left: var(--gutter); right: var(--gutter); top: 50%; margin: 0; transform: translateY(-50%);
-  text-align: center; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(28px, 3.6vw, 52px);
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.8);
+.casa-index {
+  position: absolute; right: var(--gutter); top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+  opacity: 0; transition: opacity 1.2s var(--ease);
 }
-.lle-2 { top: auto; bottom: calc(var(--safe-bottom) + 16vh); transform: none; }
-.lle-skip { position: absolute; right: var(--gutter); bottom: calc(var(--safe-bottom) + 26px); padding: 10px 0; font-size: 10px; letter-spacing: 0.36em; text-transform: uppercase; color: var(--chalk-soft); border-bottom: 1px solid var(--chalk-faint); }
+.casa.ready .casa-index { opacity: 1; }
+.casa-index button { display: flex; align-items: center; gap: 14px; padding: 7px 0 7px 12px; color: var(--chalk-soft); }
+.ci-name { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0; transform: translateX(6px); transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8); }
+.ci-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px rgba(0, 0, 0, 0.6); transition: transform 0.5s var(--ease), background-color 0.5s; }
+.casa-index:hover .ci-name, .casa-index button:focus-visible .ci-name, .casa-index button.on .ci-name { opacity: 1; transform: none; }
+.casa-index button.on { color: var(--chalk); }
+.casa-index button.on .ci-dot { transform: scale(1.8); background: #ffd2a0; box-shadow: 0 0 10px rgba(255, 190, 120, 0.9); }
 
-/* ---------- Escena 4: Terraza ---------- */
-.ter { position: absolute; inset: 0; pointer-events: none; }
-.ter-hint {
-  position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + clamp(24px, 5vh, 54px)); margin: 0; transform: translate(-50%, 10px);
-  display: inline-flex; align-items: center; gap: 12px; padding: 12px 20px; white-space: nowrap;
-  font-family: var(--serif); font-style: italic; font-size: clamp(17px, 1.5vw, 21px);
-  background: rgba(20, 16, 14, 0.5); border: 1px solid rgba(255, 220, 180, 0.22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  opacity: 0; transition: opacity 1s var(--ease), transform 1s var(--ease);
+.casa-foot {
+  position: absolute; left: 50%; bottom: calc(var(--safe-bottom) + clamp(18px, 3.4vh, 38px)); transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 12px; width: max-content; max-width: calc(100% - 2 * var(--gutter));
+  opacity: 0; transition: opacity 1.2s var(--ease);
 }
-.ter-hint.on { opacity: 1; transform: translate(-50%, 0); }
-.ter-hint-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffd2a0; box-shadow: 0 0 12px rgba(255, 190, 120, 0.9); animation: breathe 2.4s ease-in-out infinite; }
-@keyframes breathe { 0%, 100% { transform: scale(0.8); opacity: 0.6; } 50% { transform: scale(1.25); opacity: 1; } }
+.casa.ready .casa-foot { opacity: 1; }
+.casa-hint {
+  margin: 0; text-align: center; font-family: var(--serif); font-style: italic; font-size: clamp(15px, 1.25vw, 19px);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.85); transition: opacity 1s var(--ease);
+}
+.casa.moved:not(.idle) .casa-hint { opacity: 0; }
+.casa-next { display: inline-flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 14px; font-size: 10px; letter-spacing: 0.36em; text-transform: uppercase; color: var(--chalk-soft); }
+.casa-next span { padding-left: 0.36em; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8); }
+.casa-next:hover, .casa-next:focus-visible { color: var(--chalk); }
+.casa-next[hidden] { display: none; }
+.chev { width: 11px; height: 11px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(45deg); animation: chev 2.2s var(--ease) infinite; }
+@keyframes chev { 0%, 100% { transform: translateY(-3px) rotate(45deg); opacity: 0.45; } 50% { transform: translateY(3px) rotate(45deg); opacity: 1; } }
+
+/* Puntos de luz: siempre visibles en la sala, con un pulso que invita a tocarlos. */
+.casa .label-object .label-dot { position: relative; width: 9px; height: 9px; margin-left: -4.5px; }
+.casa .label-object .label-dot::after {
+  content: ''; position: absolute; inset: -9px; border-radius: 50%; border: 1px solid rgba(255, 210, 160, 0.7);
+  animation: spot 2.6s var(--ease) infinite;
+}
+.casa .label-object.left .label-dot { margin: 0 -4.5px 0 0; }
+@keyframes spot { 0% { transform: scale(0.4); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+.casa .label-object .label-text { padding: 8px 13px; }
+
+@media (max-width: 760px) {
+  .ci-name { display: none; }
+  .casa-index { gap: 0; right: calc(var(--gutter) - 10px); }
+  .casa-hint { font-size: 15px; }
+}
 
 /* ---------- Cursor propio ---------- */
 .cursor {
@@ -405,7 +412,7 @@ html.static #app { position: static; user-select: text; -webkit-user-select: tex
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hint-icon circle, .chev, .ter-hint-dot { animation: none; stroke-dashoffset: 0; }
+  .hint-icon circle, .chev, .casa .label-object .label-dot::after { animation: none; stroke-dashoffset: 0; }
   .reveal, .phrase, .text, .meta { transition: opacity 0.6s; transform: none; }
   .dish { transition: opacity 0.4s; }
 }

@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import Lenis from 'lenis';
 import { renderSection, renderFooter } from './sections.js';
 
-// Paneles de sección: se abren sobre la escena 3D, que sigue viva detrás,
+// Paneles de sección: se abren sobre la sala 3D, que sigue viva detrás,
 // desenfocada y oscurecida (PostFX). Scroll suave con Lenis; los bloques
 // aparecen al entrar en pantalla; el menú es una baraja de cartas 3D.
 export class Panel {
@@ -43,10 +43,10 @@ export class Panel {
     this.isOpen = false;
   }
 
-  open(id, { fromTerrace = false } = {}) {
+  open(id, { back = null } = {}) {
     if (!this.content.sections[id]) return;
     this.current = id;
-    this.backLabel.textContent = fromTerrace ? this.content.ui.backTerrace : this.content.ui.back;
+    this.backLabel.textContent = back ?? this.content.ui.back;
     this.body.dataset.section = id;
     this.body.innerHTML = renderSection(id, this) + renderFooter(this);
     this.body.querySelectorAll('.reveal, .phrase, .text, .meta').forEach((n) => this.io.observe(n));

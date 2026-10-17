@@ -4,7 +4,8 @@ import { Engine } from './core/Engine.js';
 import { Pointer } from './core/Pointer.js';
 import { Sound } from './core/Sound.js';
 import { Director } from './core/Director.js';
-import { Router, SECTIONS } from './core/Router.js';
+import { Router, SECTIONS, ROOM_IDS } from './core/Router.js';
+import { ROOM_OF } from './scenes/casa/rooms.js';
 import { Preloader } from './ui/Preloader.js';
 import { Chrome } from './ui/Chrome.js';
 import { Panel } from './ui/Panel.js';
@@ -28,15 +29,20 @@ export async function startExperience({ content, config }) {
   const ctx = { engine, pointer, sound, quality, content, config, ui, gyro: new Gyro() };
   const director = new Director(engine, ctx);
   let router;
+  let fromIntro = false;
   ctx.director = director;
   ctx.chrome = new Chrome(ui, { content, config, sound, onNavigate: (r) => router.go(r) });
   ctx.panel = new Panel(ui, { content, config, engine, onClose: () => closeSection() });
   ctx.overlayOpen = () => ctx.chrome.open || ctx.panel.isOpen;
-  ctx.restart = () => (router.current === 'inicio' ? director.go('intro') : router.go('inicio'));
-  // Un objeto de la terraza (o el menú) pide una sección.
+  // Un punto de luz (o el menú) pide una sección.
   ctx.navigate = (id) => router.go(id);
-  // Fin de la escalera: llegada a la terraza.
-  ctx.arrive = () => router.go('terraza');
+  // El círculo está dibujado: se entra en la casa por la primera sala.
+  ctx.enterWorld = () => {
+    fromIntro = true;
+    router.go(ROOM_IDS[0]);
+  };
+  // La casa cambia de sala (rueda, gesto, índice): la URL acompaña.
+  ctx.roomChanged = (id) => router.go(id);
   new Cursor(ui, engine, pointer);
 
   // ---------------------------------------------------------------- precarga
@@ -46,40 +52,49 @@ export async function startExperience({ content, config }) {
     new Promise((r) => setTimeout(r, 2500)),
   ]).catch(() => {});
   preloader.set(0.2);
-  // Enlace directo a la terraza o a una sección: se carga la terraza en vez de la intro.
+  // Enlace directo a una sala o a una sección: se carga la casa en vez de la intro.
   const first = location.hash.replace(/^#\/?/, '').toLowerCase();
-  const startOnTerrace = first === 'terraza' || SECTIONS.includes(first);
-  const firstScene = await director.load(startOnTerrace ? 'terraza' : 'intro', (p) => preloader.set(0.2 + p * 0.78));
+  const startInside = ROOM_IDS.includes(first) || SECTIONS.includes(first);
+  const firstScene = await director.load(startInside ? 'casa' : 'intro', (p) => preloader.set(0.2 + p * 0.78));
   // Se renderiza la escena (aún invisible) detrás de la precarga: shaders y
   // postproceso quedan compilados antes de la primera imagen.
-  if (!startOnTerrace) engine.setScene(firstScene);
+  if (!startInside) engine.setScene(firstScene);
   else gsap.set('#veil', { opacity: 1 });
   await preloader.finish();
 
   // ---------------------------------------------------------------- rutas
   async function onRoute(route) {
     if (SECTIONS.includes(route)) {
-      // Las secciones viven sobre la terraza: si no estamos allí, se salta a ella.
-      if (director.name !== 'terraza') await director.go('terraza', { instant: true, fade: !!director.current });
+      // Cada sección vive en una sala: si no estamos allí, se va a ella.
+      const i = ROOM_OF[route];
+      if (director.name !== 'casa') await director.go('casa', { room: i, instant: true, fade: !!director.current });
+      else if (director.current.index !== i) await director.current.goTo(i, { quick: true });
       director.current.focus(route);
-      ctx.panel.open(route, { fromTerrace: true });
+      ctx.panel.open(route, { back: content.casa.rooms[i].back });
       return;
     }
     ctx.panel.close();
-    if (route === 'terraza') {
-      if (director.name === 'terraza') director.current.unfocus();
-      else if (director.name === 'llegada') director.go('terraza');
-      else director.go('terraza', { instant: true, fade: !!director.current });
+    const room = ROOM_IDS.indexOf(route);
+    if (room >= 0) {
+      if (director.name === 'casa') {
+        const casa = director.current;
+        if (casa.state === 'focus') casa.unfocus();
+        if (casa.index !== room) casa.goTo(room);
+      } else {
+        const intro = fromIntro && director.name === 'intro';
+        fromIntro = false;
+        director.go('casa', { room, from: intro ? 'intro' : null, instant: !intro, fade: !intro && !!director.current });
+      }
     }
     if (route === 'inicio' && director.name !== 'intro') director.go('intro', { fade: !!director.current });
   }
 
   // Cerrar una sección: si se abrió desde la propia web, "atrás" en el
   // historial (coherente con el gesto atrás del teléfono); si se llegó por
-  // enlace directo, se sustituye la URL.
+  // enlace directo, se sustituye la URL por la de su sala.
   function closeSection() {
     if (router.depth > 0) history.back();
-    else router.go(director.name === 'terraza' ? 'terraza' : 'inicio', { replace: true });
+    else router.go(ROOM_IDS[ROOM_OF[router.current]] ?? 'inicio', { replace: true });
   }
 
   router = new Router(onRoute);

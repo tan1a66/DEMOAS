@@ -11,7 +11,7 @@ export class Chrome {
     this.bar = document.createElement('header');
     this.bar.className = 'topbar';
     this.bar.innerHTML = `
-      <a class="wordmark" href="#terraza" data-route="terraza">${content.brand}</a>
+      <a class="wordmark" href="#entrada" data-route="entrada">${content.brand}</a>
       <div class="topbar-actions">
         <button class="sound-toggle" type="button" aria-pressed="false" aria-label="${ui.soundOn}">
           <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>

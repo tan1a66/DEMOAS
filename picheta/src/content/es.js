@@ -14,8 +14,6 @@ export const content = {
     soundOff: 'Silenciar sonido',
     sound: 'Sonido',
     back: 'Volver',
-    backTerrace: 'Volver a la terraza',
-    skip: 'Saltar',
     prev: 'Anterior',
     next: 'Siguiente',
   },
@@ -26,28 +24,40 @@ export const content = {
     enterKey: 'o pulsa Intro',
   },
 
-  inmersion: {
-    line: 'En el corazón de Mérida, un edificio de más de 350 años.',
-    hint: 'Desliza o toca para descender',
-    plaza: 'Plaza Grande',
-    catedral: 'Catedral',
-    picheta: 'Pasaje Picheta',
-    pichetaSub: 'Calle 61 #501',
-  },
-
-  llegada: {
-    entrada: 'Una discreta entrada…',
-    arriba: '…y, arriba, Mérida entera.',
-  },
-
-  terraza: {
-    hintTouch: 'Toca los objetos para descubrir Picheta',
-    hintMouse: 'Pasa el cursor sobre los objetos para descubrir Picheta',
+  // La casa en 3D: una sala por foto real del restaurante, en el orden del recorrido.
+  casa: {
+    indexLabel: 'Salas de Picheta',
+    next: 'Seguir',
+    hintTouch: 'Desliza hacia arriba para recorrer la casa · toca los puntos de luz',
+    hintMouse: 'Desplázate para recorrer la casa · elige un punto de luz',
+    subir: 'Subir a la terraza',
+    rooms: [
+      { name: 'La entrada', title: 'Bienvenidos a Picheta', sub: 'Cocina de autores en el corazón de Mérida', back: 'Volver a la entrada' },
+      { name: 'El salón', title: 'El salón', sub: 'Una mesa larga bajo la bóveda de cuerdas', back: 'Volver al salón' },
+      { name: 'El reservado', title: 'El reservado', sub: 'Piedra, luz baja y una mesa para celebrar', back: 'Volver al reservado' },
+      { name: 'La escalera', title: 'Subimos', sub: 'La escalera lleva a la terraza', back: 'Volver a la escalera' },
+      { name: 'La terraza', title: 'La terraza', sub: 'Atardecer junto a la Catedral', back: 'Volver a la terraza' },
+      { name: 'La vista', title: 'La mejor vista de Mérida', sub: 'La Catedral de San Ildefonso, a un paso', back: 'Volver a la vista' },
+    ],
+    // Segunda línea de cada punto de luz.
+    spotSubs: {
+      historia: 'Dos círculos, una unión',
+      autores: 'La firma de la casa',
+      menu: 'La mesa',
+      eventos: 'Para celebrar',
+      subir: 'Hacia el cielo de Mérida',
+      concurso: 'La barra',
+      reserva: 'Frente a la Catedral',
+    },
   },
 
   // Menú textual de respaldo: mismas voces que el sitio actual.
   nav: [
     [{ id: 'inicio', label: 'Inicio' }],
+    [
+      { id: 'salon', label: 'El salón' },
+      { id: 'terraza', label: 'La terraza' },
+    ],
     [
       { id: 'historia', label: 'Historia' },
       { id: 'autores', label: 'Autores' },
@@ -58,7 +68,7 @@ export const content = {
     [{ id: 'eventos', label: 'Eventos' }],
     [{ id: 'facturacion', label: 'Facturación', external: true }],
   ],
-  // Etiquetas de los objetos de la terraza.
+  // Etiquetas de los puntos de luz de la casa.
   navLabels: {
     inicio: 'Inicio',
     historia: 'Historia',
@@ -86,7 +96,7 @@ export const content = {
           art: 'cabecera',
         },
         { text: 'Fundó la primera academia de grabado de la región y fue alcalde de Mérida en 1880.', art: 'buril' },
-        { text: 'Desde 1639, estos pasillos fueron Ayuntamiento y cárcel pública. Hoy son el Pasaje Picheta.', photo: 'patio' },
+        { text: 'Desde 1639, estos pasillos fueron Ayuntamiento y cárcel pública. Hoy son el Pasaje Picheta.', art: 'arcos' },
         { text: 'La calle lleva su nombre. Nosotros también.', art: 'placa' },
       ],
       // Texto completo del restaurante: por recibir del cliente (se maqueta en bloques).
@@ -145,9 +155,9 @@ export const content = {
       title: 'Eventos',
       lead: 'Eventos privados, empresariales y cenas especiales.',
       cards: [
-        { title: 'Eventos privados', text: 'La terraza para celebraciones frente a la Catedral.', photo: 'terraza' },
-        { title: 'Empresariales', text: 'Comidas, presentaciones y cenas de equipo.', photo: 'patio' },
-        { title: 'Cenas especiales', text: 'Menús de autor a cuatro manos y noches temáticas.', photo: 'fogon' },
+        { title: 'Eventos privados', text: 'El reservado y la terraza, para celebrar frente a la Catedral.' },
+        { title: 'Empresariales', text: 'Comidas, presentaciones y cenas de equipo en el salón.' },
+        { title: 'Cenas especiales', text: 'Menús de autor a cuatro manos y noches temáticas.' },
       ],
       cta: 'Solicitar información',
     },

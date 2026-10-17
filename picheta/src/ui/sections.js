@@ -1,4 +1,4 @@
-// Maquetación de cada sección (paneles sobre la terraza y versión estática).
+// Maquetación de cada sección (paneles sobre la sala 3D y versión estática).
 // Devuelve HTML a partir de content/es.js y config.js.
 
 export function renderSection(id, { content, config, isStatic = false }) {
@@ -87,11 +87,10 @@ const BODIES = {
       </div>`;
   },
 
-  reserva(s, { photos, config }) {
+  reserva(s, { config }) {
     const L = config.links;
     const wa = L.whatsapp ? `https://wa.me/${L.whatsapp}?text=${encodeURIComponent('Hola, quisiera reservar una mesa en Picheta.')}` : '';
     return `
-      ${photo(photos.terraza, '', 'wide reveal')}
       <div class="ctas reveal">
         ${L.opentable ? `<a class="cta primary" href="${L.opentable}" target="_blank" rel="noopener">${s.ctaOnline}</a>` : ''}
         ${wa ? `<a class="cta" href="${wa}" target="_blank" rel="noopener">${s.ctaWhatsapp}</a>` : ''}
@@ -108,7 +107,7 @@ const BODIES = {
       <div class="ctas reveal"><span class="cta disabled" aria-disabled="true">${s.cta}</span></div>`;
   },
 
-  eventos(s, { photos, config }) {
+  eventos(s, { config }) {
     const L = config.links;
     const contact = L.whatsapp
       ? `https://wa.me/${L.whatsapp}?text=${encodeURIComponent('Hola, quisiera información sobre eventos en Picheta.')}`
@@ -116,7 +115,7 @@ const BODIES = {
     return `
       <div class="cards">
         ${s.cards
-          .map((c) => `<article class="card photo-card reveal">${photo(photos[c.photo])}<h3>${c.title}</h3><p>${c.text}</p></article>`)
+          .map((c, i) => `<article class="card reveal"><p class="card-n">${String(i + 1).padStart(2, '0')}</p><h3>${c.title}</h3><p>${c.text}</p></article>`)
           .join('')}
       </div>
       <div class="ctas reveal"><a class="cta primary" href="${contact}" target="_blank" rel="noopener">${s.cta}</a></div>`;
@@ -170,6 +169,12 @@ const ART = {
     <rect x="18" y="28" width="264" height="64" fill="url(#h3)" opacity="0.25"/>
     <text x="150" y="56" text-anchor="middle" font-family="Jost, sans-serif" font-size="20" letter-spacing="6" fill="currentColor">CALLE 61</text>
     <text x="150" y="80" text-anchor="middle" font-family="Cormorant Garamond, serif" font-style="italic" font-size="16" fill="currentColor">Pasaje Picheta</text>
+  </svg>`,
+  arcos: `<svg class="engr-svg wide" viewBox="0 0 300 160" aria-hidden="true">${HATCH}
+    <rect x="12" y="20" width="276" height="128" fill="url(#h3)" opacity="0.18"/>
+    ${[0, 1, 2].map((i) => `<path d="M${30 + i * 86} 148 V78 a40 40 0 0 1 80 0 V148" fill="url(#h1)" opacity="0.5" stroke="currentColor" stroke-width="1.6"/>`).join('')}
+    <path d="M12 20 H288 M12 30 H288" stroke="currentColor" stroke-width="1"/>
+    <text x="150" y="16" text-anchor="middle" font-family="Cormorant Garamond, serif" font-style="italic" font-size="13" fill="currentColor">1639</text>
   </svg>`,
   platillo: `<svg class="engr-svg" viewBox="0 0 200 140" aria-hidden="true">${HATCH}
     <ellipse cx="100" cy="88" rx="86" ry="34" fill="none" stroke="currentColor" stroke-width="1.6"/>

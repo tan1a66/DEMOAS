@@ -1,14 +1,12 @@
 import gsap from 'gsap';
 
-// Pequeño gestor de estados: Intro → Inmersión → Llegada → Terraza (hub).
+// Pequeño gestor de estados: Intro (el círculo) → Casa (las salas en 3D).
 // Las escenas se cargan bajo demanda (import dinámico) y comparten motor.
 // Interfaz de una escena: init(progress) · enter(opts) · exit(next) · update(dt, t)
 //                         beforeRender(renderer) · resize(view) · scene (THREE.Scene)
 const LOADERS = {
   intro: () => import('../scenes/intro/IntroScene.js'),
-  inmersion: () => import('../scenes/inmersion/InmersionScene.js'),
-  llegada: () => import('../scenes/llegada/LlegadaScene.js'),
-  terraza: () => import('../scenes/terraza/TerrazaScene.js'),
+  casa: () => import('../scenes/casa/CasaScene.js'),
 };
 
 export class Director {

@@ -43,6 +43,10 @@ export class FinishEffect extends Effect {
     this.uniforms.get('uDim').value = v;
   }
 
+  set knee(v) {
+    this.uniforms.get('uKnee').value = v;
+  }
+
   update() {
     this.uniforms.get('uSeed').value = Math.random() * 1000;
   }

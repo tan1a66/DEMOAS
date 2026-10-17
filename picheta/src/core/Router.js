@@ -1,7 +1,10 @@
-// Rutas con hash: cada sección tiene su URL (/#historia, /#menu…) para poder
-// compartirla, y el botón "atrás" del teléfono vuelve al estado anterior.
-export const ROUTES = ['inicio', 'terraza', 'historia', 'autores', 'menu', 'reserva', 'concurso', 'eventos'];
+import { ROOMS } from '../scenes/casa/rooms.js';
+
+// Rutas con hash: cada sala y cada sección tiene su URL (/#salon, /#menu…) para
+// poder compartirla, y el botón "atrás" del teléfono vuelve al estado anterior.
+export const ROOM_IDS = ROOMS.map((r) => r.id);
 export const SECTIONS = ['historia', 'autores', 'menu', 'reserva', 'concurso', 'eventos'];
+export const ROUTES = ['inicio', ...ROOM_IDS, ...SECTIONS];
 
 export class Router {
   constructor(onChange) {

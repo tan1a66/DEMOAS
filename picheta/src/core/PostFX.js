@@ -51,6 +51,10 @@ export class PostFX {
     // flash para los golpes de tambor (se suma sin pisar las otras animaciones).
     // blur/dim: la escena queda desenfocada y oscurecida detrás de los paneles.
     this.fx = { bloom: 1, ca: 1, flash: 0, blur: 0, dim: 0 };
+    // Umbral del bloom y rodilla de las altas luces: las salas fotográficas sólo
+    // hacen brillar lámparas y cielo, la intro hace brillar el polvo de tiza.
+    this.defaults = { threshold: 0.38, knee: 0.62 };
+    this.look = { ...this.defaults };
   }
 
   setScene(scene) {
@@ -67,6 +71,8 @@ export class PostFX {
     this.blurPass.enabled = this.fx.blur > 0.01;
     this.blurPass.blurMaterial.scale = this.fx.blur * 1.6;
     this.finish.dim = this.fx.dim;
+    this.finish.knee = this.look.knee;
+    this.bloom.luminanceMaterial.threshold = this.look.threshold;
     this.composer.render(dt);
   }
 }
