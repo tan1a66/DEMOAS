@@ -3,6 +3,8 @@
 Demo di redesign del sito di URBAZ come esperienza 3D (Vite + Three.js + GSAP).
 **Solo per uso locale/presentazione: non pubblicare e non fare deploy.**
 
+> Nella cartella [`picheta/`](picheta/) c'è una demo separata (esperienza 3D per il ristorante Picheta, Mérida), con il suo README.
+
 ```bash
 npm install
 npm run dev        # http://localhost:5173  (aggiungere ?auto per far partire l'intro senza click)
