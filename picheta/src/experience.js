@@ -41,8 +41,8 @@ export async function startExperience({ content, config }) {
     fromIntro = true;
     router.go(ROOM_IDS[0]);
   };
-  // La casa cambia de sala (rueda, gesto, índice): la URL acompaña.
-  ctx.roomChanged = (id) => router.go(id);
+  // La cámara pasa a otra sala del recorrido: la URL acompaña (sin llenar el historial).
+  ctx.roomChanged = (id) => router.go(id, { replace: true });
   new Cursor(ui, engine, pointer);
 
   // ---------------------------------------------------------------- precarga

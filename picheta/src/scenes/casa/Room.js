@@ -3,33 +3,28 @@ import * as THREE from 'three';
 // Una sala de Picheta reconstruida en 3D a partir de una foto real.
 // La foto se proyecta desde su propia cámara sobre la geometría que sale de su
 // mapa de profundidad: el visitante ve la luz y los materiales reales, pero la
-// cámara puede moverse dentro de la sala (paralaje verdadero, avanzar,
-// subir la escalera). Tres capas:
-//   · fondo: la misma sala con la profundidad suavizada y la foto desenfocada,
-//     que rellena lo que queda detrás de las siluetas al moverse;
+// cámara puede moverse dentro de la sala (paralaje verdadero, avanzar por el
+// pasillo, subir la escalera). Dos capas:
 //   · superficie: la sala nítida (se cortan los triángulos que unen un objeto
 //     cercano con la pared del fondo);
-//   · polvo: la sala hecha de partículas, para que se forme y se deshaga en
-//     las transiciones (el mismo polvo de tiza de la intro).
+//   · fondo: la misma sala con la profundidad "lejana" y suavizada, que rellena
+//     lo que se abre detrás de las siluetas al moverse.
+// La sala vive en su propio grupo: la escena la coloca en el mundo.
 
 const MESH_VERT = /* glsl */ `
 varying vec2 vUv;
-varying float vDist;
 void main() {
   vUv = uv;
-  vec4 mv = modelViewMatrix * vec4(position, 1.0);
-  vDist = -mv.z;
-  gl_Position = projectionMatrix * mv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `;
 
 const MESH_FRAG = /* glsl */ `
 uniform sampler2D tPhoto;
-uniform float uOpacity, uExposure, uTime, uGlowAmt, uLod;
+uniform float uExposure, uTime, uGlowAmt, uLod;
 uniform vec4 uGlow;
 uniform vec2 uEdge;
 varying vec2 vUv;
-varying float vDist;
 void main() {
   vec3 c = uLod > 0.0 ? textureLod(tPhoto, vUv, uLod).rgb : texture2D(tPhoto, vUv).rgb;
   // Luz que respira (la escultura retroiluminada, las lámparas): sólo los píxeles
@@ -44,125 +39,65 @@ void main() {
   // Los bordes de la foto se funden con la oscuridad (no hay un marco).
   float e = smoothstep(0.0, uEdge.x, p.x) * smoothstep(0.0, uEdge.x, 1.0 - p.x)
           * smoothstep(0.0, uEdge.y, p.y) * smoothstep(0.0, uEdge.y, 1.0 - p.y);
-  gl_FragColor = vec4(c * uExposure * e, uOpacity);
-}
-`;
-
-const DUST_VERT = /* glsl */ `
-uniform sampler2D tPhoto;
-uniform float uScatter, uTime, uPixelRatio, uSize, uOpacity, uChalk;
-attribute vec2 aUv;
-attribute vec4 aSeed;
-varying vec3 vColor;
-varying float vA;
-void main() {
-  vec3 p = position;
-  float z = -p.z;
-  // Cada mota se va (o llega) a su ritmo.
-  float s = clamp(uScatter * (1.0 + aSeed.w * 0.8) - aSeed.w * 0.4, 0.0, 1.0);
-  s = s * s * (3.0 - 2.0 * s);
-  vec3 dir = normalize(aSeed.xyz * 2.0 - 1.0 + vec3(0.0, 0.0, 0.0001));
-  float reach = min(z, 9.0);
-  p += dir * reach * 0.5 * s + vec3(0.0, 0.0, reach * 0.9 * s);
-  p += vec3(sin(uTime * 0.7 + aSeed.x * 20.0), cos(uTime * 0.6 + aSeed.y * 20.0), 0.0) * 0.06 * reach * s;
-  vec4 mv = modelViewMatrix * vec4(p, 1.0);
-  gl_Position = projectionMatrix * mv;
-  float dist = max(-mv.z, 0.05);
-  float size = uSize * uPixelRatio * clamp(min(z, 12.0) / dist, 0.7, 6.0) * (1.0 + s * 0.8);
-  gl_PointSize = min(size, 28.0 * uPixelRatio);
-  vec3 c = texture2D(tPhoto, aUv).rgb;
-  vColor = mix(c, vec3(0.94, 0.92, 0.88), uChalk * (0.35 + 0.65 * s));
-  vA = uOpacity * (1.0 - s * 0.55) * smoothstep(0.08, 0.6, dist) / max(1.0, size / (6.0 * uPixelRatio));
-}
-`;
-
-const DUST_FRAG = /* glsl */ `
-varying vec3 vColor;
-varying float vA;
-void main() {
-  float r = length(gl_PointCoord - 0.5);
-  float m = smoothstep(0.5, 0.15, r);
-  gl_FragColor = vec4(vColor, vA * m);
+  gl_FragColor = vec4(c * uExposure * e, 1.0);
 }
 `;
 
 export class Room {
-  // Carga foto y profundidad y construye la sala.
-  static async load(def, base, quality) {
-    const [photo, depth] = await Promise.all([loadTexture(base + def.photo), loadImage(base + def.depth)]);
-    return new Room(def, photo, readDisparity(depth), quality);
+  // Primero la profundidad (pesa poco): con ella se traza el recorrido. La foto llega después.
+  static async loadDepth(def, base, quality) {
+    return new Room(def, readDisparity(await loadImage(base + def.depth)), quality);
   }
 
-  constructor(def, photo, disp, q) {
+  constructor(def, disp, q) {
     this.def = def;
-    this.photo = photo;
     this.disp = disp;
-    this.aspect = photo.image.width / photo.image.height;
+    this.ready = false;
+    this.aspect = disp.w / disp.h;
     this.tanV = Math.tan(THREE.MathUtils.degToRad(def.fov / 2));
     this.tanH = this.tanV * this.aspect;
     this.group = new THREE.Group();
     this.group.visible = false;
 
+    const blank = new THREE.DataTexture(new Uint8Array([13, 12, 12, 255]), 1, 1);
+    blank.needsUpdate = true;
     this.uniforms = {
-      tPhoto: { value: photo },
-      uOpacity: { value: 1 },
+      tPhoto: { value: blank },
       uExposure: { value: 1 },
       uTime: { value: 0 },
       uGlowAmt: { value: def.glow ? 1 : 0 },
       uGlow: { value: new THREE.Vector4(...(def.glow ?? [0, 0, 0, 0])) },
       uLod: { value: 0 },
-      uEdge: { value: new THREE.Vector2(def.overscan ? 0.16 : 0.05, def.overscan ? 0.08 : 0.04) },
+      uEdge: { value: new THREE.Vector2(def.overscan ? 0.22 : 0.08, def.overscan ? 0.14 : 0.06) },
     };
     const nx = q.roomGrid;
     const ny = Math.round(nx / this.aspect);
-    this.surface = new THREE.Mesh(this.grid(nx, ny, { cut: def.cut ?? 1.45 }), this.meshMaterial(this.uniforms));
+    this.surface = new THREE.Mesh(this.grid(nx, ny, { cut: def.cut ?? 1.45 }), this.material(this.uniforms));
     this.surface.renderOrder = 1;
 
     // Fondo: profundidad "lejana" (mínima disparidad del entorno) y suavizada. Desde
     // la cámara de la foto se ve idéntico a la sala nítida (mismo rayo, mismo píxel);
     // al moverse, rellena lo que se abre detrás de las siluetas.
     const far = blurField(minField(disp, 4), 6);
-    const backU = { ...this.uniforms, uLod: { value: 0.5 }, uOpacity: this.uniforms.uOpacity };
-    this.back = new THREE.Mesh(this.grid(Math.round(nx / 2), Math.round(ny / 2), { field: far }), this.meshMaterial(backU));
+    const backU = { ...this.uniforms, uLod: { value: 0.5 } };
+    this.back = new THREE.Mesh(this.grid(Math.round(nx / 2), Math.round(ny / 2), { field: far }), this.material(backU));
     this.back.material.polygonOffset = true;
     this.back.material.polygonOffsetFactor = 4;
     this.back.material.polygonOffsetUnits = 4;
     this.back.renderOrder = 0;
-
-    this.dustU = {
-      tPhoto: { value: photo },
-      uScatter: { value: 0 },
-      uTime: { value: 0 },
-      uPixelRatio: { value: 1 },
-      uSize: { value: q.dustSize },
-      uOpacity: { value: 0 },
-      uChalk: { value: 0 },
-    };
-    this.dust = new THREE.Points(
-      this.dustGeometry(q.roomDust),
-      new THREE.ShaderMaterial({
-        vertexShader: DUST_VERT,
-        fragmentShader: DUST_FRAG,
-        uniforms: this.dustU,
-        transparent: true,
-        depthWrite: false,
-      }),
-    );
-    this.dust.frustumCulled = false;
-    this.dust.renderOrder = 2;
-    this.dust.visible = false;
-
-    this.group.add(this.back, this.surface, this.dust);
+    this.group.add(this.back, this.surface);
   }
 
-  meshMaterial(uniforms) {
-    return new THREE.ShaderMaterial({
-      vertexShader: MESH_VERT,
-      fragmentShader: MESH_FRAG,
-      uniforms,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
+  async loadPhoto(base) {
+    const tex = await loadTexture(base + this.def.photo);
+    this.photo = tex;
+    this.uniforms.tPhoto.value = tex;
+    this.ready = true;
+    return tex;
+  }
+
+  material(uniforms) {
+    return new THREE.ShaderMaterial({ vertexShader: MESH_VERT, fragmentShader: MESH_FRAG, uniforms, side: THREE.DoubleSide });
   }
 
   // Distancia (m) de la disparidad d (0 lejos … 1 cerca): 1/z es lineal en d.
@@ -171,13 +106,20 @@ export class Room {
     return 1 / (d * (1 / near - 1 / far) + 1 / far);
   }
 
-  // Punto 3D de la foto (u, v) a la distancia z, visto desde la cámara de la foto.
+  depthAt(u, v) {
+    return this.zOf(sample(this.disp, u, v));
+  }
+
+  // Punto de la foto (u, v) a la distancia z, en coordenadas de la sala (cámara de la foto
+  // en el origen, mirando hacia -z).
   project(u, v, z, out = new THREE.Vector3()) {
     return out.set((u - 0.5) * 2 * this.tanH * z, (0.5 - v) * 2 * this.tanV * z, -z);
   }
 
-  point(u, v, out) {
-    return this.project(u, v, this.zOf(sample(this.disp, u, v)) * 0.97, out);
+  // Punto de la superficie en (u, v), en coordenadas del mundo.
+  point(u, v, out = new THREE.Vector3()) {
+    this.project(u, v, this.depthAt(u, v) * 0.97, out);
+    return this.group.localToWorld(out);
   }
 
   grid(nx, ny, { field = this.disp, cut = 0 } = {}) {
@@ -221,42 +163,8 @@ export class Room {
     return geo;
   }
 
-  dustGeometry(count) {
-    const pos = new Float32Array(count * 3);
-    const uv = new Float32Array(count * 2);
-    const seed = new Float32Array(count * 4);
-    const v3 = new THREE.Vector3();
-    for (let i = 0; i < count; i++) {
-      const u = Math.random();
-      const v = Math.random();
-      this.project(u, v, this.zOf(sample(this.disp, u, v)), v3);
-      pos.set([v3.x, v3.y, v3.z], i * 3);
-      uv[i * 2] = u;
-      uv[i * 2 + 1] = 1 - v;
-      for (let c = 0; c < 4; c++) seed[i * 4 + c] = Math.random();
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('aUv', new THREE.BufferAttribute(uv, 2));
-    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 4));
-    return geo;
-  }
-
-  // solid: opacidad de la sala nítida · dust: opacidad del polvo · scatter: 0 en su sitio … 1 disperso.
-  setState({ solid, dust, scatter, chalk }) {
-    if (solid !== undefined) this.uniforms.uOpacity.value = solid;
-    if (dust !== undefined) this.dustU.uOpacity.value = dust;
-    if (scatter !== undefined) this.dustU.uScatter.value = scatter;
-    if (chalk !== undefined) this.dustU.uChalk.value = chalk;
-  }
-
-  update(t, dpr) {
+  update(t) {
     this.uniforms.uTime.value = t;
-    this.dustU.uTime.value = t;
-    this.dustU.uPixelRatio.value = dpr;
-    // Sólo se dibuja lo que se ve.
-    this.surface.visible = this.back.visible = this.uniforms.uOpacity.value > 0.002;
-    this.dust.visible = this.dustU.uOpacity.value > 0.002;
   }
 }
 

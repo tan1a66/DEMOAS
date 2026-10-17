@@ -35,13 +35,16 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 1. **Il cerchio** (`src/scenes/intro/`): una linea di caricamento e subito la pagina che chiede di
    disegnare. Il logo, campionato dal PNG, entra in due anelli di gesso che si uniscono con un colpo di
    tamburo; "Dibuja un círculo para entrar" con la guida animata (bottone "Entrar" dopo 4 s, anche Invio).
-   Disegnato il cerchio, il logo esplode verso lo spettatore e la polvere di gesso diventa la casa.
-2. **La casa** (`src/scenes/casa/`): sei sale **ricostruite in 3D dalle foto reali** del ristorante.
-   Ogni foto ha la sua mappa di profondità (Depth Anything V2): la sala diventa geometria vera con la luce
-   e i materiali reali, e la camera ci si muove dentro (parallasse col mouse o col giroscopio, sguardo
-   trascinando). Si avanza con la rotella, scorrendo in su sul telefono, con "Seguir" o con l'indice a
-   destra; tra una sala e l'altra la camera avanza, la sala si scioglie in polvere e la successiva si
-   forma con la stessa polvere. Nella scala la camera sale i gradini verso la luce della terrazza.
+   Disegnato il cerchio, il logo esplode verso lo spettatore e dal buio emerge la scultura dei due cerchi.
+2. **La casa** (`src/scenes/casa/`): **un unico percorso 3D** attraverso sei sale ricostruite dalle foto
+   reali del ristorante. Ogni foto ha la sua mappa di profondità (Depth Anything V2) e diventa geometria
+   con la luce e i materiali veri; le sale sono messe una dopo l'altra nello stesso spazio e la camera le
+   attraversa senza stacchi: si entra dall'anello della scultura, si cammina lungo il salone fino alla
+   firma "Picheta", si gira attorno al tavolo del reservado, si salgono i gradini, si esce sulla terrazza
+   e si arriva alla balaustra davanti alla Cattedrale. Rotella, swipe verticale, "Seguir" o l'indice a
+   destra muovono la camera lungo il cammino; quando ci si ferma, la camera si posa dolcemente nella
+   sosta più vicina (dove la sala coincide con la foto) e compaiono i punti di luce. Tra una sala e
+   l'altra l'immagine sfuma mentre la camera continua ad avanzare.
 3. **Punti di luce → sezioni** (`src/ui/Panel.js`, `src/ui/sections.js`): pannelli sopra la sala sfocata.
    Historia (una frase per schermata con incisioni originali), Autores, Menú (carte 3D da sfogliare),
    Reserva (CTA OpenTable/WhatsApp, indirizzo, orari), Concurso ed Eventos (layout pronti).
@@ -72,8 +75,9 @@ python3 scripts/preparar-fotos.py --modelo depth_anything_v2_vitb.onnx \
 ```
 
 Poi in `rooms.js`: `fov` (campo verticale stimato della foto), `near`/`far` (distanza in metri di ciò
-che è più vicino e più lontano), `look` (punto al centro dello schermo), `spots` (punti di luce),
-`overscan` (sale scure: in orizzontale si apre più della foto e i lati sfumano nel buio).
+che è più vicino e più lontano), `look` (punto al centro dello schermo nella sosta), `path` (il cammino
+della camera dentro la sala), `gap`/`rise` (distanza e dislivello fino alla sala successiva), `spots`
+(punti di luce), `overscan` (sale scure: in orizzontale si apre più della foto e i lati sfumano nel buio).
 
 Le foto delle sezioni Menú e Autores (`public/assets/fotos/`) sono **immagini provvisorie generate con
 IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets.photos`).
@@ -91,17 +95,18 @@ IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets
   vignetta, aberrazione minima, grana, sfocatura dietro i pannelli), `Director` (state manager con
   caricamento lazy delle scene), `Router` (hash + tasto indietro), `Pointer`, `Gyro`, `Sound`
 - `src/scenes/intro/`: il logo di particelle (simulazione GPU), il gesto del cerchio, l'esplosione
-- `src/scenes/casa/`: `rooms.js` (le sale), `Room.js` (ricostruzione 3D di una foto: superficie, fondo
-  che riempie dietro le sagome, polvere per le transizioni), `CasaScene.js` (camera, navigazione,
-  transizioni, punti di luce, didascalie)
+- `src/scenes/casa/`: `rooms.js` (le sale e il cammino), `Room.js` (ricostruzione 3D di una foto:
+  superficie e fondo che riempie dietro le sagome), `CasaScene.js` (posizione delle sale nel mondo, curva
+  della camera, scroll e soste, dissolvenze, punti di luce, didascalie)
 - `src/ui/`: precarga, barra + menu testuale, pannelli e sezioni, etichette 3D, cursore, versione statica
 - `scripts/preparar-fotos.py`: foto reali → WebP + mappa di profondità
 
 ## Prestazioni
 - Livelli `high / mid / low` (`src/core/quality.js`): iPhone → mid, Android medio → low.
 - DPR massimo 2 (1,5 su mobile) e riduzione automatica se il frame rate scende sotto ~45 fps.
-- Sale: maglia 240 / 190 / 140 celle di larghezza e 110k / 70k / 42k particelle; si caricano due sale
-  durante l'intro e le altre in sottofondo, in ordine. Tutta la casa pesa ~2 MB.
+- Sale: maglia 240 / 190 / 140 celle di larghezza; si disegna una sola sala alla volta (due durante le
+  dissolvenze). Le profondità (~0,6 MB) e le prime due foto si caricano durante l'intro, le altre in
+  sottofondo, in ordine. Tutta la casa pesa ~2 MB.
 - Audio tutto sintetizzato (nessun file).
 
 ## Audio (opzionale, spento di default)

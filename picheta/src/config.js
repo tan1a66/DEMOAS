@@ -42,10 +42,10 @@ export const CONFIG = {
   },
 
   // Calidad por nivel (ver core/quality.js). Intro: partículas del logo (trazo ~80 %,
-  // polvo ~18 %, destellos ~2 %). Casa: malla de cada sala (celdas a lo ancho) y motas de polvo.
+  // polvo ~18 %, destellos ~2 %). Casa: malla de cada sala (celdas a lo ancho).
   quality: {
-    high: { particles: 40000, dust: 520, ink: 3600, trail: 420, bloomLevels: 7, stoneSize: 2048, roomGrid: 240, roomDust: 110000, dustSize: 2.2 },
-    mid: { particles: 24000, dust: 320, ink: 2600, trail: 320, bloomLevels: 6, stoneSize: 2048, roomGrid: 190, roomDust: 70000, dustSize: 2.4 },
-    low: { particles: 14000, dust: 200, ink: 1800, trail: 240, bloomLevels: 5, stoneSize: 1024, roomGrid: 140, roomDust: 42000, dustSize: 2.6 },
+    high: { particles: 40000, dust: 520, ink: 3600, trail: 420, bloomLevels: 7, stoneSize: 2048, roomGrid: 240 },
+    mid: { particles: 24000, dust: 320, ink: 2600, trail: 320, bloomLevels: 6, stoneSize: 2048, roomGrid: 190 },
+    low: { particles: 14000, dust: 200, ink: 1800, trail: 240, bloomLevels: 5, stoneSize: 1024, roomGrid: 140 },
   },
 };
