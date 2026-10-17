@@ -34,7 +34,7 @@ export const es = {
     home: 'Picheta, volver al inicio',
     items: {
       place: 'El lugar',
-      experience: 'La experiencia',
+      experience: 'La terraza',
       gastronomy: 'Gastronomía',
       gallery: 'Galería',
       location: 'Ubicación',
@@ -44,64 +44,94 @@ export const es = {
     close: 'Cerrar',
   },
 
-  welcome: {
+  hero: {
     location: 'Mérida · Yucatán',
-    title: ['La ciudad,', 'desde otra', '*perspectiva.*'],
+    title: ['La ciudad,', 'desde otra *perspectiva.*'],
     lead: 'Arquitectura, gastronomía y un horizonte que invita a quedarse.',
     enter: 'Entrar',
-    enterHint: 'Recorrer Picheta',
-    reserve: 'Agendar',
-    reserveHint: 'Reservar una mesa',
-    tagline: 'Gastronomía yucateca contemporánea + cocina de autores',
-    photo: 'La terraza al atardecer',
-    scroll: 'o desliza',
+    reserve: 'Agendar una mesa',
+    slides: ['La terraza', 'El salón', 'La Catedral', 'La barra'],
+    slidesLabel: 'Fotografías de Picheta',
+    goTo: (n: number) => `Ver fotografía ${n}`,
+    pause: 'Pausar fotografías',
+    play: 'Reanudar fotografías',
+    scroll: 'Descubrir',
   },
 
-  walk: {
-    label: 'El recorrido',
-    hint: { pointer: 'Desplázate para caminar', touch: 'Desliza para caminar' },
-    skip: 'Saltar el recorrido',
-    rail: ['Calle', 'Salón', 'Balcón', 'Terraza', 'Mesa', 'Atardecer', 'Noche', 'Altura'],
-    entrance: { line: 'Una entrada discreta…', sub: '…en un edificio de más de 350 años.' },
-    beats: [
-      { kicker: 'Centro de Mérida', title: ['Llegas', 'al *centro.*'], sub: 'Las torres de la Catedral marcan el camino.' },
-      { kicker: 'El salón', title: ['El espacio', 'lo cambia *todo.*'], sub: 'Piedra, madera y luz cálida.' },
-      { kicker: 'El balcón', title: ['Te asomas', 'al *balcón.*'], sub: 'Afuera, el centro sigue su ritmo.' },
-      {
-        kicker: 'La terraza',
-        title: ['Un lugar', 'sobre lo *cotidiano.*'],
-        sub: 'Arriba, la ciudad se abre: la Catedral, la plaza, el cielo.',
-      },
-      {
-        kicker: 'La mesa',
-        title: ['Una experiencia que va', 'más allá de la *mesa.*'],
-        quote: 'Ofrecemos comida con corazón.',
-        source: 'Filosofía de Picheta',
-      },
-      { kicker: 'El atardecer', title: ['La luz', 'transforma el *momento.*'], sub: 'El cielo se tiñe de rosa sobre la Catedral.' },
-      { kicker: 'La noche', title: ['Y llega', 'la *noche.*'], sub: 'La barra se enciende.' },
-      { kicker: 'Otra perspectiva', title: ['Mérida,', 'desde otra *altura.*'], sub: 'Abajo, la plaza iluminada.' },
-    ] as { kicker: string; title: string[]; sub?: string; quote?: string; source?: string }[],
-    finale: {
-      title: ['El siguiente momento', 'puede ser *tuyo.*'],
-      primary: 'Agendar una mesa',
-      secondary: 'Volver a caminar',
-      note: 'Reservaciones en línea con OpenTable, el sistema oficial de Picheta.',
-    },
-    photoNote: 'Fotografías reales de Picheta, con profundidad 3D',
+  intro: {
+    kicker: 'Centro histórico de Mérida',
+    text: 'Gastronomía yucateca contemporánea y cocina de autores, en un edificio de más de *350 años* frente a la Catedral.',
+    facts: [
+      { value: '+350', label: 'años de historia en el edificio' },
+      { value: 'Terraza', label: 'con vista a la Catedral' },
+      { value: 'Autores', label: 'chefs residentes e invitados' },
+    ],
+  },
+
+  place: {
+    kicker: 'El lugar',
+    title: ['El espacio', 'lo cambia *todo.*'],
+    lead: 'Detrás de una entrada discreta, un edificio de más de 350 años.',
+    text: 'Muros de piedra, un techo abovedado de listones de madera y una luz cálida que acompaña cada mesa. Del salón al balcón de herrería, el centro de Mérida sigue su ritmo al otro lado de las ventanas.',
+    captions: ['El salón abovedado', 'Muros de piedra', 'El balcón'],
+  },
+
+  terrace: {
+    kicker: 'La terraza',
+    title: ['Un lugar', 'sobre lo *cotidiano.*'],
+    text: 'En la plaza central de Mérida, con vista a la majestuosa Catedral.',
+    hint: { pointer: 'Mueve el cursor para mirar alrededor', touch: 'Inclina el teléfono para mirar alrededor' },
+  },
+
+  light: {
+    kicker: 'La luz',
+    title: ['La luz transforma', 'el *momento.*'],
+    text: 'La misma terraza, cuatro atmósferas: del cielo abierto del día al rosa del atardecer y la barra encendida al anochecer.',
+    moments: ['De día', 'Hora dorada', 'Atardecer', 'Al anochecer'],
   },
 
   gastronomy: {
     kicker: 'Gastronomía',
-    title: 'La propuesta gastronómica.',
+    title: ['La propuesta', '*gastronómica.*'],
     text: 'Una interpretación contemporánea de los sabores yucatecos.',
-    detail: 'Entradas, platos fuertes y postres, con creaciones de chefs residentes y autores invitados.',
+    detail:
+      'Chefs residentes y autores invitados crean platillos únicos a partir de ingredientes locales: entradas, platos fuertes y postres.',
+    quote: 'Ofrecemos comida con corazón.',
+    source: 'Filosofía de Picheta',
     cta: 'Explorar menú',
-    points: [
-      { title: 'Cocina de autores', text: 'Chefs residentes y autores invitados crean platillos únicos a partir de ingredientes locales.' },
-      { title: 'Sala comedor privada', text: 'Un espacio íntimo para reuniones de hasta ocho personas.' },
+  },
+
+  events: {
+    kicker: 'Eventos',
+    title: ['Para los momentos', 'que *importan.*'],
+    items: [
+      { title: 'Sala comedor privada', text: 'Un espacio íntimo, entre muros de piedra, para reuniones de hasta ocho personas.' },
       { title: 'Terraza para eventos', text: 'De bodas y recepciones a eventos corporativos, con la Catedral como escenario.' },
     ],
+    write: 'Escribir a eventos',
+    whatsapp: 'Consultar por WhatsApp',
+  },
+
+  gallery: {
+    kicker: 'Galería',
+    title: ['Picheta,', 'en *imágenes.*'],
+    open: (n: number, total: number) => `Ampliar fotografía ${n} de ${total}`,
+    dialog: 'Galería de fotografías',
+    close: 'Cerrar',
+    prev: 'Anterior',
+    next: 'Siguiente',
+  },
+
+  invitation: {
+    title: ['El siguiente momento', 'puede ser *tuyo.*'],
+    primary: 'Agendar una mesa',
+    secondary: 'Volver al inicio',
+    note: 'Reservaciones en línea con OpenTable, el sistema oficial de Picheta.',
+  },
+
+  sticky: {
+    reserve: 'Agendar una mesa',
+    menu: 'Menú',
   },
 
   location: {

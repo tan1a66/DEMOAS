@@ -6,51 +6,55 @@ import { Arrow } from '../components/Arrow';
 import { Picture } from '../components/Picture';
 import { Title } from '../components/Title';
 
-/** Gastronomía: una introducción breve. El menú vive en su propia página, sencilla y rápida. */
+/** Gastronomía: una introducción breve con la filosofía oficial. El menú vive en su propia página. */
 export function Gastronomy() {
   const { t, href } = useLang();
   const g = t.gastronomy;
-  const [ref, inView] = useInView<HTMLElement>({ threshold: 0.25 });
+  const [ref, inView] = useInView<HTMLElement>({ threshold: 0.15 });
   return (
     <section
       ref={ref}
       id={NAV_IDS.gastronomy}
       className={`gastronomy ${inView ? 'is-in' : ''}`}
-      data-theme="light"
+      data-theme="dark"
       aria-labelledby="gastronomy-title"
     >
-      <p className="kicker label gastronomy__kicker fade">
-        <span className="kicker__rule" />
-        {g.kicker}
-      </p>
-      <Title lines={[g.title]} className="h3 gastronomy__title" id="gastronomy-title" />
+      <figure className="gastronomy__main">
+        <div className={`frame reveal-photo ${inView ? 'is-in' : ''}`} data-parallax="40">
+          <Picture id="cocina-manos" sizes="(max-width: 760px) 100vw, 46vw" decorative />
+        </div>
+      </figure>
+
       <div className="gastronomy__copy">
-        <p className="lead fade" style={{ '--d': '200ms' } as CSSProperties}>
+        <p className="kicker label fade">
+          <span className="kicker__rule" />
+          {g.kicker}
+        </p>
+        <Title lines={g.title} className="h2 gastronomy__title" id="gastronomy-title" delay={80} />
+        <p className="lead fade" style={{ '--d': '300ms' } as CSSProperties}>
           {g.text}
         </p>
-        <p className="body fade" style={{ '--d': '300ms' } as CSSProperties}>
+        <p className="body gastronomy__detail fade" style={{ '--d': '380ms' } as CSSProperties}>
           {g.detail}
         </p>
-        <a className="cta-link fade" href={href('/menu/')} style={{ '--d': '400ms' } as CSSProperties}>
+        <blockquote className="gastronomy__quote fade" style={{ '--d': '480ms' } as CSSProperties}>
+          <p>“{g.quote}”</p>
+          <footer className="label">{g.source}</footer>
+        </blockquote>
+        <a className="btn btn--lg gastronomy__cta fade" href={href('/menu/')} style={{ '--d': '560ms' } as CSSProperties}>
           <span>{g.cta}</span>
           <Arrow />
         </a>
       </div>
-      <ul className="gastronomy__points">
-        {g.points.map((p, i) => (
-          <li key={p.title} className="fade" style={{ '--d': `${500 + i * 110}ms` } as CSSProperties}>
-            <span className="gastronomy__point-n">0{i + 1}</span>
-            <h3 className="gastronomy__point-title">{p.title}</h3>
-            <p>{p.text}</p>
-          </li>
-        ))}
-      </ul>
-      <Picture
-        id="plato-salmon"
-        sizes="(max-width: 760px) 60vw, 20vw"
-        className={`gastronomy__photo reveal-photo ${inView ? 'is-in' : ''}`}
-        decorative
-      />
+
+      <div className="gastronomy__pair">
+        <div className={`frame reveal-photo ${inView ? 'is-in' : ''}`} style={{ '--d': '300ms' } as CSSProperties} data-parallax="70">
+          <Picture id="plato-salmon" sizes="(max-width: 760px) 50vw, 22vw" decorative />
+        </div>
+        <div className={`frame reveal-photo ${inView ? 'is-in' : ''}`} style={{ '--d': '450ms' } as CSSProperties} data-parallax="30">
+          <Picture id="ingredientes" sizes="(max-width: 760px) 50vw, 22vw" decorative />
+        </div>
+      </div>
     </section>
   );
 }

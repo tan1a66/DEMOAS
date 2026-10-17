@@ -35,6 +35,10 @@ PHOTOS = {
     'cocina-manos': 'cocina-manos.jpg',
     'maiz': 'maiz.jpg',
     'plato-salmon': 'plato-salmon.jpg',
+    'cocinero': 'cocinero.jpg',
+    'ingredientes': 'ingredientes.jpg',
+    'platos-mesa': 'platos-mesa.jpg',
+    'piedra-textura': 'piedra-textura.jpg',
     # fotogramas del vídeo oficial (scripts/video.sh los extrae)
     'barra-noche': 'video-barra-noche.png',
     'aereo-merida': 'video-aereo.png',

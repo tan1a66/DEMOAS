@@ -33,7 +33,7 @@ export const en: Dict = {
     home: 'Picheta, back to the start',
     items: {
       place: 'The place',
-      experience: 'The experience',
+      experience: 'The terrace',
       gastronomy: 'Cuisine',
       gallery: 'Gallery',
       location: 'Location',
@@ -43,64 +43,93 @@ export const en: Dict = {
     close: 'Close',
   },
 
-  welcome: {
+  hero: {
     location: 'Mérida · Yucatán',
-    title: ['The city,', 'from another', '*perspective.*'],
+    title: ['The city,', 'from another *perspective.*'],
     lead: 'Architecture, cuisine and a horizon that asks you to stay a little longer.',
     enter: 'Enter',
-    enterHint: 'Explore Picheta',
-    reserve: 'Book',
-    reserveHint: 'Reserve a table',
-    tagline: 'Contemporary Yucatecan cuisine + author’s cuisine',
-    photo: 'The terrace at sunset',
-    scroll: 'or scroll',
+    reserve: 'Book a table',
+    slides: ['The terrace', 'The dining room', 'The Cathedral', 'The bar'],
+    slidesLabel: 'Photographs of Picheta',
+    goTo: (n: number) => `Show photograph ${n}`,
+    pause: 'Pause photographs',
+    play: 'Play photographs',
+    scroll: 'Discover',
   },
 
-  walk: {
-    label: 'The walk',
-    hint: { pointer: 'Scroll to walk', touch: 'Swipe to walk' },
-    skip: 'Skip the walk',
-    rail: ['Street', 'Dining room', 'Balcony', 'Terrace', 'Table', 'Sunset', 'Night', 'Above'],
-    entrance: { line: 'A discreet entrance…', sub: '…in a building more than 350 years old.' },
-    beats: [
-      { kicker: 'Downtown Mérida', title: ['You arrive', 'in the *old town.*'], sub: 'The Cathedral towers lead the way.' },
-      { kicker: 'The dining room', title: ['Space', 'changes *everything.*'], sub: 'Stone, timber and warm light.' },
-      { kicker: 'The balcony', title: ['You lean out', 'over the *balcony.*'], sub: 'Outside, the old town keeps its rhythm.' },
-      {
-        kicker: 'The terrace',
-        title: ['A place above', 'the *everyday.*'],
-        sub: 'Up here the city opens out: the Cathedral, the square, the sky.',
-      },
-      {
-        kicker: 'The table',
-        title: ['An experience that goes', 'beyond the *table.*'],
-        quote: 'We offer food with heart.',
-        source: 'Picheta’s philosophy',
-      },
-      { kicker: 'Sunset', title: ['Light', 'transforms the *moment.*'], sub: 'The sky turns pink over the Cathedral.' },
-      { kicker: 'Night', title: ['And then', '*night* falls.'], sub: 'The bar lights up.' },
-      { kicker: 'Another perspective', title: ['Mérida,', 'from another *height.*'], sub: 'Below, the square in lights.' },
+  intro: {
+    kicker: 'Mérida’s historic centre',
+    text: 'Contemporary Yucatecan cuisine and author’s cooking, in a building more than *350 years* old, facing the Cathedral.',
+    facts: [
+      { value: '350+', label: 'years of history in the building' },
+      { value: 'Terrace', label: 'overlooking the Cathedral' },
+      { value: 'Authors', label: 'resident and guest chefs' },
     ],
-    finale: {
-      title: ['The next moment', 'could be *yours.*'],
-      primary: 'Book a table',
-      secondary: 'Walk again',
-      note: 'Online reservations through OpenTable, Picheta’s official booking system.',
-    },
-    photoNote: 'Real photographs of Picheta, given 3D depth',
+  },
+
+  place: {
+    kicker: 'The place',
+    title: ['Space', 'changes *everything.*'],
+    lead: 'Behind a discreet entrance, a building more than 350 years old.',
+    text: 'Stone walls, a vaulted ceiling of timber slats and a warm light over every table. From the dining room to the wrought-iron balcony, the centre of Mérida keeps its rhythm just beyond the windows.',
+    captions: ['The vaulted dining room', 'Stone walls', 'The balcony'],
+  },
+
+  terrace: {
+    kicker: 'The terrace',
+    title: ['A place', 'above the *everyday.*'],
+    text: 'On Mérida’s main square, with a view of the majestic Cathedral.',
+    hint: { pointer: 'Move the cursor to look around', touch: 'Tilt your phone to look around' },
+  },
+
+  light: {
+    kicker: 'The light',
+    title: ['Light transforms', 'the *moment.*'],
+    text: 'One terrace, four atmospheres: from the open sky of the day to the pink of sunset and the glowing bar at dusk.',
+    moments: ['By day', 'Golden hour', 'Sunset', 'Dusk'],
   },
 
   gastronomy: {
     kicker: 'Cuisine',
-    title: 'The culinary proposal.',
-    text: 'A contemporary interpretation of Yucatecan flavours.',
-    detail: 'Starters, main courses and desserts, with creations by resident chefs and guest authors.',
+    title: ['The culinary', '*proposal.*'],
+    text: 'A contemporary reading of Yucatecan flavours.',
+    detail: 'Resident chefs and guest authors create unique dishes from local ingredients: starters, mains and desserts.',
+    quote: 'We serve food with heart.',
+    source: 'Picheta’s philosophy',
     cta: 'Explore the menu',
-    points: [
-      { title: 'Author’s cuisine', text: 'Resident chefs and guest authors create unique dishes from local ingredients.' },
-      { title: 'Private dining room', text: 'An intimate room for gatherings of up to eight.' },
+  },
+
+  events: {
+    kicker: 'Events',
+    title: ['For the moments', 'that *matter.*'],
+    items: [
+      { title: 'Private dining room', text: 'An intimate room between stone walls, for gatherings of up to eight.' },
       { title: 'Terrace for events', text: 'From weddings and receptions to corporate events, with the Cathedral as the backdrop.' },
     ],
+    write: 'Email the events team',
+    whatsapp: 'Ask on WhatsApp',
+  },
+
+  gallery: {
+    kicker: 'Gallery',
+    title: ['Picheta,', 'in *pictures.*'],
+    open: (n: number, total: number) => `Enlarge photograph ${n} of ${total}`,
+    dialog: 'Photo gallery',
+    close: 'Close',
+    prev: 'Previous',
+    next: 'Next',
+  },
+
+  invitation: {
+    title: ['The next moment', 'could be *yours.*'],
+    primary: 'Book a table',
+    secondary: 'Back to the top',
+    note: 'Online reservations through OpenTable, Picheta’s official booking system.',
+  },
+
+  sticky: {
+    reserve: 'Book a table',
+    menu: 'Menu',
   },
 
   location: {

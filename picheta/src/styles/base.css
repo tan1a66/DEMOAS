@@ -31,7 +31,7 @@
   --ease-in-out: cubic-bezier(0.7, 0, 0.3, 1);
 
   --fs-display: clamp(3.3rem, 7.6vw, 9.6rem);
-  --fs-h2: clamp(2.7rem, 6.2vw, 7.6rem);
+  --fs-h2: clamp(2.6rem, 5.4vw, 6.4rem);
   --fs-h3: clamp(1.9rem, 3.2vw, 3.2rem);
   --fs-lead: clamp(1.35rem, 1.9vw, 1.95rem);
   --fs-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
@@ -171,9 +171,8 @@ ol {
 .h2 {
   font-family: var(--serif);
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: -0.012em;
-  line-height: 0.94;
+  letter-spacing: -0.022em;
+  line-height: 0.98;
   text-wrap: balance;
 }
 
@@ -189,8 +188,7 @@ ol {
 .h2 em,
 .h3 em {
   font-style: italic;
-  text-transform: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .h3 {

@@ -6,10 +6,10 @@ Mientras no se apruebe, las páginas llevan `noindex, nofollow`.
 
 > La ciudad, desde otra perspectiva.
 
-Vite + React 19 + TypeScript estricto, sin librerías de animación ni de 3D. Las fotos reales del restaurante se
-convierten en **escenas 2.5D**: cada una lleva un mapa de profundidad y un pequeño renderizador WebGL2 propio mueve la
-cámara *dentro* de la foto (ratón, giroscopio del teléfono y desplazamiento). El resto del movimiento es CSS guiado por
-una variable de progreso (`--p`) que escribe `src/lib/hooks.ts`.
+Vite + React 19 + TypeScript estricto, sin librerías de animación ni de 3D. Dirección: un sitio de hotel boutique
+de alto nivel — fotografía real a pantalla completa, composición editorial, mucho espacio y la reserva siempre a un
+toque — con **un solo momento 3D**: la terraza, donde la foto real lleva un mapa de profundidad y un pequeño
+renderizador WebGL2 mueve la mirada con el ratón o el giroscopio.
 
 ```bash
 cd picheta
@@ -24,7 +24,7 @@ npm run typecheck
 
 | Ruta | Qué es |
 | --- | --- |
-| `/` | Portada con **ENTRAR** y **AGENDAR**, y el recorrido de seis escenas. |
+| `/` | Portada: apertura fotográfica con **ENTRAR** y **AGENDAR**, y el recorrido por escenas (ver abajo). |
 | `/#lugar`, `/#galeria`, `/#ubicacion`… | Ancla directa: se salta la portada y lleva a la sección. |
 | `/menu/` | Menú: página tipográfica, rápida, sin animaciones. |
 | `/agendar/` | Reservaciones: OpenTable (sistema oficial) + WhatsApp + teléfono + solicitud guiada. |
@@ -32,52 +32,33 @@ npm run typecheck
 
 Cada ruta es un HTML estático real (build multipágina de Vite): funciona en cualquier hosting sin reescrituras.
 
-## El recorrido
+## La portada
 
-El corazón del sitio es un **recorrido en primera persona** por los espacios reales de Picheta: se desplaza la página y
-se camina. Un solo lienzo WebGL2 a pantalla completa (`src/scenes/Walk.tsx` + `src/lib/walkRenderer.ts`), guion en
-`src/data/walk.ts`, textos en `src/i18n` (`walk`).
-
-| | Momento | Foto real | Texto (ES) |
+| | Escena | Fotografías reales | Qué hace |
 | --- | --- | --- | --- |
-| 01 | Llegas al centro: caminas hacia las torres | Campanario de la Catedral desde la calle | *Llegas al centro.* |
-| — | La entrada: todo se oscurece, como al cruzar una puerta en penumbra | — | *Una entrada discreta… en un edificio de más de 350 años.* |
-| 02 | Caminas por el salón; las mesas pasan a los lados | Salón abovedado | *El espacio lo cambia todo.* |
-| 03 | Te asomas al balcón | Mesa junto al balcón de herrería | *Te asomas al balcón.* |
-| 04 | Sales a la luz y llegas al barandal; giras hacia la Catedral | Panorámica de la terraza | *Un lugar sobre lo cotidiano.* |
-| 05 | Te sientas, llega el plato | Plato en la terraza | *Una experiencia que va más allá de la mesa.* · “Ofrecemos comida con corazón.” |
-| 06 | Cae la tarde | La terraza al atardecer | *La luz transforma el momento.* |
-| 07 | Llega la noche | La barra al anochecer | *Y llega la noche.* |
-| 08 | Te elevas sobre la ciudad | Vista aérea (vídeo oficial) | *Mérida, desde otra altura.* |
-| — | Invitación | — | *El siguiente momento puede ser tuyo.* → Agendar una mesa (OpenTable) |
+| — | Apertura (`Hero`) | Terraza al atardecer (mesa frente a la Catedral en el teléfono), salón, Catedral, barra al anochecer | Pase lento con fundido y acercamiento (7 s), pausa, puntos con progreso. **ENTRAR** baja a la bienvenida; **AGENDAR** abre `/agendar/`. |
+| — | Bienvenida (`Intro`) | — | Una frase y tres datos verificados (+350 años, terraza con vista a la Catedral, cocina de autores). |
+| 01 | El lugar (`Place`) | Salón abovedado, balcón, muros de piedra | Composición asimétrica con revelado y paralaje. |
+| 02 | La terraza (`Terrace`) | Panorámica de la terraza | **Momento 3D**: profundidad real, el ratón o el giroscopio mueven la mirada, la cámara avanza al desplazarse. |
+| 03 | La luz (`Light`) | Día, hora dorada, atardecer, anochecer | Escenario fijo: al desplazarse, la terraza pasa por cuatro atmósferas. |
+| 04 | Gastronomía (`Gastronomy`) | Manos del cocinero, salmón, ingredientes | Filosofía oficial y enlace al menú. |
+| 05 | Eventos (`Events`) | Sala comedor privada, brindis en la terraza | Sala para 8 y terraza para eventos; correo de eventos y WhatsApp. |
+| 06 | Galería (`Gallery`) | Nueve fotos | Retícula editorial y visor accesible (`<dialog>`, flechas, Escape). |
+| 07 | Invitación (`Invitation`) | Plato en la terraza frente a la Catedral | Reserva directa en OpenTable. |
+| 08 | Ubicación (`Location`) | Vídeo aéreo nocturno real | Dirección, horario, contacto. |
 
-**Lo que lo hace humano**: la cámara sigue al desplazamiento con inercia (tiene peso); al avanzar se balancea con los
-pasos —subida y bajada, un leve vaivén y una inclinación mínima de la cabeza— y, cuando se deja de desplazar, se queda
-quieta y respira. El ratón o el giroscopio del teléfono giran la cabeza. Entre espacios: oscuridad al cruzar la entrada,
-luz al salir a la terraza y, en el resto, el espacio nuevo aparece "desde lo cercano", como al entrar en él.
-Riel de capítulos a la derecha (clic para ir), "Saltar el recorrido" y anclas de navegación (`#lugar`, `#experiencia`,
-`#galeria`). Sin WebGL2 acelerado o con `prefers-reduced-motion`: el mismo relato, una foto por pantalla.
-
-**ENTRAR**: la composición se retira, la cámara avanza dentro de la foto de la portada hacia la Catedral, todo se funde a
-negro y el recorrido nace de la oscuridad en la calle (1,3 s). También entra con la rueda, un gesto hacia arriba o
-↓ / Espacio. En iPhone, el toque en ENTRAR pide permiso para usar el giroscopio. **AGENDAR** es un enlace normal a
-`/agendar/`: funciona desde el primer instante, sin esperar ninguna animación.
-
-Después del recorrido: *La propuesta gastronómica* (→ menú, con cocina de autores, sala privada y terraza para eventos)
-y *Ubicación* (dirección, horario, contacto; de fondo, el vuelo nocturno real sobre la plaza).
+En el teléfono, una barra fija con **Menú** y **Agendar una mesa** aparece al dejar atrás la apertura.
+Con `prefers-reduced-motion`: sin pase automático ni paralaje, la luz en retícula, la terraza como foto fija.
 
 ## 3D: fotos con profundidad
 
-- **Mapas de profundidad** (`public/depth/*.png`, blanco cerca, negro lejos): Depth Anything V2 (Large) calculado sobre
-  cada foto real (job temporal de GitHub Actions, ya eliminado): campanario, salón abovedado, balcón, panorámica, plato,
-  atardecer, barra al anochecer, vista aérea (y una mesa de la terraza, de reserva).
+- **Mapa de profundidad** (`public/depth/terraza-panoramica.png`, blanco cerca, negro lejos): Depth Anything V2
+  (Large) calculado sobre la panorámica real de la terraza (job temporal de GitHub Actions, ya eliminado). Los mapas
+  de las demás fotos, que usaba la versión anterior, siguen en el historial (commit `9b32741`).
 - **Renderizador** (`src/lib/depthRenderer.ts`, ≈ 200 líneas, sin dependencias): un pase WebGL2 con *parallax occlusion
   mapping*: para cada píxel busca, de cerca a lejos, qué superficie de la foto se ve con la cámara desplazada, así el
   primer plano tapa de verdad a la Catedral y la Catedral al cielo. El *dolly* acerca la cámara (lo cercano crece más).
-- **Recorrido** (`src/lib/walkRenderer.ts`): el mismo principio con dos espacios en el mismo pase para las transiciones
-  (oscuridad, luz, fundido por profundidad), viñeta y grano de película. Carga el espacio actual y los vecinos, y libera
-  los lejanos (memoria de GPU acotada).
-- **Portada** (`src/components/DepthPhoto.tsx`): la `<Picture>` normal queda debajo (carga rápida, texto alternativo) y
+- **Terraza** (`src/components/DepthPhoto.tsx`): la `<Picture>` normal queda debajo (carga rápida, texto alternativo) y
   el lienzo reutiliza esa misma imagen como textura.
 - **Cámara**: ratón en escritorio, giroscopio en móvil (`src/lib/motion.ts`), deriva lenta cuando no hay movimiento y
   movimientos ligados al desplazamiento por escena (amplitud, plano de foco y centro del dolly en cada escena).
@@ -123,14 +104,14 @@ Notas:
 
 ## Fotografías, logotipo y vídeo
 
-- **Fotos** (18): todas del sitio oficial de Picheta, o fotogramas de su vídeo oficial de la terraza. El origen exacto de
+- **Fotos** (22): todas del sitio oficial de Picheta, o fotogramas de su vídeo oficial de la terraza. El origen exacto de
   cada una está en `src/data/photos.ts` (`source`). Variantes AVIF (640–2000 px) + JPEG de respaldo, con dimensiones y
   color medio en `src/data/photoMeta.json`.
 - **Logotipo**: la firma caligráfica oficial, vectorizada a partir de `Picheta_logo-white.png` (`src/components/Logo.tsx`);
   el isotipo (anillo) es el SVG oficial (`src/components/Isotype.tsx`, favicon).
 - **Vídeo** (`public/video/`): fragmento aéreo de `picheta.mx/Picheta-TERRAZA.mp4` (4,25 s → 8,95 s), sin audio,
-  1280 px (móvil) y 1920 px (escritorio), de fondo en Ubicación. Solo se descarga cuando esa sección está cerca; el
-  primer fotograma es la vista aérea en 3D del final del recorrido.
+  1280 px (móvil) y 1920 px (escritorio), de fondo en Ubicación. Solo se descarga cuando esa sección está cerca.
+  Los archivos están en el repositorio para que el build (y el zip para Netlify) los incluya.
 
 Para regenerar las variantes (por ejemplo, con fotos nuevas):
 

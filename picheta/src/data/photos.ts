@@ -154,6 +154,38 @@ const PHOTO_TEXT = {
     position: '50% 55%',
     source: 'picheta.mx/cms-data/gallery/home-gallery/picheta-003.jpg',
   },
+  cocinero: {
+    alt: {
+      es: 'Un cocinero de espaldas, con filipina negra y gorra, en la cocina.',
+      en: 'A cook seen from behind, in a black chef’s jacket and cap, in the kitchen.',
+    },
+    position: '50% 40%',
+    source: 'picheta.mx/privacy-policy/files/obgImage-30.jpg',
+  },
+  ingredientes: {
+    alt: {
+      es: 'Ejotes largos y frijoles negros sobre una superficie de piedra.',
+      en: 'Long green beans and black beans on a stone surface.',
+    },
+    position: '50% 50%',
+    source: 'picheta.mx/reservas/files/obgImage-311.jpg',
+  },
+  'platos-mesa': {
+    alt: {
+      es: 'Vista cenital de tres platos de entradas sobre una mesa de madera.',
+      en: 'Overhead view of three plates of starters on a wooden table.',
+    },
+    position: '50% 50%',
+    source: 'picheta.mx/cms-data/gallery/home-gallery/picheta-000.jpg',
+  },
+  'piedra-textura': {
+    alt: {
+      es: 'Superficie de piedra oscura con algunas semillas en el borde.',
+      en: 'A dark stone surface with a few seeds at the edge.',
+    },
+    position: '50% 50%',
+    source: 'picheta.mx/resources/picheta-restaurante-back.jpg',
+  },
   'barra-noche': {
     alt: {
       es: 'La barra de noche: dos lámparas circulares encendidas, botellas y un bartender trabajando.',

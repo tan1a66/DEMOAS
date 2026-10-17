@@ -1,159 +1,157 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   PICHETA · PORTADA
+   Apertura fotográfica a pantalla completa, escenas editoriales alternando papel y carbón,
+   un único momento 3D (la terraza) y la reserva siempre a un toque.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Marco de fotografía: recorta la foto y le deja margen para el paralaje (--py lo escribe lib/parallax.ts). */
+.frame {
+  position: relative;
+  overflow: hidden;
+  background: var(--charcoal-3);
+}
+
+.frame > .picture {
+  position: absolute;
+  inset: -7% 0;
+  transform: translate3d(0, var(--py, 0px), 0);
+  will-change: transform;
+}
+
+.frame.reveal-photo > .picture > img {
+  transform: scale(1.12);
+  transition: transform 2s var(--ease-out);
+  transition-delay: var(--d, 0ms);
+}
+
+.frame.reveal-photo.is-in > .picture > img {
+  transform: none;
+}
+
 /* ═════════════════════════════════════════════════════════════════════════
-   PORTADA — "La ciudad, desde otra perspectiva."
-   Escritorio: columna tipográfica + fotografía monumental a la derecha; el titular invade la foto.
-   Móvil: la foto ocupa toda la pantalla con un recorte intencional; los dos caminos quedan abajo.
+   APERTURA
    ═════════════════════════════════════════════════════════════════════════ */
 
-.welcome {
-  --split: 38vw;
-  position: fixed;
-  inset: 0;
-  z-index: 80;
+.hero {
+  position: relative;
+  height: 100vh;
   height: 100svh;
+  min-height: 600px;
   overflow: hidden;
   background: var(--charcoal);
   color: var(--ivory);
 }
 
-.welcome__photo {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: var(--split);
-  overflow: hidden;
-}
-
-.welcome__img {
+.hero__slides,
+.hero__slide,
+.hero__photo {
   position: absolute;
   inset: 0;
-  animation: welcome-settle 2.6s var(--ease-out) both;
 }
 
-@keyframes welcome-settle {
-  from {
-    transform: scale(1.07);
-  }
+.hero__slide {
+  opacity: 0;
+  transition: opacity 1.8s var(--ease);
 }
 
-/* Velos: funden la foto con el carbón por la izquierda y protegen el texto pequeño */
-.welcome__photo::before,
-.welcome__photo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
+.hero__slide.is-active {
   z-index: 1;
-  pointer-events: none;
+  opacity: 1;
 }
 
-.welcome__photo::before {
-  background: linear-gradient(90deg, rgba(18, 17, 15, 0.82) 0%, rgba(18, 17, 15, 0.35) 22%, rgba(18, 17, 15, 0) 46%);
+.hero__photo img {
+  transform: scale(1.08);
+  transition: transform 2s var(--ease);
 }
 
-.welcome__photo::after {
-  background:
-    linear-gradient(rgba(18, 17, 15, 0.45), rgba(18, 17, 15, 0) 18%), linear-gradient(0deg, rgba(18, 17, 15, 0.55), rgba(18, 17, 15, 0) 22%);
+/* Acercamiento lento mientras la foto está en pantalla (el pase dura --slide-ms). */
+.hero__slide.is-active .hero__photo img {
+  transform: none;
+  transition: transform calc(var(--slide-ms, 7000ms) + 2000ms) cubic-bezier(0.25, 0.5, 0.35, 1);
 }
 
-.welcome__caption {
-  position: absolute;
-  z-index: 2;
-  left: clamp(20px, 3vw, 44px);
-  bottom: clamp(24px, 4.4vh, 48px);
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-  font-size: 0.8125rem;
-  color: var(--ivory-dim);
+.hero__slide:first-child.is-active .hero__photo img {
+  animation: hero-zoom 9s cubic-bezier(0.25, 0.5, 0.35, 1) both;
 }
 
-.welcome__caption-n {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1rem;
-  color: var(--ivory);
-}
-
-.welcome__top {
-  position: absolute;
-  z-index: 3;
-  inset: 0 0 auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: clamp(24px, 4.2vh, 44px) var(--gutter) 0;
-}
-
-.welcome__brand {
-  display: grid;
-  gap: 14px;
-  margin: 0;
-  font-weight: inherit;
-}
-
-.welcome__brand .logo {
-  width: clamp(124px, 10.5vw, 176px);
-  height: auto;
-}
-
-.welcome__location {
-  color: var(--ivory-dim);
-}
-
-.welcome__body {
-  position: absolute;
-  z-index: 3;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: clamp(28px, 5.4vh, 64px);
-  display: grid;
-  gap: clamp(28px, 5vh, 56px);
-  pointer-events: none;
-}
-
-.welcome__body a,
-.welcome__body button {
-  pointer-events: auto;
-}
-
-.welcome__title {
-  font-size: clamp(3.4rem, 8.3vw, 10.8rem);
-  line-height: 0.86;
-  text-shadow: 0 1px 40px rgba(18, 17, 15, 0.25);
-}
-
-/* Escritorio: cada línea entera; la más larga invade la fotografía (gesto editorial deliberado) */
-@media (min-width: 1024px) {
-  .welcome__title .line {
-    white-space: nowrap;
-  }
-}
-
-.welcome__title .line__inner {
-  animation: line-up 1.2s var(--ease-out) both;
-  animation-delay: calc(120ms + var(--i) * 90ms);
-  transition: transform 0.6s var(--ease-in-out);
-  transition-delay: calc(var(--i) * 50ms);
-}
-
-@keyframes line-up {
+@keyframes hero-zoom {
   from {
-    transform: translate3d(0, 105%, 0);
+    transform: scale(1.1);
   }
   to {
     transform: none;
   }
 }
 
-.welcome .fade {
-  animation: fade-up 1s var(--ease) both;
-  animation-delay: var(--d, 0ms);
+.hero__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgba(10, 9, 8, 0.5) 0%, rgba(10, 9, 8, 0) 22%),
+    linear-gradient(0deg, rgba(10, 9, 8, 0.86) 0%, rgba(10, 9, 8, 0.42) 38%, rgba(10, 9, 8, 0) 70%),
+    linear-gradient(90deg, rgba(10, 9, 8, 0.45) 0%, rgba(10, 9, 8, 0) 55%);
 }
 
-@keyframes fade-up {
+.hero__content {
+  position: absolute;
+  z-index: 3;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(96px, 14vh, 150px);
+  max-width: 1040px;
+}
+
+.hero__location {
+  margin-bottom: clamp(18px, 2.4vh, 28px);
+  color: var(--ivory-dim);
+  animation: hero-fade 1.2s var(--ease) 0.15s both;
+}
+
+.hero__title {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(3.1rem, 7.8vw, 8.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+}
+
+.hero__title em {
+  font-style: italic;
+  letter-spacing: -0.035em;
+}
+
+.hero__line {
+  display: block;
+  animation: hero-rise 1.3s var(--ease-out) both;
+  animation-delay: calc(0.25s + var(--i, 0) * 0.12s);
+}
+
+.hero__lead {
+  max-width: 34ch;
+  margin: clamp(18px, 2.6vh, 30px) 0 clamp(28px, 4vh, 44px);
+  font-family: var(--serif);
+  font-size: var(--fs-lead);
+  line-height: 1.2;
+  color: var(--ivory-dim);
+  animation: hero-fade 1.2s var(--ease) 0.6s both;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  animation: hero-fade 1.2s var(--ease) 0.75s both;
+}
+
+.hero__enter {
+  --btn-hover-bg: var(--accent);
+}
+
+@keyframes hero-rise {
   from {
     opacity: 0;
-    transform: translate3d(0, 16px, 0);
+    transform: translate3d(0, 0.45em, 0);
   }
   to {
     opacity: 1;
@@ -161,251 +159,1159 @@
   }
 }
 
-.welcome__foot {
-  display: grid;
-  gap: 26px;
-  width: calc(var(--split) - var(--gutter) - 24px);
-  min-width: 300px;
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.welcome__lead {
-  max-width: 30ch;
-  font-family: var(--serif);
-  font-size: clamp(1.25rem, 1.6vw, 1.6rem);
-  line-height: 1.2;
-  color: var(--ivory);
-}
-
-.welcome__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.welcome__actions .btn {
-  flex: 1 1 0;
-  min-width: 136px;
-}
-
-.welcome__meta {
+.hero__bar {
   position: absolute;
   z-index: 3;
   right: var(--gutter);
-  bottom: clamp(28px, 5.4vh, 64px);
+  bottom: clamp(36px, 5vh, 52px);
+  display: grid;
+  justify-items: end;
+  gap: 14px;
+  animation: hero-fade 1.2s var(--ease) 1s both;
+}
+
+.hero__caption {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: baseline;
+  gap: 14px;
+  font-size: var(--fs-small);
+}
+
+.hero__count {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
   color: var(--ivory-dim);
-  text-align: right;
 }
 
-.welcome__meta .label {
-  max-width: 30ch;
+.hero__dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* ── ENTRAR: la composición se retira, la cámara avanza dentro de la foto y todo se funde a negro ── */
+.hero__dot {
+  position: relative;
+  width: 44px;
+  height: 24px;
+}
 
-.welcome__veil {
+.hero__dot::before,
+.hero__dot-fill {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(239, 232, 220, 0.32);
+}
+
+.hero__dot-fill {
+  background: var(--ivory);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.hero__dot.is-active .hero__dot-fill {
+  transform: none;
+}
+
+.hero.is-playing .hero__dot.is-active .hero__dot-fill {
+  animation: hero-progress var(--slide-ms, 7000ms) linear both;
+}
+
+@keyframes hero-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hero__pause {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 6px;
+}
+
+.hero__icon-pause,
+.hero__icon-play {
+  display: block;
+  width: 9px;
+  height: 10px;
+}
+
+.hero__icon-pause {
+  border-left: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+}
+
+.hero__icon-play {
+  width: 0;
+  height: 0;
+  border-left: 9px solid currentColor;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.hero__scroll {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 28px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  transform: translateX(-50%);
+  color: var(--ivory-dim);
+  font-size: 0.625rem;
+  animation: hero-fade 1.2s var(--ease) 1.2s both;
+}
+
+.hero__scroll i {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 46px;
+  overflow: hidden;
+  background: rgba(239, 232, 220, 0.22);
+}
+
+.hero__scroll i::after {
+  content: '';
   position: absolute;
   inset: 0;
-  z-index: 6;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
+  background: var(--ivory);
+  animation: hero-scroll 2.4s var(--ease-in-out) infinite;
 }
 
-.welcome.is-entering .welcome__veil {
-  opacity: 1;
-  transition: opacity 0.6s var(--ease) 0.62s;
-}
-
-.welcome.is-entering .welcome__title .line__inner {
-  animation: none;
-  transform: translate3d(0, -108%, 0);
-}
-
-.welcome.is-entering .welcome__title {
-  opacity: 0;
-  transition: opacity 0.45s var(--ease) 0.15s;
-}
-
-.welcome.is-entering .welcome__top,
-.welcome.is-entering .welcome__foot,
-.welcome.is-entering .welcome__meta,
-.welcome.is-entering .welcome__caption {
-  opacity: 0;
-  transform: translate3d(0, -10px, 0);
-  transition:
-    opacity 0.35s var(--ease),
-    transform 0.5s var(--ease);
-}
-
-/* Tabletas en vertical y móviles: foto a pantalla completa */
-@media (max-width: 1023px) {
-  .welcome {
-    --split: 0px;
+@keyframes hero-scroll {
+  0% {
+    transform: translateY(-100%);
   }
-
-  .welcome__photo::before {
-    background: linear-gradient(0deg, rgba(18, 17, 15, 0.92) 0%, rgba(18, 17, 15, 0.6) 34%, rgba(18, 17, 15, 0) 62%);
+  60%,
+  100% {
+    transform: translateY(100%);
   }
+}
 
-  .welcome__caption {
+@media (max-width: 1100px) {
+  .hero__scroll {
     display: none;
-  }
-
-  .welcome__foot {
-    width: auto;
-    min-width: 0;
-  }
-
-  .welcome__title {
-    font-size: clamp(3rem, 11.5vw, 6.4rem);
-    max-width: none;
-  }
-
-  .welcome__meta {
-    display: none;
-  }
-
-  .welcome__actions .btn {
-    min-width: 0;
   }
 }
 
 @media (max-width: 760px) {
-  .welcome__photo::after {
-    background: linear-gradient(rgba(18, 17, 15, 0.6), rgba(18, 17, 15, 0) 26%);
+  .hero__content {
+    bottom: 104px;
   }
 
-  .welcome__top {
-    padding-top: max(20px, env(safe-area-inset-top));
+  .hero__title {
+    font-size: clamp(2.7rem, 12.4vw, 4.4rem);
   }
 
-  .welcome__brand .logo {
-    width: 116px;
+  .hero__lead {
+    font-size: 1.2rem;
   }
 
-  .welcome__brand {
-    gap: 10px;
-  }
-
-  .welcome__body {
-    bottom: max(20px, env(safe-area-inset-bottom));
-    gap: 22px;
-  }
-
-  .welcome__title {
-    font-size: clamp(2.7rem, 13.4vw, 4.6rem);
-  }
-
-  .welcome__lead {
-    font-size: 1.15rem;
-  }
-
-  .welcome__foot {
-    gap: 20px;
-  }
-
-  .welcome__actions {
+  .hero__actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
   }
 
-  .welcome__actions .btn {
-    min-height: 56px;
-    padding: 0 16px 0 18px;
-    gap: 10px;
-  }
-}
-
-/* Pantallas bajas (móvil en horizontal, portátiles pequeños): todo sigue visible sin desplazar */
-@media (max-height: 620px) {
-  .welcome__title {
-    font-size: clamp(2.4rem, 9vh, 5.4rem);
+  .hero__bar {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .welcome__lead {
+  .hero__caption-text {
     display: none;
   }
 
-  .welcome__brand .label {
+  .hero__dot {
+    width: 28px;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 761px) {
+  .hero__lead {
     display: none;
   }
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
-   GASTRONOMÍA — introducción breve (el menú no compite con la terraza)
+   BIENVENIDA
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.intro {
+  padding: clamp(110px, 15vw, 220px) var(--gutter) clamp(90px, 11vw, 160px);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: center;
+}
+
+.intro__mark {
+  width: 42px;
+  height: auto;
+  margin: 0 auto 30px;
+  color: var(--accent-ink);
+}
+
+.intro__kicker {
+  color: var(--stone-dark);
+}
+
+.intro__text {
+  max-width: 23ch;
+  margin: 30px auto 0;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4.1vw, 4.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+.intro__text em {
+  font-style: italic;
+  color: var(--accent-ink);
+}
+
+.intro__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 1100px;
+  margin: clamp(70px, 9vw, 120px) auto 0;
+  border-top: 1px solid var(--line-on-light);
+}
+
+.intro__facts li {
+  display: grid;
+  gap: 8px;
+  padding: 30px 20px 0;
+}
+
+.intro__facts li + li {
+  border-left: 1px solid var(--line-on-light);
+}
+
+.intro__value {
+  font-family: var(--serif);
+  font-size: clamp(1.9rem, 2.8vw, 2.8rem);
+  line-height: 1;
+}
+
+.intro__label {
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 760px) {
+  .intro {
+    text-align: left;
+  }
+
+  .intro__mark {
+    margin-left: 0;
+  }
+
+  .intro__text {
+    margin-left: 0;
+  }
+
+  .intro__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .intro__facts li {
+    grid-template-columns: 7.5rem 1fr;
+    align-items: baseline;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line-on-light);
+  }
+
+  .intro__facts li + li {
+    border-left: 0;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   EL LUGAR
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.place {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 clamp(16px, 2vw, 32px);
+  padding: clamp(40px, 6vw, 90px) var(--gutter) clamp(110px, 14vw, 200px);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.place__head {
+  grid-column: 1 / 8;
+}
+
+.place__head .kicker {
+  margin-bottom: 30px;
+}
+
+.place__copy {
+  grid-column: 8 / -1;
+  align-self: end;
+  display: grid;
+  gap: 22px;
+  padding-bottom: 8px;
+}
+
+.place__copy .body {
+  color: var(--ink-soft);
+}
+
+.place__figures {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 clamp(16px, 2vw, 32px);
+  margin-top: clamp(60px, 8vw, 120px);
+}
+
+.place__fig--main {
+  grid-column: 1 / 9;
+}
+
+.place__fig--main .frame {
+  aspect-ratio: 3 / 2;
+}
+
+.place__fig--side {
+  grid-column: 10 / -1;
+  margin-top: 34%;
+}
+
+.place__fig--side .frame {
+  aspect-ratio: 4 / 5;
+}
+
+.place__wide {
+  grid-column: 3 / -1;
+  margin-top: clamp(70px, 9vw, 140px);
+}
+
+.place__wide .frame {
+  aspect-ratio: 21 / 9;
+}
+
+.place__wide .reveal-photo {
+  clip-path: inset(0 0 0 100%);
+}
+
+.place__wide.is-in .reveal-photo {
+  clip-path: inset(0 0 0 0);
+}
+
+.place__wide.is-in .reveal-photo > .picture > img {
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .place__head,
+  .place__copy {
+    grid-column: 1 / -1;
+  }
+
+  .place__copy {
+    margin-top: 36px;
+  }
+
+  .place__fig--main {
+    grid-column: 1 / -1;
+  }
+
+  .place__fig--side {
+    grid-column: 5 / -1;
+    margin-top: 40px;
+  }
+
+  .place__wide {
+    grid-column: 1 / -1;
+  }
+
+  .place__wide .frame {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   LA TERRAZA (momento 3D)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.terrace {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  background: var(--charcoal);
+  color: var(--ivory);
+}
+
+.terrace__photo {
+  position: absolute;
+  inset: 0;
+}
+
+.terrace__shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, rgba(10, 9, 8, 0.82) 0%, rgba(10, 9, 8, 0.25) 45%, rgba(10, 9, 8, 0) 70%),
+    linear-gradient(90deg, rgba(10, 9, 8, 0.4) 0%, rgba(10, 9, 8, 0) 50%);
+}
+
+.terrace__content {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(60px, 10vh, 120px);
+  max-width: 900px;
+}
+
+.terrace__content .kicker {
+  margin-bottom: 26px;
+}
+
+.terrace__text {
+  max-width: 30ch;
+  margin-top: 24px;
+  color: var(--ivory-dim);
+}
+
+.terrace__hint {
+  position: absolute;
+  right: var(--gutter);
+  bottom: clamp(60px, 10vh, 120px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.625rem;
+  color: var(--ivory-dim);
+}
+
+.terrace__hint-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(196, 137, 91, 0.6);
+  animation: hint-pulse 2.2s var(--ease) infinite;
+}
+
+@keyframes hint-pulse {
+  70% {
+    box-shadow: 0 0 0 10px rgba(196, 137, 91, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(196, 137, 91, 0);
+  }
+}
+
+@media (max-width: 900px) {
+  .terrace__hint {
+    top: calc(var(--header-h) + 20px);
+    bottom: auto;
+    left: var(--gutter);
+    right: auto;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   LA LUZ (escenario fijo, cuatro atmósferas)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.light {
+  position: relative;
+  height: calc(var(--n, 4) * 85vh + 100vh);
+  background: var(--charcoal);
+  color: var(--ivory);
+}
+
+.light__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.light__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease);
+}
+
+.light__layer .picture {
+  position: absolute;
+  inset: 0;
+}
+
+.light__layer img {
+  transform: scale(1.08);
+  transition: transform 1.4s var(--ease);
+}
+
+.light__layer.is-active {
+  opacity: 1;
+}
+
+.light__layer.is-active img {
+  transform: none;
+  transition: transform 7s cubic-bezier(0.25, 0.5, 0.35, 1);
+}
+
+.light__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 0% 15%, rgba(10, 9, 8, 0.62) 0%, rgba(10, 9, 8, 0) 70%),
+    linear-gradient(180deg, rgba(10, 9, 8, 0.6) 0%, rgba(10, 9, 8, 0.1) 42%, rgba(10, 9, 8, 0) 60%),
+    linear-gradient(0deg, rgba(10, 9, 8, 0.72) 0%, rgba(10, 9, 8, 0) 32%);
+}
+
+.light__intro {
+  position: absolute;
+  top: calc(var(--header-h) + clamp(24px, 6vh, 70px));
+  left: var(--gutter);
+  right: var(--gutter);
+  max-width: 760px;
+}
+
+.light__intro .kicker {
+  margin-bottom: 24px;
+}
+
+.light__intro {
+  text-shadow: 0 1px 24px rgba(10, 9, 8, 0.35);
+}
+
+.light__text {
+  max-width: 44ch;
+  margin-top: 22px;
+  color: rgba(239, 232, 220, 0.86);
+}
+
+.light__timeline {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(36px, 6vh, 64px);
+  display: grid;
+  grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
+  gap: 16px;
+}
+
+.light__timeline li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(239, 232, 220, 0.28);
+  color: rgba(239, 232, 220, 0.5);
+  transition:
+    color 0.6s var(--ease),
+    border-color 0.6s var(--ease);
+}
+
+.light__timeline li.is-active,
+.light__timeline li.is-past {
+  border-color: var(--ivory);
+}
+
+.light__timeline li.is-active {
+  color: var(--ivory);
+}
+
+.light__n {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+}
+
+.light__name {
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 1.8vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.light__progress {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .light__timeline {
+    gap: 8px;
+  }
+
+  .light__timeline li {
+    display: grid;
+    gap: 2px;
+    padding-top: 12px;
+  }
+
+  .light__name {
+    font-size: 1.05rem;
+  }
+
+  .light__text {
+    display: none;
+  }
+}
+
+.light--static {
+  height: auto;
+  padding: clamp(100px, 12vw, 180px) var(--gutter);
+}
+
+.light--static .light__intro {
+  position: static;
+  margin-bottom: 56px;
+}
+
+.light__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.light__grid .picture {
+  aspect-ratio: 4 / 3;
+  margin-bottom: 14px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   GASTRONOMÍA
    ═════════════════════════════════════════════════════════════════════════ */
 
 .gastronomy {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: clamp(16px, 2vw, 32px);
-  align-items: end;
-  padding: clamp(96px, 12vw, 170px) var(--gutter);
+  gap: 0 clamp(16px, 2vw, 32px);
+  padding: clamp(110px, 14vw, 200px) var(--gutter);
+  background: var(--charcoal);
+  color: var(--ivory);
+}
+
+.gastronomy__main {
+  position: sticky;
+  top: calc(var(--header-h) + 40px);
+  grid-column: 1 / 6;
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+
+.gastronomy__main .frame {
+  aspect-ratio: 4 / 5;
+}
+
+.gastronomy__copy {
+  grid-column: 7 / -1;
+  grid-row: 1;
+  align-self: center;
+  display: grid;
+  justify-items: start;
+  gap: 22px;
+}
+
+.gastronomy__copy .kicker {
+  margin-bottom: 8px;
+}
+
+.gastronomy__title {
+  margin-bottom: 10px;
+}
+
+.gastronomy__detail {
+  color: var(--ivory-dim);
+}
+
+.gastronomy__quote {
+  margin: 18px 0 14px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line-on-dark);
+}
+
+.gastronomy__quote p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.7rem, 2.6vw, 2.6rem);
+  line-height: 1.1;
+}
+
+.gastronomy__quote footer {
+  margin-top: 14px;
+  color: var(--stone);
+}
+
+.gastronomy__pair {
+  grid-column: 7 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 2vw, 32px);
+  margin-top: clamp(60px, 7vw, 100px);
+}
+
+.gastronomy__pair .frame {
+  aspect-ratio: 4 / 5;
+}
+
+.gastronomy__pair .frame:last-child {
+  margin-top: 22%;
+}
+
+@media (max-width: 900px) {
+  .gastronomy__main,
+  .gastronomy__copy,
+  .gastronomy__pair {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .gastronomy__main {
+    position: static;
+    width: 86%;
+  }
+
+  .gastronomy__copy {
+    margin-top: 56px;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   EVENTOS
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.events {
+  padding: clamp(110px, 14vw, 200px) var(--gutter);
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.events__head {
+  max-width: 900px;
+  margin-bottom: clamp(56px, 7vw, 100px);
+}
+
+.events__head .kicker {
+  margin-bottom: 28px;
+}
+
+.events__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 6vw, 110px);
+  align-items: start;
+}
+
+.events__item:nth-child(2) {
+  margin-top: 20%;
+}
+
+.events__item .frame {
+  aspect-ratio: 4 / 5;
+  margin-bottom: 28px;
+}
+
+.events__n {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--stone-dark);
+}
+
+.events__item .h3 {
+  margin-bottom: 14px;
+}
+
+.events__item .body {
+  color: var(--ink-soft);
+}
+
+.events__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px 36px;
+  margin-top: clamp(56px, 7vw, 100px);
+  padding-top: 36px;
+  border-top: 1px solid var(--line-on-light);
+}
+
+.events__mail {
+  margin-left: auto;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 760px) {
+  .events__list {
+    grid-template-columns: 1fr;
+    gap: 64px;
+  }
+
+  .events__item:nth-child(2) {
+    margin-top: 0;
+  }
+
+  .events__mail {
+    margin-left: 0;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   GALERÍA
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.gallery {
+  padding: clamp(110px, 14vw, 200px) var(--gutter);
   background: var(--paper);
   color: var(--ink);
 }
 
-.gastronomy__kicker {
-  grid-column: 1 / -1;
-  margin-bottom: 36px;
+.gallery__head {
+  margin-bottom: clamp(56px, 7vw, 100px);
 }
 
-.gastronomy__title {
-  grid-column: 1 / span 5;
-  font-size: clamp(2.5rem, 4.7vw, 5.4rem);
-  line-height: 0.94;
-  text-transform: uppercase;
+.gallery__head .kicker {
+  margin-bottom: 28px;
 }
 
-.gastronomy__copy {
-  grid-column: 7 / span 3;
+.gallery__grid {
   display: grid;
-  gap: 22px;
-  justify-items: start;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 32px);
+  align-items: start;
 }
 
-.gastronomy__copy .body {
-  color: var(--ink-soft);
+.gallery__btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: var(--paper-2);
+  cursor: zoom-in;
 }
 
-.gastronomy__photo {
-  grid-column: 11 / span 2;
+.gallery__btn .picture {
+  position: absolute;
+  inset: 0;
+}
+
+.gallery__btn img {
+  transition: transform 1.2s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .gallery__btn:hover img {
+    transform: scale(1.04);
+  }
+}
+
+.gallery__item--1 {
+  grid-column: 1 / 6;
+}
+.gallery__item--1 .gallery__btn {
+  aspect-ratio: 4 / 5;
+}
+.gallery__item--2 {
+  grid-column: 7 / -1;
+  align-self: end;
+}
+.gallery__item--2 .gallery__btn {
+  aspect-ratio: 3 / 2;
+}
+.gallery__item--3 {
+  grid-column: 1 / 5;
+}
+.gallery__item--3 .gallery__btn {
+  aspect-ratio: 1;
+}
+.gallery__item--4 {
+  grid-column: 5 / 10;
+  margin-top: 12%;
+}
+.gallery__item--4 .gallery__btn {
+  aspect-ratio: 16 / 10;
+}
+.gallery__item--5 {
+  grid-column: 10 / -1;
+}
+.gallery__item--5 .gallery__btn {
+  aspect-ratio: 2 / 3;
+}
+.gallery__item--6 {
+  grid-column: 2 / 5;
+}
+.gallery__item--6 .gallery__btn {
+  aspect-ratio: 2 / 3;
+}
+.gallery__item--7 {
+  grid-column: 6 / 9;
+  margin-top: 18%;
+}
+.gallery__item--7 .gallery__btn {
   aspect-ratio: 3 / 4;
 }
+.gallery__item--8 {
+  grid-column: 9 / -1;
+}
+.gallery__item--8 .gallery__btn {
+  aspect-ratio: 3 / 2;
+}
+.gallery__item--9 {
+  grid-column: 4 / 10;
+}
+.gallery__item--9 .gallery__btn {
+  aspect-ratio: 16 / 9;
+}
 
-@media (max-width: 900px) {
-  .gastronomy {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    row-gap: 36px;
+@media (max-width: 760px) {
+  .gallery__grid {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .gastronomy__title {
-    grid-column: 1 / -1;
+  .gallery__item[class*='gallery__item--'] {
+    grid-column: auto;
+    margin-top: 0;
+    align-self: start;
   }
 
-  .gastronomy__copy {
-    grid-column: 1 / span 4;
+  .gallery__item[class*='gallery__item--'] .gallery__btn {
+    aspect-ratio: 4 / 5;
   }
 
-  .gastronomy__photo {
-    grid-column: 5 / span 2;
+  .gallery__item--2,
+  .gallery__item--9 {
+    grid-column: 1 / -1 !important;
+  }
+
+  .gallery__item--2 .gallery__btn,
+  .gallery__item--9 .gallery__btn {
+    aspect-ratio: 3 / 2 !important;
   }
 }
 
-@media (max-width: 560px) {
-  .gastronomy__copy {
-    grid-column: 1 / -1;
+/* Visor */
+.lightbox {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(14, 13, 11, 0.97);
+  color: var(--ivory);
+}
+
+.lightbox::backdrop {
+  background: rgba(14, 13, 11, 0.6);
+}
+
+.lightbox[open] {
+  animation: hero-fade 0.4s var(--ease) both;
+}
+
+.lightbox__inner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 72px clamp(16px, 7vw, 120px) 32px;
+}
+
+.lightbox__figure {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  max-width: 100%;
+}
+
+.lightbox__photo {
+  overflow: visible;
+}
+
+.lightbox__photo img {
+  width: auto;
+  height: auto;
+  max-width: min(100%, 1500px);
+  max-height: calc(100dvh - 190px);
+  object-fit: contain;
+}
+
+.lightbox__caption {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  max-width: 70ch;
+  font-size: var(--fs-small);
+  color: var(--ivory-dim);
+}
+
+.lightbox__count {
+  flex: none;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+}
+
+.lightbox__nav {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line-on-dark);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  transform: translateY(-50%);
+  transition: border-color 0.4s var(--ease);
+}
+
+.lightbox__nav:hover {
+  border-color: var(--ivory);
+}
+
+.lightbox__nav--prev {
+  left: clamp(12px, 2vw, 32px);
+}
+
+.lightbox__nav--next {
+  right: clamp(12px, 2vw, 32px);
+}
+
+.lightbox__close {
+  position: absolute;
+  top: 20px;
+  right: clamp(16px, 2vw, 32px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.lightbox__x {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+
+.lightbox__x::before,
+.lightbox__x::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+.lightbox__x::after {
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 760px) {
+  .lightbox__nav {
+    top: auto;
+    bottom: 24px;
+    transform: none;
   }
 
-  .gastronomy__photo {
-    grid-column: 3 / -1;
-    grid-row: 2;
+  .lightbox__inner {
+    padding-bottom: 96px;
   }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   INVITACIÓN
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.invitation {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(110px, 14vw, 180px) var(--gutter);
+  overflow: hidden;
+  background: var(--charcoal);
+  color: var(--ivory);
+  text-align: center;
+}
+
+.invitation__bg {
+  position: absolute;
+  inset: -8% 0;
+  transform: translate3d(0, var(--py, 0px), 0);
+}
+
+.invitation__bg .picture {
+  position: absolute;
+  inset: 0;
+}
+
+.invitation__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(10, 9, 8, 0.62) 0%, rgba(10, 9, 8, 0.35) 55%, rgba(10, 9, 8, 0.15) 100%),
+    linear-gradient(0deg, rgba(10, 9, 8, 0.6) 0%, rgba(10, 9, 8, 0) 40%);
+}
+
+.invitation__content {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  max-width: 1100px;
+}
+
+.invitation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 18px 34px;
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+.invitation__note {
+  margin-top: 26px;
+  font-size: var(--fs-small);
+  color: var(--ivory-dim);
 }
 
 /* ═════════════════════════════════════════════════════════════════════════
@@ -511,471 +1417,48 @@
   }
 }
 
-.gastronomy__points {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 clamp(24px, 3vw, 56px);
-  margin-top: clamp(56px, 7vw, 100px);
-}
-
-.gastronomy__points li {
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 6px 0;
-  padding: 22px 0;
-  border-top: 1px solid var(--line-on-light);
-}
-
-.gastronomy__point-n {
-  grid-row: 1 / span 2;
-  font-family: var(--serif);
-  font-style: italic;
-  color: var(--stone-dark);
-}
-
-.gastronomy__point-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-stretch: 118%;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.gastronomy__points p {
-  color: var(--ink-soft);
-  font-size: 0.9875rem;
-}
-
-@media (max-width: 900px) {
-  .gastronomy__points {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ═════════════════════════════════════════════════════════════════════════
-   EL RECORRIDO — una persona llega, entra, camina, sale a la terraza, se sienta, se eleva
-   Un escenario fijo a pantalla completa (lienzo WebGL) y los textos que cada espacio "dice" al pasar.
+   AGENDAR FIJO (teléfono)
    ═════════════════════════════════════════════════════════════════════════ */
 
-.walk {
-  position: relative;
-  background: #000;
-  color: var(--ivory);
-}
-
-.walk__anchor {
-  position: absolute;
-  left: 0;
-  width: 1px;
-  height: 1px;
-  pointer-events: none;
-}
-
-.walk__stage {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  overflow: hidden;
-  background: #000;
-}
-
-.walk__canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Velo para leer los textos sobre las fotos (abajo a la izquierda, donde viven) */
-.walk__stage::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(0deg, rgba(10, 9, 8, 0.72) 0%, rgba(10, 9, 8, 0.25) 34%, rgba(10, 9, 8, 0) 56%),
-    linear-gradient(90deg, rgba(10, 9, 8, 0.4) 0%, rgba(10, 9, 8, 0) 50%), linear-gradient(rgba(10, 9, 8, 0.4), rgba(10, 9, 8, 0) 16%);
-}
-
-.walk__beat,
-.walk__entrance,
-.walk__finale,
-.walk__rail,
-.walk__hint,
-.walk__skip,
-.walk__note {
-  position: absolute;
-  z-index: 2;
-}
-
-.walk__beat {
-  left: var(--gutter);
-  bottom: clamp(64px, 12vh, 140px);
-  max-width: min(820px, 72vw);
-  will-change: opacity, transform;
-}
-
-.walk__beat--high {
-  bottom: auto;
-  top: calc(var(--header-h) + 7vh);
-}
-
-.walk__kicker {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 22px;
-  color: var(--ivory-dim);
-}
-
-.walk__kicker-n {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.05rem;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ivory);
-}
-
-.walk__kicker-rule {
-  width: 40px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.6;
-}
-
-.walk__title {
-  font-size: clamp(2.8rem, 6.6vw, 8.2rem);
-  text-shadow: 0 2px 34px rgba(0, 0, 0, 0.4);
-}
-
-.walk__line {
-  display: block;
-}
-
-.walk__sub {
-  max-width: 34ch;
-  margin-top: 24px;
-  font-family: var(--serif);
-  font-size: clamp(1.2rem, 1.7vw, 1.65rem);
-  line-height: 1.25;
-  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.5);
-}
-
-.walk__quote {
-  margin: 26px 0 0;
-  padding-left: 22px;
-  border-left: 1px solid var(--accent);
-}
-
-.walk__quote blockquote {
-  margin: 0;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(1.5rem, 2.5vw, 2.4rem);
-  line-height: 1.15;
-  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.5);
-}
-
-.walk__quote figcaption {
-  margin-top: 12px;
-  color: var(--stone);
-}
-
-/* La entrada: en la oscuridad entre la calle y el salón */
-.walk__entrance {
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 0 var(--gutter);
-  text-align: center;
-}
-
-.walk__entrance-line {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(2.3rem, 5.2vw, 5.4rem);
-  line-height: 1;
-}
-
-.walk__entrance-sub {
-  font-family: var(--serif);
-  font-size: clamp(1.15rem, 1.7vw, 1.6rem);
-  color: var(--ivory-dim);
-}
-
-/* Invitación final, sobre la ciudad */
-.walk__finale {
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 var(--gutter) clamp(56px, 11vh, 130px);
-  background: linear-gradient(0deg, rgba(10, 9, 8, 0.75), rgba(10, 9, 8, 0) 62%);
-}
-
-.walk__finale-title {
-  margin-bottom: clamp(28px, 5vh, 48px);
-  font-size: clamp(3rem, 7vw, 8.6rem);
-  text-shadow: 0 2px 34px rgba(0, 0, 0, 0.4);
-}
-
-.walk__finale-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.walk__finale-note {
-  margin-top: 20px;
-  font-size: var(--fs-small);
-  color: var(--ivory-dim);
-}
-
-/* Riel de capítulos: dónde estás del recorrido */
-.walk__rail {
-  right: var(--gutter);
-  top: 0;
-  bottom: 0;
-  display: grid;
-  align-content: center;
-  justify-items: end;
-  gap: 2px;
-  margin: 0;
-}
-
-.walk__rail button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  min-height: 30px;
-  color: var(--ivory);
-  opacity: 0.5;
-  transition: opacity 0.4s var(--ease);
-}
-
-.walk__rail-dot {
-  order: 2;
-  width: 7px;
-  height: 7px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  transition:
-    background-color 0.4s var(--ease),
-    transform 0.4s var(--ease);
-}
-
-.walk__rail-label {
-  font-size: 0.65rem;
-  font-weight: 560;
-  font-stretch: 118%;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  opacity: 0;
-  transform: translateX(6px);
-  transition:
-    opacity 0.4s var(--ease),
-    transform 0.5s var(--ease-out);
-}
-
-.walk__rail li[data-active] button {
-  opacity: 1;
-}
-
-.walk__rail li[data-active] .walk__rail-dot {
-  background: currentColor;
-  transform: scale(1.35);
-}
-
-.walk__rail li[data-active] .walk__rail-label,
-.walk__rail:hover .walk__rail-label,
-.walk__rail button:focus-visible .walk__rail-label {
-  opacity: 1;
-  transform: none;
-}
-
-/* Invitación a caminar */
-.walk__hint {
-  left: 0;
-  right: 0;
-  bottom: clamp(28px, 6vh, 64px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  color: var(--ivory);
-  pointer-events: none;
-}
-
-.walk__hint-icon {
-  position: relative;
-  width: 22px;
-  height: 34px;
-  border: 1.5px solid currentColor;
-  border-radius: 12px;
-}
-
-.walk__hint-icon::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 7px;
-  width: 3px;
-  height: 7px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: walk-wheel 1.8s var(--ease-in-out) infinite;
-}
-
-@keyframes walk-wheel {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  70% {
-    transform: translateY(11px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-}
-
-.walk__skip {
-  right: var(--gutter);
-  bottom: clamp(22px, 4vh, 40px);
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  color: var(--ivory-dim);
-}
-
-.walk__note {
-  left: var(--gutter);
-  bottom: clamp(22px, 4vh, 40px);
-  font-size: 0.75rem;
-  color: rgba(239, 232, 220, 0.55);
-  pointer-events: none;
-}
-
-@media (max-width: 900px) {
-  .walk__rail {
-    display: none;
-  }
-}
-
-@media (max-width: 760px) {
-  .walk__beat {
-    right: var(--gutter);
-    max-width: none;
-    bottom: clamp(72px, 13vh, 120px);
-  }
-
-  .walk__title {
-    font-size: clamp(2.3rem, 10.6vw, 3.8rem);
-  }
-
-  .walk__sub {
-    font-size: 1.12rem;
-  }
-
-  .walk__finale-title {
-    font-size: clamp(2.5rem, 11.5vw, 4.4rem);
-  }
-
-  .walk__finale-actions .btn {
-    flex: 1 1 100%;
-  }
-
-  .walk__note {
-    display: none;
-  }
-
-  .walk__skip {
-    left: var(--gutter);
-    right: auto;
-  }
-}
-
-/* Sin WebGL2 o con movimiento reducido: el mismo relato, una foto por pantalla */
-.walk--static .walk__still {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  min-height: 100svh;
-  overflow: hidden;
-}
-
-.walk--static .walk__still-img {
-  position: absolute;
-  inset: 0;
-}
-
-.walk--static .walk__still::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(0deg, rgba(10, 9, 8, 0.78) 0%, rgba(10, 9, 8, 0.2) 45%, rgba(10, 9, 8, 0) 62%);
-}
-
-.walk--static .walk__beat--static {
-  position: relative;
-  z-index: 1;
-  left: auto;
-  bottom: auto;
-  padding: 0 var(--gutter) clamp(56px, 11vh, 120px);
-}
-
-.walk--static .walk__still--dark,
-.walk--static .walk__still--finale {
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 0 var(--gutter);
-  background: #000;
-}
-
-.walk--static .walk__still--dark {
-  align-items: center;
-  min-height: 70svh;
-  text-align: center;
-}
-
-.walk--static .walk__still--dark::after,
-.walk--static .walk__still--finale::after {
+.sticky-reserve {
   display: none;
 }
 
-/* Indicaciones: texto para ratón o para pantalla táctil */
-.hint--touch {
-  display: none;
-}
-
-@media (hover: none) {
-  .hint--pointer {
-    display: none;
-  }
-
-  .hint--touch {
-    display: inline;
-  }
-}
-
 @media (max-width: 760px) {
-  .walk__hint {
-    bottom: 18px;
+  .sticky-reserve {
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px var(--gutter) max(10px, env(safe-area-inset-bottom));
+    background: rgba(243, 238, 229, 0.96);
+    color: var(--ink);
+    border-top: 1px solid var(--line-on-light);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transform: translateY(105%);
+    transition: transform 0.5s var(--ease-out);
   }
 
-  .walk__hint-icon {
-    display: none;
+  .sticky-reserve.is-shown {
+    transform: none;
+  }
+
+  .sticky-reserve__menu {
+    padding: 12px 4px;
+  }
+
+  .sticky-reserve__btn {
+    flex: 1;
+    min-height: 48px;
+  }
+
+  body[data-page='home'] .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
 }
