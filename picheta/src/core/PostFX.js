@@ -6,6 +6,8 @@ import {
   BloomEffect,
   VignetteEffect,
   ChromaticAberrationEffect,
+  KawaseBlurPass,
+  KernelSize,
 } from 'postprocessing';
 import { FinishEffect } from './FinishEffect.js';
 
@@ -38,12 +40,17 @@ export class PostFX {
     this.finish = new FinishEffect({ amount: quality.mobile ? 0.04 : 0.05 });
 
     this.composer.addPass(this.renderPass);
+    // Desenfoque de la escena detrás de los paneles de sección (sólo activo con fx.blur > 0).
+    this.blurPass = new KawaseBlurPass({ kernelSize: KernelSize.LARGE, resolutionScale: 0.5 });
+    this.blurPass.enabled = false;
+    this.composer.addPass(this.blurPass);
     // La aberración va primero: muestrea la imagen original y el bloom se suma encima.
     this.composer.addPass(new EffectPass(camera, this.ca, this.bloom, this.vignette, this.finish));
 
     // Multiplicadores animables por las escenas: bloom/ca para el portal,
     // flash para los golpes de tambor (se suma sin pisar las otras animaciones).
-    this.fx = { bloom: 1, ca: 1, flash: 0 };
+    // blur/dim: la escena queda desenfocada y oscurecida detrás de los paneles.
+    this.fx = { bloom: 1, ca: 1, flash: 0, blur: 0, dim: 0 };
   }
 
   setScene(scene) {
@@ -57,6 +64,9 @@ export class PostFX {
   render(dt) {
     this.bloom.intensity = this.base.bloom * this.fx.bloom * (1 + this.fx.flash);
     this.ca.offset.copy(this.caOffset).multiplyScalar(this.fx.ca);
+    this.blurPass.enabled = this.fx.blur > 0.01;
+    this.blurPass.blurMaterial.scale = this.fx.blur * 1.6;
+    this.finish.dim = this.fx.dim;
     this.composer.render(dt);
   }
 }

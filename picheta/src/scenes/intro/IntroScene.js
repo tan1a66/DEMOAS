@@ -79,13 +79,17 @@ export default class IntroScene {
           .map((c) => `<span aria-hidden="true">${c}</span>`)
           .join('')}</h1>
         <p class="tagline">${content.tagline}</p>
-      </div>
-      <p class="intro-hint" aria-live="polite">
+        <p class="intro-hint" aria-live="polite">
         <span class="intro-hint-inner">
           <svg class="hint-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" pathLength="1" /></svg>
           <span>${content.intro.hint}</span>
         </span>
       </p>
+      </div>
+      <svg class="intro-guide" aria-hidden="true">
+        <ellipse class="guide-path" pathLength="1" />
+        <circle class="guide-dot" r="3.5" />
+      </svg>
       <button class="intro-enter" type="button">
         <span>${content.intro.enter}</span><small>${content.intro.enterKey}</small>
       </button>`;
@@ -96,6 +100,10 @@ export default class IntroScene {
       tagline: el.querySelector('.tagline'),
       hint: el.querySelector('.intro-hint'),
       hintInner: el.querySelector('.intro-hint-inner'),
+      hintIcon: el.querySelector('.hint-icon circle'),
+      guide: el.querySelector('.intro-guide'),
+      guidePath: el.querySelector('.guide-path'),
+      guideDot: el.querySelector('.guide-dot'),
       enter: el.querySelector('.intro-enter'),
     };
   }
@@ -138,6 +146,8 @@ export default class IntroScene {
     this.gSmooth = 0;
     this.hintShown = false;
     this.dom.hintInner.style.opacity = '';
+    this.dom.guide.style.opacity = '0';
+    this.dom.hintIcon.style.strokeDashoffset = '';
     gsap.set([...this.dom.letters, this.dom.tagline, this.dom.hint, this.dom.enter], { clearProps: 'all' });
     this.dom.root.classList.remove('show-hint', 'show-enter');
   }
@@ -198,6 +208,7 @@ export default class IntroScene {
   showHint() {
     if (this.state !== 'ready' || this.hintShown) return;
     this.hintShown = true;
+    this.guideT = 0;
     this.dom.root.classList.add('show-hint');
     gsap.fromTo(this.dom.hint, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' });
   }
@@ -270,7 +281,7 @@ export default class IntroScene {
     tl.to(this.dust.uniforms.uRush, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.stone.uniforms.uZoom, { value: 0.42, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.engine.post.fx, { bloom: 2.3, ca: 7, duration: 2.4, ease: 'power2.in' }, tx + 0.4);
-    tl.to('#veil', { opacity: 1, duration: 0.75, ease: 'power1.in' }, tx + 2.25);
+    tl.to('#veil', { opacity: 1, duration: 0.5, ease: 'power1.in' }, tx + 2.45);
   }
 
   // Destino de cada mota del círculo dibujado: un punto del logo a su mismo ángulo.
@@ -289,7 +300,9 @@ export default class IntroScene {
   async exit() {
     this.active = false;
     this.state = 'hidden';
+    this.tl?.kill();
     for (const c of this.calls) c.kill();
+    this.calls = [];
     this.dom.root.hidden = true;
   }
 
@@ -381,6 +394,7 @@ export default class IntroScene {
       this.cam.y += (ty - this.cam.y) * k;
     }
     cam.position.set(this.cam.x, this.cam.y, this.cam.z);
+    cam.up.set(0, 1, 0);
     cam.lookAt(0, this.cam.lookY, this.cam.z - CAM_DIST);
     if (cam.fov !== this.cam.fov) {
       cam.fov = this.cam.fov;
@@ -398,8 +412,15 @@ export default class IntroScene {
     this.gSmooth += (g - this.gSmooth) * (1 - Math.exp(-dt * 6));
     const L = this.logo.uniforms;
     L.uGesture.value = this.gSmooth;
-    // Mientras se dibuja, la invitación se aparta (y no vuelve durante la salida).
-    if (this.state === 'ready') this.dom.hintInner.style.opacity = String(1 - smooth(0.04, 0.3, this.gSmooth));
+    // Mientras se dibuja la invitación sigue visible y su círculo se completa con el gesto;
+    // la guía alrededor del logo enseña el movimiento cuando nadie dibuja.
+    if (this.state === 'ready') {
+      const drawing = smooth(0.02, 0.12, this.gSmooth);
+      this.dom.hintInner.style.opacity = String(1 - drawing * 0.35);
+      this.dom.root.classList.toggle('drawing', drawing > 0.5);
+      if (drawing > 0.5) this.dom.hintIcon.style.strokeDashoffset = String(1 - this.gesture.progress);
+      this.updateGuide(dt, drawing);
+    } else this.dom.guide.style.opacity = '0';
 
     const period = 2.6 - 1.7 * this.gSmooth;
     this.beatPhase += dt / period;
@@ -438,6 +459,26 @@ export default class IntroScene {
     this.ink.update(t);
   }
 
+  // Guía: un punto de tiza recorre el óvalo punteado alrededor del logo (≈3 s por vuelta).
+  updateGuide(dt, drawing) {
+    const g = this.dom;
+    if (!this.hintShown || this.q.reducedMotion) {
+      g.guide.style.opacity = '0';
+      return;
+    }
+    this.guideT = (this.guideT || 0) + dt;
+    const cycle = 3.4;
+    const u = (this.guideT % cycle) / cycle;
+    const draw = Math.min(1, u / 0.72);
+    const e = draw < 0.5 ? 4 * draw ** 3 : 1 - (-2 * draw + 2) ** 3 / 2;
+    const fade = 1 - smooth(0.78, 1, u);
+    g.guide.style.opacity = String(0.85 * fade * (1 - drawing));
+    const { cx, cy, rx, ry } = this.guideShape;
+    const a = -Math.PI / 2 + e * Math.PI * 2;
+    g.guideDot.setAttribute('cx', (cx + Math.cos(a) * rx).toFixed(1));
+    g.guideDot.setAttribute('cy', (cy + Math.sin(a) * ry).toFixed(1));
+  }
+
   beforeRender(renderer, dt) {
     this.logo.compute(renderer, dt);
   }
@@ -473,6 +514,14 @@ export default class IntroScene {
     this.shock.mesh.position.copy(this.layout.center);
     this.shock.mesh.scale.setScalar(scale * 2.3);
     this.gesture.setViewport(w, h);
+
+    // Óvalo de la guía, algo más grande que el logo (px CSS).
+    const px = h / vh;
+    this.guideShape = { cx: w / 2, cy: h * (0.5 - cy / vh), rx: scale * la * 0.5 * px * 1.42, ry: scale * 0.5 * px * 1.24 };
+    const gs = this.guideShape;
+    this.dom.guide.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    Object.entries({ cx: gs.cx, cy: gs.cy, rx: gs.rx, ry: gs.ry }).forEach(([k, v]) => this.dom.guidePath.setAttribute(k, v.toFixed(1)));
+    this.dom.guidePath.setAttribute('transform', `rotate(-90 ${gs.cx.toFixed(1)} ${gs.cy.toFixed(1)})`);
 
     // Posición del texto bajo el logo (px CSS).
     const bottom = h * (0.5 - (cy - scale / 2) / vh);

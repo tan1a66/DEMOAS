@@ -8,6 +8,7 @@ const FRAG = /* glsl */ `
 uniform float uAmount;
 uniform float uSeed;
 uniform float uKnee;
+uniform float uDim;
 float grainHash(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
@@ -18,7 +19,7 @@ vec3 rolloff(vec3 x) {
   return min(x, vec3(uKnee)) + (1.0 - uKnee) * (1.0 - exp(-over / (1.0 - uKnee)));
 }
 void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
-  vec3 c = pow(rolloff(max(inputColor.rgb, 0.0)), vec3(1.0 / 2.2));
+  vec3 c = pow(rolloff(max(inputColor.rgb, 0.0)) * (1.0 - uDim), vec3(1.0 / 2.2));
   float n = grainHash(gl_FragCoord.xy + uSeed) - 0.5;
   c += n * uAmount * (0.55 + 0.45 * smoothstep(0.0, 0.25, c.g));
   outputColor = vec4(pow(max(c, 0.0), vec3(2.2)), inputColor.a);
@@ -33,8 +34,13 @@ export class FinishEffect extends Effect {
         ['uAmount', new Uniform(amount)],
         ['uSeed', new Uniform(0)],
         ['uKnee', new Uniform(knee)],
+        ['uDim', new Uniform(0)],
       ]),
     });
+  }
+
+  set dim(v) {
+    this.uniforms.get('uDim').value = v;
   }
 
   update() {

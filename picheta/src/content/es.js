@@ -1,5 +1,5 @@
 // Todos los textos visibles del sitio (sólo español).
-// Horarios y textos marcados "por confirmar" deben verificarse con el restaurante.
+// Lo marcado "por confirmar" debe verificarse con el restaurante.
 
 export const content = {
   brand: 'Picheta',
@@ -16,6 +16,8 @@ export const content = {
     back: 'Volver',
     backTerrace: 'Volver a la terraza',
     skip: 'Saltar',
+    prev: 'Anterior',
+    next: 'Siguiente',
   },
 
   intro: {
@@ -24,15 +26,26 @@ export const content = {
     enterKey: 'o pulsa Intro',
   },
 
-  // Escenas siguientes (aún en desarrollo en esta entrega).
   inmersion: {
     line: 'En el corazón de Mérida, un edificio de más de 350 años.',
-    wip: 'Escena 2 · Inmersión — en desarrollo',
-    restart: 'Volver al inicio',
+    hint: 'Desliza o toca para descender',
+    plaza: 'Plaza Grande',
+    catedral: 'Catedral',
+    picheta: 'Pasaje Picheta',
+    pichetaSub: 'Calle 61 #501',
+  },
+
+  llegada: {
+    entrada: 'Una discreta entrada…',
+    arriba: '…y, arriba, Mérida entera.',
+  },
+
+  terraza: {
+    hintTouch: 'Toca los objetos para descubrir Picheta',
+    hintMouse: 'Pasa el cursor sobre los objetos para descubrir Picheta',
   },
 
   // Menú textual de respaldo: mismas voces que el sitio actual.
-  // Cada fila puede llevar una o varias voces (HISTORIA · AUTORES).
   nav: [
     [{ id: 'inicio', label: 'Inicio' }],
     [
@@ -45,6 +58,16 @@ export const content = {
     [{ id: 'eventos', label: 'Eventos' }],
     [{ id: 'facturacion', label: 'Facturación', external: true }],
   ],
+  // Etiquetas de los objetos de la terraza.
+  navLabels: {
+    inicio: 'Inicio',
+    historia: 'Historia',
+    autores: 'Autores',
+    menu: 'Menú',
+    reserva: 'Reserva una mesa',
+    concurso: 'Concurso gastronómico',
+    eventos: 'Eventos',
+  },
 
   footer: {
     instagram: 'Instagram',
@@ -52,57 +75,81 @@ export const content = {
     credit: 'Experiencia por Alessia Studio – 3D web experience',
   },
 
-  // Secciones (paneles sobre la terraza). Bloques:
-  //   phrase: frase grande, una a la vez · text: párrafo · meta: datos breves
-  //   placeholder: espacio reservado para contenido del cliente
   sections: {
     historia: {
       title: 'Historia',
       lead: 'Un tambor de unión entre lo prehispánico, lo colonial y lo actual.',
-      blocks: [
-        { type: 'phrase', text: 'Gabriel Vicente Gahona, «Picheta» (Mérida, 1828–1899).' },
+      phrases: [
+        { text: 'Gabriel Vicente Gahona, «Picheta» (Mérida, 1828–1899).', art: 'medallon' },
         {
-          type: 'phrase',
           text: 'Grabador y caricaturista. En 1847 fundó Don Bullebulle, periódico satírico que hizo reír y pensar a todo Yucatán.',
+          art: 'cabecera',
         },
-        { type: 'phrase', text: 'Fundó la primera academia de grabado de la región y fue alcalde de Mérida en 1880.' },
-        {
-          type: 'phrase',
-          text: 'Desde 1639, estos pasillos fueron Ayuntamiento y cárcel pública. Hoy son el Pasaje Picheta.',
-        },
-        { type: 'phrase', text: 'La calle lleva su nombre. Nosotros también.' },
-        // Texto completo del restaurante: por recibir del cliente.
-        { type: 'text', text: 'En un edificio de más de 350 años, en el corazón del centro de Mérida…' },
+        { text: 'Fundó la primera academia de grabado de la región y fue alcalde de Mérida en 1880.', art: 'buril' },
+        { text: 'Desde 1639, estos pasillos fueron Ayuntamiento y cárcel pública. Hoy son el Pasaje Picheta.', photo: 'patio' },
+        { text: 'La calle lleva su nombre. Nosotros también.', art: 'placa' },
+      ],
+      // Texto completo del restaurante: por recibir del cliente (se maqueta en bloques).
+      body: [
+        'En un edificio de más de 350 años, en el corazón del centro de Mérida…',
+        'Un tambor de unión entre lo prehispánico, lo colonial y lo actual.',
       ],
     },
     autores: {
       title: 'Autores',
       lead: 'Más que seguir recetas, comunicamos emoción.',
-      blocks: [{ type: 'placeholder', text: 'Retratos y biografías de los chefs autores.' }],
+      // Retratos y nombres por confirmar: las fotos actuales son provisionales.
+      people: [
+        { name: 'Nombre por confirmar', role: 'Chef ejecutivo', photo: 'comal' },
+        { name: 'Nombre por confirmar', role: 'Chef de cocina', photo: 'fogon' },
+        { name: 'Nombre por confirmar', role: 'Chef pastelero', photo: 'ingredientes' },
+      ],
+      note: 'La cocina de autor nace de la milpa, del fogón y de la memoria.',
     },
     menu: {
       title: 'Menú',
       lead: 'Una evolución de nuestra comida típica.',
-      blocks: [{ type: 'placeholder', text: 'Platillos de temporada: nombres y descripciones breves.' }],
+      // Platillos de ejemplo (cocina yucateca): sustituir por el menú real.
+      dishes: [
+        { name: 'Cochinita pibil', course: 'Fuerte', text: 'Cerdo en achiote y naranja agria, cocido lentamente en hoja de plátano.', photo: 'platillo' },
+        { name: 'Sopa de lima', course: 'Entrada', text: 'Caldo perfumado con lima yucateca, pollo deshebrado y tortilla crujiente.' },
+        { name: 'Papadzules', course: 'Entrada', text: 'Tortillas bañadas en salsa de pepita, huevo y chiltomate.', photo: 'ingredientes' },
+        { name: 'Relleno negro', course: 'Fuerte', text: 'Pavo en recado de chiles quemados, con su but de cerdo.' },
+        { name: 'Poc chuc', course: 'Fuerte', text: 'Cerdo marinado en naranja agria, asado al carbón, con cebolla asada.', photo: 'comal' },
+        { name: 'Marquesita', course: 'Postre', text: 'La crepa crujiente de la feria, con queso de bola.' },
+      ],
     },
     reserva: {
       title: 'Reserva una mesa',
       lead: 'La vista más bella de Mérida te espera.',
-      blocks: [
-        { type: 'meta', label: 'Dirección', text: 'Calle 61 #501, Pasaje Picheta, Centro, Mérida' },
+      ctaOnline: 'Reservar en línea',
+      ctaWhatsapp: 'Reservar por WhatsApp',
+      ctaMaps: 'Cómo llegar',
+      info: [
+        { label: 'Dirección', text: 'Calle 61 #501, Pasaje Picheta, Centro, Mérida' },
         // Horarios por confirmar con el restaurante.
-        { type: 'meta', label: 'Horario', text: 'Lun–Sáb 17:00–00:00 · Dom 14:30–21:00' },
+        { label: 'Horario', text: 'Lun–Sáb 17:00–00:00 · Dom 14:30–21:00' },
       ],
     },
     concurso: {
       title: 'Concurso gastronómico',
       lead: 'Cocina de autor en competencia.',
-      blocks: [{ type: 'placeholder', text: 'Bases, fechas y participantes del concurso.' }],
+      cards: [
+        { title: 'Convocatoria', text: 'Bases y requisitos de participación: por publicar.' },
+        { title: 'Fechas', text: 'Calendario de rondas y final: por confirmar.' },
+        { title: 'Jurado', text: 'Chefs y cronistas invitados: por anunciar.' },
+      ],
+      cta: 'Bases del concurso · próximamente',
     },
     eventos: {
       title: 'Eventos',
       lead: 'Eventos privados, empresariales y cenas especiales.',
-      blocks: [{ type: 'placeholder', text: 'Formatos, capacidad y contacto para eventos.' }],
+      cards: [
+        { title: 'Eventos privados', text: 'La terraza para celebraciones frente a la Catedral.', photo: 'terraza' },
+        { title: 'Empresariales', text: 'Comidas, presentaciones y cenas de equipo.', photo: 'patio' },
+        { title: 'Cenas especiales', text: 'Menús de autor a cuatro manos y noches temáticas.', photo: 'fogon' },
+      ],
+      cta: 'Solicitar información',
     },
   },
 };
