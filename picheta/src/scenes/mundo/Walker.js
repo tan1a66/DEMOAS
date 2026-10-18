@@ -46,8 +46,9 @@ export class Walker {
       if (d && pointer.down) {
         if (!d.moved && Math.hypot(pointer.x - d.x, pointer.y - d.y) > 6) d.moved = true;
         if (d.moved) {
+          // se arrastra la escena (como en Street View): a la derecha → la mirada va a la izquierda
           const k = (Math.PI * 0.55) / engine.view.width;
-          this.yawT += (pointer.x - d.lx) * k;
+          this.yawT -= (pointer.x - d.lx) * k;
           this.pitchT = THREE.MathUtils.clamp(this.pitchT + (pointer.y - d.ly) * k, -0.6, 0.5);
           this.lastInput = engine.time;
         }
