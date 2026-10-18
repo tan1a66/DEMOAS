@@ -318,7 +318,7 @@ html.touch .intro-enter small { display: none; }
 .panel.side .cards { grid-template-columns: 1fr; }
 .panel.side .dish { width: min(86%, 380px); margin-left: calc(min(86%, 380px) / -2); }
 .casa-caption, .casa .labels { transition: opacity 0.8s var(--ease); }
-.casa.focus .casa-caption, .casa.focus .casa-index, .casa.focus .casa-foot { opacity: 0; pointer-events: none; }
+.casa.ready.focus .casa-caption, .casa.ready.focus .casa-index, .casa.ready.focus .casa-foot { opacity: 0; pointer-events: none; }
 .casa.focus .casa-index button, .casa.focus .casa-foot button { pointer-events: none; }
 @media (max-width: 760px) {
   .panel.side { top: auto; left: 0; width: auto; height: 72vh; height: 72svh; }

@@ -203,6 +203,25 @@ export function buildTerraza(m, assets, q) {
   const sky = new THREE.HemisphereLight('#9fb2d6', '#6b4a32', 0.9);
   sky.position.set(xc, Y + 10, zc);
   lights.add(sky);
+  // lámparas colgadas de la pérgola sobre la barra
+  const shade = new THREE.ConeGeometry(0.16, 0.22, 24, 1, true);
+  const shadeMat = m.blackMetal.clone();
+  shadeMat.side = THREE.DoubleSide;
+  for (const z of [-34.6, -37.5, -40.4]) {
+    const xb = (BAR.x0 + BAR.x1) / 2;
+    const cone = new THREE.Mesh(shade, shadeMat);
+    cone.position.set(xb, Y + 2.55, z);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), m.bulb);
+    bulb.position.set(xb, Y + 2.47, z);
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.45, 6), m.blackMetal);
+    cord.position.set(xb, Y + 2.88, z);
+    g.add(cone, bulb, cord);
+    if (z !== -37.5) {
+      const p = new THREE.PointLight('#ffb468', 3.2, 4.5, 2);
+      p.position.set(xb, Y + 2.35, z);
+      lights.add(p);
+    }
+  }
   // la guirnalda ilumina un poco la tarima
   for (const z of [-34.5, -39]) {
     const p = new THREE.PointLight('#ffbf7a', 3, 9, 2);

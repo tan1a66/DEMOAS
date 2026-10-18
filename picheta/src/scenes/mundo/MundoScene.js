@@ -344,18 +344,18 @@ export default class MundoScene {
       // Del círculo dibujado a los dos círculos de la escultura, a contraluz;
       // la cámara se aparta y aparece la entrada.
       this.state = 'arrive';
-      this.walker.place(new THREE.Vector3(0.45, 0, 3.3), Math.PI / 2, 0.36);
+      this.walker.place(new THREE.Vector3(this.portrait() ? -0.05 : 0.45, 0, 3.3), Math.PI / 2, this.portrait() ? 0.3 : 0.36);
       this.setArea('entrada', true);
       this.ctx.sound.ambience('interior');
       gsap.to('#veil', { opacity: 0, duration: 2.6, ease: 'power2.out' });
       const v = ROOMS[0].view;
       await new Promise((r) => gsap.delayedCall(1.1, r));
       gsap.delayedCall(1.6, () => this.caption(room));
-      await this.walker.travelTo(V(v.pos), v.yaw, v.pitch ?? 0, 4.4, 'power2.inOut');
+      await this.walker.travelTo(V(v.pos), this.yawOf(v), v.pitch ?? 0, 4.4, 'power2.inOut');
       if (this.state === 'arrive') this.state = 'idle';
     } else {
       const v = ROOMS[room]?.view ?? ROOMS[0].view;
-      this.walker.place(V(v.pos), v.yaw, v.pitch ?? 0);
+      this.walker.place(V(v.pos), this.yawOf(v), v.pitch ?? 0);
       this.setArea(this.areaAt(v.pos[0], v.pos[1]), true);
       this.ctx.sound.ambience(this.area === 'terraza' ? 'plaza' : 'interior');
       this.state = 'idle';
@@ -365,10 +365,18 @@ export default class MundoScene {
     this.dom.root.classList.add('ready');
   }
 
+  portrait() {
+    return this.engine.view.width / this.engine.view.height < 0.8;
+  }
+
+  yawOf(v) {
+    return this.portrait() && v.yawPortrait !== undefined ? v.yawPortrait : v.yaw;
+  }
+
   applyFov() {
     const { width, height } = this.engine.view;
     const cam = this.engine.camera;
-    cam.fov = width / height < 0.8 ? 68 : width / height < 1.3 ? 60 : 52;
+    cam.fov = this.portrait() ? 68 : width / height < 1.3 ? 60 : 52;
     cam.updateProjectionMatrix();
   }
 
@@ -405,7 +413,7 @@ export default class MundoScene {
     this.caption(i);
     this.state = 'idle';
     this.travelling = true;
-    return this.travel(v.pos, v.yaw, v.pitch ?? 0, { quick }).then(() => {
+    return this.travel(v.pos, this.yawOf(v), v.pitch ?? 0, { quick }).then(() => {
       this.travelling = false;
     });
   }
@@ -426,9 +434,26 @@ export default class MundoScene {
     this.dom.root.classList.add('focus');
     gsap.to(this.engine.post.fx, { dim: 0.12, duration: 1.2, ease: 'power2.inOut', overwrite: 'auto' });
     if (!s) return Promise.resolve();
-    // en un teléfono el panel sube desde abajo: se mira un poco más alto
-    const portrait = this.engine.view.width / this.engine.view.height < 0.8;
-    return this.travel(s.view.pos, s.view.yaw, s.view.pitch + (portrait ? 0.12 : 0), { quick: true });
+    const f = this.frameSpot(s);
+    return this.travel(s.view.pos, f.yaw, f.pitch, { quick: true });
+  }
+
+  // Mirada que deja el objeto de la sección en la parte libre de la pantalla:
+  // a la izquierda del panel lateral o, en el teléfono, encima del panel.
+  frameSpot(s) {
+    const { width, height } = this.engine.view;
+    const [px, pz] = s.view.pos;
+    const eye = (this.walker.floorAt(px, pz) ?? 0) + 1.6;
+    const [lx, ly, lz] = s.look ?? s.at;
+    const dx = lx - px;
+    const dz = lz - pz;
+    const yaw = Math.atan2(dx, -dz);
+    const pitch = Math.atan2(ly - eye, Math.hypot(dx, dz));
+    const tv = Math.tan(THREE.MathUtils.degToRad(this.engine.camera.fov / 2));
+    // panel desde abajo (72 % de la altura): el objeto, en la franja de arriba
+    if (width <= 760) return { yaw, pitch: pitch - Math.atan(0.66 * tv) };
+    const covered = Math.min(620, width * 0.5) / width;
+    return { yaw: yaw + Math.atan(covered * tv * (width / height)), pitch: pitch + 0.03 };
   }
 
   unfocus() {
