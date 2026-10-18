@@ -210,6 +210,16 @@ export default class MundoScene {
       progress(0.85 + (0.15 * ++done) / views.length);
       await frame();
     }
+    // El postproceso del mundo (oclusión ambiental, AgX) también se prepara
+    // ahora: al entrar en la casa no hay nada que cargar ni que compilar.
+    const post = this.engine.post;
+    if (this.q.ao) await post.setAO(true, this.scene);
+    post.setToneMapping('agx');
+    post.setScene(this.scene);
+    post.composer.render(1 / 60);
+    post.setToneMapping('linear');
+    post.setAO(false);
+    post.setScene(this.engine.scene?.scene ?? null);
     progress(1);
     if (this.engine.manual) window.__picheta.mundo = this;
   }
@@ -325,13 +335,14 @@ export default class MundoScene {
   // ------------------------------------------------------------ salas
 
   async enter({ room = 0, from = null, instant = false } = {}) {
+    // Todo se coloca antes de esperar nada: el primer fotograma de la casa ya
+    // es el bueno (sin ver otra sala un instante).
     this.dom.root.hidden = false;
     const post = this.engine.post;
     this.engine.setDprCap(this.q.worldDpr ?? 1.5);
     this.engine.renderer.shadowMap.autoUpdate = false;
     this.engine.renderer.shadowMap.needsUpdate = true;
     post.setToneMapping('agx');
-    await post.setAO(!!this.q.ao, this.scene);
     Object.assign(post.fx, { bloom: 1, ca: 0.45, flash: 0, blur: 0, dim: 0 });
     post.look.threshold = 0.95;
     post.look.knee = 0.97;
@@ -344,34 +355,42 @@ export default class MundoScene {
     this.index = room;
     this.showIndex(room);
     this.ctx.chrome.reveal(true);
-
-    if (from === 'intro') {
-      // Del círculo dibujado a los dos círculos de la escultura, a contraluz;
-      // la cámara se aparta y aparece la entrada.
+    const intro = from === 'intro';
+    if (intro) {
+      // Del círculo dibujado, de golpe, a los dos círculos de la escultura a
+      // contraluz; un destello, y la cámara se aparta hasta ver la entrada.
       this.state = 'arrive';
       this.rail.place(0);
       this.rail.focusPose = { x: this.portrait() ? -0.05 : 0.45, y: 1.6, z: 3.3, yaw: Math.PI / 2, pitch: this.portrait() ? 0.3 : 0.36 };
       this.rail.focusAmt = 1;
       this.setArea('entrada', true);
-      this.ctx.sound.ambience('interior');
-      gsap.to('#veil', { opacity: 0, duration: 2.6, ease: 'power2.out' });
-      await new Promise((r) => gsap.delayedCall(1.1, r));
-      gsap.delayedCall(1.6, () => this.caption(room));
-      await new Promise((r) => gsap.to(this.rail, { focusAmt: 0, duration: 4.4, ease: 'power2.inOut', onComplete: r }));
-      if (this.state === 'arrive') this.state = 'idle';
-      this.arrived = this.engine.time;
     } else {
       const v = ROOMS[room]?.view ?? ROOMS[0].view;
       this.rail.place(this.rail.stops[room]?.s ?? 0);
       this.rail.focusAmt = 0;
       this.setArea(this.areaAt(v.pos[0], v.pos[1]), true);
+    }
+    this.rail.update(0, cam);
+    // llegando del círculo, los controles aparecen cuando la cámara ya se aparta
+    if (intro) gsap.delayedCall(1.6, () => this.dom.root.classList.add('ready'));
+    else this.dom.root.classList.add('ready');
+    await post.setAO(!!this.q.ao, this.scene);
+
+    if (intro) {
+      this.ctx.sound.ambience('interior');
+      gsap.set('#veil', { opacity: 0 });
+      gsap.fromTo(post.fx, { flash: 1.6 }, { flash: 0, duration: 1.1, ease: 'power2.out' });
+      gsap.delayedCall(1.0, () => this.caption(room));
+      await new Promise((r) => gsap.to(this.rail, { focusAmt: 0, duration: 2.6, delay: 0.35, ease: 'power3.inOut', onComplete: r }));
+      if (this.state === 'arrive') this.state = 'idle';
+      this.arrived = this.engine.time;
+    } else {
       this.ctx.sound.ambience(this.area === 'terraza' ? 'plaza' : 'interior');
       this.state = 'idle';
       this.arrived = this.engine.time;
       gsap.to('#veil', { opacity: 0, duration: instant ? 0.6 : 1.2, ease: 'power2.out' });
       this.caption(room);
     }
-    this.dom.root.classList.add('ready');
   }
 
   portrait() {

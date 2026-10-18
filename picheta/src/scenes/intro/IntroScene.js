@@ -265,15 +265,15 @@ export default class IntroScene {
       return;
     }
 
-    if (signed) tl.to(this.ink.uniforms.uAbsorb, { value: 1, duration: 1.2, ease: 'power2.inOut' }, 0);
-    const t0 = signed ? 0.95 : 0.25;
+    if (signed) tl.to(this.ink.uniforms.uAbsorb, { value: 1, duration: 0.9, ease: 'power2.inOut' }, 0);
+    const t0 = signed ? 0.6 : 0.25;
     tl.call(() => this.impact(0.55), null, t0);
     tl.call(() => this.impact(1), null, t0 + 0.42);
     tl.to(this.ink.uniforms.uFade, { value: 0, duration: 0.6 }, t0 + 0.3);
     tl.to(L.uPhysics, { value: 0, duration: 0.8 }, t0 + 0.6);
 
     // El portal: el anillo se abre y estalla hacia la cámara, que lo atraviesa.
-    const tx = t0 + 0.75;
+    const tx = t0 + 0.55;
     const cy = this.layout.center.y;
     tl.to(L.uExplode, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.cam, { x: 0, y: cy, lookY: cy, duration: 1.6, ease: 'power2.inOut' }, tx);
@@ -281,8 +281,8 @@ export default class IntroScene {
     tl.to(this.dust.uniforms.uRush, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.stone.uniforms.uZoom, { value: 0.42, duration: 2.9, ease: 'power2.in' }, tx);
     tl.to(this.engine.post.fx, { bloom: 2.3, ca: 7, duration: 2.4, ease: 'power2.in' }, tx + 0.4);
-    // En pleno estallido, el polvo pasa a la casa (que empieza con su propio polvo disperso).
-    tl.call(() => this.ctx.enterWorld(), null, tx + 1.8);
+    // En pleno estallido se pasa a la casa: el destello sigue allí, sobre la escultura.
+    tl.call(() => this.ctx.enterWorld(), null, tx + 1.25);
   }
 
   // Destino de cada mota del círculo dibujado: un punto del logo a su mismo ángulo.
