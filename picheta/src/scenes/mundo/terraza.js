@@ -12,6 +12,8 @@ import { furniture, signature, SUN_DIR } from './salon.js';
 export const TERRAZA = { x0: -15, x1: 3, z0: -29.6, z1: -44, y: 4.4 };
 export const BAR = { x0: -13.7, x1: -12.8, z0: -33, z1: -42 };
 export const CATEDRAL = { x: 68, z: -101 };
+// El Palacio Municipal, al otro lado de la plaza: muy a la derecha de la Catedral.
+export const PALACIO = { x: 68, z: -8 };
 export const TERRACE_TABLES = [];
 for (const x of [-10.2, -7.6, -5.0, -2.4, 0.2]) for (const z of [-34.8, -37.8, -40.8]) if (!(x === -7.6 && z === -34.8)) TERRACE_TABLES.push({ x, z });
 
@@ -75,7 +77,22 @@ export function buildTerraza(m, assets, q) {
     for (let i = 1; i < n; i += 1) bulbs.push(pts[i]);
   };
   for (let x = T.x0 + 0.5; x < T.x1 - 1; x += 3.4) strand(new THREE.Vector3(x, Y + wallH - 0.1, T.z1 + 0.05), new THREE.Vector3(x + 3.4, Y + wallH - 0.1, T.z1 + 0.05), 0.55, 9);
-  for (const z of [-34, -38.5]) strand(new THREE.Vector3(T.x0 + 1.5, Y + 3.3, z), new THREE.Vector3(T.x1 - 0.2, Y + 3.0, z - 1), 0.7, 26);
+  // Cruzando la terraza, desde la viga de la pérgola de la barra: uno hasta
+  // el muro antiguo, en diagonal, y otro hasta un poste de acero junto a la
+  // barandilla (fuera del encuadre de la Catedral).
+  strand(new THREE.Vector3(T.x0 + 0.15, Y + 2.95, -37.5), new THREE.Vector3(1.5, Y + wallH - 0.05, T.z1 + 0.05), 0.8, 30);
+  for (const z of [-34.2]) {
+    const end = new THREE.Vector3(T.x1 - 0.25, Y + 3.1, z);
+    strand(new THREE.Vector3(T.x0 + 0.15, Y + 2.95, z), end, 0.75, 30);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 3.25, 10), m.blackMetal);
+    pole.position.set(end.x, Y + 1.625, end.z);
+    pole.castShadow = true;
+    const foot = box(0.26, 0.04, 0.26, m.blackMetal);
+    foot.position.set(end.x, Y + 0.02, end.z);
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), m.blackMetal);
+    cap.position.set(end.x, Y + 3.27, end.z);
+    g.add(pole, foot, cap);
+  }
   g.add(new THREE.Mesh(mergeGeometries(cords), m.blackMetal));
   const bulbIM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.03, 12, 8), m.bulbGarland, bulbs.length);
   const M = new THREE.Matrix4();
@@ -198,6 +215,11 @@ export function buildTerraza(m, assets, q) {
     g.add(tree);
   }
 
+  // La Plaza Grande: el Palacio Municipal con su torre del reloj, la gran
+  // bandera, las farolas encendidas y el pavimento de la plaza.
+  const plaza = plazaGrande(m);
+  g.add(plaza.group);
+
   // (el sol es el mismo de toda la casa: lo coloca la escena)
   const lights = new THREE.Group();
   const sky = new THREE.HemisphereLight('#9fb2d6', '#6b4a32', 0.9);
@@ -230,7 +252,257 @@ export function buildTerraza(m, assets, q) {
   }
   g.add(lights);
 
-  return { group: g, lights, update() {} };
+  return { group: g, lights, update: (t) => plaza.update(t) };
+}
+
+// ------------------------------------------------------------ la plaza
+
+function plazaGrande(m) {
+  const g = new THREE.Group();
+  // pavimento claro de la plaza (el resto del suelo es la calle)
+  const paving = new THREE.Mesh(new THREE.PlaneGeometry(58, 88), new THREE.MeshStandardMaterial({ color: '#a39383', roughness: 1 }));
+  paving.rotation.x = -Math.PI / 2;
+  paving.position.set(38, 0.02, -55);
+  g.add(paving);
+
+  const pal = edificio(m, { color: '#b8553c', tower: true });
+  pal.position.set(PALACIO.x, 0, PALACIO.z);
+  pal.lookAt(38, 0, -62);
+  g.add(pal);
+  // el lado de enfrente: portales color crema entre la Catedral y el Palacio
+  const portales = edificio(m, { color: '#e2cfab', W: 46, H: 11 });
+  portales.position.set(100, 0, -48);
+  portales.lookAt(38, 0, -50);
+  g.add(portales);
+
+  const flag = bandera(m);
+  flag.group.position.set(18, 0, -82);
+  g.add(flag.group);
+
+  // farolas de la plaza: poste negro y tres globos encendidos
+  const spots = [];
+  for (let x = 14; x <= 62; x += 12) spots.push([x, -30], [x, -96]);
+  for (let z = -42; z >= -84; z -= 14) spots.push([12, z], [64, z]);
+  const lampsAt = spots.filter(([x, z]) => Math.hypot(x - CATEDRAL.x, z - CATEDRAL.z) > 24);
+  const postGeo = mergeGeometries([
+    new THREE.CylinderGeometry(0.1, 0.16, 4.2, 8).translate(0, 2.1, 0),
+    new THREE.BoxGeometry(1.3, 0.06, 0.06).translate(0, 4.05, 0),
+  ]);
+  const posts = new THREE.InstancedMesh(postGeo, m.blackMetal, lampsAt.length);
+  const globes = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.2, 14, 10),
+    new THREE.MeshStandardMaterial({ color: '#fff3dc', emissive: '#ffd9a0', emissiveIntensity: 3.2, roughness: 0.4 }),
+    lampsAt.length * 3,
+  );
+  const M = new THREE.Matrix4();
+  lampsAt.forEach(([x, z], i) => {
+    posts.setMatrixAt(i, M.makeTranslation(x, 0, z));
+    [-0.62, 0, 0.62].forEach((dx, k) => globes.setMatrixAt(i * 3 + k, M.makeTranslation(x + dx, k === 1 ? 4.55 : 4.25, z)));
+  });
+  g.add(posts, globes);
+  return { group: g, update: flag.update };
+}
+
+// Edificio colonial de la plaza: fachada con portales y ventanas en arco,
+// molduras y almenas blancas; con `tower`, la torre del reloj del Palacio
+// Municipal con su linterna y su cúpula.
+function edificio(m, { color, W = 42, H = 12.5, tower = false }) {
+  const g = new THREE.Group();
+  const red = m.lime.clone();
+  red.color = new THREE.Color(color);
+  const white = m.lime.clone();
+  white.color = new THREE.Color('#f1e8da');
+  const dark = new THREE.MeshStandardMaterial({ color: '#2b1913', roughness: 0.9 });
+  const D = 12;
+  const body = box(W, H, D, red, 3);
+  body.position.y = H / 2;
+  g.add(body);
+  // arcos: un hueco oscuro con su moldura blanca alrededor
+  const arch = (w, h) => {
+    const sh = new THREE.Shape();
+    sh.moveTo(-w / 2, 0);
+    sh.lineTo(w / 2, 0);
+    sh.lineTo(w / 2, h - w / 2);
+    sh.absarc(0, h - w / 2, w / 2, 0, Math.PI, false);
+    sh.lineTo(-w / 2, 0);
+    return new THREE.ShapeGeometry(sh, 10);
+  };
+  const front = D / 2;
+  const n = Math.floor(W / 3.6) - 1;
+  const rows = [
+    { y: 0, w: 2.7, h: 4.6, n },
+    { y: 6.4, w: 1.7, h: 3.3, n },
+  ];
+  for (const r of rows)
+    for (let i = 0; i < r.n; i++) {
+      const x = (i - (r.n - 1) / 2) * 3.6;
+      const frame = new THREE.Mesh(arch(r.w + 0.5, r.h + 0.25), white);
+      frame.position.set(x, r.y, front + 0.02);
+      const hole = new THREE.Mesh(arch(r.w, r.h), dark);
+      hole.position.set(x, r.y, front + 0.04);
+      g.add(frame, hole);
+    }
+  for (const y of [5.7, H - 0.2]) {
+    const cornice = box(W + 0.5, 0.45, D + 0.5, white, 2);
+    cornice.position.y = y;
+    g.add(cornice);
+  }
+  // almenas blancas sobre el pretil
+  const merlon = mergeGeometries([new THREE.BoxGeometry(0.5, 0.7, 0.5).translate(0, 0.35, 0), new THREE.ConeGeometry(0.3, 0.6, 4).rotateY(Math.PI / 4).translate(0, 1.0, 0)]);
+  const nM = Math.floor(W / 1.8);
+  const merlons = new THREE.InstancedMesh(merlon, white, nM * 2);
+  const M = new THREE.Matrix4();
+  for (let i = 0; i < nM; i++) {
+    const x = -W / 2 + 0.6 + i * 1.8;
+    merlons.setMatrixAt(i, M.makeTranslation(x, H, front));
+    merlons.setMatrixAt(nM + i, M.makeTranslation(x, H, -front));
+  }
+  g.add(merlons);
+  if (tower) g.add(clockTower(red, white, dark, H, arch));
+  g.traverse((o) => o.isMesh && (o.castShadow = false));
+  return g;
+}
+
+// Torre del reloj: fuste con esquinas blancas, cuatro relojes, balaustrada,
+// linterna con arcos y cúpula.
+function clockTower(red, white, dark, H, arch) {
+  const g = new THREE.Group();
+  // torre del reloj, al centro
+  const tw = 5.6;
+  const shaft = box(tw, 10, tw, red, 2);
+  shaft.position.set(0, H + 5, 0);
+  g.add(shaft);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) {
+      const quoin = box(0.35, 10, 0.35, white, 1);
+      quoin.position.set((sx * tw) / 2, H + 5, (sz * tw) / 2);
+      g.add(quoin);
+    }
+  // los cuatro relojes
+  const faceTex = clockTexture();
+  for (let k = 0; k < 4; k++) {
+    const face = new THREE.Mesh(new THREE.CircleGeometry(1.25, 40), new THREE.MeshStandardMaterial({ map: faceTex, roughness: 0.6, emissive: '#fff2d8', emissiveIntensity: 0.25, emissiveMap: faceTex }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(1.25, 1.55, 40), white);
+    const a = (k * Math.PI) / 2;
+    for (const o of [face, ring]) {
+      o.position.set(Math.sin(a) * (tw / 2 + 0.03), H + 7.4, Math.cos(a) * (tw / 2 + 0.03));
+      o.rotation.y = a;
+      g.add(o);
+    }
+  }
+  const c1 = box(tw + 0.8, 0.5, tw + 0.8, white, 1);
+  c1.position.y = H + 10.2;
+  const balus = box(tw + 0.4, 0.8, tw + 0.4, white, 1);
+  balus.position.y = H + 10.85;
+  g.add(c1, balus);
+  for (const sx of [-1, 1])
+    for (const sz of [-1, 1]) {
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.9, 8), white);
+      fin.position.set((sx * (tw + 0.2)) / 2, H + 11.7, (sz * (tw + 0.2)) / 2);
+      g.add(fin);
+    }
+  // linterna con arcos y cúpula
+  const lw = 3.8;
+  const lantern = box(lw, 3.6, lw, red, 1);
+  lantern.position.y = H + 13.05;
+  g.add(lantern);
+  for (let k = 0; k < 4; k++) {
+    const a = (k * Math.PI) / 2;
+    const hole = new THREE.Mesh(arch(1.5, 2.6), dark);
+    hole.position.set(Math.sin(a) * (lw / 2 + 0.02), H + 11.5, Math.cos(a) * (lw / 2 + 0.02));
+    hole.rotation.y = a;
+    g.add(hole);
+  }
+  const c2 = box(lw + 0.6, 0.4, lw + 0.6, white, 1);
+  c2.position.y = H + 15.05;
+  g.add(c2);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.75, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), white);
+  dome.position.y = H + 15.25;
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 1.1, 10), white);
+  top.position.y = H + 17.4;
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8), white);
+  ball.position.y = H + 18.2;
+  g.add(dome, top, ball);
+  return g;
+}
+
+function clockTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f4ecdc';
+  g.fillRect(0, 0, 256, 256);
+  g.strokeStyle = '#2a2018';
+  g.lineCap = 'round';
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    g.lineWidth = i % 3 ? 4 : 9;
+    g.beginPath();
+    g.moveTo(128 + Math.sin(a) * 96, 128 - Math.cos(a) * 96);
+    g.lineTo(128 + Math.sin(a) * 116, 128 - Math.cos(a) * 116);
+    g.stroke();
+  }
+  // las siete y cuarto de la tarde
+  g.lineWidth = 9;
+  g.beginPath();
+  g.moveTo(128, 128);
+  g.lineTo(128 + Math.sin(7.25 * (Math.PI / 6)) * 58, 128 - Math.cos(7.25 * (Math.PI / 6)) * 58);
+  g.stroke();
+  g.lineWidth = 6;
+  g.beginPath();
+  g.moveTo(128, 128);
+  g.lineTo(128 + Math.sin(Math.PI / 2) * 88, 128 - Math.cos(Math.PI / 2) * 88);
+  g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// La gran bandera de la plaza, ondeando en lo alto de su mástil.
+function bandera(m) {
+  const g = new THREE.Group();
+  const H = 30;
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.3, H, 10), m.steel);
+  pole.position.y = H / 2;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.5, 0.8, 16), new THREE.MeshStandardMaterial({ color: '#cfc6b6', roughness: 0.9 }));
+  base.position.y = 0.4;
+  g.add(pole, base);
+  const c = document.createElement('canvas');
+  c.width = 384;
+  c.height = 220;
+  const x = c.getContext('2d');
+  [['#006847', 0], ['#f4f1ea', 128], ['#ce1126', 256]].forEach(([col, x0]) => {
+    x.fillStyle = col;
+    x.fillRect(x0, 0, 128, 220);
+  });
+  // el escudo, apenas una mancha a esta distancia
+  x.fillStyle = '#8a6a3a';
+  x.beginPath();
+  x.ellipse(192, 110, 22, 26, 0, 0, Math.PI * 2);
+  x.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const geo = new THREE.PlaneGeometry(9, 5.1, 24, 10).translate(4.5, 0, 0);
+  const base0 = geo.attributes.position.array.slice();
+  const cloth = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, roughness: 0.8 }));
+  cloth.position.set(0.15, H - 2.8, 0);
+  cloth.rotation.y = -0.6;
+  g.add(cloth);
+  const pos = geo.attributes.position;
+  return {
+    group: g,
+    update(t) {
+      for (let i = 0; i < pos.count; i++) {
+        const px = base0[i * 3];
+        const py = base0[i * 3 + 1];
+        const k = px / 9;
+        pos.setZ(i, Math.sin(px * 0.9 - t * 2.6 + py * 0.15) * 0.5 * k + Math.sin(px * 1.7 - t * 3.7) * 0.15 * k);
+        pos.setY(i, py - k * k * 0.5);
+      }
+      pos.needsUpdate = true;
+      geo.computeVertexNormals();
+    },
+  };
 }
 
 // Palma: tronco y hojas (planos con una textura de fronda recortada).

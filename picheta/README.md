@@ -48,13 +48,17 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
      lampade a cupola nere con l'interno arancio.
    - *La escalera* (non è una tappa, è il passaggio dall'interno alla terrazza): gradini di travertino,
      soffitto inclinato di corde, corrimano con la linea di luce.
-   - *La terraza* e *la vista*: pedana di legno, il muro antico con la firma "Picheta" e la ghirlanda
-     di lampadine, la barra nera sotto la pergola, i tavoli di marmo, le palme, il cielo del tramonto
-     e la Cattedrale di San Ildefonso.
+   - *La terraza* e *la vista*: pedana di legno, il muro antico con la firma "Picheta", la ghirlanda
+     di lampadine (appesa alla pergola, al muro e a un palo d'acciaio), la barra nera sotto la pergola
+     con le sue lampade, i tavoli di marmo, le palme, il cielo del tramonto. Sotto, la Plaza Grande:
+     la Cattedrale di San Ildefonso a sinistra, la grande bandiera, i portici di fronte, il Palacio
+     Municipal rosso con la torre dell'orologio tutto a destra, i laureli e i lampioni accesi.
 
    Si percorre **con lo scroll**, come una pagina: rotella o trackpad (sul telefono il dito in su e in
    giù, frecce e barra spaziatrice da tastiera) portano avanti e indietro lungo un unico percorso che
-   passa per le porte e sale la scala; nelle sale la camera si posa sulla loro inquadratura.
+   passa per le porte e sale la scala. **Lo scroll si ferma in ogni sala**, anche scorrendo veloce:
+   la camera si posa sulla sua inquadratura e compaiono i bottoni delle sezioni; per proseguire basta
+   un nuovo gesto di scroll.
    **Trascinando** si gira lo sguardo (come in Street View), e continuando a scorrere torna sul
    percorso. **"Seguir"** e l'indice a destra portano alla sala successiva o a quella scelta.
    **Visita automatica:** se nessuno tocca niente la casa si visita da sola, sala per sala, con una

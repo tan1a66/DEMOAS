@@ -6,6 +6,8 @@ import gsap from 'gsap';
 // con inercia, como una página. En cada sala la mirada se posa en su
 // encuadre; entre una y otra mira hacia donde se va. Arrastrar gira la
 // mirada (como en Street View) y, al seguir avanzando, vuelve sola al camino.
+// Las salas son paradas: el scroll se detiene en cada una (para que se vean
+// sus botones) y sigue con un nuevo gesto.
 
 const EYE = 1.6;
 const SAMPLES = 3000;
@@ -66,6 +68,9 @@ export class Rail {
     }
     Object.assign(this, { head, lift });
     this.stops = [];
+    this.gates = [];
+    this.hold = null;
+    this.lastScroll = -Infinity;
 
     pointer.on('down', () => {
       if (!this.enabled) return;
@@ -90,7 +95,7 @@ export class Rail {
         if (pointer.type === 'mouse') this.pitchOff = THREE.MathUtils.clamp(this.pitchOff + dy * k, -0.55, 0.5);
       } else if (d.mode === 'scroll') {
         const ds = -dy * 0.014;
-        this.sT = THREE.MathUtils.clamp(this.sT + ds, 0, this.length);
+        this.scrollBy(ds);
         const dt = Math.max(1 / 120, engine.time - d.t);
         d.v += (ds / dt - d.v) * 0.4;
         d.t = engine.time;
@@ -112,7 +117,7 @@ export class Rail {
         const dy = THREE.MathUtils.clamp(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, -140, 140);
         this.stopTween();
         this.fling = 0;
-        this.sT = THREE.MathUtils.clamp(this.sT + dy * 0.014, 0, this.length);
+        this.scrollBy(dy * 0.014);
         this.lastInput = engine.time;
       },
       { passive: true },
@@ -124,7 +129,7 @@ export class Rail {
       if (!step && !turn) return;
       e.preventDefault();
       this.stopTween();
-      if (step) this.sT = THREE.MathUtils.clamp(this.sT + step, 0, this.length);
+      if (step) this.scrollBy(step);
       if (turn) this.yawOff += turn;
       this.lastInput = engine.time;
     });
@@ -133,6 +138,33 @@ export class Rail {
   // Encuadre de cada sala: { s, yaw, pitch } (s en metros del camino).
   setStops(stops) {
     this.stops = stops;
+    this.gates = stops.map((st) => st.s).sort((a, b) => a - b);
+  }
+
+  // Avanzar ds metros con el scroll. Si se cruza una sala, se para en ella;
+  // mientras siga el mismo gesto (rueda o inercia del trackpad) se queda ahí,
+  // y un gesto nuevo, tras una pausa breve, la deja atrás.
+  scrollBy(ds) {
+    const t = this.engine.time;
+    const pause = t - this.lastScroll;
+    this.lastScroll = t;
+    if (this.hold != null) {
+      if (pause < 0.35 || t - this.holdSince < 0.5) return;
+      this.hold = null;
+    }
+    const from = this.sT;
+    let to = THREE.MathUtils.clamp(from + ds, 0, this.length);
+    const gates = ds > 0 ? this.gates : [...this.gates].reverse();
+    for (const g of gates) {
+      if ((ds > 0 && g > from + 0.05 && g <= to) || (ds < 0 && g < from - 0.05 && g >= to)) {
+        to = g;
+        this.hold = g;
+        this.holdSince = t;
+        this.fling = 0;
+        break;
+      }
+    }
+    this.sT = to;
   }
 
   floorAt(x, z) {
@@ -192,6 +224,7 @@ export class Rail {
   goTo(s, duration, ease = 'sine.inOut') {
     this.stopTween();
     this.fling = 0;
+    this.hold = null;
     const proxy = { s: this.s };
     return new Promise((resolve) => {
       this.tween = gsap.to(proxy, {
@@ -229,6 +262,7 @@ export class Rail {
 
   place(s) {
     this.stopTween();
+    this.hold = null;
     this.s = this.sT = THREE.MathUtils.clamp(s, 0, this.length);
     this.fling = 0;
     this.yawOff = this.pitchOff = 0;
@@ -237,7 +271,7 @@ export class Rail {
 
   update(dt, camera) {
     if (this.fling) {
-      this.sT = THREE.MathUtils.clamp(this.sT + this.fling * dt, 0, this.length);
+      this.scrollBy(this.fling * dt);
       this.fling *= Math.exp(-dt * 2.2);
       if (Math.abs(this.fling) < 0.05) this.fling = 0;
     }

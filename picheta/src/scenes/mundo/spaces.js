@@ -9,7 +9,7 @@ export const ROOMS = [
   { id: 'entrada', view: { pos: [-0.25, 5.4], yaw: 0.42, pitch: 0.04, yawPortrait: 0.72 } },
   { id: 'salon', view: { pos: [0, -0.5], yaw: 0, pitch: 0.06, yawPortrait: 0.2 } },
   { id: 'reservado', view: { pos: [-3.55, -23.0], yaw: -2.3, pitch: -0.1 } },
-  { id: 'terraza', view: { pos: [-7.0, -32.4], yaw: 0.5, pitch: 0.1, yawPortrait: 0.78 } },
+  { id: 'terraza', view: { pos: [-7.0, -32.4], yaw: -0.45, pitch: 0.08, yawPortrait: -0.85 } },
   { id: 'vista', view: { pos: [-1.2, -36.2], yaw: 0.78, pitch: 0.12, yawPortrait: 0.86 } },
 ];
 
@@ -21,7 +21,7 @@ export const SPOTS = [
   { id: 'menu', room: 1, at: [1.62, 1.0, -5.24], view: { pos: [0.2, -4.0] } },
   { id: 'eventos', room: 2, at: [-5.85, 1.1, -20.2], view: { pos: [-3.9, -19.2] } },
   { id: 'concurso', room: 3, at: [-13.25, 5.65, -37.5], view: { pos: [-11.3, -39.3] } },
-  { id: 'reserva', room: 4, at: [0.2, 5.35, -40.8], look: [13.3, 8.0, -51.9], view: { pos: [-1.6, -38.6] } },
+  { id: 'reserva', room: 4, at: [0.2, 5.9, -37.8], look: [13.3, 8.0, -51.9], view: { pos: [-1.6, -38.6] } },
 ];
 
 export const ROOM_OF = Object.fromEntries(SPOTS.map((s) => [s.id, s.room]));
