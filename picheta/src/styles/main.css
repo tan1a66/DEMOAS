@@ -126,8 +126,18 @@ html.touch .intro-enter small { display: none; }
 .topbar.visible, .topbar.nav-open { opacity: 1; transform: none; }
 .topbar.visible a, .topbar.visible button, .topbar.nav-open button { pointer-events: auto; }
 #ui .topbar:not(.visible):not(.nav-open) a, #ui .topbar:not(.visible):not(.nav-open) button { pointer-events: none; }
-.wordmark { font-size: 13px; letter-spacing: 0.5em; text-decoration: none; transition: opacity 0.8s; }
-[data-scene='intro'] .wordmark, .panel-open .wordmark { opacity: 0; pointer-events: none !important; }
+.wordmark { display: inline-flex; align-items: center; gap: 14px; font-size: 13px; letter-spacing: 0.5em; text-decoration: none; transition: opacity 0.8s; }
+.wordmark-logo { display: block; width: auto; height: 32px; }
+/* en la intro el logo ya está en el centro */
+[data-scene='intro'] .wordmark { opacity: 0; pointer-events: none !important; }
+.reserve-btn {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 16px 0 calc(16px + 0.3em);
+  border: 1px solid rgba(239, 236, 230, 0.6); font-size: 10.5px; letter-spacing: 0.3em; text-transform: uppercase; text-decoration: none;
+  background: rgba(14, 11, 9, 0.18); transition: background-color 0.5s var(--ease), color 0.5s var(--ease), border-color 0.5s, opacity 0.6s;
+}
+.reserve-btn:hover, .reserve-btn:focus-visible { background: var(--chalk); color: var(--stone); border-color: var(--chalk); }
+/* con una sección abierta ya está a la vista */
+.panel-open .reserve-btn { opacity: 0; pointer-events: none !important; }
 .topbar-actions { display: flex; align-items: center; gap: clamp(18px, 2.4vw, 30px); margin-left: auto; }
 .sound-toggle { display: inline-flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--chalk-soft); transition: color 0.4s; }
 .sound-toggle:hover, .sound-on .sound-toggle { color: var(--chalk); }
@@ -148,6 +158,14 @@ html.touch .intro-enter small { display: none; }
 .menu-toggle span:last-child { top: 18px; }
 .nav-open .menu-toggle span:first-child { top: 15px; transform: rotate(45deg); }
 .nav-open .menu-toggle span:last-child { top: 15px; transform: rotate(-45deg); }
+
+@media (max-width: 760px) {
+  .wordmark { gap: 10px; letter-spacing: 0.42em; }
+  .wordmark-logo { height: 27px; }
+  .sound-label { display: none; }
+  .topbar-actions { gap: 16px; }
+  .reserve-btn { min-height: 32px; padding: 0 11px 0 calc(11px + 0.24em); letter-spacing: 0.24em; font-size: 10px; }
+}
 
 /* ---------- Menú textual de respaldo ---------- */
 .nav {

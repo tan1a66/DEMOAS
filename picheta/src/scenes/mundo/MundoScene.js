@@ -5,24 +5,25 @@ import '@fontsource/great-vibes/400.css';
 import { createMaterials, box } from './materials.js';
 import { buildSalon, SALON, SUN_DIR } from './salon.js';
 import { buildEntrada, ENTRADA } from './entrada.js';
-import { buildReservado, RESERVADO, TABLE_R } from './reservado.js';
+import { buildReservado, RESERVADO } from './reservado.js';
 import { buildEscalera, STAIR, LANDING } from './escalera.js';
-import { buildTerraza, buildSky, TERRAZA, BAR, TERRACE_TABLES } from './terraza.js';
-import { Walker } from './Walker.js';
+import { buildTerraza, buildSky, TERRAZA } from './terraza.js';
+import { Rail } from './Rail.js';
 import { Labels } from '../../ui/Labels.js';
 import { ROOMS, SPOTS } from './spaces.js';
 
 // LA CASA EN 3D: Picheta construida como un espacio de verdad (geometría,
 // materiales y luz física), inspirada en sus fotos: la entrada con la
 // escultura del logo, el salón bajo la bóveda de cuerdas, el reservado, la
-// escalera y la terraza frente a la Catedral. Se camina libremente
-// (arrastrar para mirar, rueda o teclas para avanzar, clic en el suelo para
-// ir); "Seguir" y el índice llevan de sala en sala por puertas y escaleras.
+// escalera y la terraza frente a la Catedral. Se recorre con el scroll, como
+// una página (la cámara va por un raíl que pasa por puertas y escalera), y
+// arrastrando se mira alrededor. "Seguir" y el índice llevan de sala en sala.
+// Si nadie toca nada, la visita sigue sola, como una película.
 
 const BASE = `${import.meta.env.BASE_URL}assets/`;
 
 // El camino de la casa (x, z): entrada → salón → reservado → escalera → terraza → vista.
-// Pasa por la vista de cada sala (puntos 0, 2, 7, 9, 12 y 15).
+// Pasa por la vista de cada sala (puntos 0, 2, 7, 12 y 15); la escalera (9) es sólo paso.
 const ROUTE = [
   [-0.25, 5.4],
   [0, 1.6],
@@ -61,13 +62,14 @@ const BOUNDS = {
   escalera: [-7.85, 0, -31.6, -6.15, 7.8, -23.6],
   terraza: [-15.4, 4.4, -44.6, 3.1, 8.6, -29.6],
 };
-const ROOM_AREA = ['entrada', 'salon', 'reservado', 'escalera', 'terraza', 'terraza'];
+const ROOM_AREA = ['entrada', 'salon', 'reservado', 'terraza', 'terraza'];
+// Visita automática: segundos parado en cada sala antes de seguir (contados
+// desde la llegada o desde el último gesto del visitante).
+const DWELL = 9;
 // Las sombras del sol se calculan una sola vez por encuadre (la casa no se
 // mueve): uno para dentro y otro para la escalera y la terraza.
 const FIT_OF = { entrada: 'dentro', salon: 'dentro', reservado: 'dentro', escalera: 'fuera', terraza: 'fuera' };
 const FIT_SPACES = { dentro: ['entrada', 'salon', 'reservado', 'escalera'], fuera: ['escalera', 'terraza'] };
-
-const V = (p) => new THREE.Vector3(p[0], 0, p[1]);
 
 export default class MundoScene {
   constructor(engine, ctx, director) {
@@ -154,41 +156,19 @@ export default class MundoScene {
     this.sky = buildSky();
     this.scene.add(this.sky);
 
-    // Círculo de tiza en el suelo (hacia dónde se va).
-    const cursor = new THREE.Mesh(
-      new THREE.RingGeometry(0.2, 0.235, 64),
-      new THREE.MeshBasicMaterial({ color: '#f3ead9', transparent: true, opacity: 0, depthWrite: false, fog: false }),
-    );
-    cursor.rotation.x = -Math.PI / 2;
-    cursor.renderOrder = 10;
-    this.scene.add(cursor);
-
-    const floors = [this.spaces.escalera.group.children[0]];
-    this.scene.traverse((o) => o.isMesh && o.userData.floor !== false && o.geometry.type === 'PlaneGeometry' && Math.abs(o.rotation.x + Math.PI / 2) < 1e-3 && floors.push(o));
     const Y = TERRAZA.y;
-    this.walker = new Walker(this.engine, this.ctx.pointer, this.ctx.gyro, {
+    // Suelos por los que pasa el camino (la escalera es una rampa).
+    this.rail = new Rail(this.engine, this.ctx.pointer, {
+      route: ROUTE,
       regions: [
-        { x0: ENTRADA.x0 + 0.75, x1: ENTRADA.x1 - 0.45, z0: ENTRADA.z1 + 0.2, z1: ENTRADA.z0 - 0.5, y: 0 },
-        { x0: -0.6, x1: 0.6, z0: SALON.z0 - 0.4, z1: SALON.z0 + 0.4, y: 0 },
-        { x0: -1.2, x1: 0.7, z0: SALON.z1 + 1.0, z1: SALON.z0 - 0.2, y: 0 },
-        { x0: -2.4, x1: -1.1, z0: -21.25, z1: -20.25, y: 0 },
-        { x0: -3.5, x1: -2.3, z0: -21.25, z1: -20.25, y: 0 },
-        { x0: RESERVADO.x0 + 0.5, x1: RESERVADO.x1 - 0.38, z0: RESERVADO.z1 + 0.4, z1: RESERVADO.z0 - 0.5, y: 0 },
-        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: STAIR.z0 - 0.1, z1: RESERVADO.z1 + 0.5, y: 0 },
-        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: STAIR.z1, z1: STAIR.z0, ramp: { axis: 'z', from: STAIR.z0, len: STAIR.z1 - STAIR.z0, y0: 0, y1: STAIR.rise } },
-        { x0: STAIR.x0 + 0.15, x1: STAIR.x1 - 0.15, z0: LANDING.z1, z1: LANDING.z0, y: Y },
-        { x0: TERRAZA.x0 + 0.6, x1: TERRAZA.x1 - 0.4, z0: TERRAZA.z1 + 0.6, z1: LANDING.z1, y: Y },
+        { x0: ENTRADA.x0, x1: ENTRADA.x1, z0: ENTRADA.z1, z1: ENTRADA.z0, y: 0 },
+        { x0: SALON.x0 - 0.5, x1: SALON.x1, z0: SALON.z1, z1: ENTRADA.z1, y: 0 },
+        { x0: RESERVADO.x0, x1: SALON.x0 - 0.5, z0: RESERVADO.z1, z1: RESERVADO.z0, y: 0 },
+        { x0: STAIR.x0, x1: STAIR.x1, z0: STAIR.z1, z1: STAIR.z0, ramp: { from: STAIR.z0, len: STAIR.z1 - STAIR.z0, y0: 0, y1: STAIR.rise } },
+        { x0: TERRAZA.x0, x1: TERRAZA.x1, z0: TERRAZA.z1, z1: STAIR.z1, y: Y },
       ],
-      blocks: [
-        { x: TABLE_R.x, z: TABLE_R.z, r: TABLE_R.r + 0.55 },
-        { x0: TERRAZA.x0, x1: BAR.x1 + 0.75, z0: BAR.z1 - 0.3, z1: BAR.z0 + 0.3 },
-        ...TERRACE_TABLES.map((t) => ({ x: t.x, z: t.z, r: 0.9 })),
-      ],
-      floors,
-      cursor,
     });
-    this.walker.blocked = () => this.ctx.overlayOpen() || this.state !== 'idle';
-    this.walker.planner = (from, to) => (this.clear(from, to) ? null : this.routePath(from, to));
+    this.rail.blocked = () => this.ctx.overlayOpen() || this.state !== 'idle';
     // Con una sección abierta, tocar la casa la cierra.
     this.ctx.pointer.on('down', () => this.state === 'focus' && this.ctx.panel.onClose());
 
@@ -204,7 +184,7 @@ export default class MundoScene {
     // (la vista de la escalera está aún en el reservado: se añade una a media subida)
     for (const v of [...ROOMS.map((room) => room.view), { pos: [-7, -27], yaw: 0, pitch: 0.3 }]) {
       const [x, z] = v.pos;
-      warm.position.set(x, (this.walker.floorAt(x, z) ?? 0) + 1.6, z);
+      warm.position.set(x, (this.rail.floorAt(x, z) ?? 0) + 1.6, z);
       warm.rotation.set(v.pitch ?? 0, -v.yaw, 0, 'YXZ');
       warm.updateMatrixWorld();
       this.setArea(this.areaAt(x, z), true);
@@ -273,10 +253,11 @@ export default class MundoScene {
     return 'salon';
   }
 
+  // Sala del índice en (x, z); en la escalera, ninguna (-1): se sigue en la anterior.
   roomAt(x, z) {
     const a = this.areaAt(x, z);
-    if (a === 'terraza') return x > -1.5 ? 5 : 4;
-    return AREAS.indexOf(a);
+    if (a === 'terraza') return x > -1.5 ? 4 : 3;
+    return a === 'escalera' ? -1 : AREAS.indexOf(a);
   }
 
   setArea(a, instant = false) {
@@ -310,34 +291,16 @@ export default class MundoScene {
     if (this.state !== 'hidden') this.ctx.sound.ambience(out ? 'plaza' : 'interior');
   }
 
-  // ------------------------------------------------------------ caminos
+  // ------------------------------------------------------------ camino
 
-  // ¿Se puede ir en línea recta de a a b?
-  clear(a, b) {
-    const n = Math.ceil(a.distanceTo(b) / 0.2);
-    for (let i = 1; i <= n; i++) {
-      const t = i / n;
-      if (this.walker.floorAt(a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t) === null) return false;
-    }
-    return true;
-  }
-
-  // Camino de a a b siguiendo el recorrido de la casa (por puertas y escalera).
-  routePath(from, to) {
-    const a = nearestOnRoute(from);
-    const b = nearestOnRoute(to);
-    const pts = [from.clone()];
-    if (b > a) for (let k = Math.floor(a) + 1; k <= Math.ceil(b) - 1; k++) pts.push(V(ROUTE[k]));
-    else for (let k = Math.ceil(a) - 1; k >= Math.floor(b) + 1; k--) pts.push(V(ROUTE[k]));
-    pts.push(new THREE.Vector3(to.x, 0, to.z));
-    // sin puntos amontonados
-    return pts.filter((p, i) => i === 0 || i === pts.length - 1 || (p.distanceTo(pts[i - 1]) > 0.7 && p.distanceTo(pts.at(-1)) > 0.7));
-  }
-
-  travel(pos, yaw, pitch, { quick = false } = {}) {
-    const to = V(pos);
-    const path = this.routePath(this.walker.target, to);
-    return this.walker.travelPath(path, yaw, pitch, quick ? { speed: 3, min: 1.6, max: 6 } : { speed: 1.5, min: 2.4, max: 9 });
+  // Encuadre de cada sala en el camino (en un teléfono en vertical, el suyo).
+  updateStops() {
+    this.rail.setStops(
+      ROOMS.map((room) => {
+        const [x, z] = room.view.pos;
+        return { s: this.rail.nearest(x, z), yaw: this.yawOf(room.view), pitch: room.view.pitch ?? 0 };
+      }),
+    );
   }
 
   // ------------------------------------------------------------ salas
@@ -357,7 +320,8 @@ export default class MundoScene {
     cam.near = 0.1;
     cam.far = 700;
     this.applyFov();
-    this.walker.enabled = true;
+    this.updateStops();
+    this.rail.enabled = true;
     this.index = room;
     this.showIndex(room);
     this.ctx.chrome.reveal(true);
@@ -366,21 +330,25 @@ export default class MundoScene {
       // Del círculo dibujado a los dos círculos de la escultura, a contraluz;
       // la cámara se aparta y aparece la entrada.
       this.state = 'arrive';
-      this.walker.place(new THREE.Vector3(this.portrait() ? -0.05 : 0.45, 0, 3.3), Math.PI / 2, this.portrait() ? 0.3 : 0.36);
+      this.rail.place(0);
+      this.rail.focusPose = { x: this.portrait() ? -0.05 : 0.45, y: 1.6, z: 3.3, yaw: Math.PI / 2, pitch: this.portrait() ? 0.3 : 0.36 };
+      this.rail.focusAmt = 1;
       this.setArea('entrada', true);
       this.ctx.sound.ambience('interior');
       gsap.to('#veil', { opacity: 0, duration: 2.6, ease: 'power2.out' });
-      const v = ROOMS[0].view;
       await new Promise((r) => gsap.delayedCall(1.1, r));
       gsap.delayedCall(1.6, () => this.caption(room));
-      await this.walker.travelTo(V(v.pos), this.yawOf(v), v.pitch ?? 0, 4.4, 'power2.inOut');
+      await new Promise((r) => gsap.to(this.rail, { focusAmt: 0, duration: 4.4, ease: 'power2.inOut', onComplete: r }));
       if (this.state === 'arrive') this.state = 'idle';
+      this.arrived = this.engine.time;
     } else {
       const v = ROOMS[room]?.view ?? ROOMS[0].view;
-      this.walker.place(V(v.pos), this.yawOf(v), v.pitch ?? 0);
+      this.rail.place(this.rail.stops[room]?.s ?? 0);
+      this.rail.focusAmt = 0;
       this.setArea(this.areaAt(v.pos[0], v.pos[1]), true);
       this.ctx.sound.ambience(this.area === 'terraza' ? 'plaza' : 'interior');
       this.state = 'idle';
+      this.arrived = this.engine.time;
       gsap.to('#veil', { opacity: 0, duration: instant ? 0.6 : 1.2, ease: 'power2.out' });
       this.caption(room);
     }
@@ -429,14 +397,18 @@ export default class MundoScene {
 
   // Ir a una sala (desde el índice, "Seguir" o la URL).
   goTo(i, { quick = false } = {}) {
-    const v = ROOMS[i]?.view;
-    if (!v) return Promise.resolve();
+    const st = this.rail.stops[i];
+    if (!st) return Promise.resolve();
     this.index = i;
     this.caption(i);
     this.state = 'idle';
     this.travelling = true;
-    return this.travel(v.pos, this.yawOf(v), v.pitch ?? 0, { quick }).then(() => {
+    if (this.rail.focusAmt > 0) this.rail.unfocus(1);
+    const d = Math.abs(st.s - this.rail.s);
+    const duration = quick ? THREE.MathUtils.clamp(d / 3, 0.8, 5) : THREE.MathUtils.clamp(d / 1.4, 2.4, 12);
+    return this.rail.goTo(st.s, duration).then(() => {
       this.travelling = false;
+      this.arrived = this.engine.time;
     });
   }
 
@@ -456,8 +428,14 @@ export default class MundoScene {
     this.dom.root.classList.add('focus');
     gsap.to(this.engine.post.fx, { dim: 0.12, duration: 1.2, ease: 'power2.inOut', overwrite: 'auto' });
     if (!s) return Promise.resolve();
+    // por el camino hasta el punto más cercano y, de ahí, al encuadre del objeto
+    const [x, z] = s.view.pos;
+    const at = this.rail.nearest(x, z);
+    const d = Math.abs(at - this.rail.s);
     const f = this.frameSpot(s);
-    return this.travel(s.view.pos, f.yaw, f.pitch, { quick: true });
+    const pose = { x, z, y: (this.rail.floorAt(x, z) ?? 0) + 1.6, yaw: f.yaw, pitch: f.pitch };
+    const walk = d > 0.3 ? this.rail.goTo(at, THREE.MathUtils.clamp(d / 3, 0.8, 5)) : Promise.resolve();
+    return walk.then(() => this.state === 'focus' && this.rail.focusTo(pose, 1.3));
   }
 
   // Mirada que deja el objeto de la sección en la parte libre de la pantalla:
@@ -465,7 +443,7 @@ export default class MundoScene {
   frameSpot(s) {
     const { width, height } = this.engine.view;
     const [px, pz] = s.view.pos;
-    const eye = (this.walker.floorAt(px, pz) ?? 0) + 1.6;
+    const eye = (this.rail.floorAt(px, pz) ?? 0) + 1.6;
     const [lx, ly, lz] = s.look ?? s.at;
     const dx = lx - px;
     const dz = lz - pz;
@@ -482,14 +460,16 @@ export default class MundoScene {
     if (this.state !== 'focus') return;
     this.state = 'idle';
     this.dom.root.classList.remove('focus');
-    this.walker.lastInput = this.engine.time;
+    this.rail.stopTween();
+    this.rail.unfocus(1.2);
+    this.rail.lastInput = this.engine.time;
     gsap.to(this.engine.post.fx, { dim: 0, duration: 0.9, ease: 'power2.out', overwrite: 'auto' });
   }
 
   async exit() {
     this.state = 'hidden';
-    this.walker.enabled = false;
-    this.walker.cancelTravel();
+    this.rail.enabled = false;
+    this.rail.stopTween();
     this.labels.hideAll();
     this.dom.root.hidden = true;
     this.dom.root.classList.remove('ready', 'focus');
@@ -510,7 +490,7 @@ export default class MundoScene {
 
   update(dt, t) {
     if (this.state === 'hidden') return;
-    const w = this.walker;
+    const w = this.rail;
     const cam = this.engine.camera;
     w.update(dt, cam);
     // Cambios de zona y de sala sólo cuando se ha cruzado de verdad (sin
@@ -524,20 +504,22 @@ export default class MundoScene {
     // El índice sigue a quien camina (la URL también, sin llenar el historial).
     if (this.state === 'idle' && !this.travelling) {
       const i = this.roomAt(w.pos.x, w.pos.z);
-      this.roomHold = i !== this.index ? (this.roomHold ?? 0) + dt : 0;
+      this.roomHold = i >= 0 && i !== this.index ? (this.roomHold ?? 0) + dt : 0;
       if (this.roomHold > 0.6) {
         this.index = i;
         this.ctx.roomChanged(ROOMS[i].id);
         this.caption(i);
       }
     }
+    this.autopilot(t);
+
     // Pista de controles: desaparece al moverse y vuelve si nadie toca nada.
     const idle = t - w.lastInput > 14;
     if (w.lastInput > 0) this.dom.root.classList.add('moved');
     this.dom.root.classList.toggle('idle', idle);
 
     // Puntos de luz de las secciones: aparecen al pararse cerca de su objeto.
-    this.still = !w.travel && w.speed < (this.still ? 0.9 : 0.3);
+    this.still = !w.tween && w.focusAmt === 0 && w.speed < (this.still ? 0.9 : 0.3);
     const still = this.still;
     for (const s of SPOTS) {
       const near = Math.hypot(cam.position.x - s.at[0], cam.position.z - s.at[2]) < 9;
@@ -548,8 +530,45 @@ export default class MundoScene {
     this.labels.update();
   }
 
+  // La visita sigue sola: sin gestos del visitante, la cámara se posa en la
+  // sala más cercana, mira despacio alrededor y, pasado un rato, va a la
+  // siguiente. El scroll, arrastrar o las teclas la pausan; vuelve a
+  // arrancar tras unos segundos de calma.
+  autopilot(t) {
+    const r = this.rail;
+    const calm = this.state === 'idle' && !this.ctx.overlayOpen() && !this.travelling && !r.tween && !r.drag && r.focusAmt === 0;
+    const quiet = t - r.lastInput;
+    // posarse en el encuadre de la sala si se ha parado cerca
+    if (calm && quiet > 1.2 && r.speed < 0.08 && !r.fling) {
+      const st = r.stops.reduce((a, b) => (Math.abs(b.s - r.s) < Math.abs(a.s - r.s) ? b : a));
+      const d = Math.abs(st.s - r.s);
+      if (d > 0.05 && d < 4) {
+        this.travelling = true;
+        r.goTo(st.s, THREE.MathUtils.clamp(d / 1.2, 0.8, 2.5)).then(() => (this.travelling = false));
+        return;
+      }
+    }
+    if (this.q.reducedMotion) return;
+    // una panorámica muy lenta a un lado y a otro, que entra poco a poco
+    if (calm && quiet > 2.5 && r.speed < 0.05) {
+      this.driftT0 ??= t;
+      const s = t - this.driftT0;
+      r.drift = Math.sin(s * 0.22) * 0.11 * THREE.MathUtils.smoothstep(s, 0, 4);
+    } else if (this.driftT0 != null) {
+      // la mirada se queda donde estaba (sin salto)
+      r.yawOff += r.drift;
+      r.drift = 0;
+      this.driftT0 = null;
+    }
+    // la sala siguiente
+    const next = r.stops.findIndex((st) => st.s > r.s + 0.5);
+    if (calm && next >= 0 && t - Math.max(r.lastInput, this.arrived ?? 0) > DWELL) this.request(next);
+  }
+
   resize() {
-    if (this.director.name === 'casa') this.applyFov();
+    if (this.director.name !== 'casa') return;
+    this.applyFov();
+    this.updateStops();
   }
 }
 
@@ -583,25 +602,6 @@ function fitShadows() {
     };
   }
   return out;
-}
-
-// Posición continua (índice + fracción) del punto del recorrido más cercano.
-function nearestOnRoute(p) {
-  let best = Infinity;
-  let s = 0;
-  for (let i = 0; i < ROUTE.length - 1; i++) {
-    const [ax, az] = ROUTE[i];
-    const [bx, bz] = ROUTE[i + 1];
-    const dx = bx - ax;
-    const dz = bz - az;
-    const t = THREE.MathUtils.clamp(((p.x - ax) * dx + (p.z - az) * dz) / (dx * dx + dz * dz), 0, 1);
-    const d = (ax + dx * t - p.x) ** 2 + (az + dz * t - p.z) ** 2;
-    if (d < best - 1e-6) {
-      best = d;
-      s = i + t;
-    }
-  }
-  return s;
 }
 
 // Muros gruesos invisibles que sólo cuentan para las sombras del sol: tapan

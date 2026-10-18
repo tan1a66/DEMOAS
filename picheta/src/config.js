@@ -8,6 +8,8 @@ export const CONFIG = {
   assets: {
     // Trazo claro sobre fondo oscuro (o transparente). La intro muestrea sus píxeles claros.
     logo: asset('logo-picheta.png'),
+    // El mismo logo, blanco sobre transparente, para la barra superior.
+    logoMark: asset('logo-picheta-marca.png'),
     // La casa en 3D está modelada en src/scenes/mundo/ (sus paradas y puntos de luz,
     // en spaces.js); aquí sólo la foto de portada de la versión sin WebGL.
     hero: asset('mundo/terraza.webp'),

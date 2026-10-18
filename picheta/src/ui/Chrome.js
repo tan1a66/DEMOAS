@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 
-// Barra superior (sonido + navegación) y menú textual de respaldo.
+// Barra superior (logo y nombre; reservar, sonido y navegación) y menú textual de respaldo.
 // El menú repite las voces del sitio actual, centradas y en mayúsculas.
 export class Chrome {
   constructor(root, { content, config, sound, onNavigate }) {
@@ -11,8 +11,11 @@ export class Chrome {
     this.bar = document.createElement('header');
     this.bar.className = 'topbar';
     this.bar.innerHTML = `
-      <a class="wordmark" href="#entrada" data-route="entrada">${content.brand}</a>
+      <a class="wordmark" href="#entrada" data-route="entrada">
+        <img class="wordmark-logo" src="${config.assets.logoMark}" alt="" width="31" height="37" />${content.brand}
+      </a>
       <div class="topbar-actions">
+        <a class="reserve-btn" href="#reserva" data-route="reserva">${ui.reservar}</a>
         <button class="sound-toggle" type="button" aria-pressed="false" aria-label="${ui.soundOn}">
           <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
           <span class="sound-label">${ui.sound}</span>

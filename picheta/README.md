@@ -3,7 +3,7 @@
 Demo del nuovo sito di **Picheta** (cucina yucateca contemporanea "de autores", Pasaje Picheta,
 Calle 61 #501, Mérida) come viaggio immersivo:
 
-**Il cerchio (intro) → La casa in 3D: entrada → salón → reservado → escalera → terraza → vista**
+**Il cerchio (intro) → La casa in 3D: entrada → salón → reservado → (scala) → terraza → vista**
 
 Tutti i testi visibili sono in spagnolo (`src/content/es.js`).
 
@@ -25,7 +25,7 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 ### Parametri utili nell'URL
 | URL | Cosa fa |
 |---|---|
-| `#entrada`, `#salon`, `#reservado`, `#escalera`, `#terraza`, `#vista` | Entra direttamente in una sala della casa |
+| `#entrada`, `#salon`, `#reservado`, `#terraza`, `#vista` | Entra direttamente in una sala della casa |
 | `#historia`, `#autores`, `#menu`, `#reserva`, `#concurso`, `#eventos` | La camera va fino all'oggetto della sezione e il pannello si apre accanto (link condivisibili; il tasto "indietro" del telefono chiude la sezione) |
 | `?q=low` / `?q=mid` / `?q=high` | Forza il livello di qualità (ombre, luci, AO, risoluzione) |
 | `?static` | Versione senza WebGL (la stessa che vede chi non ha WebGL2) |
@@ -46,15 +46,22 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
      dalle finestre e disegna strisce sul pavimento.
    - *El reservado*: muro di pietra con nicchie illuminate, il tavolo rotondo con otto sedie, le
      lampade a cupola nere con l'interno arancio.
-   - *La escalera*: gradini di travertino, soffitto inclinato di corde, corrimano con la linea di luce.
+   - *La escalera* (non è una tappa, è il passaggio dall'interno alla terrazza): gradini di travertino,
+     soffitto inclinato di corde, corrimano con la linea di luce.
    - *La terraza* e *la vista*: pedana di legno, il muro antico con la firma "Picheta" e la ghirlanda
      di lampadine, la barra nera sotto la pergola, i tavoli di marmo, le palme, il cielo del tramonto
      e la Cattedrale di San Ildefonso.
 
-   Si cammina liberamente: **trascinare** per guardare, **rotella / frecce / WASD** per avanzare,
-   **clic o tocco sul pavimento** per andare lì (se c'è un muro in mezzo si passa dalle porte).
-   **"Seguir"** e l'indice a destra fanno il percorso guidato, con un movimento di camera da film che
-   attraversa davvero porte e scala. Didascalie e URL seguono la sala in cui ci si trova.
+   Si percorre **con lo scroll**, come una pagina: rotella o trackpad (sul telefono il dito in su e in
+   giù, frecce e barra spaziatrice da tastiera) portano avanti e indietro lungo un unico percorso che
+   passa per le porte e sale la scala; nelle sale la camera si posa sulla loro inquadratura.
+   **Trascinando** si gira lo sguardo (come in Street View), e continuando a scorrere torna sul
+   percorso. **"Seguir"** e l'indice a destra portano alla sala successiva o a quella scelta.
+   **Visita automatica:** se nessuno tocca niente la casa si visita da sola, sala per sala, con una
+   panoramica lenta a ogni sosta; scroll, trascinamento o tasti la mettono in pausa e riparte dopo
+   qualche secondo di calma. Didascalie e URL seguono la sala in cui ci si trova.
+   In alto: a sinistra il logo con "Picheta" (riporta all'ingresso), a destra il bottone **RESERVAR**
+   (apre la prenotazione accanto al tavolo davanti alla Cattedrale), il suono e il menu.
 3. **Sezioni dentro il 3D** (`src/ui/Panel.js`, `src/ui/sections.js`): quando ci si ferma vicino a un
    oggetto compare il suo punto di luce; toccandolo la camera si avvicina all'oggetto e la sezione si
    apre in un pannello laterale (dal basso sul telefono) con la casa sempre visibile accanto. Historia
@@ -78,8 +85,9 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
   palette della parete vera, corda, legno, trapuntato, travertino, maioliche, marmo, rattan).
 - `MundoScene.js`: il sole unico (ombre che seguono la zona), cielo e riflessi diversi dentro e fuori,
   le luci accese solo vicino a dove ci si trova (tutte le combinazioni compilate al caricamento), il
-  percorso guidato, le sezioni, le didascalie.
-- `Walker.js`: la camera a piedi (pavimenti, rampa della scala, ostacoli, inerzia, leggero passo).
+  percorso e la visita automatica, le sezioni, le didascalie.
+- `Rail.js`: la camera sul percorso (curva per porte e scala, scroll con inerzia, inquadrature delle
+  sale, sguardo libero trascinando, deviazione verso l'oggetto di una sezione).
 - `public/assets/mundo/`: i due quadri (raddrizzati dalle foto), la Cattedrale ritagliata dal cielo e
   la foto di copertina della versione senza WebGL.
 
