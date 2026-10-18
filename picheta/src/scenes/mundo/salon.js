@@ -151,7 +151,7 @@ export function buildSalon(m, assets, q) {
   g.add(right);
   // Paños de piedra enmarcados en madera oscura, como en el salón real.
   for (let zz = S.z0 - 3.0; zz > S.z1 + 1.5; zz -= 4.4) {
-    const p = box(0.06, 1.85, 0.82, m.stone, 1.4);
+    const p = box(0.06, 1.85, 0.82, m.stone, 1.8);
     p.position.set(S.x1 - 0.03, 2.08, zz);
     g.add(p);
     for (const s of [-1, 1]) {
@@ -168,7 +168,7 @@ export function buildSalon(m, assets, q) {
   g.add(bench(S.x1 - S.x0 - 0.6, m, { x: -0.3, z: S.z1, axis: 'x' }));
 
   // ---------------------------------------------------------------- muro del fondo: piedra y firma
-  const end = plane(S.x1 - S.x0, S.ceiling, m.stone, 1.5);
+  const end = plane(S.x1 - S.x0, S.ceiling, m.stone, 2.0);
   end.position.set(0, S.ceiling / 2, S.z1);
   g.add(end);
   if (assets.signature) {
@@ -319,7 +319,8 @@ export function bench(len, m, { x, z, axis }) {
   grp.add(seat, cushion, back, ledge);
   if (axis === 'z') grp.position.set(x, 0, z);
   else {
-    grp.rotation.y = -Math.PI / 2;
+    // contra el muro del fondo, mirando hacia la sala
+    grp.rotation.y = Math.PI / 2;
     grp.position.set(x, 0, z);
   }
   return grp;

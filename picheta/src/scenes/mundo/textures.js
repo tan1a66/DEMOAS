@@ -162,12 +162,12 @@ export function stone({ size = 768, seed = 11 } = {}) {
   const r = rng(seed * 7 + 1);
   // Paleta de la mampostería real del reservado (caliza beige, gris, ocre y alguna rojiza).
   const palette = [
-    [[206, 182, 144], 0.34],
-    [[190, 180, 162], 0.22],
-    [[214, 168, 112], 0.16],
-    [[176, 150, 118], 0.14],
-    [[160, 92, 64], 0.05],
-    [[112, 98, 84], 0.09],
+    [[206, 184, 148], 0.36],
+    [[192, 182, 164], 0.24],
+    [[212, 172, 122], 0.16],
+    [[178, 154, 124], 0.15],
+    [[152, 116, 92], 0.03],
+    [[126, 112, 98], 0.06],
   ];
   const pick = () => {
     let x = r();
@@ -178,7 +178,7 @@ export function stone({ size = 768, seed = 11 } = {}) {
   const layer = (cells) => {
     const pts = [];
     for (let j = 0; j < cells; j++)
-      for (let i = 0; i < cells; i++) pts.push({ x: (i + 0.1 + r() * 0.8) / cells, y: (j + 0.1 + r() * 0.8) / cells, c: pick(), k: 0.82 + r() * 0.3, small: r() < 0.22 });
+      for (let i = 0; i < cells; i++) pts.push({ x: (i + 0.1 + r() * 0.8) / cells, y: (j + 0.1 + r() * 0.8) / cells, c: pick(), k: 0.88 + r() * 0.18, small: r() < 0.22 });
     return { cells, pts };
   };
   const big = layer(8);
@@ -217,9 +217,10 @@ export function stone({ size = 768, seed = 11 } = {}) {
       const wv = v + (fbm(u + 0.37, v + 0.11, 5, 3) - 0.5) * 0.07 + (noise(u * 40 + 7, v * 40, 40) - 0.5) * 0.012;
       let { edge, best } = nearest(big, wu, wv);
       if (best.small) {
+        // piedra partida: los trozos conservan el color de su piedra (no un mosaico)
         const s2 = nearest(small, wu, wv);
         edge = Math.min(edge, s2.edge);
-        best = s2.best;
+        best = { c: best.c, k: best.k * (0.95 + (s2.best.k - 0.88) * 0.45) };
       }
       const wMortar = 0.004 + noise(u * 24, v * 24, 24) * 0.009;
       const mortar = 1 - clamp01((edge - wMortar) / 0.008);

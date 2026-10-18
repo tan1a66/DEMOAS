@@ -50,7 +50,7 @@ export function buildEntrada(m, q) {
   const stoneDark = m.stone.clone();
   stoneDark.color = new THREE.Color('#8a7864');
   stoneDark.normalScale = new THREE.Vector2(1.3, 1.3);
-  const right = plane(L, E.h + 0.3, stoneDark, 1.25);
+  const right = plane(L, E.h + 0.3, stoneDark, 1.6);
   right.rotation.y = -Math.PI / 2;
   right.position.set(E.x1, (E.h + 0.3) / 2, zc);
   g.add(right);

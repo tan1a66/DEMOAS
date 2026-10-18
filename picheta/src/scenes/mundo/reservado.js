@@ -31,7 +31,7 @@ export function buildReservado(m, assets, q) {
   g.add(ceil);
 
   // Muro de piedra (oeste) con tres nichos de madera encendidos.
-  const west = plane(L, R.h, m.stone, 1.4);
+  const west = plane(L, R.h, m.stone, 1.9);
   west.rotation.y = Math.PI / 2;
   west.position.set(R.x0, R.h / 2, zc);
   g.add(west);

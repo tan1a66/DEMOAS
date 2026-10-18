@@ -52,7 +52,7 @@ export function createMaterials(q) {
     blackMetal: std({ color: '#141210', roughness: 0.42, metalness: 0.6 }),
     brass: std({ color: '#b98d52', roughness: 0.32, metalness: 1 }),
     bronze: std({ color: '#3a2a1e', roughness: 0.45, metalness: 0.85 }),
-    plate: std({ color: '#f1ede4', roughness: 0.25 }),
+    plate: std({ color: '#d9d3c8', roughness: 0.38 }),
     napkin: std({ color: '#1b1b1d', roughness: 0.9 }),
     leaf: std({ color: '#3f6b3a', roughness: 0.6, side: THREE.DoubleSide }),
     pot: std({ color: '#1d1b19', roughness: 0.7 }),
