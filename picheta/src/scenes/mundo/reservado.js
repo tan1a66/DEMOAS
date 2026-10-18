@@ -49,7 +49,7 @@ export function buildReservado(m, assets, q) {
     g.add(inner);
     const led = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.012), m.bulb);
     led.rotation.y = Math.PI / 2;
-    led.position.set(R.x0 + 0.226, 1.83, z);
+    led.position.set(R.x0 + 0.236, 1.83, z);
     g.add(led);
     // objetos: jarrones de madera clara o candeleros negros
     for (let k = 0; k < 3; k++) {

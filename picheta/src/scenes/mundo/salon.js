@@ -36,7 +36,7 @@ export function buildSalon(m, assets, q) {
     const band = new THREE.Mesh(bg, m.tiles);
     band.receiveShadow = true;
     band.rotation.x = -Math.PI / 2;
-    band.position.set(x, 0.002, zc);
+    band.position.set(x, 0.004, zc);
     g.add(band);
   }
 
@@ -237,9 +237,9 @@ export function buildSalon(m, assets, q) {
   lights.add(sun, sun.target);
   // Luz cálida escondida sobre las cornisas: ilumina la bóveda desde abajo.
   const cove = [];
-  for (let zz = S.z0 - 2; zz > S.z1; zz -= q.tier === 'low' ? 6.5 : 4.4)
+  for (let zz = S.z0 - 2; zz > S.z1; zz -= q.tier === 'low' ? 8.8 : 6.6)
     for (const s of [-1, 1]) {
-      const p = new THREE.PointLight('#ffad62', 6, 6, 2);
+      const p = new THREE.PointLight('#ffad62', 7.5, 7.5, 2);
       p.position.set(s * 2.05, S.cornice + 0.12, zz);
       lights.add(p);
       cove.push(p);

@@ -64,6 +64,14 @@ export class Engine {
     this.post.setScene(scene?.scene ?? null);
   }
 
+  // Tope de resolución de la escena actual (el mundo 3D pide menos que la intro).
+  setDprCap(cap = Infinity) {
+    this.maxDpr = Math.min(window.devicePixelRatio || 1, this.quality.maxDpr, cap);
+    this.dpr = this.maxDpr;
+    this.perf = { acc: 0, frames: 0, warm: 0 };
+    this.resize();
+  }
+
   resize() {
     const width = Math.max(1, window.innerWidth);
     const height = Math.max(1, window.innerHeight);

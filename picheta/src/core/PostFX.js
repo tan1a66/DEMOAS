@@ -82,8 +82,8 @@ export class PostFX {
       const [w, h] = this.size ?? [innerWidth, innerHeight];
       this.ao = new N8AOPostPass(scene, this.camera, w, h);
       this.ao.configuration.gammaCorrection = false;
-      this.ao.setQualityMode(this.quality.tier === 'high' ? 'Medium' : 'Performance');
-      this.ao.configuration.halfRes = this.quality.tier !== 'high';
+      this.ao.setQualityMode('Performance');
+      this.ao.configuration.halfRes = true;
       Object.assign(this.ao.configuration, { aoRadius: 0.6, distanceFalloff: 1.0, intensity: 3.4 });
       this.ao.configuration.color = new THREE.Color('#1a0e08');
       this.composer.addPass(this.ao, 1);

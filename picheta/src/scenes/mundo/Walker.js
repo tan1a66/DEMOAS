@@ -4,7 +4,7 @@ import gsap from 'gsap';
 // Caminar por la casa: arrastrar para mirar, rueda / flechas / WASD para
 // avanzar, clic o toque en el suelo para ir hasta ahí (un círculo de tiza
 // marca el sitio). La cámara se mueve con suavidad de cine: inercia, sin
-// saltos, a la altura de los ojos y con un leve balanceo al andar.
+// saltos ni balanceo, a la altura de los ojos, como en una grúa.
 // El suelo caminable son regiones (rectángulos con su altura o rampa).
 
 const EYE = 1.6;
@@ -26,7 +26,7 @@ export class Walker {
     this.pitchT = 0;
     this.enabled = false;
     this.keys = new Set();
-    this.bob = 0;
+    this.push = 0;
     this.speed = 0;
     this.ray = new THREE.Raycaster();
     this._v = new THREE.Vector3();
@@ -70,7 +70,8 @@ export class Walker {
         if (!this.enabled || this.blocked?.()) return;
         const dy = THREE.MathUtils.clamp(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, -140, 140);
         this.cancelTravel();
-        this.step(dy * 0.012); // como en una web: bajar = avanzar
+        // como en una web: bajar = avanzar; el paso se reparte en un deslizamiento suave
+        this.push = THREE.MathUtils.clamp(this.push + dy * 0.011, -3, 3);
         this.lastInput = engine.time;
       },
       { passive: true },
@@ -166,6 +167,7 @@ export class Walker {
   // Viaje guiado: posición y mirada (yaw, pitch) en `duration` segundos.
   travelTo(to, yaw = this.yawT, pitch = this.pitchT, duration = 2.5, ease = 'power2.inOut') {
     this.cancelTravel();
+    this.push = 0;
     // el giro por el camino más corto
     let dy = yaw - this.yawT;
     dy = Math.atan2(Math.sin(dy), Math.cos(dy));
@@ -197,6 +199,7 @@ export class Walker {
   // hacia `yaw`/`pitch`. Un arrastre o una tecla lo interrumpen.
   travelPath(points, yaw = this.yawT, pitch = this.pitchT, { speed = 1.4, min = 2, max = 9 } = {}) {
     this.cancelTravel();
+    this.push = 0;
     const pts = points.map((p) => new THREE.Vector3(p.x, 0, p.z));
     const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
     const len = curve.getLength();
@@ -269,6 +272,7 @@ export class Walker {
 
   place(pos, yaw, pitch = 0) {
     this.cancelTravel();
+    this.push = 0;
     this.target.copy(pos);
     this.pos.copy(pos);
     this.yaw = this.yawT = yaw;
@@ -285,24 +289,24 @@ export class Walker {
       this.yawT += turn * dt * 1.2;
       this.lastInput = this.engine.time;
     }
-    // suavidad: posición y mirada siguen a su objetivo
+    // rueda: lo que queda por recorrer se consume poco a poco
+    if (Math.abs(this.push) > 0.002) {
+      const d = this.push * (1 - Math.exp(-dt * 2.6));
+      this.push -= d;
+      if (!this.blocked?.()) this.step(d);
+    } else this.push = 0;
+    // suavidad: posición y mirada siguen a su objetivo, como una cámara en grúa
     const prev = this._v.copy(this.pos);
     this.pos.lerp(this.target, 1 - Math.exp(-dt * 3.2));
-    this.yaw += (this.yawT - this.yaw) * (1 - Math.exp(-dt * 5));
-    this.pitch += (this.pitchT - this.pitch) * (1 - Math.exp(-dt * 5));
+    this.yaw += (this.yawT - this.yaw) * (1 - Math.exp(-dt * 4.5));
+    this.pitch += (this.pitchT - this.pitch) * (1 - Math.exp(-dt * 4.5));
     const v = prev.distanceTo(this.pos) / Math.max(dt, 1e-4);
     this.speed += (v - this.speed) * (1 - Math.exp(-dt * 6));
-    this.bob += dt * (2.2 + this.speed * 3) * Math.min(1, this.speed);
 
     const floor = this.floorAt(this.pos.x, this.pos.z) ?? 0;
     this.floorY = THREE.MathUtils.damp(this.floorY ?? floor, floor, 8, dt);
     const g = this.gyro.active ? this.gyro : { x: 0, y: 0 };
-    const sway = Math.min(1, this.speed * 0.8);
-    camera.position.set(
-      this.pos.x + Math.cos(this.bob) * 0.012 * sway,
-      this.floorY + EYE + Math.abs(Math.sin(this.bob)) * 0.018 * sway + Math.sin(this.engine.time * 0.6) * 0.004,
-      this.pos.z,
-    );
+    camera.position.set(this.pos.x, this.floorY + EYE, this.pos.z);
     const yaw = this.yaw + g.x * 0.25;
     const pitch = this.pitch - g.y * 0.15;
     const look = this._w.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));

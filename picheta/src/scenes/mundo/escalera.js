@@ -36,7 +36,8 @@ export function buildEscalera(m, q) {
   g.add(stepMesh);
   // Rellano.
   const landing = box(W, 0.2, LANDING.z0 - LANDING.z1, m.travertine);
-  landing.position.set(xc, S.rise - 0.1, (LANDING.z0 + LANDING.z1) / 2);
+  // un poco por encima de la tarima de la terraza, que pasa por debajo
+  landing.position.set(xc, S.rise - 0.094, (LANDING.z0 + LANDING.z1) / 2);
   g.add(landing);
 
   // Muros laterales altos (de la planta baja al rellano).
