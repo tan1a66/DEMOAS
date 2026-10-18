@@ -33,6 +33,7 @@ export class Labels {
     if (!it || it.visible === on) return;
     it.visible = on;
     it.el.classList.toggle('on', on);
+    if (on) it.w = it.el.offsetWidth;
   }
 
   hideAll() {
@@ -50,7 +51,7 @@ export class Labels {
       const y = (-this._v.y * 0.5 + 0.5) * height;
       // Cerca del borde derecho el texto se pone a la izquierda del punto (y viceversa).
       if (it.auto) {
-        const w = it.el.offsetWidth;
+        const w = it.w ?? (it.w = it.el.offsetWidth);
         const left = x + w > width - 12 && x - w > 12;
         if (left !== it.left) {
           it.left = left;

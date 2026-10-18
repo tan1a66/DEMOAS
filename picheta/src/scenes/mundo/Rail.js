@@ -81,6 +81,8 @@ export class Rail {
       this.stopTween();
     });
     pointer.on('move', () => {
+      // con el ratón encima, el visitante está ahí: la visita automática espera
+      if (this.enabled && pointer.type === 'mouse') this.lastInput = engine.time;
       const d = this.drag;
       if (!d || !pointer.down || !this.enabled) return;
       const dx = pointer.x - d.lx;
@@ -141,15 +143,17 @@ export class Rail {
     this.gates = stops.map((st) => st.s).sort((a, b) => a - b);
   }
 
-  // Avanzar ds metros con el scroll. Si se cruza una sala, se para en ella;
-  // mientras siga el mismo gesto (rueda o inercia del trackpad) se queda ahí,
-  // y un gesto nuevo, tras una pausa breve, la deja atrás.
+  // Avanzar ds metros con el scroll. Si se cruza una sala, se para en ella
+  // (aparecen sus botones). Sigue con un gesto nuevo tras una pausa breve o,
+  // si se sigue desplazando sin parar, pasado un segundo y medio: nunca se
+  // queda "pegada".
   scrollBy(ds) {
     const t = this.engine.time;
     const pause = t - this.lastScroll;
     this.lastScroll = t;
     if (this.hold != null) {
-      if (pause < 0.35 || t - this.holdSince < 0.5) return;
+      const held = t - this.holdSince;
+      if (held < 1.5 && (pause < 0.3 || held < 0.5)) return;
       this.hold = null;
     }
     const from = this.sT;

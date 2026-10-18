@@ -29,7 +29,7 @@ export function detectQuality() {
     ios,
     coarse,
     reducedMotion: mq('(prefers-reduced-motion: reduce)'),
-    maxDpr: mobile ? 1.5 : 2,
+    maxDpr: 1.5,
     ...CONFIG.quality[tier],
   };
 }

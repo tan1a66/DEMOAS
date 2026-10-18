@@ -65,7 +65,7 @@ const BOUNDS = {
 const ROOM_AREA = ['entrada', 'salon', 'reservado', 'terraza', 'terraza'];
 // Visita automática: segundos parado en cada sala antes de seguir (contados
 // desde la llegada o desde el último gesto del visitante).
-const DWELL = 9;
+const DWELL = 12;
 // Las sombras del sol se calculan una sola vez por encuadre (la casa no se
 // mueve): uno para dentro y otro para la escalera y la terraza.
 const FIT_OF = { entrada: 'dentro', salon: 'dentro', reservado: 'dentro', escalera: 'fuera', terraza: 'fuera' };
@@ -118,17 +118,24 @@ export default class MundoScene {
       photo('mundo/cuadro-reservado.webp'),
       photo('mundo/catedral.webp'),
     ]);
-    progress(0.35);
+    progress(0.3);
+    await frame();
     const m = (this.m = createMaterials(this.q));
-    progress(0.6);
+    progress(0.5);
+    await frame();
     const assets = { cuadroSalon, cuadroReservado, catedral, signature: signatureTexture('Picheta') };
-    this.spaces = {
-      entrada: buildEntrada(m, this.q),
-      salon: buildSalon(m, assets, this.q),
-      reservado: buildReservado(m, assets, this.q),
-      escalera: buildEscalera(m, this.q),
-      terraza: buildTerraza(m, assets, this.q),
-    };
+    // (un fotograma entre espacio y espacio: la línea de carga sigue viva)
+    this.spaces = {};
+    for (const [k, build] of [
+      ['entrada', () => buildEntrada(m, this.q)],
+      ['salon', () => buildSalon(m, assets, this.q)],
+      ['reservado', () => buildReservado(m, assets, this.q)],
+      ['escalera', () => buildEscalera(m, this.q)],
+      ['terraza', () => buildTerraza(m, assets, this.q)],
+    ]) {
+      this.spaces[k] = build();
+      await frame();
+    }
     for (const s of Object.values(this.spaces)) this.scene.add(s.group);
     this.scene.add(stairHut(m), exterior(m), sunBlockers());
     progress(0.75);
@@ -181,18 +188,27 @@ export default class MundoScene {
     const warm = new THREE.PerspectiveCamera(60, this.engine.view.width / this.engine.view.height, 0.1, 700);
     const target = this.engine.post.composer.inputBuffer;
     const prevTarget = r.getRenderTarget();
+    // con KHR_parallel_shader_compile los shaders se compilan sin bloquear la página
+    const parallel = r.extensions.has('KHR_parallel_shader_compile');
+    const views = [...ROOMS.map((room) => room.view), { pos: [-7, -27], yaw: 0, pitch: 0.3 }];
+    let done = 0;
     // (la vista de la escalera está aún en el reservado: se añade una a media subida)
-    for (const v of [...ROOMS.map((room) => room.view), { pos: [-7, -27], yaw: 0, pitch: 0.3 }]) {
+    for (const v of views) {
       const [x, z] = v.pos;
       warm.position.set(x, (this.rail.floorAt(x, z) ?? 0) + 1.6, z);
       warm.rotation.set(v.pitch ?? 0, -v.yaw, 0, 'YXZ');
       warm.updateMatrixWorld();
       this.setArea(this.areaAt(x, z), true);
+      this.engine.renderer.shadowMap.needsUpdate = true;
       r.setRenderTarget(target);
-      r.compile(this.scene, warm);
+      const ready = parallel ? r.compileAsync(this.scene, warm) : r.compile(this.scene, warm);
+      r.setRenderTarget(prevTarget);
+      if (parallel) await ready;
+      r.setRenderTarget(target);
       r.render(this.scene, warm);
       r.setRenderTarget(prevTarget);
-      await new Promise((res) => setTimeout(res, 0));
+      progress(0.85 + (0.15 * ++done) / views.length);
+      await frame();
     }
     progress(1);
     if (this.engine.manual) window.__picheta.mundo = this;
@@ -267,7 +283,11 @@ export default class MundoScene {
     const out = a === 'terraza';
     this.scene.environment = out ? this.envOut : this.envIn;
     // el encuadre de sombras del sol sigue a la zona
-    const fit = this.shadowFit[FIT_OF[a]];
+    const fitKey = FIT_OF[a];
+    const fit = this.shadowFit[fitKey];
+    // la casa no se mueve: el mapa de sombras se recalcula sólo al cambiar de encuadre
+    if (fitKey !== this.fitKey) this.engine.renderer.shadowMap.needsUpdate = true;
+    this.fitKey = fitKey;
     this.sun.target.position.copy(fit.center);
     this.sun.position.copy(fit.center).addScaledVector(SUN_DIR, -36);
     this.sun.target.updateMatrixWorld();
@@ -275,7 +295,6 @@ export default class MundoScene {
       Object.assign(this.sun.shadow.camera, { left: -fit.hx, right: fit.hx, top: fit.hy, bottom: -fit.hy });
       this.sun.shadow.camera.updateProjectionMatrix();
     }
-    this.engine.renderer.shadowMap.needsUpdate = true;
     const to = { env: out ? 0.6 : 0.22, hemiIn: out ? 0 : 0.2, hemiOut: out ? 0.9 : a === 'escalera' ? 0.15 : 0, sun: out ? 7 : a === 'escalera' ? 12 : 20 };
     const apply = () => {
       this.scene.environmentIntensity = this.levels.env;
@@ -542,7 +561,7 @@ export default class MundoScene {
     if (calm && quiet > 1.2 && r.speed < 0.08 && !r.fling) {
       const st = r.stops.reduce((a, b) => (Math.abs(b.s - r.s) < Math.abs(a.s - r.s) ? b : a));
       const d = Math.abs(st.s - r.s);
-      if (d > 0.05 && d < 4) {
+      if (d > 0.05 && d < 2.5) {
         this.travelling = true;
         r.goTo(st.s, THREE.MathUtils.clamp(d / 1.2, 0.8, 2.5)).then(() => (this.travelling = false));
         return;
@@ -570,6 +589,11 @@ export default class MundoScene {
     this.applyFov();
     this.updateStops();
   }
+}
+
+// Un fotograma de respiro durante la carga.
+function frame() {
+  return new Promise((res) => requestAnimationFrame(() => res()));
 }
 
 // Para cada encuadre: centro y medidas de la cámara de sombras del sol que

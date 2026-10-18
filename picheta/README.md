@@ -119,10 +119,15 @@ IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets
 ## Prestazioni
 - Livelli `high / mid / low` (`src/core/quality.js`): iPhone → mid, Android medio → low.
 - DPR massimo 2 (1,5 su mobile) e riduzione automatica se il frame rate scende sotto ~45 fps.
+- Caricamento: la casa si prepara tutta durante la linea di caricamento iniziale (a piccoli pezzi,
+  con i shader compilati in parallelo dove il browser lo permette); mentre si disegna il cerchio non
+  si fa nulla di pesante e l'entrata nella casa è immediata. Intro con 30.000 particelle su high e
+  risoluzione massima 1,5×.
 - La casa:
   - shader e texture di ogni zona preparati durante il caricamento, con la stessa configurazione del
     disegno reale: passando da una sala all'altra non si compila nulla (niente scatti);
-  - ombre del sole calcolate una volta sola per zona (la casa è ferma), non a ogni fotogramma;
+  - ombre del sole calcolate solo entrando e uscendo dalla terrazza (la casa è ferma), non a ogni
+    fotogramma;
   - luci accese solo nella zona in cui ci si trova e in quelle visibili dalle porte;
   - risoluzione massima 1,5× / 1,25× / 1× (high / mid / low); occlusione ambientale (AO) solo su
     high, a metà risoluzione; vetri e materiali senza effetti costosi (trasmissione, clearcoat);

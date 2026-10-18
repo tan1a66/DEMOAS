@@ -55,7 +55,10 @@ export async function startExperience({ content, config }) {
   // Enlace directo a una sala o a una sección: se carga la casa en vez de la intro.
   const first = location.hash.replace(/^#\/?/, '').toLowerCase();
   const startInside = ROOM_IDS.includes(first) || SECTIONS.includes(first);
-  const firstScene = await director.load(startInside ? 'casa' : 'intro', (p) => preloader.set(0.2 + p * 0.78));
+  const firstScene = await director.load(startInside ? 'casa' : 'intro', (p) => preloader.set(0.2 + p * (startInside ? 0.78 : 0.25)));
+  // La casa se prepara entera durante la carga (texturas, edificios, shaders):
+  // mientras se dibuja el círculo no se hace nada pesado y la entrada es inmediata.
+  if (!startInside) await director.load('casa', (p) => preloader.set(0.45 + p * 0.53));
   // Se renderiza la escena (aún invisible) detrás de la precarga: shaders y
   // postproceso quedan compilados antes de la primera imagen.
   if (!startInside) engine.setScene(firstScene);

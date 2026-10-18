@@ -125,11 +125,6 @@ export function buildReservado(m, assets, q) {
     const spot = new THREE.SpotLight('#ffb26a', 8, 6, 1.0, 0.8, 1.6);
     spot.position.set(x, y + 0.05, z);
     spot.target.position.set(x, 0, z);
-    if (q.tier === 'high' && x === domes[0][0]) {
-      spot.castShadow = true;
-      spot.shadow.mapSize.setScalar(1024);
-      spot.shadow.bias = -0.0006;
-    }
     lights.add(spot, spot.target);
   }
   // relleno de los nichos

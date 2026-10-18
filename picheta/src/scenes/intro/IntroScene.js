@@ -186,7 +186,6 @@ export default class IntroScene {
     if (!quiet) this.impact(1);
     this.state = 'ready';
     this.ctx.chrome.reveal(true);
-    this.director.preload('casa');
 
     const d = this.dom;
     gsap.fromTo(
