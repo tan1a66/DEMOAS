@@ -35,8 +35,9 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 1. **Il cerchio** (`src/scenes/intro/`): una linea di caricamento e subito la pagina che chiede di
    disegnare. Il logo, campionato dal PNG, entra in due anelli di gesso che si uniscono con un colpo di
    tamburo; "Dibuja un círculo para entrar" con la guida animata (bottone "Entrar" dopo 4 s, anche Invio).
-   Disegnato il cerchio, il logo esplode verso lo spettatore e dal buio emergono i due cerchi della
-   scultura, in controluce sulla pietra: la camera si allontana e si è dentro Picheta.
+   Disegnato il cerchio, lo sfondo va a nero e la camera si lancia dentro il cerchio; dal nero lo
+   stesso volo arriva al cerchio della scultura sul muro, in controluce sulla pietra, senza altri
+   stacchi; poi la camera si allontana e si è dentro Picheta.
 2. **La casa** (`src/scenes/mundo/`): Picheta **modellata in 3D**, un unico edificio percorribile
    ispirato alle foto reali (le foto non compaiono: servono da riferimento per misure, materiali e luce).
    - *La entrada*: muro di pietra con la scultura dei due cerchi retroilluminata, la cava dei vini,

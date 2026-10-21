@@ -23,6 +23,9 @@ export default class IntroScene {
     this.director = director;
     this.q = ctx.quality;
     this.scene = new THREE.Scene();
+    // fondo propio: al salir se va a negro
+    this.background = new THREE.Color(0x1b1a1a);
+    this.scene.background = this.background.clone();
     this.state = 'hidden'; // hidden → entering → ready → leaving
     this.active = false;
     this.cam = { x: 0, y: 0, z: CAM_DIST, fov: FOV, lookY: 0 };
@@ -131,6 +134,7 @@ export default class IntroScene {
     L.uExplode.value = 0;
     L.uImpact.value = 0;
     L.uFade.value = 1;
+    this.scene.background.copy(this.background);
     L.uPhysics.value = 1;
     L.uGesture.value = 0;
     this.ink.reset();
@@ -265,24 +269,19 @@ export default class IntroScene {
       return;
     }
 
+    // Sin más efectos: el trazo se funde con el logo, el fondo se va a negro y
+    // la cámara se lanza a través del círculo (en la casa sigue el mismo
+    // movimiento hasta el círculo de la escultura en el muro).
     if (signed) tl.to(this.ink.uniforms.uAbsorb, { value: 1, duration: 0.9, ease: 'power2.inOut' }, 0);
-    const t0 = signed ? 0.6 : 0.25;
-    tl.call(() => this.impact(0.55), null, t0);
-    tl.call(() => this.impact(1), null, t0 + 0.42);
-    tl.to(this.ink.uniforms.uFade, { value: 0, duration: 0.6 }, t0 + 0.3);
-    tl.to(L.uPhysics, { value: 0, duration: 0.8 }, t0 + 0.6);
-
-    // El portal: el anillo se abre y estalla hacia la cámara, que lo atraviesa.
-    const tx = t0 + 0.55;
+    tl.to(this.ink.uniforms.uFade, { value: 0, duration: 0.5 }, 0.7);
+    tl.to([this.stone.uniforms.uFade, this.dust.uniforms.uFade], { value: 0, duration: 0.7, ease: 'power2.out' }, 0);
+    tl.to(this.scene.background, { r: 0, g: 0, b: 0, duration: 0.7, ease: 'power2.out' }, 0);
+    tl.to(L.uPhysics, { value: 0, duration: 0.6 }, 0.3);
     const cy = this.layout.center.y;
-    tl.to(L.uExplode, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
-    tl.to(this.cam, { x: 0, y: cy, lookY: cy, duration: 1.6, ease: 'power2.inOut' }, tx);
-    tl.to(this.cam, { z: -1.2, fov: 62, duration: 2.7, ease: 'power3.in' }, tx + 0.2);
-    tl.to(this.dust.uniforms.uRush, { value: 1, duration: 2.9, ease: 'power2.in' }, tx);
-    tl.to(this.stone.uniforms.uZoom, { value: 0.42, duration: 2.9, ease: 'power2.in' }, tx);
-    tl.to(this.engine.post.fx, { bloom: 2.3, ca: 7, duration: 2.4, ease: 'power2.in' }, tx + 0.4);
-    // En pleno estallido se pasa a la casa: el destello sigue allí, sobre la escultura.
-    tl.call(() => this.ctx.enterWorld(), null, tx + 1.25);
+    tl.to(this.cam, { x: 0, y: cy, lookY: cy, duration: 0.7, ease: 'power2.inOut' }, 0.5);
+    tl.to(this.cam, { z: 0.15, duration: 1.2, ease: 'power3.in' }, 0.8);
+    tl.to(L.uFade, { value: 0, duration: 0.3, ease: 'power1.in' }, 1.7);
+    tl.call(() => this.ctx.enterWorld(), null, 2.0);
   }
 
   // Destino de cada mota del círculo dibujado: un punto del logo a su mismo ángulo.

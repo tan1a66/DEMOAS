@@ -357,13 +357,16 @@ export default class MundoScene {
     this.ctx.chrome.reveal(true);
     const intro = from === 'intro';
     if (intro) {
-      // Del círculo dibujado, de golpe, a los dos círculos de la escultura a
-      // contraluz; un destello, y la cámara se aparta hasta ver la entrada.
+      // Sigue el mismo vuelo del círculo dibujado: desde el negro la cámara se
+      // lanza hacia el círculo de la escultura en el muro, se para delante y
+      // luego se aparta hasta ver la entrada.
       this.state = 'arrive';
       this.rail.place(0);
-      this.rail.focusPose = { x: this.portrait() ? -0.05 : 0.45, y: 1.6, z: 3.3, yaw: Math.PI / 2, pitch: this.portrait() ? 0.3 : 0.36 };
+      this.arrival = { x: -1.35, y: 1.72, z: 3.3, yaw: Math.PI / 2, pitch: 0 };
+      this.rail.focusPose = this.arrival;
       this.rail.focusAmt = 1;
       this.setArea('entrada', true);
+      gsap.set('#veil', { opacity: 1 });
     } else {
       const v = ROOMS[room]?.view ?? ROOMS[0].view;
       this.rail.place(this.rail.stops[room]?.s ?? 0);
@@ -372,16 +375,18 @@ export default class MundoScene {
     }
     this.rail.update(0, cam);
     // llegando del círculo, los controles aparecen cuando la cámara ya se aparta
-    if (intro) gsap.delayedCall(1.6, () => this.dom.root.classList.add('ready'));
+    if (intro) gsap.delayedCall(2.2, () => this.dom.root.classList.add('ready'));
     else this.dom.root.classList.add('ready');
     await post.setAO(!!this.q.ao, this.scene);
 
     if (intro) {
       this.ctx.sound.ambience('interior');
-      gsap.set('#veil', { opacity: 0 });
-      gsap.fromTo(post.fx, { flash: 1.6 }, { flash: 0, duration: 1.1, ease: 'power2.out' });
-      gsap.delayedCall(1.0, () => this.caption(room));
-      await new Promise((r) => gsap.to(this.rail, { focusAmt: 0, duration: 2.6, delay: 0.35, ease: 'power3.inOut', onComplete: r }));
+      gsap.to('#veil', { opacity: 0, duration: 0.45, ease: 'power1.out' });
+      // el vuelo frena delante del círculo (el anillo llena el centro del encuadre)
+      const close = this.portrait() ? -0.15 : 0.25;
+      await new Promise((r) => gsap.to(this.arrival, { x: close, duration: 1.2, ease: 'power3.out', onComplete: r }));
+      gsap.delayedCall(0.9, () => this.caption(room));
+      await new Promise((r) => gsap.to(this.rail, { focusAmt: 0, duration: 2.6, delay: 0.5, ease: 'power3.inOut', onComplete: r }));
       if (this.state === 'arrive') this.state = 'idle';
       this.arrived = this.engine.time;
     } else {
