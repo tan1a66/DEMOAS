@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 
 // Loader: fondo rosa antico, una linea bianca di 1px (40% dello schermo) che si riempie
-// con il caricamento reale degli asset. Alla fine la linea si allunga a tutta larghezza,
-// diventa l'orizzonte e il rosa si dissolve nella scena.
+// con il caricamento reale degli asset (byte ricevuti, via THREE.LoadingManager).
+// Alla fine la linea si allunga a tutta larghezza, diventa l'orizzonte e il rosa si
+// dissolve nella scena.
 
 export function createLoader({ reducedMotion = false } = {}) {
   const root = document.getElementById('loader');
@@ -11,58 +12,53 @@ export function createLoader({ reducedMotion = false } = {}) {
   const fill = root.querySelector('.loader-fill');
 
   const manager = new THREE.LoadingManager();
-  // byte per file (quando il server li fornisce), altrimenti si conta per elemento
-  const files = new Map();
+  const expected = new Map(); // url -> byte attesi (dal manifest)
+  const received = new Map(); // url -> byte ricevuti
+  let extra = { done: 0, total: 0 }; // passi non di rete (preparazione della scena)
   let target = 0;
   let shown = 0;
-  let extra = { done: 0, total: 0 }; // passi non di rete (es. generazione texture)
 
   function recompute() {
-    let loaded = 0, total = 0, items = 0, itemsDone = 0;
-    for (const f of files.values()) {
-      items++;
-      if (f.done) itemsDone++;
-      if (f.total > 0) {
-        loaded += Math.min(f.loaded, f.total);
-        total += f.total;
+    let total = 0, loaded = 0;
+    for (const [url, size] of expected) {
+      total += size;
+      loaded += Math.min(size, received.get(url) || 0);
+    }
+    // file non previsti dal manifest: contano come elementi (inizio/fine)
+    for (const [url, got] of received) {
+      if (!expected.has(url)) {
+        total += 1;
+        loaded += got < 0 ? 0 : 1;
       }
     }
-    const byBytes = total > 0 ? loaded / total : 0;
-    const byItems = items > 0 ? itemsDone / items : 0;
-    const net = items === 0 ? 1 : Math.max(byBytes, byItems);
-    const ext = extra.total > 0 ? extra.done / extra.total : 1;
-    const wNet = items > 0 ? 0.85 : 0;
-    const wExt = extra.total > 0 ? 1 - wNet : 0;
-    target = Math.max(target, wNet + wExt > 0 ? (net * wNet + ext * wExt) / (wNet + wExt) : 0);
+    const net = total > 0 ? loaded / total : 0;
+    const ext = extra.total > 0 ? extra.done / extra.total : 0;
+    const wExt = extra.total > 0 ? (total > 0 ? 0.06 : 1) : 0;
+    target = Math.max(target, net * (1 - wExt) + ext * wExt);
   }
 
-  manager.onStart = (url) => {
-    if (!files.has(url)) files.set(url, { loaded: 0, total: 0, done: false });
-    recompute();
-  };
   manager.itemStart = ((orig) => (url) => {
-    if (!files.has(url)) files.set(url, { loaded: 0, total: 0, done: false });
+    if (!received.has(url)) received.set(url, expected.has(url) ? 0 : -1);
+    recompute();
     orig.call(manager, url);
   })(manager.itemStart);
   manager.itemEnd = ((orig) => (url) => {
-    const f = files.get(url);
-    if (f) {
-      f.done = true;
-      if (f.total) f.loaded = f.total;
-    }
+    received.set(url, expected.get(url) ?? 1);
     recompute();
     orig.call(manager, url);
   })(manager.itemEnd);
 
-  // da collegare all'onProgress dei loader: aggiorna i byte del singolo file
-  function onFileProgress(url, e) {
-    const f = files.get(url) || { loaded: 0, total: 0, done: false };
-    f.loaded = e.loaded;
-    if (e.lengthComputable) f.total = e.total;
-    files.set(url, f);
+  function expect(url, bytes) {
+    expected.set(url, Math.max(1, bytes || 1));
     recompute();
   }
-
+  // da passare come onProgress ai loader di three
+  function progressFor(url) {
+    return (e) => {
+      if (e && e.loaded) received.set(url, e.loaded);
+      recompute();
+    };
+  }
   function setExtraSteps(total) {
     extra = { done: 0, total };
     recompute();
@@ -85,24 +81,29 @@ export function createLoader({ reducedMotion = false } = {}) {
   function finish() {
     target = 1;
     return new Promise((resolve) => {
-      const tl = gsap.timeline({ onComplete: () => {
-        cancelAnimationFrame(raf);
-        root.remove();
-        resolve();
-      } });
-      tl.to({}, { duration: reducedMotion ? 0.1 : 0.45, onUpdate: () => {} });
+      const tl = gsap.timeline({
+        onComplete: () => {
+          cancelAnimationFrame(raf);
+          root.remove();
+          resolve();
+        },
+      });
+      // lascia che la linea arrivi in fondo
+      tl.to({}, { duration: reducedMotion ? 0.1 : 0.45 });
       tl.add(() => {
         cancelAnimationFrame(raf);
         fill.style.transform = 'scaleX(1)';
       });
-      // la linea si allunga fino ai bordi
+      // la linea si allunga fino ai bordi dello schermo
       tl.to(line, { width: '100%', duration: reducedMotion ? 0.01 : 1.0, ease: 'power3.inOut' });
-      // crossfade del rosa nella scena; la linea svanisce poco dopo, sull'orizzonte reale
+      // crossfade del rosa nella scena; la linea svanisce sull'orizzonte reale
       tl.addLabel('fade');
       tl.to(root, { backgroundColor: 'rgba(217,165,160,0)', duration: 1.2, ease: 'power1.inOut' }, 'fade');
       tl.to(line, { opacity: 0, duration: 0.7, ease: 'power1.in' }, 'fade+=0.5');
+      // ?slowloader: transizione rallentata, per verificarla fotogramma per fotogramma nei test
+      if (new URLSearchParams(location.search).has('slowloader')) tl.timeScale(0.15);
     });
   }
 
-  return { manager, onFileProgress, setExtraSteps, stepDone, finish };
+  return { manager, expect, progressFor, setExtraSteps, stepDone, finish };
 }

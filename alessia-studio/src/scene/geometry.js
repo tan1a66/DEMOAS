@@ -16,7 +16,9 @@ function frameFor(axis, sign, coord) {
 }
 
 export class GeoBuilder {
-  constructor() {
+  // density: densità relativa dei texel della lightmap per le facce di questo gruppo
+  constructor(density = 1) {
+    this.density = density;
     this.pos = [];
     this.nor = [];
     this.uv = [];
@@ -35,7 +37,7 @@ export class GeoBuilder {
     this.planar({ o: f.o, u: f.U, v: f.V, outer: outer.map(map), holes: holes.map((h) => h.map(map)), ...opts });
   }
 
-  planar({ o, u, v, outer, holes = [], uvOffset = [0, 0], density = 1 }) {
+  planar({ o, u, v, outer, holes = [], uvOffset = [0, 0], density = this.density }) {
     const O = new THREE.Vector3(...o);
     const U = new THREE.Vector3(...u);
     const V = new THREE.Vector3(...v);
@@ -45,6 +47,7 @@ export class GeoBuilder {
     const tris = THREE.ShapeUtils.triangulateShape(contour, hs);
     const pts = contour.concat(...hs);
     const base = this.vertexCount;
+    const idxStart = this.idx.length;
     const P = new THREE.Vector3();
     for (const p of pts) {
       P.copy(O).addScaledVector(U, p.x).addScaledVector(V, p.y);
@@ -59,11 +62,11 @@ export class GeoBuilder {
       if (area > 0) this.idx.push(base + a, base + b, base + c);
       else this.idx.push(base + a, base + c, base + b);
     }
-    this.charts.push({ start: base, count: pts.length, density });
+    this.charts.push({ start: base, count: pts.length, idxStart: idxStart, idxEnd: this.idx.length, density });
   }
 
   // Nastro: una polilinea (punti + normali) estrusa lungo `ext`. uv = (ascissa curvilinea, distanza lungo ext).
-  strip({ points, normals, ext, closed = false, uvOffset = [0, 0], density = 1 }) {
+  strip({ points, normals, ext, closed = false, uvOffset = [0, 0], density = this.density }) {
     const E = new THREE.Vector3(...ext);
     const h = E.length();
     const pts = points.map((p) => new THREE.Vector3(...p));
@@ -73,6 +76,7 @@ export class GeoBuilder {
       ns.push(ns[0].clone());
     }
     const base = this.vertexCount;
+    const idxStart = this.idx.length;
     let s = 0;
     for (let i = 0; i < pts.length; i++) {
       if (i > 0) s += pts[i].distanceTo(pts[i - 1]);
@@ -91,7 +95,7 @@ export class GeoBuilder {
       if (gn.dot(n) >= 0) this.idx.push(b0, b1, t1, b0, t1, t0);
       else this.idx.push(b0, t1, b1, b0, t0, t1);
     }
-    this.charts.push({ start: base, count: pts.length * 2, density });
+    this.charts.push({ start: base, count: pts.length * 2, idxStart, idxEnd: this.idx.length, density });
   }
 
   toGeometry() {
@@ -102,6 +106,7 @@ export class GeoBuilder {
     g.setIndex(this.idx);
     g.computeBoundingSphere();
     g.computeBoundingBox();
+    g.userData.charts = this.charts;
     return g;
   }
 }

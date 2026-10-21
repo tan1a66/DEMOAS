@@ -15,18 +15,18 @@ export const KEYS = [
   { p: 0.24, pos: V(-1.3, 6.5, 23), target: V(0.0, 5.95, 9), exposure: 1.0, parallax: 0.8 },
   // 1 · allineamento e attraversamento della finestra circolare
   { p: 0.32, pos: V(-0.05, 5.86, 14.5), target: V(0.0, 5.8, 0), exposure: 1.0, parallax: 0.35 },
-  { p: 0.38, pos: V(0.0, 5.8, 9.9), target: V(0.0, 5.55, -2), exposure: 1.08, parallax: 0.15 },
-  { p: 0.43, pos: V(0.0, 5.62, 7.3), target: V(0.1, 3.6, -2.4), exposure: 1.55, parallax: 0.3 },
+  { p: 0.38, pos: V(0.0, 5.8, 9.9), target: V(0.0, 5.55, -2), exposure: 1.3, parallax: 0.15 },
+  { p: 0.43, pos: V(0.0, 5.62, 7.3), target: V(0.1, 3.6, -2.4), exposure: 2.4, parallax: 0.3 },
   // 2 · conversation pit: discesa, sguardo verso l'alto (pausa), ripartenza
-  { p: 0.51, pos: V(0.3, 4.55, 4.6), target: V(0.45, 2.1, -1.8), exposure: 1.85, parallax: 0.6 },
-  { p: 0.575, pos: V(0.6, 3.72, 2.75), target: V(0.4, 2.7, -2.2), exposure: 1.95, parallax: 0.6 },
-  { p: 0.63, pos: V(0.66, 3.6, 2.45), target: V(0.12, 9.6, 0.6), exposure: 1.95, parallax: 0.5 },
-  { p: 0.705, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 1.95, parallax: 0.5 },
-  { p: 0.765, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 1.9, parallax: 0.5 },
+  { p: 0.51, pos: V(0.3, 4.55, 4.6), target: V(0.45, 2.1, -1.8), exposure: 3.2, parallax: 0.6 },
+  { p: 0.575, pos: V(0.6, 3.72, 2.75), target: V(0.4, 2.7, -2.2), exposure: 3.3, parallax: 0.6 },
+  { p: 0.63, pos: V(0.66, 3.6, 2.45), target: V(0.12, 9.6, 0.6), exposure: 3.3, parallax: 0.5 },
+  { p: 0.705, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 3.3, parallax: 0.5 },
+  { p: 0.765, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 3.2, parallax: 0.5 },
   // 3 · verso il mare: grande apertura rettangolare, terrazza, il sole basso
-  { p: 0.84, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 1.45, parallax: 0.3 },
-  { p: 0.89, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.2, parallax: 0.15 },
-  { p: 0.94, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.06, parallax: 0.6 },
+  { p: 0.84, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 2.6, parallax: 0.3 },
+  { p: 0.89, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.7, parallax: 0.15 },
+  { p: 0.94, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.15, parallax: 0.6 },
   { p: 1.0, pos: V(-3.0, 4.7, -13.0), target: V(-30, 6.4, -9.2), exposure: 1.0, parallax: 1 },
 ];
 

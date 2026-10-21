@@ -8,7 +8,7 @@ import { GLSL_COMMON } from './materials.js';
 
 const lin = (hex) => new THREE.Color(hex);
 
-export function createSea(lights, { quality = 'high' } = {}) {
+export function createSea(lights, { quality = 'high', reflection = true } = {}) {
   const L = lights.uniforms;
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
@@ -32,12 +32,19 @@ export function createSea(lights, { quality = 'high' } = {}) {
     uBox1Max: { value: new THREE.Vector3(T.x1, T.y, T.z1) },
     uBox2Min: { value: new THREE.Vector3(FW.x0, ROOF_Y, FW.zIn) },
     uBox2Max: { value: new THREE.Vector3(FW.x1, FW.y1, FW.zOut) },
+    // riflesso planare dell'architettura (render a bassa risoluzione da una telecamera specchiata)
+    tRefl: { value: null },
+    uReflMatrix: { value: new THREE.Matrix4() },
+    uReflOn: { value: 0 },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,
     depthWrite: false,
     depthTest: true,
-    defines: quality === 'low' ? { LOW_Q: '' } : {},
+    defines: {
+      ...(quality === 'low' ? { LOW_Q: '' } : {}),
+      ...(reflection ? { USE_REFL: '' } : {}),
+    },
     vertexShader: /* glsl */ `
       varying vec2 vNdc;
       void main() {
@@ -56,19 +63,35 @@ export function createSea(lights, { quality = 'high' } = {}) {
       uniform vec3 uCamPos;
       uniform vec3 uSeaNear, uSeaFar, uSkyLow, uSkyHigh, uFoam;
       uniform vec3 uBox0Min, uBox0Max, uBox1Min, uBox1Max, uBox2Min, uBox2Max;
+      #ifdef USE_REFL
+        uniform sampler2D tRefl;
+        uniform mat4 uReflMatrix;
+        uniform float uReflOn;
+      #endif
       varying vec2 vNdc;
       ${GLSL_COMMON}
 
       vec3 sky(vec3 d, bool withSun) {
         float h = max(d.y, 0.0);
-        vec3 c = mix(uSkyLow, uSkyHigh, pow(smoothstep(0.0, 0.62, h), 0.75));
-        // velatura calda vicino al sole basso
+        // gradiente base: rosato all'orizzonte, azzurro polveroso in alto
+        vec3 c = mix(uSkyLow, uSkyHigh, pow(smoothstep(0.0, 0.7, h), 0.7));
+        vec2 dh = normalize(d.xz + vec2(1e-5)), sh = normalize(uSunDir.xz);
+        float toward = dot(dh, sh) * 0.5 + 0.5; // 1 verso il sole, 0 dalla parte opposta
         float s = max(dot(d, uSunDir), 0.0);
-        c += uSunColor * (0.10 * pow(s, 6.0) + 0.16 * pow(s, 40.0)) * (1.0 - 0.5 * smoothstep(0.0, 0.4, h));
+        // velatura calda e chiara dal lato del sole
+        vec3 warm = vec3(1.0, 0.86, 0.74);
+        c = mix(c, c * 0.55 + warm * 0.5, pow(toward, 3.0) * (1.0 - smoothstep(0.0, 0.35, h)) * 0.5);
+        c += uSunColor * (0.07 * pow(s, 4.0) + 0.14 * pow(s, 24.0) + 0.2 * pow(s, 160.0));
+        // "cintura di Venere": fascia rosa sopra l'orizzonte opposto al sole
+        float belt = smoothstep(0.0, 0.07, h) * (1.0 - smoothstep(0.1, 0.32, h));
+        c = mix(c, vec3(0.86, 0.6, 0.58), belt * pow(1.0 - toward, 1.5) * 0.35);
+        // foschia luminosa a filo d'orizzonte
+        c = mix(c, uSkyLow * 1.04 + vec3(0.02), (1.0 - smoothstep(0.0, 0.035, h)) * 0.6);
         // nuvole sottilissime e lente in prossimità dell'orizzonte
         vec2 cp = d.xz / max(d.y + 0.08, 0.02);
         float cl = vnoise(cp * vec2(0.9, 3.2) + vec2(uTime * 0.006, 0.0)) * vnoise(cp * 0.35 - vec2(uTime * 0.002, 0.0));
-        c = mix(c, uSkyLow * 1.06, smoothstep(0.28, 0.62, cl) * 0.35 * smoothstep(0.32, 0.03, h) * smoothstep(0.0, 0.015, h));
+        float cm = smoothstep(0.28, 0.62, cl) * 0.35 * smoothstep(0.32, 0.03, h) * smoothstep(0.0, 0.015, h);
+        c = mix(c, mix(uSkyLow * 1.08, warm, toward * 0.5), cm);
         if (withSun) {
           float disc = smoothstep(0.99986, 0.99992, s);
           c += uSunColor * (disc * 7.0 + pow(s, 1800.0) * 1.4 + pow(s, 220.0) * 0.35);
@@ -140,7 +163,18 @@ export function createSea(lights, { quality = 'high' } = {}) {
           float fr = 0.02 + 0.98 * pow(1.0 - max(dot(n, -d), 0.0), 5.0);
           vec3 r = reflect(d, n);
           r.y = abs(r.y);
-          base = mix(base, sky(r, false), fr * 0.42);
+          // in lontananza domina il blu indicato (#4E7F92): il riflesso del cielo non lo ingrigisce
+          base = mix(base, sky(r, false), fr * 0.42 * mix(1.0, 0.22, smoothstep(25.0, 500.0, t)));
+          #ifdef USE_REFL
+            if (uReflOn > 0.5) {
+              // l'edificio riflesso, increspato dalle onde
+              vec4 rc = uReflMatrix * vec4(p, 1.0);
+              vec2 ruv = rc.xy / rc.w + n.xz * (0.05 / (1.0 + t * 0.015));
+              vec4 rr = texture2D(tRefl, ruv);
+              float k = clamp(0.16 + fr * 1.1, 0.0, 0.72);
+              base = mix(base, rr.rgb / max(uExposure, 1e-3) * 0.92, rr.a * k);
+            }
+          #endif
           // ombra dell'edificio e della terrazza sull'acqua
           float sh = sunShadow(p + vec3(0.0, 0.02, 0.0));
           float under = 1.0 - smoothstep(-0.5, 2.5, boxDist(p.xz, uBox1Min.xz, uBox1Max.xz));
@@ -160,8 +194,9 @@ export function createSea(lights, { quality = 'high' } = {}) {
           float foam = exp(-bd / 0.35) * smoothstep(0.35, 0.75, vnoise(p.xz * 3.0 + vec2(uTime * 0.4, -uTime * 0.25)) + 0.25 * sin(uTime * 1.3 + bd * 6.0));
           base = mix(base, uFoam, clamp(foam * 0.55, 0.0, 1.0));
           // foschia: il mare sfuma nel cielo rosato all'orizzonte
-          float haze = smoothstep(-0.055, 0.0, d.y);
-          col = mix(base, uSkyLow, haze * haze);
+          // foschia stretta: il bordo visibile mare/cielo resta sull'orizzonte vero (centro dello schermo a camera in piano)
+          float haze = smoothstep(-0.03, 0.0, d.y);
+          col = mix(base, uSkyLow * 1.02, pow(haze, 3.0));
         } else {
           col = sky(d, true);
         }
@@ -176,10 +211,48 @@ export function createSea(lights, { quality = 'high' } = {}) {
   mesh.renderOrder = 5; // dopo gli opachi, prima del fascio di luce
 
   const tmp = new THREE.Matrix4();
+  const reflCam = new THREE.PerspectiveCamera();
+  reflCam.layers.set(1);
+  const reflRT = reflection ? new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: true }) : null;
+  if (reflRT) reflRT.texture.generateMipmaps = false;
+  uniforms.tRefl.value = reflRT ? reflRT.texture : null;
+  const dir = new THREE.Vector3(), tgt = new THREE.Vector3();
+  const bias = new THREE.Matrix4().set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+  const clearColor = new THREE.Color();
+
   function update(camera) {
     tmp.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     uniforms.uInvViewProj.value.copy(tmp).invert();
     uniforms.uCamPos.value.copy(camera.position);
   }
-  return { mesh, update, uniforms };
+
+  // telecamera virtuale sotto il pelo dell'acqua che guarda la scena reale
+  function renderReflection(renderer, scene, camera, enabled, scale) {
+    uniforms.uReflOn.value = enabled && reflRT ? 1 : 0;
+    if (!enabled || !reflRT) return;
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    const w = Math.max(1, Math.round(size.x * scale)), h = Math.max(1, Math.round(size.y * scale));
+    if (reflRT.width !== w || reflRT.height !== h) reflRT.setSize(w, h);
+    camera.getWorldDirection(dir);
+    reflCam.position.set(camera.position.x, -camera.position.y, camera.position.z);
+    tgt.copy(camera.position).add(dir);
+    tgt.y = -tgt.y;
+    reflCam.up.set(0, -1, 0);
+    reflCam.lookAt(tgt);
+    reflCam.projectionMatrix.copy(camera.projectionMatrix);
+    reflCam.projectionMatrixInverse.copy(camera.projectionMatrixInverse);
+    reflCam.updateMatrixWorld();
+    reflCam.matrixWorldInverse.copy(reflCam.matrixWorld).invert();
+    uniforms.uReflMatrix.value.copy(bias).multiply(reflCam.projectionMatrix).multiply(reflCam.matrixWorldInverse);
+    const prevTarget = renderer.getRenderTarget();
+    renderer.getClearColor(clearColor);
+    const prevAlpha = renderer.getClearAlpha();
+    renderer.setRenderTarget(reflRT);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear();
+    renderer.render(scene, reflCam);
+    renderer.setClearColor(clearColor, prevAlpha);
+    renderer.setRenderTarget(prevTarget);
+  }
+  return { mesh, update, renderReflection, uniforms };
 }

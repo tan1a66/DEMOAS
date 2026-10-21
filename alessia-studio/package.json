@@ -5,15 +5,14 @@
   "description": "Alessia Studio — sito vetrina 3D (solo scena, senza testi).",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/copy-decoders.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/copy-decoders.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "assets": "node tools/build-all.mjs",
     "assets:textures": "node tools/textures.mjs",
     "assets:scene": "node tools/scene/build.mjs",
-    "build:preview": "vite build --config vite.preview.config.js"
+    "build:preview": "vite build --config vite.preview.config.js",
+    "assets:fetch": "node tools/fetch-textures.mjs"
   },
   "dependencies": {
     "gsap": "3.15.0",

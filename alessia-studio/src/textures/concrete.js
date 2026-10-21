@@ -144,14 +144,23 @@ export function generateFormwork(n = 1024, { seed = 7, tileM = 1.2 } = {}) {
   const noise2 = makeNoise(seed + 11);
   const rnd = mulberry32(seed * 31 + 5);
   const boards = 8;
-  const boardRnd = Array.from({ length: boards }, () => ({
+  // giunti di testa sfalsati: metà delle tavole ha un giunto nel tile, mai allineato con quello sotto
+  let lastJoint = -1;
+  const boardRnd = Array.from({ length: boards }, (_, k) => {
+    let joint = -10;
+    if (k % 2 === 0 || rnd() < 0.3) {
+      do joint = rnd(); while (lastJoint >= 0 && Math.min(Math.abs(joint - lastJoint), 1 - Math.abs(joint - lastJoint)) < 0.3);
+      lastJoint = joint;
+    }
+    return { joint, ...boardProps() };
+  });
+  function boardProps() { return {
     depth: (rnd() - 0.5) * 0.0009,
     tilt: (rnd() - 0.5) * 0.0006,
-    tone: (rnd() - 0.5) * 0.12,
-    joint: rnd(),
+    tone: (rnd() - 0.5) * 0.17,
     grainShift: rnd() * 10,
     rough: (rnd() - 0.5) * 0.08,
-  }));
+  }; }
   const H = new Float32Array(n * n), A = new Float32Array(n * n), R = new Float32Array(n * n);
   const boardH = tileM / boards;
   for (let y = 0; y < n; y++) {
@@ -174,14 +183,16 @@ export function generateFormwork(n = 1024, { seed = 7, tileM = 1.2 } = {}) {
       // giunto di testa della tavola
       let du = Math.abs(u - b.joint);
       du = Math.min(du, 1 - du) * tileM;
-      const butt = Math.exp(-((du / 0.0009) ** 2));
+      const butt = b.joint < 0 ? 0 : Math.exp(-((du / 0.0009) ** 2)) * 0.7;
       const mottle = fbm(noise, u, v, 3, 3, 5);
       const blotch = fbm(noise2, u + 0.37 * mottle, v, 6, 6, 4);
       const streak = noise(u * 46, v * 2, 46, 2);
       const speck = noise2(u * 220, v * 220, 220, 220);
 
       H[i] = b.depth + b.tilt * (u - 0.5) + grain * 0.00022 + fin * 0.0005 - butt * 0.0005 + mottle * 0.0008;
-      A[i] = 0.5 + mottle * 0.3 + blotch * 0.2 + b.tone + streak * 0.07 + speck * 0.09 - grain * 0.035 + fin * 0.06 - butt * 0.08;
+      // linea scura dove la boiacca si è infilata tra le tavole
+      const seamLine = Math.exp(-((ds / 0.0022) ** 2));
+      A[i] = 0.5 + mottle * 0.3 + blotch * 0.2 + b.tone + streak * 0.07 + speck * 0.09 - grain * 0.045 + fin * 0.05 - seamLine * 0.09 - butt * 0.09;
       R[i] = 0.8 + b.rough + blotch * 0.12 + speck * 0.06 - fin * 0.1;
     }
   }

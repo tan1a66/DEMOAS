@@ -111,7 +111,11 @@ function bend(g, R) {
   return g;
 }
 
-export function buildCushions() {
+// proxy = versione leggera, usata solo come ostacolo nel ray tracing del bake
+export function buildCushions({ proxy = false } = {}) {
+  const k = proxy ? 0.3 : 1;
+  const R = proxy ? 2 : 5;
+  const fl = (n) => Math.max(2, Math.round(n * k));
   const parts = [];
   const C = PIT.half - PIT.r; // distanza dei centri d'angolo dal centro del pit
   const rRiser = PIT.r - PIT.ring1.inset; // raggio d'angolo dell'alzata dietro la seduta
@@ -128,13 +132,13 @@ export function buildCushions() {
   const seatTop = PIT.ring2.y + seatT;
   let seed = 1;
 
-  const seatProto = (len, flatLen) => puffyBox({
+  const seatProto = (len, flatLen, bent = false) => puffyBox({
     hx: len / 2, hy: seatT / 2, hz: seatDepth / 2, r: 0.07,
-    flat: [flatLen, 2, 10], round: 5, bulge: { top: 0.034, bottom: 0, front: 0.022, back: 0.012, end: 0.014 }, seed: seed++,
+    flat: [bent ? flatLen : fl(flatLen), 2, fl(10)], round: R, bulge: { top: 0.034, bottom: 0, front: 0.022, back: 0.012, end: 0.014 }, seed: seed++,
   });
-  const backProto = (len, flatLen) => tilt(puffyBox({
+  const backProto = (len, flatLen, bent = false) => tilt(puffyBox({
     hx: len / 2, hy: backH / 2, hz: backT / 2, r: 0.075,
-    flat: [flatLen, 10, 2], round: 5, bulge: { top: 0.012, bottom: 0.006, front: 0.034, back: 0.012, end: 0.014 }, seed: seed++,
+    flat: [bent ? flatLen : fl(flatLen), fl(10), 2], round: R, bulge: { top: 0.012, bottom: 0.006, front: 0.034, back: 0.012, end: 0.014 }, seed: seed++,
   }), backTilt);
 
   // Lati: (direzione verso l'esterno del lato)
@@ -169,12 +173,12 @@ export function buildCushions() {
     };
     const Rs = seatMid - 0.015;
     const lenS = Rs * (Math.PI / 2) - gap;
-    const seat = seatProto(lenS, 16);
+    const seat = seatProto(lenS, 16, true);
     seat.translate(0, PIT.ring2.y + seatT / 2, 0);
     parts.push(place(seat, Rs));
     const Rb = backMid;
     const lenB = Rb * (Math.PI / 2) - gap;
-    const back = backProto(lenB, 18);
+    const back = backProto(lenB, 18, true);
     back.translate(0, seatTop + backH / 2 * Math.cos(backTilt) - 0.01, 0);
     parts.push(place(back, Rb));
   }

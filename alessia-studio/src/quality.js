@@ -1,12 +1,14 @@
 // Livelli di qualità. Si parte da una stima del dispositivo e poi si adatta in base ai
 // tempi di frame misurati (pixel ratio prima, poi dettagli del mare).
 
-export function detectTier(renderer) {
-  const gl = renderer.getContext();
+// Stima con un contesto WebGL di prova (prima di creare il renderer, per scegliere l'antialias)
+export function detectTier() {
   let gpu = '';
   try {
-    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    const gl = document.createElement('canvas').getContext('webgl2');
+    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
     gpu = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
   } catch (e) {
     gpu = '';
   }
@@ -25,10 +27,16 @@ export function detectTier(renderer) {
     gpu,
     mobile: coarse,
     maxDpr: Math.min(window.devicePixelRatio || 1, tier === 'low' ? 1.5 : 2),
-    textureSize: tier === 'low' ? 512 : coarse ? 512 : 1024,
-    shadowExt: tier === 'low' ? 1024 : 2048,
+    textureSize: tier === 'low' || coarse ? 512 : 1024,
+    lightmapSize: tier === 'low' || coarse ? 1024 : 2048,
+    realtimeShadows: tier === 'high' && !coarse,
     shadowInt: 1024,
     seaQuality: tier === 'low' ? 'low' : 'high',
+    // post-processing (MSAA nel render target, bloom, grana) e riflessi del mare
+    post: tier !== 'low',
+    msaa: 4,
+    reflection: tier !== 'low',
+    reflectionScale: coarse ? 0.35 : 0.5,
   };
 }
 

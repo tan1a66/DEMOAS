@@ -1,78 +1,113 @@
 import * as THREE from 'three';
-import { buildArchitecture } from './scene/architecture.js';
-import { buildCushions } from './scene/cushions.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
+import dracoWrapperUrl from 'three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js?url';
+import dracoWasmUrl from 'three/examples/jsm/libs/draco/gltf/draco_decoder.wasm?url';
+import basisJsUrl from 'three/examples/jsm/libs/basis/basis_transcoder.js?url';
+import basisWasmUrl from 'three/examples/jsm/libs/basis/basis_transcoder.wasm?url';
+import manifest from '../assets/manifest.json';
 import { makeConcreteMaterial, makeCushionMaterial, makeBeam, makeDust } from './materials.js';
 import { createSea } from './sea.js';
-import TexWorker from './textures/worker.js?worker&inline';
 
-function generateTexture(kind, size) {
-  return new Promise((resolve, reject) => {
-    const w = new TexWorker();
-    w.onmessage = (e) => {
-      w.terminate();
-      const { data, size: s, tileM } = e.data;
-      const tex = new THREE.DataTexture(data, s, s, THREE.RGBAFormat, THREE.UnsignedByteType);
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.generateMipmaps = true;
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.colorSpace = THREE.NoColorSpace;
-      tex.needsUpdate = true;
-      resolve({ tex, tileM });
-    };
-    w.onerror = reject;
-    w.postMessage({ kind, size });
-  });
-}
+// Asset generati dalla pipeline (npm run assets): GLB Draco + KTX2. Gli URL passano da Vite
+// (hash nel build normale, incorporati nel build a file unico).
+const ASSET_URLS = import.meta.glob('../assets/**/*.{glb,ktx2}', { query: '?url', import: 'default', eager: true });
+const asset = (name) => ASSET_URLS[`../assets/${name}`];
+const DECODERS = {
+  'draco_wasm_wrapper.js': dracoWrapperUrl,
+  'draco_decoder.wasm': dracoWasmUrl,
+  'basis_transcoder.js': basisJsUrl,
+  'basis_transcoder.wasm': basisWasmUrl,
+};
+
+const TILE = { formwork: 1.2, smooth: 2.0 };
 
 export async function buildScene({ renderer, lights, quality, loader }) {
-  loader.setExtraSteps(4);
-  const [form, smooth] = await Promise.all([
-    generateTexture('form', quality.textureSize).then((t) => (loader.stepDone(), t)),
-    generateTexture('smooth', quality.textureSize).then((t) => (loader.stepDone(), t)),
+  const { manager } = loader;
+  manager.setURLModifier((url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url));
+  for (const [name, url] of Object.entries(DECODERS)) loader.expect(url, manifest.files[`decoders/${name}`]);
+
+  const texSize = quality.textureSize;
+  const lmSize = quality.lightmapSize;
+  const files = {
+    glb: 'scene.glb',
+    lightmap: `lightmap-${lmSize}.ktx2`,
+    formwork: `tex/formwork-${texSize}.ktx2`,
+    smooth: `tex/smooth-${texSize}.ktx2`,
+  };
+  for (const f of Object.values(files)) loader.expect(asset(f), manifest.files[f]);
+  loader.setExtraSteps(2);
+
+  const ktx2 = new KTX2Loader(manager).setTranscoderPath('decoders/').detectSupport(renderer);
+  const draco = new DRACOLoader(manager).setDecoderPath('decoders/');
+  const gltfLoader = new GLTFLoader(manager).setDRACOLoader(draco);
+  const loadKTX = (f) => ktx2.loadAsync(asset(f), loader.progressFor(asset(f)));
+
+  const [gltf, lightMap, formTex, smoothTex] = await Promise.all([
+    gltfLoader.loadAsync(asset(files.glb), loader.progressFor(asset(files.glb))),
+    loadKTX(files.lightmap),
+    loadKTX(files.formwork),
+    loadKTX(files.smooth),
   ]);
+  draco.dispose();
+  ktx2.dispose();
+
   const aniso = Math.min(renderer.capabilities.getMaxAnisotropy(), quality.tier === 'low' ? 2 : 8);
-  form.tex.anisotropy = smooth.tex.anisotropy = aniso;
+  for (const t of [formTex, smoothTex]) {
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = aniso;
+  }
+  lightMap.minFilter = lightMap.magFilter = THREE.LinearFilter;
+  lightMap.generateMipmaps = false;
 
   const scene = new THREE.Scene();
-  const arch = buildArchitecture();
-  const cushionsGeo = buildCushions();
-  loader.stepDone();
+  const useShadowMap = quality.realtimeShadows;
+  const shInt = useShadowMap ? lights.shadowUniforms(lights.shadows.int) : {};
+  const byName = {};
+  gltf.scene.traverse((o) => { if (o.isMesh) byName[o.name] = o; });
 
-  const shExt = lights.shadowUniforms(lights.shadows.ext);
-  const shInt = lights.shadowUniforms(lights.shadows.int);
-  const mk = (geo, map, interior) => {
-    const mat = makeConcreteMaterial({
-      map: map.tex, tileM: map.tileM, interior, sun: interior ? 'int' : 'ext', lights,
-      shadow: interior ? shInt : shExt,
+  const concrete = (name, form, interior) => {
+    const mesh = byName[name];
+    mesh.material = makeConcreteMaterial({
+      map: form ? formTex : smoothTex,
+      tileM: form ? TILE.formwork : TILE.smooth,
+      interior,
+      sun: interior ? 'int' : 'ext',
+      lights,
+      shadow: shInt,
+      lightMap,
+      shadowMap: interior && useShadowMap,
     });
-    mat.uniforms.uNormalStrength.value = map === form ? (interior ? 1.35 : 1.7) : 1.0;
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.matrixAutoUpdate = false;
-    mesh.updateMatrixWorld();
-    scene.add(mesh);
+    mesh.material.uniforms.uNormalStrength.value = form ? (interior ? 1.35 : 1.7) : 1.0;
     return mesh;
   };
   const meshes = {
-    extForm: mk(arch.extForm, form, false),
-    extSmooth: mk(arch.extSmooth, smooth, false),
-    intForm: mk(arch.intForm, form, true),
-    intSmooth: mk(arch.intSmooth, smooth, true),
+    extForm: concrete('extForm', true, false),
+    extSmooth: concrete('extSmooth', false, false),
+    intForm: concrete('intForm', true, true),
+    intSmooth: concrete('intSmooth', false, true),
   };
-  const cushions = new THREE.Mesh(cushionsGeo, makeCushionMaterial({ lights, shadow: shInt }));
-  cushions.matrixAutoUpdate = false;
-  cushions.updateMatrixWorld();
-  scene.add(cushions);
+  const cushions = byName.cushions;
+  cushions.material = makeCushionMaterial({ lights, shadow: shInt, shadowMap: useShadowMap });
+  for (const m of [...Object.values(meshes), cushions]) {
+    m.removeFromParent();
+    if (m !== cushions) m.layers.enable(1); // visibili nel riflesso del mare
+    m.matrixAutoUpdate = false;
+    m.updateMatrixWorld(true);
+    scene.add(m);
+  }
+  loader.stepDone();
 
-  const sea = createSea(lights, { quality: quality.seaQuality });
+  const sea = createSea(lights, { quality: quality.seaQuality, reflection: quality.reflection });
   scene.add(sea.mesh);
   const beam = makeBeam(lights);
   scene.add(beam);
   const dust = makeDust(lights, quality.tier === 'low' ? 220 : 420);
   scene.add(dust);
 
-  const all = [...Object.values(meshes), cushions];
-  lights.bakeShadows(renderer, all, [meshes.intSmooth, meshes.intForm, cushions]);
+  // ombre in tempo reale solo per il pit, e solo se il dispositivo lo permette (calcolate una volta)
+  if (useShadowMap) lights.bakeShadows(renderer, [meshes.intSmooth, meshes.intForm, cushions]);
   loader.stepDone();
 
   function update(camera, dpr) {
@@ -80,5 +115,5 @@ export async function buildScene({ renderer, lights, quality, loader }) {
     dust.material.uniforms.uPixelRatio.value = dpr;
   }
 
-  return { scene, update, sea, meshes, cushions };
+  return { scene, update, sea, meshes, cushions, beam, dust };
 }

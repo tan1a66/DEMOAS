@@ -4,24 +4,24 @@ import { SUN_EXT, SUN_INT, PIT } from './layout.js';
 // Luci della scena: due "soli" statici (esterno basso sul mare, interno dal lucernario),
 // esposizione condivisa e mappe d'ombra calcolate una sola volta al caricamento.
 
-export function createLights({ shadowExt = 2048, shadowInt = 1024 } = {}) {
+export function createLights({ shadowInt = 1024 } = {}) {
   const uniforms = {
     uTime: { value: 0 },
     uExposure: { value: 1 },
     uSunExtDir: { value: new THREE.Vector3(...SUN_EXT.dir) },
     uSunExtColor: { value: new THREE.Color(SUN_EXT.color) },
-    uSunExtI: { value: 1.0 },
+    uSunExtI: { value: SUN_EXT.intensity },
     uSunIntDir: { value: new THREE.Vector3(...SUN_INT.dir) },
     uSunIntColor: { value: new THREE.Color(SUN_INT.color) },
-    uSunIntI: { value: 0.82 },
+    // in runtime un po' più tenue: con l'esposizione degli interni il cerchio resta leggibile, non bruciato
+    uSunIntI: { value: SUN_INT.intensity * 0.7 },
     // modulazione lenta della luce (nuvole altissime che passano): rende viva la scena a scroll fermo
     uCloud: { value: 0 },
   };
 
-  const shadows = {
-    ext: makeShadow(shadowExt),
-    int: makeShadow(shadowInt),
-  };
+  // le ombre principali sono nella lightmap; questa mappa (opzionale) rifinisce solo il pit
+  const shadows = {};
+  Object.defineProperty(shadows, 'int', { get() { return this._int || (this._int = makeShadow(shadowInt)); } });
 
   function makeShadow(size) {
     const depthTexture = new THREE.DepthTexture(size, size);
@@ -63,8 +63,8 @@ export function createLights({ shadowExt = 2048, shadowInt = 1024 } = {}) {
       .multiply(cam.projectionMatrix).multiply(cam.matrixWorldInverse);
   }
 
-  // Disegna le mappe d'ombra una volta sola (scena statica).
-  function bakeShadows(renderer, extCasters, intCasters) {
+  // Disegna la mappa d'ombra una volta sola (scena statica).
+  function bakeShadows(renderer, intCasters) {
     const corners = (b) => {
       const out = [];
       for (let i = 0; i < 8; i++) {
@@ -72,8 +72,6 @@ export function createLights({ shadowExt = 2048, shadowInt = 1024 } = {}) {
       }
       return out;
     };
-    const extBox = new THREE.Box3(new THREE.Vector3(-27, 0, -21), new THREE.Vector3(11, 11.6, 9.2));
-    fit(shadows.ext, SUN_EXT.dir, corners(extBox));
     const intBox = new THREE.Box3(
       new THREE.Vector3(PIT.cx - PIT.half - 0.6, PIT.floorY - 0.1, PIT.cz - PIT.half - 0.6),
       new THREE.Vector3(PIT.cx + PIT.half + 0.6, 3.4, PIT.cz + PIT.half + 0.6),
@@ -97,7 +95,6 @@ export function createLights({ shadowExt = 2048, shadowInt = 1024 } = {}) {
       renderer.render(scene, sh.cam);
       proxies.forEach((p) => scene.remove(p));
     };
-    render(shadows.ext, extCasters);
     render(shadows.int, intCasters);
     renderer.setRenderTarget(prevTarget);
     mat.dispose();

@@ -32,11 +32,21 @@ const logs = [];
 page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 const t0 = Date.now();
-await page.goto(url + (url.includes('?') ? '&' : '?') + (flags.q ? `q=${flags.q}` : ''));
+const qs = [flags.q ? `q=${flags.q}` : '', flags.mask || flags.transition ? 'still' : '', flags.transition ? 'slowloader' : ''].filter(Boolean).join('&');
+await page.goto(url + (url.includes('?') ? '&' : '?') + qs);
 if (flags.loader) {
   for (const t of [300, 900]) {
     await page.waitForTimeout(t);
     await page.screenshot({ path: `${out}/loader-${t}.png` });
+  }
+}
+if (flags.transition) {
+  // fotogrammi del passaggio loader -> orizzonte
+  let k = 0;
+  while (!(await page.evaluate(() => window.__ready || window.__error)) && k < 60) {
+    await page.screenshot({ path: `${out}/transition-${String(k).padStart(2, '0')}.png` });
+    k++;
+    await page.waitForTimeout(250);
   }
 }
 await page.waitForFunction(() => window.__ready || window.__error, null, { timeout: 180000 });
@@ -51,11 +61,29 @@ console.log('ready in', Date.now() - t0, 'ms');
 const info = await page.evaluate(() => ({ ...window.__stats }));
 console.log('tier', info.tier, 'gpu', info.gpu, 'dpr', info.dpr);
 
+if (flags.scroll) {
+  // scroll reale (rotella): la telecamera deve avanzare in modo continuo
+  const samples = [];
+  for (let i = 0; i < 40; i++) {
+    await page.mouse.wheel(0, 260);
+    await page.waitForTimeout(120);
+    samples.push(await page.evaluate(() => ({ y: Math.round(window.scrollY), u: +window.__stats.u.toFixed(4) })));
+  }
+  console.log('scroll', JSON.stringify(samples));
+}
+
 for (const p of points) {
   await page.evaluate((p) => window.__jump(p), p);
   await page.waitForTimeout(flags.fps ? 2500 : 400);
   const s = await page.evaluate(() => ({ ...window.__stats }));
-  await page.screenshot({ path: `${out}/p${String(Math.round(p * 1000)).padStart(4, '0')}.png` });
+  const name = `p${String(Math.round(p * 1000)).padStart(4, '0')}.png`;
+  await page.screenshot({ path: `${out}/${name}` });
+  if (flags.mask) {
+    await page.evaluate(() => window.__mask(true));
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: `${out}/mask-${name}` });
+    await page.evaluate(() => window.__mask(false));
+  }
   console.log(`p=${p.toFixed(3)} fps=${s.fps} calls=${s.calls} tris=${s.triangles} dpr=${s.dpr}`);
 }
 if (logs.length) console.log(logs.slice(0, 30).join('\n'));

@@ -49,12 +49,12 @@ function normalize(v) {
 }
 
 // Sole esterno: basso sul mare, da sinistra (luce radente sulla facciata, riflessi sul mare)
-export const SUN_EXT = { dir: dirFromAzEl(-100, 12), color: '#FFE6CC', angularRadius: 0.0047 };
+export const SUN_EXT = { dir: dirFromAzEl(-100, 12), color: '#FFE6CC', intensity: 1.0, angularRadius: 0.0047 };
 // Sole che entra dal lucernario: alto, arriva dal lato della finestra e cade sul lato opposto del pit
-export const SUN_INT = { dir: normalize([-0.1, 1, 0.34]), color: '#FFF1E0', angularRadius: 0.0047 };
+export const SUN_INT = { dir: normalize([-0.1, 1, 0.34]), color: '#FFF1E0', intensity: 0.82, angularRadius: 0.0047 };
 
 // Codifica della lightmap: rgb = irradianza indiretta / LM_EMAX (curva sRGB), a = visibilità del sole
-export const LM_EMAX = 2.0;
+export const LM_EMAX = 1.2;
 
 // Palette
 export const PALETTE = {

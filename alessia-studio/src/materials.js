@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PALETTE, SKYLIGHT, PIT, WINDOW, BACK_OPENING, ROOM, FLOOR_Y, CEIL_Y, LM_EMAX } from './layout.js';
+import { PALETTE, SKYLIGHT, PIT, LM_EMAX } from './layout.js';
 
 // ---------------------------------------------------------------------------------------------
 // Materiali. Il cemento usa un'illuminazione fisica (irradianza indiretta + sole con normal map,
@@ -52,6 +52,7 @@ export const GLSL_COMMON = /* glsl */ `
 `;
 
 const SHADOW_GLSL = /* glsl */ `
+#ifdef USE_SHADOWMAP
   uniform sampler2DShadow uShadow;
   uniform mat4 uShadowMatrix;
   uniform float uShadowTexel;
@@ -70,24 +71,21 @@ const SHADOW_GLSL = /* glsl */ `
     s += texture(uShadow, vec3(c.xy + vec2(t.x, t.y), z));
     return s / 6.0;
   }
+#endif
 `;
 
 const CONCRETE_VERT = /* glsl */ `
   varying vec3 vWorldPos;
   varying vec3 vNormal;
   varying vec2 vUv;
-  #ifdef USE_LM
-    attribute vec2 uv1;
-    varying vec2 vUv1;
-  #endif
+  attribute vec2 uv1;
+  varying vec2 vUv1;
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorldPos = wp.xyz;
     vNormal = normalize(mat3(modelMatrix) * normal);
     vUv = uv;
-    #ifdef USE_LM
-      vUv1 = uv1;
-    #endif
+    vUv1 = uv1;
     gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
@@ -107,10 +105,10 @@ const CONCRETE_FRAG = /* glsl */ `
   uniform vec3 uSky;      // centro xz e raggio del lucernario
   uniform vec2 uSkyY;     // quote dell'intradosso e dell'estradosso
   uniform float uNormalStrength;
-  #ifdef USE_LM
-    uniform sampler2D uLightMap;
-    varying vec2 vUv1;
-  #endif
+  uniform vec3 uHaze;
+  uniform float uMask;
+  uniform sampler2D uLightMap;
+  varying vec2 vUv1;
   varying vec3 vWorldPos;
   varying vec3 vNormal;
   varying vec2 vUv;
@@ -138,37 +136,6 @@ const CONCRETE_FRAG = /* glsl */ `
     return normalize(T * (mapN.x * sc) + B * (mapN.y * sc) + N * mapN.z);
   }
 
-  // Irradianza indiretta approssimata (usata finché non c'è la lightmap precalcolata)
-  float fakeAmbient(vec3 p, vec3 n) {
-    #ifdef INTERIOR
-      float e = 0.36;
-      // luce rimbalzata dal cerchio di sole sul fondo del pit
-      vec3 pb = vec3(${(PIT.cx + 0.7).toFixed(2)}, ${(PIT.floorY + 0.35).toFixed(2)}, ${(PIT.cz - 2.2).toFixed(2)});
-      vec3 lb = pb - p;
-      float db = length(lb);
-      e += 0.55 * max(dot(n, lb / db), 0.0) / (1.0 + db * db / 10.0);
-      // portali: finestra circolare e grande apertura
-      vec3 pw = vec3(0.0, ${WINDOW.cy.toFixed(2)}, ${(ROOM.z1 + 0.2).toFixed(2)});
-      vec3 lw = pw - p; float dw = length(lw);
-      e += 0.5 * max(dot(n, lw / dw), 0.0) * max(-lw.z / dw, 0.0) / (1.0 + dw * dw / 30.0);
-      vec3 po = vec3(0.0, ${((BACK_OPENING.y0 + BACK_OPENING.y1) / 2).toFixed(2)}, ${(ROOM.z0 - 0.4).toFixed(2)});
-      vec3 lo = po - p; float dob = length(lo);
-      e += 0.95 * max(dot(n, lo / dob), 0.0) * max(lo.z / dob, 0.0) / (1.0 + dob * dob / 45.0);
-      // occlusione negli angoli della stanza e nel pit
-      float ao = 1.0;
-      if (abs(n.x) < 0.5) ao *= 1.0 - 0.28 * exp(-min(p.x - ${ROOM.x0.toFixed(2)}, ${ROOM.x1.toFixed(2)} - p.x) / 0.6);
-      if (abs(n.z) < 0.5) ao *= 1.0 - 0.28 * exp(-min(p.z - ${ROOM.z0.toFixed(2)}, ${ROOM.z1.toFixed(2)} - p.z) / 0.6);
-      if (abs(n.y) < 0.5) ao *= 1.0 - 0.3 * exp(-max(p.y - ${FLOOR_Y.toFixed(2)}, 0.0) / 0.5) - 0.25 * exp(-(${CEIL_Y.toFixed(2)} - p.y) / 0.7);
-      ao *= mix(0.62, 1.0, smoothstep(${PIT.floorY.toFixed(2)}, ${(FLOOR_Y + 0.05).toFixed(2)}, p.y));
-      return e * ao;
-    #else
-      float sky = 0.62 + 0.3 * n.y;
-      float sea = 0.16 * max(-n.y, 0.0);
-      float ao = mix(0.78, 1.0, smoothstep(0.0, 2.5, p.y));
-      return (sky + sea) * ao;
-    #endif
-  }
-
   void main() {
     vec4 tex = texture2D(uMap, vUv * uTexScale);
     vec3 mapN = vec3(tex.xy * 2.0 - 1.0, 0.0);
@@ -193,24 +160,22 @@ const CONCRETE_FRAG = /* glsl */ `
     vec3 V = normalize(cameraPosition - vWorldPos);
     vec3 L = uSunDir;
 
-    #ifdef USE_LM
-      vec4 lm = texture2D(uLightMap, vUv1);
-      float Eind = lm.r * ${LM_EMAX.toFixed(2)};
-      float vis = lm.a;
-    #else
-      float Eind = fakeAmbient(vWorldPos, Ng);
-      float vis = 1.0;
-    #endif
+    // lightmap precalcolata: rgb = irradianza indiretta (cielo + rimbalzi), a = visibilità del sole
+    vec4 lm = texture2D(uLightMap, vUv1);
+    float Eind = lm.r * ${LM_EMAX.toFixed(2)};
+    float vis = lm.a;
     // la normal map modula leggermente anche la luce diffusa del cielo
     Eind *= 0.86 + 0.14 * clamp(dot(N, normalize(Ng + vec3(0.0, 0.9, 0.0))), 0.0, 1.0);
 
     float sunI = uSunI;
     #ifdef INTERIOR
       float ap = aperture(vWorldPos, L, uSky, uSkyY);
-      vis *= ap;
-      if (ap > 0.0) vis *= shadowAt(vWorldPos, Ng, L, 1.2);
+      #ifdef USE_SHADOWMAP
+        vis = ap > 0.0 ? ap * shadowAt(vWorldPos, Ng, L, 1.2) : 0.0;
+      #else
+        vis *= ap;
+      #endif
     #else
-      vis *= shadowAt(vWorldPos, Ng, L, 1.6);
       // ombre lentissime di nuvole alte
       float cl = vnoise(vWorldPos.xz * 0.035 + vec2(uCloud * 0.012, uCloud * 0.004));
       sunI *= 0.9 + 0.12 * smoothstep(0.25, 0.75, cl);
@@ -231,19 +196,26 @@ const CONCRETE_FRAG = /* glsl */ `
     float spec = D * F * 0.25 / max(dot(N, V) * 0.5 + 0.5, 0.2);
     col += uSunColor * (spec * ndl * vis * sunI * uExposure * 0.32);
 
+    #ifndef INTERIOR
+      // prospettiva aerea: in lontananza il cemento si vela del colore dell'orizzonte
+      float dist = length(cameraPosition - vWorldPos);
+      col = mix(col, uHaze * uExposure, smoothstep(25.0, 140.0, dist) * 0.22);
+    #endif
+
     gl_FragColor = vec4(col, 1.0);
+    if (uMask > 0.5) gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
     #include <colorspace_fragment>
   }
 `;
 
-export function makeConcreteMaterial({ map, tileM, interior, sun, lights, shadow, lightMap = null }) {
+export function makeConcreteMaterial({ map, tileM, interior, sun, lights, shadow, lightMap, shadowMap = false }) {
   const L = lights.uniforms;
   const material = new THREE.ShaderMaterial({
     vertexShader: CONCRETE_VERT,
     fragmentShader: CONCRETE_FRAG,
     defines: {
       ...(interior ? { INTERIOR: '' } : {}),
-      ...(lightMap ? { USE_LM: '' } : {}),
+      ...(shadowMap ? { USE_SHADOWMAP: '' } : {}),
     },
     uniforms: {
       uMap: { value: map },
@@ -259,6 +231,8 @@ export function makeConcreteMaterial({ map, tileM, interior, sun, lights, shadow
       uSky: { value: new THREE.Vector3(SKYLIGHT.cx, SKYLIGHT.cz, SKYLIGHT.r) },
       uSkyY: { value: new THREE.Vector2(SKYLIGHT.y0, SKYLIGHT.y1) },
       uNormalStrength: { value: 1.0 },
+      uHaze: { value: lin(PALETTE.skyLow) },
+      uMask: { value: 0 },
       uLightMap: { value: lightMap },
       ...shadow,
     },
@@ -273,17 +247,13 @@ export function makeConcreteMaterial({ map, tileM, interior, sun, lights, shadow
 const CUSHION_VERT = /* glsl */ `
   varying vec3 vWorldPos;
   varying vec3 vNormal;
-  #ifdef USE_BAKE
-    attribute vec4 color;
-    varying vec4 vBake;
-  #endif
+  attribute vec4 color;
+  varying vec4 vBake;
   void main() {
     vec4 wp = modelMatrix * vec4(position, 1.0);
     vWorldPos = wp.xyz;
     vNormal = normalize(mat3(modelMatrix) * normal);
-    #ifdef USE_BAKE
-      vBake = color;
-    #endif
+    vBake = color;
     gl_Position = projectionMatrix * viewMatrix * wp;
   }
 `;
@@ -298,61 +268,72 @@ const CUSHION_FRAG = /* glsl */ `
   uniform float uSunI;
   uniform vec3 uSky;
   uniform vec2 uSkyY;
+  uniform float uMask;
   varying vec3 vWorldPos;
   varying vec3 vNormal;
-  #ifdef USE_BAKE
-    varying vec4 vBake;
-  #endif
+  varying vec4 vBake;
   ${GLSL_COMMON}
   ${SHADOW_GLSL}
   void main() {
     vec3 N = normalize(vNormal);
     vec3 V = normalize(cameraPosition - vWorldPos);
     if (dot(N, V) < 0.0) N = -N;
+    // pieghe morbide dell'imbottitura (bump dalle derivate, niente texture)
+    vec3 wp = vWorldPos;
+    float hb = vnoise(wp.xz * 5.0 + wp.y * 4.0) * 0.8 + vnoise(wp.zx * 11.0 - wp.y * 7.0) * 0.2;
+    vec3 dpdx = dFdx(wp), dpdy = dFdy(wp);
+    vec3 r1 = cross(dpdy, N), r2 = cross(N, dpdx);
+    float det = dot(dpdx, r1);
+    vec3 grad = sign(det) * (dFdx(hb) * r1 + dFdy(hb) * r2);
+    N = normalize(abs(det) * N - grad * 0.0035);
     vec3 L = uSunDir;
     // micro-trama del tessuto
     float fib = vnoise(vWorldPos.xz * 380.0 + vWorldPos.y * 210.0) - 0.5;
-    #ifdef USE_BAKE
-      float Eind = vBake.r * ${LM_EMAX.toFixed(2)};
-      float vis = vBake.a;
-    #else
-      float Eind = 0.42 * (0.7 + 0.3 * N.y);
-      Eind *= mix(0.7, 1.0, smoothstep(${PIT.floorY.toFixed(2)}, ${(PIT.ring1.y + 0.3).toFixed(2)}, vWorldPos.y));
-      float vis = 1.0;
-    #endif
+    // irradianza e visibilità del sole precalcolate nei vertici
+    float Eind = vBake.r * ${LM_EMAX.toFixed(2)};
+    float vis = vBake.a;
     float ap = aperture(vWorldPos, L, uSky, uSkyY);
-    vis *= ap;
-    if (ap > 0.0) vis *= shadowAt(vWorldPos, N, L, 1.0);
+    #ifdef USE_SHADOWMAP
+      vis = ap > 0.0 ? ap * shadowAt(vWorldPos, N, L, 1.0) : 0.0;
+    #else
+      vis *= ap;
+    #endif
     float ndl = dot(N, L);
     float wrap = max((ndl + 0.35) / 1.35, 0.0);
     float nv = max(dot(N, V), 0.0);
     float sheen = pow(1.0 - nv, 4.0);
-    // ambiente: rimbalzo rosato del cemento
-    vec3 amb = Eind * vec3(1.0, 0.9, 0.86);
+    // ambiente: rimbalzo rosato del cemento; il velluto diffonde la luce anche dalle fibre
+    vec3 amb = Eind * vec3(1.0, 0.92, 0.88) * 1.45;
     vec3 direct = uSunColor * (uSunI * wrap * vis);
     vec3 col = uColor * (amb + direct) * (1.0 + fib * 0.06);
-    col += uSheen * sheen * (0.35 * Eind + 0.8 * uSunI * vis * max(ndl + 0.2, 0.0));
+    col += uSheen * sheen * (0.3 * Eind + 0.45 * uSunI * vis * max(ndl + 0.2, 0.0));
     col *= uExposure;
-    gl_FragColor = vec4(softClip(col), 1.0);
+    // compressione delle alte luci che conserva la tinta: al sole resta verde acido, non vira al giallo
+    float mc = max(col.r, max(col.g, col.b));
+    col *= softClip(vec3(mc)).x / max(mc, 1e-4);
+    gl_FragColor = vec4(col, 1.0);
+    // maschera di test (verifica automatica dei colori)
+    if (uMask > 0.5) gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
     #include <colorspace_fragment>
   }
 `;
 
-export function makeCushionMaterial({ lights, shadow, baked = false }) {
+export function makeCushionMaterial({ lights, shadow, shadowMap = false }) {
   const L = lights.uniforms;
   return new THREE.ShaderMaterial({
     vertexShader: CUSHION_VERT,
     fragmentShader: CUSHION_FRAG,
-    defines: baked ? { USE_BAKE: '' } : {},
+    defines: shadowMap ? { USE_SHADOWMAP: '' } : {},
     uniforms: {
       uColor: { value: lin(PALETTE.cushion) },
-      uSheen: { value: lin('#E4FF9E') },
+      uSheen: { value: lin('#CDF77A') },
       uExposure: L.uExposure,
       uSunDir: L.uSunIntDir,
       uSunColor: L.uSunIntColor,
       uSunI: L.uSunIntI,
       uSky: { value: new THREE.Vector3(SKYLIGHT.cx, SKYLIGHT.cz, SKYLIGHT.r) },
       uSkyY: { value: new THREE.Vector2(SKYLIGHT.y0, SKYLIGHT.y1) },
+      uMask: { value: 0 },
       ...shadow,
     },
   });
@@ -387,7 +368,7 @@ export function makeBeam(lights) {
       uDir: L.uSunIntDir,
       uY: { value: new THREE.Vector2(yBot, yTop) },
       uSky: { value: new THREE.Vector3(SKYLIGHT.cx, SKYLIGHT.cz, SKYLIGHT.r) },
-      uStrength: { value: 0.16 },
+      uStrength: { value: 0.3 },
     },
     vertexShader: /* glsl */ `
       varying vec3 vWorldPos;
@@ -437,7 +418,7 @@ export function makeBeam(lights) {
         // diffusione in avanti: più luminoso guardando verso il sole
         float phase = 0.55 + 2.2 * pow(max(dot(-rd, uDir), 0.0), 8.0);
         float n = vnoise(mid.xz * 1.7 + vec2(mid.y * 0.6, uTime * 0.04)) * 0.6 + vnoise(mid.xz * 5.0 - uTime * 0.03) * 0.4;
-        float a = uStrength * (1.0 - exp(-ch.y * 0.55)) * fade * phase * (0.65 + 0.7 * n);
+        float a = uStrength * (1.0 - exp(-ch.y * 0.3)) * fade * phase * (0.65 + 0.7 * n);
         gl_FragColor = vec4(uColor * a * uExposure, 1.0);
         #include <colorspace_fragment>
       }
@@ -495,9 +476,10 @@ export function makeDust(lights, count = 420) {
         // visibile solo dentro il fascio di sole
         float tt = (uSkyY.x - p.y) / uDir.y;
         float d = length(p.xz + uDir.xz * tt - uSky.xy);
-        vA = smoothstep(uSky.z, uSky.z * 0.75, d) * (0.5 + 0.5 * sin(t * 3.0 + aSeed * 20.0));
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
-        gl_PointSize = (0.9 + aSeed * 1.6) * uPixelRatio * (6.0 / max(-mv.z, 0.5));
+        // visibili solo nel fascio, e mai come "macchie" a ridosso dell'obiettivo
+        vA = smoothstep(uSky.z, uSky.z * 0.75, d) * (0.5 + 0.5 * sin(t * 3.0 + aSeed * 20.0)) * smoothstep(0.6, 1.6, -mv.z);
+        gl_PointSize = min((0.9 + aSeed * 1.6) * uPixelRatio * (6.0 / max(-mv.z, 0.5)), 4.0 * uPixelRatio);
         gl_Position = projectionMatrix * mv;
       }
     `,
