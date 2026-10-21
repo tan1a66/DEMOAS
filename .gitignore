@@ -4,3 +4,5 @@ dist
 *.local
 dist-preview
 video
+# anteprima a file unico di Alessia Studio (si rigenera con: cd alessia-studio && npm run build:preview)
+alessia-studio-anteprima.html
