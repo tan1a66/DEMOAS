@@ -322,14 +322,34 @@ export default class MundoScene {
 
   // ------------------------------------------------------------ camino
 
-  // Encuadre de cada sala en el camino (en un teléfono en vertical, el suyo).
+  // Paradas del camino: el encuadre de cada sala (en un teléfono en vertical,
+  // el suyo) y, para Menú y Autores, una parada propia mirando su objeto.
+  // Cada parada sabe qué botones destaca.
   updateStops() {
-    this.rail.setStops(
-      ROOMS.map((room) => {
-        const [x, z] = room.view.pos;
-        return { s: this.rail.nearest(x, z), yaw: this.yawOf(room.view), pitch: room.view.pitch ?? 0 };
-      }),
-    );
+    const r = this.rail;
+    const own = SPOTS.filter((sp) => sp.stop);
+    this.roomStops = ROOMS.map((room, i) => {
+      const [x, z] = room.view.pos;
+      const spots = SPOTS.filter((sp) => sp.room === i && !sp.stop).map((sp) => sp.id);
+      return { s: r.nearest(x, z), yaw: this.yawOf(room.view), pitch: room.view.pitch ?? 0, room: i, spots };
+    });
+    const spotStops = own.map((sp) => {
+      const [x, z] = sp.stop.pos;
+      const [lx, ly, lz] = sp.stop.look;
+      const eye = (r.floorAt(x, z) ?? 0) + 1.6;
+      return { s: r.nearest(x, z), yaw: Math.atan2(lx - x, -(lz - z)), pitch: Math.atan2(ly - eye, Math.hypot(lx - x, lz - z)), r: 2.4, spots: [sp.id] };
+    });
+    r.setStops([...this.roomStops, ...spotStops].sort((a, b) => a.s - b.s));
+  }
+
+  // Ir hasta una parada que no es una sala (el objeto de una sección).
+  glide(st) {
+    this.travelling = true;
+    const d = Math.abs(st.s - this.rail.s);
+    return this.rail.goTo(st.s, THREE.MathUtils.clamp(d / 1.4, 2.4, 12)).then(() => {
+      this.travelling = false;
+      this.arrived = this.engine.time;
+    });
   }
 
   // ------------------------------------------------------------ salas
@@ -369,7 +389,7 @@ export default class MundoScene {
       gsap.set('#veil', { opacity: 1 });
     } else {
       const v = ROOMS[room]?.view ?? ROOMS[0].view;
-      this.rail.place(this.rail.stops[room]?.s ?? 0);
+      this.rail.place(this.roomStops[room]?.s ?? 0);
       this.rail.focusAmt = 0;
       this.setArea(this.areaAt(v.pos[0], v.pos[1]), true);
     }
@@ -440,7 +460,7 @@ export default class MundoScene {
 
   // Ir a una sala (desde el índice, "Seguir" o la URL).
   goTo(i, { quick = false } = {}) {
-    const st = this.rail.stops[i];
+    const st = this.roomStops[i];
     if (!st) return Promise.resolve();
     this.index = i;
     this.caption(i);
@@ -564,11 +584,15 @@ export default class MundoScene {
     // Puntos de luz de las secciones: aparecen al pararse cerca de su objeto.
     this.still = !w.tween && w.focusAmt === 0 && w.speed < (this.still ? 0.9 : 0.3);
     const still = this.still;
+    // parados en una parada: sus botones se ven grandes
+    const here = still ? w.stops.find((st) => Math.abs(st.s - w.s) < 0.4) : null;
     for (const s of SPOTS) {
       const near = Math.hypot(cam.position.x - s.at[0], cam.position.z - s.at[2]) < 9;
       const p = this._p.set(...s.at).project(cam);
       const inView = p.z < 1 && Math.abs(p.x) < 0.92 && Math.abs(p.y) < 0.9;
-      this.labels.show(s.id, this.state === 'idle' && still && near && inView && ROOM_AREA[s.room] === this.area);
+      const on = this.state === 'idle' && still && near && inView && ROOM_AREA[s.room] === this.area;
+      this.labels.show(s.id, on);
+      this.labels.feature(s.id, on && !!here?.spots.includes(s.id));
     }
     this.labels.update();
   }
@@ -603,9 +627,12 @@ export default class MundoScene {
       r.drift = 0;
       this.driftT0 = null;
     }
-    // la sala siguiente
-    const next = r.stops.findIndex((st) => st.s > r.s + 0.5);
-    if (calm && next >= 0 && t - Math.max(r.lastInput, this.arrived ?? 0) > DWELL) this.request(next);
+    // la parada siguiente (una sala o el objeto de una sección)
+    const next = r.stops.find((st) => st.s > r.s + 0.5);
+    if (calm && next && t - Math.max(r.lastInput, this.arrived ?? 0) > DWELL) {
+      if (next.room != null) this.request(next.room);
+      else this.glide(next);
+    }
   }
 
   resize() {

@@ -57,9 +57,10 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 
    Si percorre **con lo scroll**, come una pagina: rotella o trackpad (sul telefono il dito in su e in
    giù, frecce e barra spaziatrice da tastiera) portano avanti e indietro lungo un unico percorso che
-   passa per le porte e sale la scala. **Lo scroll si ferma in ogni sala**, anche scorrendo veloce:
-   la camera si posa sulla sua inquadratura e compaiono i bottoni delle sezioni; per proseguire basta
-   un nuovo gesto di scroll.
+   passa per le porte e sale la scala. **Lo scroll si ferma in ogni sala e davanti agli oggetti di
+   Menú (il tavolo apparecchiato) e Autores (il quadro)**, anche scorrendo veloce: la camera si posa
+   sull'inquadratura e il bottone della sezione compare in grande; continuando a scorrere non si
+   passa oltre, per proseguire serve un nuovo gesto dopo una breve pausa.
    **Trascinando** si gira lo sguardo (come in Street View), e continuando a scorrere torna sul
    percorso. **"Seguir"** e l'indice a destra portano alla sala successiva o a quella scelta.
    **Visita automatica:** se nessuno tocca niente la casa si visita da sola, sala per sala, con una

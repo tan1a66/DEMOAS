@@ -15,10 +15,12 @@ export const ROOMS = [
 
 // Puntos de luz: sección, posición del objeto (x, y, z), lo que se encuadra al
 // abrir la sección (look; si no, el propio objeto) y desde dónde se mira.
+// Con `stop`, la sección tiene su propia parada en el camino: el scroll se
+// detiene ahí, mirando el objeto (pos en el camino, look el punto mirado).
 export const SPOTS = [
   { id: 'historia', room: 0, at: [1.7, 1.45, 2.55], look: [1.75, 2.0, 3.3], view: { pos: [0.1, 3.3] } },
-  { id: 'autores', room: 1, at: [2.5, 2.3, -9.0], view: { pos: [0.3, -9.0] } },
-  { id: 'menu', room: 1, at: [1.62, 1.0, -5.24], view: { pos: [0.2, -4.0] } },
+  { id: 'autores', room: 1, at: [2.5, 2.3, -9.0], stop: { pos: [-0.22, -9.0], look: [2.5, 1.95, -9.0] }, view: { pos: [0.3, -9.0] } },
+  { id: 'menu', room: 1, at: [1.62, 1.0, -5.24], stop: { pos: [-0.1, -4.2], look: [1.62, 0.95, -5.24] }, view: { pos: [0.2, -4.0] } },
   { id: 'eventos', room: 2, at: [-5.85, 1.1, -20.2], view: { pos: [-3.9, -19.2] } },
   { id: 'concurso', room: 3, at: [-13.25, 5.65, -37.5], view: { pos: [-11.3, -39.3] } },
   { id: 'reserva', room: 4, at: [0.2, 5.9, -37.8], look: [13.3, 8.0, -51.9], view: { pos: [-1.6, -38.6] } },

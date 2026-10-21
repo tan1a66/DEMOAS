@@ -143,17 +143,16 @@ export class Rail {
     this.gates = stops.map((st) => st.s).sort((a, b) => a - b);
   }
 
-  // Avanzar ds metros con el scroll. Si se cruza una sala, se para en ella
-  // (aparecen sus botones). Sigue con un gesto nuevo tras una pausa breve o,
-  // si se sigue desplazando sin parar, pasado un segundo y medio: nunca se
-  // queda "pegada".
+  // Avanzar ds metros con el scroll. Si se cruza una parada (una sala o el
+  // objeto de una sección), se detiene en ella y aparecen sus botones; aunque
+  // se siga desplazando no la pasa: sigue con un gesto nuevo, tras una pausa.
   scrollBy(ds) {
     const t = this.engine.time;
     const pause = t - this.lastScroll;
     this.lastScroll = t;
     if (this.hold != null) {
       const held = t - this.holdSince;
-      if (held < 1.5 && (pause < 0.3 || held < 0.5)) return;
+      if (pause < 0.45 || held < 1.8) return;
       this.hold = null;
     }
     const from = this.sT;
@@ -214,7 +213,8 @@ export class Rail {
     let yaw = mix(this.head);
     let pitch = 0.03 + mix(this.lift);
     for (const st of this.stops) {
-      const w = 1 - THREE.MathUtils.smoothstep(Math.abs(s - st.s), STOP_RADIUS * 0.2, STOP_RADIUS);
+      const R = st.r ?? STOP_RADIUS;
+      const w = 1 - THREE.MathUtils.smoothstep(Math.abs(s - st.s), R * 0.2, R);
       if (w <= 0) continue;
       yaw += wrap(st.yaw - yaw) * w;
       pitch += (st.pitch - pitch) * w;

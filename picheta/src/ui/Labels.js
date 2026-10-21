@@ -36,6 +36,14 @@ export class Labels {
     if (on) it.w = it.el.offsetWidth;
   }
 
+  // Botón destacado: más grande (el de la parada en la que se está).
+  feature(id, on = true) {
+    const it = this.items.get(id);
+    if (!it || it.featured === on) return;
+    it.featured = on;
+    it.el.classList.toggle('big', on);
+  }
+
   hideAll() {
     for (const id of this.items.keys()) this.show(id, false);
   }
