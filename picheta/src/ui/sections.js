@@ -3,7 +3,7 @@
 
 export function renderSection(id, { content, config, isStatic = false }) {
   const s = content.sections[id];
-  const photos = config.assets.photos;
+  const photos = config.assets.images;
   const head = `
     <header class="sec-head">
       <p class="sec-kicker">${content.brand}</p>
@@ -28,14 +28,16 @@ const photo = (src, alt = '', cls = '') =>
   `<figure class="ph ${cls}"><img src="${src}" alt="${alt}" loading="lazy" decoding="async" /></figure>`;
 
 const BODIES = {
-  historia(s, { photos }) {
+  historia(s, { photos, content }) {
+    // el busto de Picheta, recortado, sobre el fondo del panel
+    const bust = `<figure class="bust"><img src="${photos.busto}" alt="${content.ui.bust}" loading="lazy" decoding="async" /></figure>`;
     return `
       <div class="hist">
         ${s.phrases
           .map(
             (p, i) => `
           <section class="hist-step reveal ${i % 2 ? 'alt' : ''}">
-            <div class="hist-art">${p.photo ? photo(photos[p.photo], '', 'engr') : ART[p.art] ?? ''}</div>
+            <div class="hist-art">${p.bust ? bust : ART[p.art] ?? ''}</div>
             <p class="phrase">${p.text}</p>
           </section>`,
           )
@@ -45,46 +47,55 @@ const BODIES = {
   },
 
   autores(s, { photos }) {
-    return `
-      <div class="people">
-        ${s.people
-          .map(
-            (p) => `
+    const people = (list) =>
+      list
+        .map(
+          (p) => `
           <article class="person reveal">
-            ${photo(photos[p.photo], p.role, 'portrait')}
+            ${photo(photos[p.photo], p.name, 'portrait')}
             <h3>${p.name}</h3>
             <p>${p.role}</p>
           </article>`,
-          )
-          .join('')}
-      </div>
-      <p class="text reveal">${s.note}</p>`;
+        )
+        .join('');
+    const r = s.residents;
+    return `
+      <div class="people">${people(s.people)}</div>
+      <header class="sub-head reveal">
+        <h3 class="sub-title">${r.title}</h3>
+        <p class="sec-lead">${r.text}</p>
+      </header>
+      <div class="people single">${people(r.people)}</div>`;
   },
 
-  menu(s, { photos, content, isStatic }) {
-    const cards = s.dishes
-      .map(
-        (d, i) => `
-        <article class="dish ${d.photo ? 'has-photo' : ''}" data-i="${i}">
-          ${d.photo ? `<div class="dish-photo" style="background-image:url('${photos[d.photo]}')"></div>` : `<div class="dish-art">${ART.platillo}</div>`}
-          <div class="dish-text">
-            <p class="dish-n">${String(i + 1).padStart(2, '0')} / ${String(s.dishes.length).padStart(2, '0')} · ${d.course}</p>
-            <h3>${d.name}</h3>
-            <p>${d.text}</p>
-          </div>
-        </article>`,
-      )
-      .join('');
-    if (isStatic) return `<div class="dishes-static">${cards}</div>`;
+  // El menú como una carta: portadas (con atajos), platillo, precio y autor.
+  menu(s, { isStatic }) {
+    const tabs = isStatic
+      ? ''
+      : `<nav class="menu-tabs reveal" aria-label="${s.title}">${s.courses.map((c, i) => `<button type="button" data-course="${i}">${c.name}</button>`).join('')}</nav>`;
     return `
-      <div class="deck" tabindex="0" aria-roledescription="carrusel">
-        <div class="deck-stage">${cards}</div>
-        <div class="deck-nav">
-          <button class="deck-prev" type="button" aria-label="${content.ui.prev}">‹</button>
-          <span class="deck-count"></span>
-          <button class="deck-next" type="button" aria-label="${content.ui.next}">›</button>
-        </div>
-      </div>`;
+      <p class="text reveal">${s.text}</p>
+      ${tabs}
+      ${s.courses
+        .map(
+          (c, i) => `
+        <section class="course" data-course="${i}">
+          <h3 class="course-title reveal">${c.name}</h3>
+          <ul class="dish-list">
+            ${c.dishes
+              .map(
+                (d) => `
+            <li class="dish-line reveal">
+              <p class="dish-text">${d.text}</p>
+              <span class="dish-price">$${d.price}</span>
+              ${d.author ? `<p class="dish-author">${HAT}${d.author}</p>` : ''}
+            </li>`,
+              )
+              .join('')}
+          </ul>
+        </section>`,
+        )
+        .join('')}`;
   },
 
   reserva(s, { config }) {
@@ -122,6 +133,9 @@ const BODIES = {
   },
 };
 
+// Gorro de chef (autor del platillo), dibujado a línea.
+const HAT = `<svg class="hat" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10v-3.2a4 4 0 1 0-1.6-7.6 4.2 4.2 0 0 0-6.8 0A4 4 0 1 0 7 14.8z" /><path d="M7 20.5h10" /></svg>`;
+
 // ------------------------------------------------------------ grabados (SVG originales)
 // Fragmentos al estilo de la estampa satírica del siglo XIX: tramados de
 // líneas, marcos y cartelas. Placeholders originales, no reproducen obras reales.
@@ -133,15 +147,6 @@ const HATCH = `
   </defs>`;
 
 const ART = {
-  medallon: `<svg class="engr-svg" viewBox="0 0 200 240" aria-hidden="true">${HATCH}
-    <ellipse cx="100" cy="112" rx="84" ry="104" fill="none" stroke="currentColor" stroke-width="2"/>
-    <ellipse cx="100" cy="112" rx="76" ry="96" fill="none" stroke="currentColor" stroke-width="0.8"/>
-    <ellipse cx="100" cy="112" rx="74" ry="94" fill="url(#h2)" opacity="0.35"/>
-    <path d="M58 196 C60 160 78 150 92 146 C82 136 76 120 78 100 C80 74 96 62 112 64 C130 66 140 82 138 104 C137 118 132 132 122 142 C138 148 150 160 152 196 Z" fill="url(#h1)" stroke="currentColor" stroke-width="1.6"/>
-    <path d="M100 118 C106 121 114 121 118 117" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-    <path d="M86 70 C96 58 122 58 134 76 C126 70 108 68 96 78 Z" fill="currentColor"/>
-    <text x="100" y="232" text-anchor="middle" font-family="Jost, sans-serif" font-size="11" letter-spacing="3" fill="currentColor">1828 · 1899</text>
-  </svg>`,
   cabecera: `<svg class="engr-svg wide" viewBox="0 0 320 150" aria-hidden="true">${HATCH}
     <rect x="6" y="6" width="308" height="138" fill="none" stroke="currentColor" stroke-width="2"/>
     <rect x="12" y="12" width="296" height="126" fill="none" stroke="currentColor" stroke-width="0.7"/>
@@ -175,11 +180,6 @@ const ART = {
     ${[0, 1, 2].map((i) => `<path d="M${30 + i * 86} 148 V78 a40 40 0 0 1 80 0 V148" fill="url(#h1)" opacity="0.5" stroke="currentColor" stroke-width="1.6"/>`).join('')}
     <path d="M12 20 H288 M12 30 H288" stroke="currentColor" stroke-width="1"/>
     <text x="150" y="16" text-anchor="middle" font-family="Cormorant Garamond, serif" font-style="italic" font-size="13" fill="currentColor">1639</text>
-  </svg>`,
-  platillo: `<svg class="engr-svg" viewBox="0 0 200 140" aria-hidden="true">${HATCH}
-    <ellipse cx="100" cy="88" rx="86" ry="34" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <ellipse cx="100" cy="84" rx="62" ry="22" fill="url(#h1)" stroke="currentColor" stroke-width="1"/>
-    <path d="M80 50 q8 -18 0 -34 M100 46 q8 -18 0 -34 M120 50 q8 -18 0 -34" fill="none" stroke="currentColor" stroke-width="1" opacity="0.7"/>
   </svg>`,
 };
 

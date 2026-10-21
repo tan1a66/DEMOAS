@@ -96,13 +96,14 @@ Le rotte usano l'hash (`/#salon`, `/#menu`), quindi non servono regole di redire
 - `public/assets/mundo/`: i due quadri (raddrizzati dalle foto), la Cattedrale ritagliata dal cielo e
   la foto di copertina della versione senza WebGL.
 
-Le foto delle sezioni Menú e Autores (`public/assets/fotos/`) sono **immagini provvisorie generate con
-IA**: sostituirle con le foto dei piatti e i ritratti dei cuochi (`CONFIG.assets.photos`).
+Contenuti reali (dal sito attuale e dal cliente): il busto di Picheta in Historia
+(`public/assets/historia/`, ritagliato dallo sfondo), i ritratti di autori e chef residenti
+(`public/assets/autores/`) e il menù completo con prezzi e autori (`src/content/es.js` → `menu`).
+Nel menù sono stati corretti solo refusi evidenti (ensalada, mantequilla, Papantla, centro histórico).
 
 ## Da confermare con il cliente
 - `src/config.js` → `links`: Instagram, pagina di Facturación, link OpenTable, numero WhatsApp
 - `src/content/es.js`: orari (Lun–Sáb 17:00–00:00 · Dom 14:30–21:00), testo completo della storia,
-  nomi e ritratti degli autores, menù reale (i piatti attuali sono esempi di cucina yucateca),
   contenuti di Concurso ed Eventos, didascalie delle sale
 - Misure e arredi della casa sono ricostruiti dalle foto: con una pianta del locale si possono
   rendere esatti (`src/scenes/mundo/*.js`, coordinate in metri)

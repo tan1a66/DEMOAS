@@ -4,7 +4,7 @@ import { renderSection, renderFooter } from './sections.js';
 
 // Paneles de sección: se abren sobre la sala 3D, que sigue viva detrás,
 // desenfocada y oscurecida (PostFX). Scroll suave con Lenis; los bloques
-// aparecen al entrar en pantalla; el menú es una baraja de cartas 3D.
+// aparecen al entrar en pantalla; el menú es una carta con atajos por portada.
 export class Panel {
   constructor(root, { content, config, engine, onClose }) {
     this.content = content;
@@ -52,7 +52,7 @@ export class Panel {
     this.body.dataset.section = id;
     this.body.innerHTML = renderSection(id, this) + renderFooter(this);
     this.body.querySelectorAll('.reveal, .phrase, .text, .meta').forEach((n) => this.io.observe(n));
-    if (id === 'menu') this.setupDeck();
+    if (id === 'menu') this.setupMenu();
     this.lenis.scrollTo(0, { immediate: true });
     this.lenis.resize();
 
@@ -85,45 +85,13 @@ export class Panel {
     });
   }
 
-  // Menú: cartas apiladas en profundidad; se pasan con flechas, teclado o arrastre.
-  setupDeck() {
-    const deck = this.body.querySelector('.deck');
-    const cards = [...deck.querySelectorAll('.dish')];
-    const count = deck.querySelector('.deck-count');
-    let i = 0;
-    const layout = () => {
-      cards.forEach((c, k) => {
-        const d = k - i;
-        const gone = d < 0;
-        c.style.transform = gone
-          ? `translate3d(-115%, 0, 60px) rotateY(38deg) rotateZ(-4deg)`
-          : `translate3d(${d * 18}px, ${d * -10}px, ${-d * 70}px) rotateY(${-d * 4}deg)`;
-        c.style.opacity = gone ? '0' : d > 3 ? '0' : String(1 - d * 0.18);
-        c.style.zIndex = String(100 - Math.abs(d));
-        c.setAttribute('aria-hidden', String(d !== 0));
-      });
-      count.textContent = `${String(i + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
-    };
-    const go = (k) => {
-      i = Math.max(0, Math.min(cards.length - 1, k));
-      layout();
-    };
-    deck.querySelector('.deck-prev').addEventListener('click', () => go(i - 1));
-    deck.querySelector('.deck-next').addEventListener('click', () => go(i + 1));
-    deck.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') go(i + 1);
-      if (e.key === 'ArrowLeft') go(i - 1);
-    });
-    let sx = null;
-    const stage = deck.querySelector('.deck-stage');
-    stage.addEventListener('pointerdown', (e) => (sx = e.clientX));
-    stage.addEventListener('pointerup', (e) => {
-      if (sx === null) return;
-      const dx = e.clientX - sx;
-      if (Math.abs(dx) > 40) go(i + (dx < 0 ? 1 : -1));
-      else if (Math.abs(dx) < 6) go(i + 1 < cards.length ? i + 1 : 0);
-      sx = null;
-    });
-    layout();
+  // Menú: los atajos de cada portada llevan (con el scroll suave) a su lista.
+  setupMenu() {
+    this.body.querySelectorAll('.menu-tabs button').forEach((b) =>
+      b.addEventListener('click', () => {
+        const course = this.body.querySelector(`.course[data-course="${b.dataset.course}"]`);
+        if (course) this.lenis.scrollTo(course, { offset: -90, duration: 1.2 });
+      }),
+    );
   }
 }

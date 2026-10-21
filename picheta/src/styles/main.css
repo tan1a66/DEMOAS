@@ -256,35 +256,39 @@ html.touch .intro-enter small { display: none; }
 .hist-body { margin-top: 6vh; }
 
 /* Autores */
-.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 32px); }
+.people { display: grid; grid-template-columns: repeat(2, minmax(0, 320px)); justify-content: center; gap: clamp(16px, 2.4vw, 32px); }
 .person { text-align: center; }
 .person .ph { aspect-ratio: 3 / 4; margin-bottom: 18px; }
 .person h3 { margin: 0 0 6px; font-weight: 400; font-size: 13px; letter-spacing: 0.32em; text-transform: uppercase; }
 .person p { margin: 0; font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--chalk-soft); }
 
-/* Menú: baraja de cartas en 3D */
-.deck { position: relative; outline: none; }
-.deck-stage { position: relative; height: min(70vh, 560px); perspective: 1400px; perspective-origin: 50% 40%; touch-action: pan-y; cursor: grab; }
-.dish {
-  position: absolute; left: 50%; top: 0; width: min(78vw, 400px); height: 100%; margin-left: calc(min(78vw, 400px) / -2);
-  display: flex; flex-direction: column; overflow: hidden;
-  background: #191716; border: 1px solid rgba(239, 236, 230, 0.12); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
-  transform-origin: 50% 100%;
-  transition: transform 1s var(--ease), opacity 1s var(--ease);
-  user-select: none; -webkit-user-select: none;
+/* Menú: la carta, por portadas, con el autor de cada platillo */
+.menu-tabs { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0 0 9vh; }
+.menu-tabs button {
+  min-height: 40px; padding: 0 18px 0 calc(18px + 0.28em); border: 1px solid var(--chalk-faint);
+  font-size: 10.5px; letter-spacing: 0.28em; text-transform: uppercase; transition: border-color 0.4s, background-color 0.4s, color 0.4s;
 }
-.dish-photo { flex: 1.2; background-size: cover; background-position: center; filter: saturate(0.9); }
-.dish-art { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--chalk-soft); background: radial-gradient(ellipse at 50% 40%, #24201d, #151312); }
-.dish-text { padding: 26px 28px 30px; }
-.dish-n { margin: 0 0 12px; font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase; color: var(--chalk-faint); }
-.dish h3 { margin: 0 0 10px; font-weight: 400; font-size: clamp(18px, 2vw, 24px); letter-spacing: 0.22em; text-transform: uppercase; }
-.dish p:last-child { margin: 0; font-family: var(--serif); font-size: 19px; line-height: 1.45; color: var(--chalk-soft); }
-.deck-nav { display: flex; align-items: center; justify-content: center; gap: 28px; margin-top: 34px; }
-.deck-nav button { width: 44px; height: 44px; border: 1px solid var(--chalk-faint); border-radius: 50%; font-size: 22px; line-height: 1; transition: border-color 0.4s; }
-.deck-nav button:hover { border-color: var(--chalk); }
-.deck-count { font-size: 11px; letter-spacing: 0.3em; color: var(--chalk-soft); font-variant-numeric: tabular-nums; }
-.dishes-static { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
-.dishes-static .dish { position: relative; left: auto; margin: 0; width: auto; height: 460px; transform: none; }
+.menu-tabs button:hover, .menu-tabs button:focus-visible { border-color: var(--chalk); background: var(--chalk); color: var(--stone); }
+.course { margin: 0 auto 10vh; max-width: 40em; }
+.course-title { margin: 0 0 4vh; text-align: center; font-weight: 400; font-size: 13px; letter-spacing: 0.42em; padding-left: 0.42em; text-transform: uppercase; color: var(--achiote); }
+.dish-list { list-style: none; margin: 0; padding: 0; }
+.dish-line {
+  display: grid; grid-template-columns: 1fr auto; column-gap: 20px; align-items: baseline;
+  padding: 18px 0 20px; border-bottom: 1px solid rgba(239, 236, 230, 0.1);
+}
+.dish-text { margin: 0; font-family: var(--serif); font-size: clamp(18px, 1.5vw, 21px); line-height: 1.4; }
+.dish-price { font-size: 12px; letter-spacing: 0.16em; color: var(--chalk-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dish-author { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 9px 0 0; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--chalk-faint); }
+.hat { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linejoin: round; }
+
+/* Historia: el busto de Picheta, recortado sobre el panel */
+.bust { margin: 0; display: flex; justify-content: center; }
+.bust img { display: block; width: min(100%, 280px); height: auto; filter: grayscale(1) contrast(1.04) brightness(0.96) drop-shadow(0 28px 36px rgba(0, 0, 0, 0.55)); }
+
+/* Autores: chefs residentes */
+.sub-head { margin: 12vh 0 7vh; text-align: center; }
+.sub-title { margin: 0; font-weight: 400; text-transform: uppercase; font-size: clamp(18px, 2vw, 26px); letter-spacing: 0.3em; padding-left: 0.3em; }
+.people.single, .panel.side .people.single { grid-template-columns: minmax(0, 300px); justify-content: center; }
 
 /* Reserva, concurso, eventos */
 .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin: 0 0 9vh; }
@@ -334,7 +338,6 @@ html.touch .intro-enter small { display: none; }
 .panel.side .hist-art .ph { max-width: 280px; }
 .panel.side .people { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .panel.side .cards { grid-template-columns: 1fr; }
-.panel.side .dish { width: min(86%, 380px); margin-left: calc(min(86%, 380px) / -2); }
 .casa-caption, .casa .labels { transition: opacity 0.8s var(--ease); }
 .casa.ready.focus .casa-caption, .casa.ready.focus .casa-index, .casa.ready.focus .casa-foot { opacity: 0; pointer-events: none; }
 .casa.focus .casa-index button, .casa.focus .casa-foot button { pointer-events: none; }
@@ -464,5 +467,4 @@ html.static #app { position: static; user-select: text; -webkit-user-select: tex
 @media (prefers-reduced-motion: reduce) {
   .hint-icon circle, .chev, .casa .label-object .label-dot::after { animation: none; stroke-dashoffset: 0; }
   .reveal, .phrase, .text, .meta { transition: opacity 0.6s; transform: none; }
-  .dish { transition: opacity 0.4s; }
 }

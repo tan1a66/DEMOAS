@@ -13,13 +13,12 @@ export const CONFIG = {
     // La casa en 3D está modelada en src/scenes/mundo/ (sus paradas y puntos de luz,
     // en spaces.js); aquí sólo la foto de portada de la versión sin WebGL.
     hero: asset('mundo/terraza.webp'),
-    // Imágenes provisionales de cocina para Menú y Autores (generadas con IA): sustituir
-    // por fotos de los platillos y retratos de los chefs.
-    photos: {
-      platillo: asset('fotos/platillo.webp'),
-      comal: asset('fotos/comal.webp'),
-      ingredientes: asset('fotos/ingredientes.webp'),
-      fogon: asset('fotos/fogon.webp'),
+    // Fotos reales: el busto de Picheta (Historia) y los retratos de los autores.
+    images: {
+      busto: asset('historia/busto-picheta.webp'),
+      vidal: asset('autores/vidal-elias.webp'),
+      roberto: asset('autores/roberto-solis.webp'),
+      rodolfo: asset('autores/rodolfo-barrientos.webp'),
     },
   },
 

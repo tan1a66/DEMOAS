@@ -14,9 +14,8 @@ export const content = {
     soundOff: 'Silenciar sonido',
     sound: 'Sonido',
     reservar: 'Reservar',
+    bust: 'Busto de Gabriel Vicente Gahona, «Picheta»',
     back: 'Volver',
-    prev: 'Anterior',
-    next: 'Siguiente',
   },
 
   intro: {
@@ -90,7 +89,7 @@ export const content = {
       title: 'Historia',
       lead: 'Un tambor de unión entre lo prehispánico, lo colonial y lo actual.',
       phrases: [
-        { text: 'Gabriel Vicente Gahona, «Picheta» (Mérida, 1828–1899).', art: 'medallon' },
+        { text: 'Gabriel Vicente Gahona, «Picheta» (Mérida, 1828–1899).', bust: true },
         {
           text: 'Grabador y caricaturista. En 1847 fundó Don Bullebulle, periódico satírico que hizo reír y pensar a todo Yucatán.',
           art: 'cabecera',
@@ -107,26 +106,67 @@ export const content = {
     },
     autores: {
       title: 'Autores',
-      lead: 'Más que seguir recetas, comunicamos emoción.',
-      // Retratos y nombres por confirmar: las fotos actuales son provisionales.
+      lead: 'El arte culinario de Picheta se crea a partir de mentes creativas y talentosas, de personas apasionadas por la gastronomía yucateca.',
       people: [
-        { name: 'Nombre por confirmar', role: 'Chef ejecutivo', photo: 'comal' },
-        { name: 'Nombre por confirmar', role: 'Chef de cocina', photo: 'fogon' },
-        { name: 'Nombre por confirmar', role: 'Chef pastelero', photo: 'ingredientes' },
+        { name: 'Chef Vidal Elías', role: 'Micaela', photo: 'vidal' },
+        { name: 'Chef Roberto Solís', role: 'Nectar', photo: 'roberto' },
       ],
-      note: 'La cocina de autor nace de la milpa, del fogón y de la memoria.',
+      residents: {
+        title: 'Chefs residentes',
+        text: 'La comida, cuando se hace bien, es una obra de arte que llega a lo más profundo de nuestro ser.',
+        people: [{ name: 'Chef Rodolfo Barrientos', role: 'Chef ejecutivo', photo: 'rodolfo' }],
+      },
     },
     menu: {
       title: 'Menú',
-      lead: 'Una evolución de nuestra comida típica.',
-      // Platillos de ejemplo (cocina yucateca): sustituir por el menú real.
-      dishes: [
-        { name: 'Cochinita pibil', course: 'Fuerte', text: 'Cerdo en achiote y naranja agria, cocido lentamente en hoja de plátano.', photo: 'platillo' },
-        { name: 'Sopa de lima', course: 'Entrada', text: 'Caldo perfumado con lima yucateca, pollo deshebrado y tortilla crujiente.' },
-        { name: 'Papadzules', course: 'Entrada', text: 'Tortillas bañadas en salsa de pepita, huevo y chiltomate.', photo: 'ingredientes' },
-        { name: 'Relleno negro', course: 'Fuerte', text: 'Pavo en recado de chiles quemados, con su but de cerdo.' },
-        { name: 'Poc chuc', course: 'Fuerte', text: 'Cerdo marinado en naranja agria, asado al carbón, con cebolla asada.', photo: 'comal' },
-        { name: 'Marquesita', course: 'Postre', text: 'La crepa crujiente de la feria, con queso de bola.' },
+      lead: 'El corazón de la gastronomía yucateca.',
+      text: 'En el corazón del centro de Mérida, el restaurante Picheta ofrece la mejor gastronomía yucateca contemporánea, con chefs residentes y autores invitados, que se encargan de crear platillos únicos a partir de ingredientes locales. Déjate envolver por una experiencia sensorial completa, con sabores locales, un espacio lujoso y un panorama único sobre el centro histórico.',
+      // El menú del sitio actual: platillo, precio y, cuando lo hay, su autor.
+      courses: [
+        {
+          name: 'Entradas',
+          dishes: [
+            { text: 'Sopa tradicional de lima con pavo y tortilla tostada', price: 190, author: 'Chef David Cetina / La Tradición' },
+            { text: 'Tostaditas de atún con limón, aguacate, pepino, cilantro, aceite de ajonjolí con fritura y cenizas de tortilla (6 piezas)', price: 240 },
+            { text: 'Salbutes de plátano macho, con chucrut yucateco (col blanca, zanahoria, naranja agria), aguacate y brotes de cilantro', price: 210 },
+            { text: 'Yucasotto con carne ahumada de Temozón y queso de bola', price: 250, author: 'Chef Alex Méndez / Astro' },
+            { text: 'Carpaccio de pulpo con holandesa de xcatic, gel de naranja agria, sal de mar y pimienta', price: 310 },
+            { text: 'Tacos de cerdo pelón servidos en tortilla de maíz azul, cremoso de aguacate, cebolla morada, cilantro y salsa habanera (3 piezas)', price: 280, author: 'Chef Luis Barocio' },
+            { text: 'Coliflor al pastor con guacamole de la casa y salsa mexicana', price: 250, author: 'Geraldine Abraham / Rhuban' },
+            { text: 'Guacamole con carne ahumada de Temozón y pico de gallo', price: 250 },
+            { text: 'Pizzeta de langosta con mantequilla y ajo, salsa pomodoro fresca, jitomate deshidratado y albahaca', price: 320 },
+            { text: 'Carpaccio de res con chaya y ceniza de romero y cacao, flor de sal, pimienta rosa y arúgula con vinagreta de lima', price: 250 },
+            { text: 'Tacos de camarón con chilmole, xnipec, cremoso de aguacate y crujiente de arroz', price: 260 },
+            { text: 'Tacos de rib eye en tortilla de recado negro, pimientos rostizados, salsa tatemada, esferificación de cilantro local', price: 380 },
+          ],
+        },
+        {
+          name: 'Platos fuertes',
+          dishes: [
+            { text: 'Pechuga de pollo glaseada con miel de habanero rellena de calabaza local, acompañada de ensalada de arándanos y semillas', price: 310 },
+            { text: 'Hamburguesa de venado y res, champiñones rostizados, pimientos, mostaza rústica, alioli de xcatik en pan de achiote y papas cambray con ajo y mantequilla', price: 330 },
+            { text: 'Fettuccine de pasta fresca con salsa de vino blanco y camarones salteados', price: 350 },
+            { text: 'Jaiba suave tempura con chutney de manzana y ensalada de mango', price: 470 },
+            { text: 'Ravioles de queso ricotta y longaniza de Valladolid en salsa bechamel de chile xcatik, acompañados de queso parmesano y pan campesino', price: 320 },
+            { text: 'Ravioles de cangrejo moro con pasta bicolor, con cilantro local y salsa menier', price: 330 },
+            { text: 'Risotto a la lima con picaña marinada con cerveza Ceiba o salmón (a elegir)', price: 450 },
+            { text: 'Salmón en costra de pepita, risotto a la lima y ceniza de tortilla', price: 450, author: 'Universidad del Centro' },
+            { text: 'Roulle de pescado con ceniza de tortilla, mantequilla noisette, ajo, almendra, calabaza local y zanahoria baby', price: 460 },
+            { text: 'Cordero en pesto de hierbas, puré de camote aromatizado con hojas de plátano, salsa de calabaza frita, espuma de chile xcatic y crocante de pepita', price: 590, author: 'Talento Picheta / Universidad Vizcaya de las Américas' },
+            { text: 'Filete de res madurado con mantequilla y romero, sofrito de champiñones trufados con chaya y puré de papa', price: 560 },
+            { text: 'Ensalada fresca con guayaba, higo, pistache, jitomate cherry, aderezo de miel de la región con mostaza antigua', price: 220 },
+          ],
+        },
+        {
+          name: 'Postres',
+          dishes: [
+            { text: 'Tarta de pistache con crema pastelera de vainilla de Papantla', price: 250 },
+            { text: 'Manjar de coco acompañado de una esponja de coco y helado de coco tostado', price: 195, author: 'Chef Miriam Peraza / Manjar Blanco' },
+            { text: 'Fudge de chocolate con helado de flores y jamaica', price: 220 },
+            { text: 'Pavlova rellena de gel de mango y crema diplomat de vainilla de Papantla', price: 210 },
+            { text: 'Cenote de dulce de leche, helado de vainilla de Papantla y frutos rojos', price: 250 },
+          ],
+        },
       ],
     },
     reserva: {
