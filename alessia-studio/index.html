@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#D9A5A0" />
+    <title>Alessia Studio</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <!-- scena 3D: un solo canvas fisso a tutto schermo -->
+    <canvas id="gl" aria-hidden="true"></canvas>
+
+    <!-- layer HTML sopra il canvas, vuoto: qui andranno testi e interfaccia -->
+    <div id="overlay"></div>
+
+    <!-- altezza di scroll che guida la telecamera; i capitoli sono pronti per ospitare i testi -->
+    <main id="scroll">
+      <section class="chapter" data-chapter="horizon"></section>
+      <section class="chapter" data-chapter="window"></section>
+      <section class="chapter" data-chapter="pit"></section>
+      <section class="chapter" data-chapter="skylight"></section>
+      <section class="chapter" data-chapter="opening"></section>
+      <section class="chapter" data-chapter="sea"></section>
+    </main>
+
+    <div id="loader" aria-hidden="true">
+      <div class="loader-line"><div class="loader-fill"></div></div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+:root {
+  --loader: #d9a5a0;
+  /* altezza stabile: non cambia quando la barra di Safari si ritrae */
+  --vh: 100vh;
+}
+@supports (height: 100lvh) {
+  :root { --vh: 100lvh; }
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--loader);
+  overscroll-behavior: none;
+}
+html.is-loading,
+html.is-loading body { overflow: hidden; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+#gl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--vh);
+  display: block;
+  z-index: 0;
+  touch-action: pan-y;
+}
+
+/* layer per i testi futuri: sopra il canvas, non intercetta gli eventi finché vuoto */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--vh);
+  z-index: 2;
+  pointer-events: none;
+}
+
+#scroll {
+  position: relative;
+  z-index: 1;
+  height: 600vh;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+.chapter { position: relative; }
+
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--vh);
+  z-index: 10;
+  background: var(--loader);
+  pointer-events: none;
+}
+.loader-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 1px;
+  transform: translate(-50%, -0.5px);
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+.loader-fill {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
