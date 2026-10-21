@@ -32,7 +32,8 @@ for (const [name, gen] of [['formwork', generateFormwork], ['smooth', generateSm
     levels[size] = img;
   }
   for (const s of [1024, 512]) {
-    const ktx = await encodeRGBA(levels[s], s, s, { mipmaps: true, rdo: 1.5, quality: 2 });
+    // RDO più spinto sulla 1024 (desktop): stessa resa a distanza di visione, file più leggero
+    const ktx = await encodeRGBA(levels[s], s, s, { mipmaps: true, rdo: s >= 1024 ? 3.0 : 1.5, quality: 2 });
     writeFileSync(`${out}/${name}-${s}.ktx2`, ktx);
     console.log(`  ${name}-${s}.ktx2  ${(ktx.byteLength / 1024).toFixed(0)} KB`);
   }

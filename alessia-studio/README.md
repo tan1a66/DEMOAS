@@ -40,3 +40,19 @@ telecamera si gira verso il sole basso.
   se presente, `tools/textures.mjs` lo fonde come micro-dettaglio. **In questo ambiente i due siti sono
   bloccati dalla rete**: le texture attuali vengono solo dal generatore procedurale.
 - `tools/shoot.mjs`: screenshot e fps lungo il percorso (Playwright)
+- `tools/check-colors.mjs`: controllo automatico dei colori sugli screenshot (con `--mask`)
+
+## Test
+```bash
+npm run build && npx vite preview --port 4173 &
+node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --mask --fps          # desktop 1440x900
+node tools/shoot.mjs http://127.0.0.1:4173/ shots-m --mobile --q=high --mask --fps # 390x844 @2x
+node tools/check-colors.mjs shots
+```
+Opzioni: `--scroll` (rotella reale), `--reduced` (prefers-reduced-motion), `--transition` (loader → orizzonte).
+
+## Peso del primo caricamento
+| livello | JS+CSS+HTML | decoder Draco/Basis | GLB + lightmap + texture | totale (gzip su JS/wasm) |
+|---|---|---|---|---|
+| desktop (alta) | 0,25 MB | 0,33 MB | 2,66 MB | ~3,2 MB |
+| mobile / bassa | 0,25 MB | 0,33 MB | 1,17 MB | ~1,75 MB |

@@ -192,7 +192,7 @@ export function generateFormwork(n = 1024, { seed = 7, tileM = 1.2 } = {}) {
       H[i] = b.depth + b.tilt * (u - 0.5) + grain * 0.00022 + fin * 0.0005 - butt * 0.0005 + mottle * 0.0008;
       // linea scura dove la boiacca si è infilata tra le tavole
       const seamLine = Math.exp(-((ds / 0.0022) ** 2));
-      A[i] = 0.5 + mottle * 0.3 + blotch * 0.2 + b.tone + streak * 0.07 + speck * 0.09 - grain * 0.045 + fin * 0.05 - seamLine * 0.09 - butt * 0.09;
+      A[i] = 0.5 + mottle * 0.1 + blotch * 0.12 + b.tone + streak * 0.07 + speck * 0.09 - grain * 0.045 + fin * 0.05 - seamLine * 0.09 - butt * 0.09;
       R[i] = 0.8 + b.rough + blotch * 0.12 + speck * 0.06 - fin * 0.1;
     }
   }
@@ -240,7 +240,7 @@ export function generateSmooth(n = 1024, { seed = 23, tileM = 2.0 } = {}) {
       const ju = Math.min(u, 1 - u) * tileM, jv = Math.min(v, 1 - v) * tileM;
       const joint = Math.max(Math.exp(-((ju / 0.0025) ** 4)), Math.exp(-((jv / 0.0025) ** 4)));
       H[i] = mottle * 0.0006 + trowel * 0.00012 - joint * 0.004;
-      A[i] = 0.5 + mottle * 0.26 + cloud * 0.22 + trowel * 0.025 + speck * 0.06 - joint * 0.25;
+      A[i] = 0.5 + mottle * 0.08 + cloud * 0.12 + trowel * 0.025 + speck * 0.06 - joint * 0.25;
       R[i] = 0.66 + cloud * 0.16 - trowel * 0.04 + speck * 0.05 + joint * 0.2;
     }
   }

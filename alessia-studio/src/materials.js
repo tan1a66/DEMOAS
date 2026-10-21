@@ -148,8 +148,8 @@ const CONCRETE_FRAG = /* glsl */ `
     // variazioni a grande scala (non legate al tile): getti diversi, colature, base umida
     vec3 an = abs(Ng);
     vec2 wc = an.z > 0.5 ? vWorldPos.xy : (an.x > 0.5 ? vWorldPos.zy : vWorldPos.xz);
-    float macro = vnoise(wc * 0.21) * 0.6 + vnoise(wc * 0.83 + 7.0) * 0.4;
-    albedo *= 0.92 + 0.14 * macro;
+    float macro = vnoise(wc * 0.17) * 0.45 + vnoise(wc * 0.61 + 7.0) * 0.35 + vnoise(wc * 1.9 - 3.0) * 0.2;
+    albedo *= 0.89 + 0.2 * macro;
     if (an.y < 0.5) {
       float streak = vnoise(vec2(wc.x * 2.1, wc.y * 0.11 + 3.0)) * vnoise(vec2(wc.x * 0.7, 9.0));
       albedo *= 1.0 - 0.09 * smoothstep(0.2, 0.55, streak);
@@ -183,6 +183,17 @@ const CONCRETE_FRAG = /* glsl */ `
 
     float ndl = max(dot(N, L), 0.0) * smoothstep(-0.05, 0.12, dot(Ng, L));
     float v = uExposure * (Eind + sunI * ndl * vis);
+    #ifndef INTERIOR
+      // riflessi del mare che danzano sul cemento vicino all'acqua (base dei muri, sotto la terrazza)
+      float nearWater = (1.0 - smoothstep(0.1, 2.2, vWorldPos.y)) * step(Ng.y, 0.5);
+      if (nearWater > 0.001) {
+        vec2 cq = (an.y > 0.5 ? vWorldPos.xz : (an.z > 0.5 ? vWorldPos.xy : vWorldPos.zy)) * vec2(1.1, 2.2);
+        float c1 = vnoise(cq * 1.6 + vec2(uTime * 0.55, -uTime * 0.22));
+        float c2 = vnoise(cq * 2.7 - vec2(uTime * 0.4, uTime * 0.31));
+        float caustic = pow(1.0 - abs(c1 - c2), 9.0);
+        v += uExposure * caustic * nearWater * (0.12 + 0.25 * max(-Ng.y, 0.0)) * sunI;
+      }
+    #endif
     vec3 col = ramp(v) * albedo;
 
     // speculare GGX del sole (finitura cementizia, F0 = 0.04)

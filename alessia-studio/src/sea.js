@@ -26,11 +26,11 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
     uSkyHigh: { value: lin(PALETTE.skyHigh) },
     uFoam: { value: lin('#F7ECE8') },
     // volumi per ombra e schiuma sul mare: edificio + terrazza (min.xyz, max.xyz)
-    uBox0Min: { value: new THREE.Vector3(FW.x0, 0, SHELL.z0) },
-    uBox0Max: { value: new THREE.Vector3(FW.x1, ROOF_Y, FW.zOut) },
+    uBox0Min: { value: new THREE.Vector3(SHELL.x0, 0, SHELL.z0) },
+    uBox0Max: { value: new THREE.Vector3(SHELL.x1, ROOF_Y, SHELL.z1) },
     uBox1Min: { value: new THREE.Vector3(T.x0, T.bottom, T.z0) },
     uBox1Max: { value: new THREE.Vector3(T.x1, T.y, T.z1) },
-    uBox2Min: { value: new THREE.Vector3(FW.x0, ROOF_Y, FW.zIn) },
+    uBox2Min: { value: new THREE.Vector3(FW.x0, 0, FW.zIn) },
     uBox2Max: { value: new THREE.Vector3(FW.x1, FW.y1, FW.zOut) },
     // riflesso planare dell'architettura (render a bassa risoluzione da una telecamera specchiata)
     tRefl: { value: null },
@@ -190,9 +190,10 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
           float spark = smoothstep(0.5, 0.95, vnoise(p.xz * vec2(1.4, 2.6) + uTime * vec2(0.5, -0.35)) * vnoise(p.xz * 3.1 - uTime * 0.6) * 1.6);
           base += uSunColor * spec * sh * (0.25 + 1.75 * spark) * 0.06;
           // schiuma leggera dove l'acqua tocca il cemento
-          float bd = min(boxDist(p.xz, uBox0Min.xz, uBox0Max.xz), 1e3);
-          float foam = exp(-bd / 0.35) * smoothstep(0.35, 0.75, vnoise(p.xz * 3.0 + vec2(uTime * 0.4, -uTime * 0.25)) + 0.25 * sin(uTime * 1.3 + bd * 6.0));
-          base = mix(base, uFoam, clamp(foam * 0.55, 0.0, 1.0));
+          float bd = min(boxDist(p.xz, uBox0Min.xz, uBox0Max.xz), boxDist(p.xz, uBox2Min.xz, uBox2Max.xz));
+          float fn = vnoise(p.xz * 2.2 + vec2(uTime * 0.35, -uTime * 0.2)) * 0.6 + vnoise(p.xz * 5.0 - uTime * 0.3) * 0.4;
+          float foam = exp(-max(bd, 0.0) / 0.25) * smoothstep(0.45, 0.8, fn + 0.18 * sin(uTime * 1.1 + bd * 5.0));
+          base = mix(base, uFoam, clamp(foam * 0.32, 0.0, 1.0));
           // foschia: il mare sfuma nel cielo rosato all'orizzonte
           // foschia stretta: il bordo visibile mare/cielo resta sull'orizzonte vero (centro dello schermo a camera in piano)
           float haze = smoothstep(-0.03, 0.0, d.y);

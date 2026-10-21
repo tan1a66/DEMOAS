@@ -10,9 +10,9 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export const KEYS = [
   // 0 · orizzonte: monolite rosa sul mare, telecamera in piano (l'orizzonte è a metà schermo)
-  { p: 0.0, pos: V(-7.0, 12.4, 54), target: V(0.4, 12.4, 9), exposure: 1.0, parallax: 1 },
-  { p: 0.12, pos: V(-4.4, 9.0, 38), target: V(0.0, 7.4, 9), exposure: 1.0, parallax: 1 },
-  { p: 0.24, pos: V(-1.3, 6.5, 23), target: V(0.0, 5.95, 9), exposure: 1.0, parallax: 0.8 },
+  { p: 0.0, pos: V(-19.0, 12.4, 52), target: V(-2.0, 12.4, 6), exposure: 1.0, parallax: 1 },
+  { p: 0.12, pos: V(-10.5, 9.0, 37), target: V(-0.6, 7.4, 8), exposure: 1.0, parallax: 1 },
+  { p: 0.24, pos: V(-2.6, 6.5, 23), target: V(0.0, 5.95, 9), exposure: 1.0, parallax: 0.8 },
   // 1 · allineamento e attraversamento della finestra circolare
   { p: 0.32, pos: V(-0.05, 5.86, 14.5), target: V(0.0, 5.8, 0), exposure: 1.0, parallax: 0.35 },
   { p: 0.38, pos: V(0.0, 5.8, 9.9), target: V(0.0, 5.55, -2), exposure: 1.3, parallax: 0.15 },
@@ -24,9 +24,9 @@ export const KEYS = [
   { p: 0.705, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 3.3, parallax: 0.5 },
   { p: 0.765, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 3.2, parallax: 0.5 },
   // 3 · verso il mare: grande apertura rettangolare, terrazza, il sole basso
-  { p: 0.84, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 2.6, parallax: 0.3 },
-  { p: 0.89, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.7, parallax: 0.15 },
-  { p: 0.94, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.15, parallax: 0.6 },
+  { p: 0.84, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 1.9, parallax: 0.3 },
+  { p: 0.89, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.25, parallax: 0.15 },
+  { p: 0.94, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.05, parallax: 0.6 },
   { p: 1.0, pos: V(-3.0, 4.7, -13.0), target: V(-30, 6.4, -9.2), exposure: 1.0, parallax: 1 },
 ];
 
