@@ -37,11 +37,11 @@ export const PROJECTS = [
   { id: 'il-calabrese', title: 'Il Calabrese' },
 ].map((p) => ({ url: '', image: img(p.id), gallery: shots(p.id), ...p }));
 
-// DA COMPLETARE: contatti veri (i valori vuoti non vengono mostrati). whatsapp: numero con prefisso
+// Contatti (i valori vuoti non vengono mostrati). DA COMPLETARE: whatsapp, numero con prefisso
 // internazionale, es. '+52 999 123 4567'; il pulsante WhatsApp è sempre visibile (finché il numero
 // manca, apre WhatsApp per scegliere a chi scrivere).
 export const CONTACT_LINKS = {
-  email: 'ciao@esempio.it',
+  email: 'alessiapir@icloud.com',
   whatsapp: '',
   instagram: '',
 };

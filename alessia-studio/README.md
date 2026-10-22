@@ -32,8 +32,8 @@ basso a destra) e l'invito a scorrere.
 
 ## Contenuti (`src/content.js`)
 Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
-prima bozza. **Contatti segnaposto**: `CONTACT_LINKS` (email `ciao@esempio.it`, `whatsapp` vuoto). Finché
-il numero WhatsApp manca, il pulsante apre WhatsApp con il messaggio pronto ma senza destinatario.
+prima bozza. Contatti in `CONTACT_LINKS`: email `alessiapir@icloud.com`; **manca il numero WhatsApp**:
+finché è vuoto, il pulsante apre WhatsApp con il messaggio pronto ma senza destinatario.
 I progetti sono le 8 demo fatte finora (URBAZ, Piedra de Agua, Picheta, Avv. Pusceddu, Hacienda Teya,
 Antica Roma, CARNAL, Il Calabrese). Per ogni progetto:
 - `image`: anteprima dentro la bolla, `src/assets/projects/<id>.jpg` (quadrata, ~768 px)
