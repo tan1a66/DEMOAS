@@ -1,0 +1,146 @@
+import * as THREE from 'three';
+
+// Utilità di modellazione: torniture (lathe) e "sweep" lungo una curva.
+
+// Profilo [[raggio, altezza], ...] dal basso verso l'alto → solido di rotazione attorno a Y.
+export function lathe(profile, segments = 72) {
+  return new THREE.LatheGeometry(
+    profile.map(([r, y]) => new THREE.Vector2(Math.max(r, 1e-4), y)),
+    segments
+  );
+}
+
+// Come lathe() ma con l'asse lungo X (per aste orizzontali: giogo, elsa).
+export function latheX(profile, segments = 48) {
+  const g = lathe(profile, segments);
+  g.rotateZ(-Math.PI / 2);
+  return g;
+}
+
+// Tubo a sezione circolare con raggio variabile lungo la curva.
+export function sweepTube(curve, { segments = 64, radial = 16, radius = () => 0.01, closed = false } = {}) {
+  const frames = curve.computeFrenetFrames(segments, closed);
+  const pos = [];
+  const nor = [];
+  const uv = [];
+  const idx = [];
+  const P = new THREE.Vector3();
+  const N = new THREE.Vector3();
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    curve.getPointAt(t, P);
+    const n = frames.normals[i];
+    const b = frames.binormals[i];
+    const r = radius(t);
+    for (let j = 0; j <= radial; j++) {
+      const v = (j / radial) * Math.PI * 2;
+      const s = Math.sin(v);
+      const c = -Math.cos(v);
+      N.set(c * n.x + s * b.x, c * n.y + s * b.y, c * n.z + s * b.z).normalize();
+      pos.push(P.x + r * N.x, P.y + r * N.y, P.z + r * N.z);
+      nor.push(N.x, N.y, N.z);
+      uv.push(t, j / radial);
+    }
+  }
+  for (let i = 0; i < segments; i++) {
+    for (let j = 0; j < radial; j++) {
+      const a = i * (radial + 1) + j;
+      const b = a + radial + 1;
+      idx.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
+}
+
+// Nastro (sezione rettangolare sottile) lungo una curva: larghezza, spessore e torsione variabili.
+// `side` è la direzione di riferimento della larghezza all'inizio (poi trasportata lungo la curva).
+export function sweepRibbon(curve, { segments = 80, width = () => 0.03, thickness = 0.004, twist = () => 0, side } = {}) {
+  const frames = curve.computeFrenetFrames(segments, false);
+  // Allinea il primo frame alla direzione richiesta ruotando tutti i frame dello stesso angolo.
+  let base = 0;
+  if (side) {
+    const n0 = frames.normals[0];
+    const b0 = frames.binormals[0];
+    base = Math.atan2(side.dot(b0), side.dot(n0));
+  }
+  const P = new THREE.Vector3();
+  const W = new THREE.Vector3();
+  const T = new THREE.Vector3();
+  const rings = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    curve.getPointAt(t, P);
+    const a = base + twist(t);
+    const n = frames.normals[i];
+    const b = frames.binormals[i];
+    W.copy(n).multiplyScalar(Math.cos(a)).addScaledVector(b, Math.sin(a)); // larghezza
+    T.copy(n).multiplyScalar(-Math.sin(a)).addScaledVector(b, Math.cos(a)); // spessore
+    const w = width(t) / 2;
+    const h = thickness / 2;
+    rings.push([
+      P.clone().addScaledVector(W, -w).addScaledVector(T, h),
+      P.clone().addScaledVector(W, w).addScaledVector(T, h),
+      P.clone().addScaledVector(W, w).addScaledVector(T, -h),
+      P.clone().addScaledVector(W, -w).addScaledVector(T, -h),
+    ]);
+  }
+  // Ogni lato ha i propri vertici: spigoli netti, superfici lisce in lunghezza.
+  const pos = [];
+  const idx = [];
+  for (let s = 0; s < 4; s++) {
+    const start = pos.length / 3;
+    for (let i = 0; i <= segments; i++) {
+      const p0 = rings[i][s];
+      const p1 = rings[i][(s + 1) % 4];
+      pos.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+    }
+    for (let i = 0; i < segments; i++) {
+      const a = start + i * 2;
+      idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+    }
+  }
+  // Tappi alle estremità.
+  for (const i of [0, segments]) {
+    const start = pos.length / 3;
+    for (const p of rings[i]) pos.push(p.x, p.y, p.z);
+    if (i === 0) idx.push(start, start + 2, start + 1, start, start + 3, start + 2);
+    else idx.push(start, start + 1, start + 2, start, start + 2, start + 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+// Disco con gradiente radiale (alone di luce sul pavimento sotto ogni opera).
+let poolTexture;
+export function lightPool(radius, opacity = 0.2, color = 0xffe9d2) {
+  if (!poolTexture) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.55)');
+    g.addColorStop(0.7, 'rgba(255,255,255,0.14)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 256, 256);
+    poolTexture = new THREE.CanvasTexture(c);
+    poolTexture.colorSpace = THREE.SRGBColorSpace;
+  }
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(radius * 2, radius * 2),
+    new THREE.MeshBasicMaterial({ map: poolTexture, color, transparent: true, opacity, depthWrite: false })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.y = 0.002;
+  m.renderOrder = -1;
+  return m;
+}
