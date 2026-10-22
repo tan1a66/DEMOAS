@@ -1069,8 +1069,8 @@ body.booking-open {
   }
   .topbar-book {
     margin-left: 0;
-    margin-right: 10px;
-    padding: 11px 14px;
+    padding: 11px 12px;
+    letter-spacing: 0.14em;
   }
   .hero-note {
     font-size: 16px;
@@ -1080,6 +1080,26 @@ body.booking-open {
   }
   .hero {
     padding-bottom: 28px;
+  }
+  /* Su telefono il marmo può finire dietro al nome: una velatura rossa lo tiene leggibile. */
+  .hero::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 62%;
+    background: linear-gradient(rgba(122, 20, 26, 0), rgba(122, 20, 26, 0.88) 38%, rgba(110, 18, 24, 0.95));
+    pointer-events: none;
+  }
+  .hero > * {
+    position: relative;
+  }
+  .brand-name {
+    font-size: 19px;
+  }
+  .topbar {
+    gap: 10px;
   }
   .hero-index {
     grid-template-columns: 1fr;

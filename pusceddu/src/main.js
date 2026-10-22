@@ -417,6 +417,9 @@ function frame(now) {
     // La bilancia "sente" lo scroll e poi ritrova l'equilibrio; i cieli e gli anelli girano.
     world.justice.update(dt, THREE.MathUtils.clamp(scrollVel * 0.0001, -0.5, 0.5) * drone.motion);
     world.monument.update(dt, drone.motion);
+    // All'inizio e alla fine c'è solo la bilancia: i cieli che girano compaiono durante il
+    // viaggio e si dissolvono prima del finale.
+    world.monument.setHeavens(introRunning ? 0 : smoothstep(0.25, 0.8, st) * (1 - smoothstep(5.35, 5.85, st)));
 
     // Il nodo si scioglie appena si arriva al Legal Design (e si riannoda tornando indietro);
     // le pagine del libro si girano scorrendo le Pubblicazioni.

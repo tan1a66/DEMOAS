@@ -55,7 +55,7 @@ export function keyframes(world, narrow) {
   const c = (y) => new THREE.Vector3(0, y, 0);
 
   const kfs = [
-    { ...around(p.scales, -16, 2.6 * (narrow ? 1.9 : 1), 0.12), sx: side(0.3), sy: narrow ? 0.45 : 0, fov: 34 },
+    { ...around(p.scales, -16, 3.0 * (narrow ? 1.55 : 1), narrow ? -0.25 : 0.12), sx: side(0.38), sy: narrow ? 0.52 : 0, fov: 34 },
     via(around(c(3.4), -30, 4.2 * farK, 0.3)),
     station(around(p.inferno, -32, 2.2 * near, 0.15), -0.34),
     station(around(p.purgatorio, 6, 2.0 * near, 0.2), -0.36),
@@ -66,7 +66,7 @@ export function keyframes(world, narrow) {
     via(around(c(3.8), 205, 4.0 * farK, 0.8)),
     station(around(p.book.pos, p.book.az + 7, 0.78 * near, 0.36), 0.32),
     via(around(c(4.5), 315, 3.6 * farK, 0.5)),
-    station(around(p.scales, 4, 1.35 * near, 0.08), -0.3),
+    station(around(p.scales, 4, 1.6 * near, 0.08), -0.42),
   ];
   // Foschia lontana: qui non deve nascondere nulla, solo sfumare il pavimento all'orizzonte.
   for (const k of kfs) {

@@ -12,7 +12,7 @@ import { OpenBook } from './book.js';
 //   fascia centrale liscia, con due filetti incisi
 //   Purgatorio: sette cornici collegate da scale scolpite, che salgono a spirale
 //     (anello: «Libertà va cercando, ch'è sì cara» → CHI SONO); sui gradini sono nascosti
-//     lo scudo col filo rosso → TUTELA, il nodo che si scioglie → LEGAL DESIGN,
+//     lo scudo rosso → TUTELA, il nodo rosso che si scioglie → LEGAL DESIGN,
 //     il libro che si sfoglia → PUBBLICAZIONI
 //   Paradiso: la Giustizia sulla vetta, dentro i cieli che ruotano — il cielo di Giove
 //     (anello: «Diligite iustitiam, qui iudicatis terram»)                → CONTATTI
@@ -221,15 +221,15 @@ export class Monument {
     }
 
     // Anelli dei versi (girano piano, il testo scorre da destra a sinistra)
-    const ring = (text, y, radius, height, speed, tilt = 0) => {
+    const ring = (text, y, radius, height, speed, tilt = 0, mats = { material: stone, make }) => {
       const tilter = new THREE.Group();
       tilter.position.y = y;
       tilter.rotation.x = tilt;
-      const b = inscribedBand(text, { radius, height, thickness: 0.03, material: stone, make });
+      const b = inscribedBand(text, { radius, height, thickness: 0.03, ...mats });
       tilter.add(b);
       this.group.add(tilter);
       this.spinners.push({ obj: b, speed });
-      return b;
+      return tilter;
     };
     this.infernoRing = { y: y0 + INF_H * 0.5, r: 1.2 };
     ring(VERSES.inferno, this.infernoRing.y, this.infernoRing.r, 0.13, -0.06);
@@ -243,8 +243,18 @@ export class Monument {
     this.justice.group.position.y = this.summitY;
     this.group.add(this.justice.group);
     // L'anello del Paradiso fa da corona ai piedi della Giustizia (non le passa davanti);
-    // i due cieli sottili le girano attorno all'altezza della bilancia.
-    ring(VERSES.paradiso, this.summitY + 0.22, 0.86, 0.1, -0.05, deg(6));
+    // i due cieli sottili le girano attorno all'altezza della bilancia. Hanno materiali
+    // propri: nel finale si dissolvono e resta solo la bilancia.
+    this.heavenMats = [];
+    this.heavens = [];
+    const makeHeaven = (o = {}) => {
+      const m = make({ ...o, transparent: true });
+      this.heavenMats.push(m);
+      return m;
+    };
+    const heavenStone = makeHeaven({ seed: 1.3, scale: 1.05 });
+    const heavenRingMat = makeHeaven({ seed: 2.1, scale: 2.0 });
+    this.heavens.push(ring(VERSES.paradiso, this.summitY + 0.22, 0.86, 0.1, -0.05, deg(6), { material: heavenStone, make: makeHeaven }));
     this.heavenY = this.summitY + 0.74;
     for (const [r, tilt, speed] of [
       [0.66, 16, 0.22],
@@ -254,11 +264,12 @@ export class Monument {
       spinner.position.y = this.heavenY;
       const tilter = new THREE.Group();
       tilter.rotation.x = deg(tilt);
-      const torus = add(new THREE.TorusGeometry(r, 0.011, 12, 220), heroMat, tilter);
+      const torus = add(new THREE.TorusGeometry(r, 0.011, 12, 220), heavenRingMat, tilter);
       torus.rotation.x = Math.PI / 2;
       spinner.add(tilter);
       this.group.add(spinner);
       this.spinners.push({ obj: spinner, speed });
+      this.heavens.push(spinner);
     }
 
     // Oggetti nascosti sui gradini. Cornice k: piano a quota mountY + k·RISER,
@@ -272,9 +283,13 @@ export class Monument {
       return obj;
     };
 
-    // Scudo (cornice 2)
-    const threadMat = new THREE.MeshPhysicalMaterial({ color: 0xa3121b, roughness: 0.25, clearcoat: 1, clearcoatRoughness: 0.05, sheen: 0.4, sheenColor: 0xff4040 });
-    const shield = buildShield(make({ seed: 9.1, scale: 3.4 }), threadMat);
+    // Marmo rosso con venature chiare (tipo Rosso Levanto) per i due servizi: un tocco di
+    // colore sui gradini bianchi.
+    const redMarble = (o = {}) => make({ color: 0x9a1a22, vein: 0xf1e2d6, vein2: 0xd9a8a0, veinStrength: 0.7, sss: 0.03, ...o });
+
+    // Scudo rosso con il filo chiaro lungo il bordo (cornice 2)
+    const threadMat = make({ seed: 4.4, scale: 6, color: 0xf4ecdf, veinStrength: 0.25 });
+    const shield = buildShield(redMarble({ seed: 9.1, scale: 3.4 }), threadMat);
     shield.group.scale.setScalar(0.28);
     shield.group.position.y = 0.39 * 0.28 + 0.01;
     shield.group.rotation.x = deg(-7);
@@ -282,7 +297,7 @@ export class Monument {
     shieldHolder.add(shield.group);
 
     // Nodo → anello (cornice 4)
-    this.knot = new MorphKnot(make({ seed: 6.4, scale: 4, restAttribute: true }));
+    this.knot = new MorphKnot(redMarble({ seed: 6.4, scale: 4, restAttribute: true }));
     this.knot.mesh.scale.setScalar(0.3);
     this.knot.mesh.position.y = 0.15;
     const knotHolder = onTerrace(new THREE.Group(), 4, 150);
@@ -309,5 +324,20 @@ export class Monument {
 
   update(dt, motion = 1) {
     for (const s of this.spinners) s.obj.rotation.y += s.speed * dt * motion;
+  }
+
+  // v: 1 = cieli visibili, 0 = dissolti (si allargano un poco mentre svaniscono).
+  setHeavens(v) {
+    if (Math.abs(v - (this.heavenValue ?? -1)) < 0.002) return;
+    this.heavenValue = v;
+    for (const m of this.heavenMats) {
+      m.opacity = v;
+      m.depthWrite = v > 0.6;
+    }
+    const k = 1 + (1 - v) * 0.3;
+    for (const h of this.heavens) {
+      h.visible = v > 0.01;
+      h.scale.setScalar(k);
+    }
   }
 }

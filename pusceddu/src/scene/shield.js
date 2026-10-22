@@ -3,7 +3,7 @@ import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { sweepTube } from './geometry.js';
 
-// Scudo in marmo, leggermente bombato, con un filo rosso intarsiato lungo il bordo
+// Scudo in marmo, leggermente bombato, con un filo intarsiato lungo il bordo
 // (TUTELA DELLA DONNA · CODICE ROSSO). Origine = centro dello scudo.
 
 const W = 0.31;
@@ -49,7 +49,7 @@ export function buildShield(material, threadMaterial) {
   body.castShadow = body.receiveShadow = true;
   group.add(body);
 
-  // Filo rosso: contorno rientrato, appoggiato sulla faccia curva.
+  // Filo: contorno rientrato, appoggiato sulla faccia curva.
   const frontZ = DEPTH + BEVEL;
   const pts = shape.getSpacedPoints(160).slice(0, -1).map((v) => {
     const x = v.x * 0.84;
