@@ -113,15 +113,30 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // bolle dei progetti: quella sotto il puntatore si accende; un clic (o un tocco) apre la galleria
+  // bolle dei progetti: quella sotto il puntatore si accende; un clic (o un tocco) apre la galleria.
+  // Nell'acqua libera il puntatore scosta le bollicine, un tocco libera uno sbuffo, trascinare una scia.
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
+  const uw = world.underwater;
   let bubblesOn = false, hover = -1;
-  const pick = (x, y) => {
+  const aim = (x, y) => {
     ndc.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(world.underwater.bubbles, false)[0];
-    return hit ? world.underwater.bubbles.indexOf(hit.object) : -1;
+    return ray.ray;
+  };
+  const pick = (x, y) => {
+    aim(x, y);
+    const hit = ray.intersectObjects(uw.bubbles, false)[0];
+    return hit ? uw.bubbles.indexOf(hit.object) : -1;
+  };
+  const inWater = () => uw.group.visible && !gallery.isOpen;
+  let lastTrail = 0, lx = 0, ly = 0;
+  const trailAt = (x, y, t) => {
+    if (t - lastTrail < 45 || Math.hypot(x - lx, y - ly) < 6) return;
+    lastTrail = t;
+    lx = x;
+    ly = y;
+    uw.trail(aim(x, y));
   };
   const setHover = (i) => {
     if (i === hover) return;
@@ -133,11 +148,26 @@ async function start() {
     if (e.pointerType !== 'mouse') return;
     const overUi = e.target.closest?.('.ui, .gallery, a, button');
     setHover(bubblesOn && !gallery.isOpen && !overUi ? pick(e.clientX, e.clientY) : -1);
+    if (inWater() && !overUi) {
+      uw.setPointer(aim(e.clientX, e.clientY), { hover: true });
+      trailAt(e.clientX, e.clientY, e.timeStamp);
+    } else uw.setPointer(null);
   });
+  document.documentElement.addEventListener('pointerleave', () => uw.setPointer(null));
+  window.addEventListener('touchmove', (e) => {
+    if (!inWater() || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    uw.setPointer(aim(t.clientX, t.clientY), { hold: 0.8 });
+    trailAt(t.clientX, t.clientY, e.timeStamp);
+  }, { passive: true });
   window.addEventListener('click', (e) => {
-    if (!bubblesOn || gallery.isOpen || e.target.closest?.('a, button, .gallery')) return;
-    const i = pick(e.clientX, e.clientY);
-    if (i >= 0) gallery.open(i);
+    if (gallery.isOpen || e.target.closest?.('a, button, .gallery')) return;
+    const i = bubblesOn ? pick(e.clientX, e.clientY) : -1;
+    if (i >= 0) return gallery.open(i);
+    if (inWater()) {
+      uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
+      uw.burst(aim(e.clientX, e.clientY));
+    }
   });
 
   renderer.info.autoReset = false;

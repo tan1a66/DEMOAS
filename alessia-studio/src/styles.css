@@ -97,7 +97,6 @@ body { touch-action: manipulation; }
   transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
   pointer-events: none;
   text-shadow: 0 1px 18px rgba(70, 25, 25, 0.38);
-  will-change: opacity, transform;
 }
 .ov.on { opacity: 1; transform: none; }
 .ov.on a, .ov.on button { pointer-events: auto; }
@@ -115,7 +114,10 @@ body { touch-action: manipulation; }
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(28px, 4.2vw, 56px);
-  line-height: 1.02;
+  /* interlinea e margine sotto abbondanti: Safari taglia le discendenti (g, p, j) se le righe
+     sono troppo strette */
+  line-height: 1.12;
+  padding-bottom: 0.08em;
   letter-spacing: -0.02em;
   max-width: 16ch;
 }
@@ -169,7 +171,8 @@ body { touch-action: manipulation; }
   font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(44px, 10.5vw, 168px);
-  line-height: 0.92;
+  line-height: 1;
+  padding: 0.04em 0;
   letter-spacing: -0.035em;
   color: var(--green);
   text-shadow: 0 2px 34px rgba(46, 18, 20, 0.45);
@@ -228,7 +231,7 @@ body { touch-action: manipulation; }
   border: 0;
   background: none;
   color: var(--ink);
-  font: 600 12px/1 var(--font-text);
+  font: 600 12px/1.25 var(--font-text);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -317,7 +320,7 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
   border-radius: 999px;
   background: var(--green);
   color: #1f3300;
-  font: 500 14px/1 var(--font-text);
+  font: 500 14px/1.2 var(--font-text);
   text-decoration: none;
   box-shadow: 0 10px 30px rgba(20, 30, 10, 0.28);
   transition: background 0.25s, transform 0.25s, opacity 0.6s ease;
@@ -469,7 +472,7 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
 .gal-thumbs img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .gal-info { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 .gal-info .label { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.22em; color: var(--ink-soft); }
-.gal-title { margin: 0 0 10px; font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 3.2vw, 50px); line-height: 1; letter-spacing: -0.03em; }
+.gal-title { margin: 0 0 10px; padding-bottom: 0.08em; font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 3.2vw, 50px); line-height: 1.12; letter-spacing: -0.03em; }
 .gal-kind { margin: 0 0 16px; font-size: 12.5px; line-height: 1.5; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 .gal-text { margin: 0; font-size: 15px; line-height: 1.55; }
 .gal-actions .cta { margin-top: 22px; }
@@ -483,7 +486,7 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
   border-radius: 999px;
   background: none;
   color: var(--ink);
-  font: 500 13px/1 var(--font-text);
+  font: 500 13px/1.2 var(--font-text);
   cursor: pointer;
   transition: background 0.25s, color 0.25s;
 }

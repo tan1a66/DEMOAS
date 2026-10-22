@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PALETTE, FRONT_WALL as FW, SHELL, TERRACE as T, ROOF_Y, SUN_INT } from './layout.js';
 import { GLSL_COMMON } from './materials.js';
-import { WATER } from './underwater.js';
+import { WATER } from './water-glsl.js';
 
 // Cielo + mare in un unico triangolo a schermo intero, disegnato dopo i volumi opachi
 // (depth = 1): il mare è un piano infinito fino al vero orizzonte, quindi l'orizzonte

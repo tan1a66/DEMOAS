@@ -1,35 +1,18 @@
 import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
-import { PALETTE } from './layout.js';
 import { BUBBLE_R } from './camera-path.js';
+import { FOG_GLSL } from './water-glsl.js';
+import { createSharks } from './sharks.js';
 
 // Sott'acqua: le bolle dei progetti (l'anteprima del progetto dentro una sfera, deformata come in
 // una lente, con il bordo iridescente; quella sotto il puntatore si accende e si gonfia appena),
-// bollicine che salgono verso la superficie e pulviscolo.
+// bollicine che salgono verso la superficie, pulviscolo e due squaletti.
+// Interazione: il puntatore (o il dito) scosta bollicine e bolle; un tocco nell'acqua libera uno
+// sbuffo di bollicine, trascinare lascia una scia; toccare uno squalo lo fa scattare via.
 // Tutto sfuma nel colore dell'acqua con la distanza.
 
-const lin = (hex) => new THREE.Color(hex);
-
-export const WATER = {
-  deep: lin('#1C4A5A'),
-  mid: lin(PALETTE.seaFar),
-  shallow: lin('#9CC8D3'),
-};
-
-const FOG_GLSL = /* glsl */ `
-  uniform vec3 uDeep, uMid, uShallow;
-  uniform float uCamY;
-  // colore dell'acqua nella direzione d (più chiaro verso la superficie)
-  vec3 waterColor(vec3 d) {
-    return mix(uDeep, mix(uMid, uShallow, smoothstep(0.2, 0.9, d.y)), smoothstep(-0.7, 0.2, d.y));
-  }
-  // nebbia sott'acqua; se la telecamera è sopra il pelo dell'acqua, gli oggetti si vedono appena
-  float waterFog(float dist, float depth) {
-    float f = exp(-dist * 0.055);
-    if (uCamY > 0.0) f *= exp(-max(depth, 0.0) * 0.9) * 0.6;
-    return f;
-  }
-`;
+import { WATER } from './water-glsl.js';
+export { WATER };
 
 // anteprima segnaposto per i progetti senza immagine: gradiente morbido (rosa, acqua)
 function placeholderTexture(seed) {
@@ -63,6 +46,9 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     uExposure: L.uExposure,
     uSunDir: L.uSunExtDir,
     uSunColor: L.uSunExtColor,
+    uRayO: { value: new THREE.Vector3() },
+    uRayD: { value: new THREE.Vector3(0, 0, -1) },
+    uPush: { value: 0 },
     uDeep: { value: WATER.deep },
     uMid: { value: WATER.mid },
     uShallow: { value: WATER.shallow },
@@ -78,6 +64,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
       ...shared,
       uImage: { value: placeholderTexture(i) },
       uFocus: { value: 0 },
+      uPoke: { value: 0 },
       uSeed: { value: i * 1.37 },
     };
     const mat = new THREE.ShaderMaterial({
@@ -85,13 +72,14 @@ export function createUnderwater(lights, { projects, positions, quality }) {
       vertexShader: /* glsl */ `
         uniform float uTime;
         uniform float uSeed;
+        uniform float uPoke;
         varying vec3 vWorldPos;
         varying vec3 vNormal;
         varying vec3 vViewNormal;
         void main() {
-          // respiro della bolla: leggera deformazione che scorre
+          // respiro della bolla: leggera deformazione che scorre (più forte quando la si tocca)
           vec3 p = position;
-          float w = sin(p.y * 2.3 + uTime * 1.1 + uSeed) * sin(p.x * 1.9 - uTime * 0.8) * 0.025;
+          float w = sin(p.y * 2.3 + uTime * (1.1 + 3.0 * uPoke) + uSeed) * sin(p.x * 1.9 - uTime * (0.8 + 2.0 * uPoke)) * (0.025 + 0.06 * uPoke);
           p += normal * w;
           vec4 wp = modelMatrix * vec4(p, 1.0);
           vWorldPos = wp.xyz;
@@ -186,6 +174,8 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     blending: THREE.AdditiveBlending,
     vertexShader: /* glsl */ `
       uniform float uTime;
+      uniform vec3 uRayO, uRayD;
+      uniform float uPush;
       attribute vec3 aOffset;
       attribute vec4 aParams;
       varying vec3 vWorldPos;
@@ -198,6 +188,11 @@ export function createUnderwater(lights, { projects, positions, quality }) {
         o.x += sin(t * 1.7 + aParams.z) * 0.12;
         o.z += cos(t * 1.3 + aParams.z * 0.7) * 0.12;
         float r = aParams.x * (0.8 + 0.2 * sin(t * 5.0));
+        // il puntatore le scosta (distanza dal raggio che parte dall'occhio)
+        vec3 rel = o - uRayO;
+        vec3 off = rel - uRayD * max(dot(rel, uRayD), 0.0);
+        float dd = length(off);
+        o += off / max(dd, 1e-3) * uPush * 0.55 * smoothstep(1.0, 0.0, dd);
         vec4 wp = vec4(o + position * r, 1.0);
         vWorldPos = wp.xyz;
         vNormal = normal;
@@ -272,8 +267,132 @@ export function createUnderwater(lights, { projects, positions, quality }) {
   dust.renderOrder = 11;
   group.add(dust);
 
-  let requested = false;
+  // ---------------- sbuffi di bollicine (al tocco, scia del dito) ----------------
+  const MAXP = 360;
+  const puffGeo = new THREE.InstancedBufferGeometry().copy(new THREE.IcosahedronGeometry(1, 1));
+  const pSpawn = new Float32Array(MAXP * 4);
+  const pPar = new Float32Array(MAXP * 4);
+  for (let i = 0; i < MAXP; i++) pSpawn[i * 4 + 3] = -1e4;
+  const spawnAttr = new THREE.InstancedBufferAttribute(pSpawn, 4);
+  const parAttr = new THREE.InstancedBufferAttribute(pPar, 4);
+  spawnAttr.setUsage(THREE.DynamicDrawUsage);
+  parAttr.setUsage(THREE.DynamicDrawUsage);
+  puffGeo.setAttribute('aSpawn', spawnAttr);
+  puffGeo.setAttribute('aPar', parAttr);
+  puffGeo.instanceCount = MAXP;
+  const puffMat = new THREE.ShaderMaterial({
+    uniforms: shared,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: /* glsl */ `
+      uniform float uTime;
+      attribute vec4 aSpawn;
+      attribute vec4 aPar;
+      varying vec3 vWorldPos;
+      varying vec3 vNormal;
+      varying float vLife;
+      void main() {
+        float age = uTime - aSpawn.w;
+        float life = 2.6 + aPar.z * 1.4;
+        float on = step(0.0, age) * step(age, life);
+        float ph = aPar.z * 6.2831;
+        // escono dal punto toccato, poi salgono ondeggiando e accelerando
+        vec3 dir = normalize(vec3(cos(ph), sin(ph * 2.3) * 0.7, sin(ph)));
+        vec3 o = aSpawn.xyz + dir * aPar.w * (1.0 - exp(-age * 4.5));
+        o.y += aPar.y * age + 0.16 * age * age;
+        o.x += sin(age * 5.0 + ph) * 0.05 * age;
+        o.z += cos(age * 4.2 + ph) * 0.05 * age;
+        float r = aPar.x * (0.5 + 0.5 * smoothstep(0.0, 0.35, age)) * (1.0 + 0.12 * sin(age * 9.0 + ph)) * on;
+        vLife = smoothstep(0.0, 0.12, age) * (1.0 - smoothstep(life - 0.9, life, age));
+        vec4 wp = vec4(o + position * r, 1.0);
+        vWorldPos = wp.xyz;
+        vNormal = normal;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      precision highp float;
+      uniform float uExposure;
+      varying vec3 vWorldPos;
+      varying vec3 vNormal;
+      varying float vLife;
+      ${FOG_GLSL}
+      void main() {
+        vec3 V = normalize(cameraPosition - vWorldPos);
+        float fres = pow(1.0 - abs(dot(normalize(vNormal), V)), 2.0);
+        float dist = length(cameraPosition - vWorldPos);
+        float a = (0.16 + 0.95 * fres) * vLife * waterFog(dist, -vWorldPos.y);
+        gl_FragColor = vec4(vec3(0.88, 0.97, 1.0) * a * uExposure, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+  const puffs = new THREE.Mesh(puffGeo, puffMat);
+  puffs.frustumCulled = false;
+  puffs.renderOrder = 13;
+  group.add(puffs);
+  let head = 0, now = 0;
+  const pt = new THREE.Vector3();
+  function spawn(at, count, spread = 0.3, size = 1) {
+    for (let k = 0; k < count; k++) {
+      const i = head++ % MAXP;
+      pSpawn[i * 4] = at.x + (Math.random() - 0.5) * 0.08;
+      pSpawn[i * 4 + 1] = Math.min(at.y, -0.35) + (Math.random() - 0.5) * 0.08;
+      pSpawn[i * 4 + 2] = at.z + (Math.random() - 0.5) * 0.08;
+      pSpawn[i * 4 + 3] = now + Math.random() * 0.08 * (count > 3 ? 1 : 0);
+      pPar[i * 4] = (0.025 + Math.random() ** 2.5 * 0.12) * size;
+      pPar[i * 4 + 1] = 0.45 + Math.random() * 0.7;
+      pPar[i * 4 + 2] = Math.random();
+      pPar[i * 4 + 3] = spread * (0.3 + Math.random() * 0.7);
+    }
+    spawnAttr.needsUpdate = true;
+    parAttr.needsUpdate = true;
+  }
+  // punto nell'acqua sotto il dito: sulla bolla toccata, altrimenti a qualche metro
+  function pointOn(ray, fallback) {
+    const hit = new THREE.Raycaster(ray.origin, ray.direction).intersectObjects(bubbles, false)[0];
+    return ray.at(hit ? hit.distance : fallback, pt);
+  }
+
+  // ---------------- due squaletti ----------------
+  const sharks = createSharks(shared);
+  group.add(sharks.group);
+
+  // puntatore: raggio dall'occhio; per il dito resta attivo un attimo dopo il tocco
+  let pushTarget = 0, pushHold = 0;
+  function setPointer(ray, hold = 0) {
+    if (ray) {
+      shared.uRayO.value.copy(ray.origin);
+      shared.uRayD.value.copy(ray.direction);
+      pushTarget = 1;
+      pushHold = hold;
+    } else if (pushHold <= 0) pushTarget = 0;
+  }
+  function burst(ray) {
+    const shark = sharks.poke(ray);
+    if (shark) spawn(shark, 30, 0.4, 1.2);
+    const at = pointOn(ray, 4.2);
+    spawn(at, 34, 0.5);
+    // le bolle vicine tremano
+    bubbles.forEach((b) => {
+      if (b.position.distanceTo(at) < BUBBLE_R * 2.4) b.material.uniforms.uPoke.value = 1;
+    });
+  }
+  function trail(ray) {
+    spawn(pointOn(ray, 4.0), 1 + (Math.random() < 0.5 ? 1 : 0), 0.1, 0.9);
+  }
+
+  let requested = false, lastTime = 0;
+  const near = new THREE.Vector3();
   function update(camera, time, focusIndex, dpr) {
+    const dt = Math.min(0.1, Math.max(0, time - lastTime));
+    lastTime = time;
+    now = time;
+    pushHold -= dt;
+    if (pushHold <= 0 && !hoverActive) pushTarget = 0;
+    shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 6));
+    sharks.update(dt, bubbles.map((b) => b.userData.base));
     shared.uCamY.value = camera.position.y;
     if (!requested && camera.position.z < -9) {
       requested = true;
@@ -282,9 +401,20 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     dMat.uniforms.uPixelRatio.value = dpr;
     // visibile solo con la telecamera sott'acqua (da sopra l'acqua torbida non lascia vedere il fondo)
     group.visible = camera.position.y < 0.0 && camera.position.x < -20;
+    const ray = { o: shared.uRayO.value, d: shared.uRayD.value };
     bubbles.forEach((b, i) => {
       const base = b.userData.base;
       b.position.set(base.x, base.y + Math.sin(time * 0.6 + i * 1.3) * 0.12, base.z + Math.cos(time * 0.45 + i) * 0.08);
+      // il puntatore che passa vicino scosta appena la bolla
+      if (shared.uPush.value > 0.01 && i !== focusIndex) {
+        near.subVectors(b.position, ray.o);
+        near.addScaledVector(ray.d, -Math.max(near.dot(ray.d), 0));
+        const d = near.length();
+        const k = shared.uPush.value * Math.max(0, 1 - d / (BUBBLE_R * 1.9));
+        if (d > 1e-3) b.position.addScaledVector(near, (k * 0.22) / d);
+      }
+      const pk = b.material.uniforms.uPoke;
+      pk.value *= Math.exp(-dt * 1.6);
       b.rotation.y = Math.sin(time * 0.2 + i) * 0.15;
       const f = b.material.uniforms.uFocus;
       f.value += ((i === focusIndex ? 1 : 0) - f.value) * 0.12;
@@ -292,5 +422,19 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     });
   }
 
-  return { group, bubbles, update, shared };
+  let hoverActive = false;
+  return {
+    group,
+    bubbles,
+    update,
+    shared,
+    sharks,
+    burst,
+    trail,
+    // ray: THREE.Ray o null; hover = true per il mouse (resta attivo finché si muove)
+    setPointer(ray, { hold = 0, hover = false } = {}) {
+      hoverActive = hover && !!ray;
+      setPointer(ray, hold);
+    },
+  };
 }

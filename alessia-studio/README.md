@@ -23,6 +23,10 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    insieme, ognuna con il suo nome; toccando una bolla si apre la galleria con gli screenshot del sito
 5. Lo sguardo sale verso la luce: **Contáctanos**
 
+Sott'acqua: due squaletti nuotano attorno alle bolle (toccati, scattano via); il puntatore scosta
+bollicine e bolle, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il dito (o muovere il
+mouse) lascia una scia.
+
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra; la scelta viene ricordata), WhatsApp (in
 basso a destra) e l'invito a scorrere.
 
@@ -48,7 +52,9 @@ Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
 - `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere, nomi delle bolle
 - `src/gallery.js`: galleria di un progetto (frecce, miniature, tastiera, swipe)
-- `src/underwater.js`: bolle dei progetti, bollicine, pulviscolo
+- `src/underwater.js`: bolle dei progetti, bollicine (anche al tocco), pulviscolo
+- `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
+- `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
 - `src/lights.js`: soli, esposizione, mappa d'ombra opzionale del pit
 - `src/post.js`: MSAA, bloom, vignettatura, grana
