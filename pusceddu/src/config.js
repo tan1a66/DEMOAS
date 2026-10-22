@@ -3,6 +3,7 @@
 
 export const CONFIG = {
   contatti: {
+    whatsapp: '', // numero per le prenotazioni, con prefisso: es. '+39 333 123 4567'
     email: '', // es. 'studio@dominio.it'
     telefono: '', // es. '+39 070 000 0000'
     pec: '',

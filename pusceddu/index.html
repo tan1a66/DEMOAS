@@ -36,7 +36,7 @@
         <a href="#chi-sono" data-go="1"><i>I</i>Chi sono</a>
         <a href="#servizi" data-go="3"><i>II</i>Servizi</a>
         <a href="#pubblicazioni" data-go="5"><i>III</i>Pubblicazioni</a>
-        <a href="#contatti" data-go="6"><i>IV</i>Sedi e contatti</a>
+        <a href="#contatti" data-go="6"><i>IV</i>Contatti</a>
       </nav>
       <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">
         <span>Menu</span>
@@ -142,7 +142,7 @@
               Assistenza legale specializzata per donne vittime di violenza, tutela nei casi di maltrattamenti, stalking e
               applicazione del Codice Rosso.
             </p>
-            <a class="btn btn--red" href="#contatti" data-go="6">Richiedi una consulenza</a>
+            <button class="btn btn--red" type="button" data-book="tutela">Prenota una consulenza</button>
           </div>
         </article>
       </section>
@@ -160,7 +160,7 @@
               Semplificazione e chiarezza nella redazione dei contratti, anche con elementi visivi, per una contrattualistica
               nazionale ed europea più accessibile.
             </p>
-            <a class="btn" href="#contatti" data-go="6">Richiedi una consulenza</a>
+            <button class="btn" type="button" data-book="legal-design">Prenota una consulenza</button>
           </div>
         </article>
       </section>
@@ -202,18 +202,18 @@
         </article>
       </section>
 
-      <!-- 6 · Sedi e contatti (vista aerea) -->
-      <section class="chapter chapter--last" id="contatti" data-station="6" aria-labelledby="sedi-title">
+      <!-- 6 · Contatti (super zoom sulla bilancia) -->
+      <section class="chapter chapter--last" id="contatti" data-station="6" aria-labelledby="contatti-title">
         <article class="panel panel--right panel--wide">
-          <p class="eyebrow"><i>IV</i>Sedi e contatti</p>
-          <h2 id="sedi-title">Le Mie Sedi</h2>
+          <p class="eyebrow"><i>IV</i>Contatti</p>
+          <h2 id="contatti-title">Contattami</h2>
+          <p class="lead">Entra in contatto per una consulenza professionale personalizzata.</p>
+          <button class="btn btn--red btn--wa" type="button" data-book="">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg><span>Prenota una consulenza su WhatsApp</span>
+          </button>
+          <dl class="contact-list" id="contact-list"></dl>
+          <h3 id="sedi-title">Le Mie Sedi</h3>
           <div class="offices" id="offices"></div>
-          <div class="contact">
-            <h3>Contattami</h3>
-            <p>Entra in contatto per una consulenza professionale personalizzata.</p>
-            <dl class="contact-list" id="contact-list"></dl>
-            <a class="btn btn--red" id="contact-cta" href="#">Contattaci</a>
-          </div>
           <footer class="footer">
             <p>
               © <span id="year"></span> Avv. Roberto Pusceddu · Roberto Pusceddu &amp; Partners Law Firm<span id="piva"></span>
@@ -222,6 +222,53 @@
         </article>
       </section>
     </main>
+
+    <!-- Prenotazione: il modulo prepara il messaggio, che si apre già pronto su WhatsApp. -->
+    <dialog class="booking" id="booking" aria-labelledby="booking-title">
+      <form class="booking-form" id="booking-form" novalidate>
+        <button class="booking-close" type="button" id="booking-close" aria-label="Chiudi">×</button>
+        <p class="eyebrow">Prenota una consulenza</p>
+        <h2 id="booking-title">Prepariamo il messaggio</h2>
+        <p class="booking-intro">Compila i campi: il messaggio si apre già pronto su WhatsApp e lo invii tu. Il sito non salva nessun dato.</p>
+        <label class="field">
+          <span>Nome e cognome</span>
+          <input name="nome" type="text" autocomplete="name" required maxlength="80" />
+        </label>
+        <fieldset class="field">
+          <legend>Per quale questione?</legend>
+          <label class="choice"><input type="radio" name="area" value="tutela" /><span>Tutela della donna, vittime di genere e Codice Rosso</span></label>
+          <label class="choice"><input type="radio" name="area" value="legal-design" /><span>Legal Design nel Contratto</span></label>
+          <label class="choice"><input type="radio" name="area" value="altro" checked /><span>Altra questione</span></label>
+        </fieldset>
+        <div class="field-row">
+          <label class="field">
+            <span>Giorno preferito</span>
+            <input name="giorno" type="date" />
+          </label>
+          <label class="field">
+            <span>Fascia oraria</span>
+            <select name="fascia">
+              <option>Mattina</option>
+              <option>Pomeriggio</option>
+              <option selected>Indifferente</option>
+            </select>
+          </label>
+        </div>
+        <label class="field">
+          <span>In breve (facoltativo)</span>
+          <textarea name="note" rows="3" maxlength="400"></textarea>
+        </label>
+        <div class="booking-preview">
+          <p>Anteprima del messaggio</p>
+          <pre id="booking-preview"></pre>
+        </div>
+        <p class="booking-warn" id="booking-warn" hidden></p>
+        <div class="booking-actions">
+          <button class="btn" type="button" id="booking-copy">Copia il messaggio</button>
+          <button class="btn btn--red btn--wa" type="submit" id="booking-send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg><span>Invia su WhatsApp</span></button>
+        </div>
+      </form>
+    </dialog>
 
     <!-- Caricamento: fondo crema, barra rossa; alla fine la barra invade lo schermo. -->
     <div class="loader" id="loader" role="progressbar" aria-label="Caricamento" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">

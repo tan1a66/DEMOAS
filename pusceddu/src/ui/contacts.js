@@ -27,16 +27,12 @@ export function renderContacts() {
 
   const c = CONFIG.contatti;
   const rows = [
+    ['WhatsApp', c.whatsapp ? esc(c.whatsapp) : placeholder()],
     ['Email', c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : placeholder()],
     ['Telefono', c.telefono ? `<a href="tel:${esc(c.telefono.replace(/\s+/g, ''))}">${esc(c.telefono)}</a>` : placeholder()],
   ];
   if (c.pec) rows.push(['PEC', `<a href="mailto:${esc(c.pec)}">${esc(c.pec)}</a>`]);
   document.getElementById('contact-list').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
-
-  const cta = document.getElementById('contact-cta');
-  if (c.email) cta.href = `mailto:${c.email}?subject=${encodeURIComponent('Richiesta di consulenza')}`;
-  else if (c.telefono) cta.href = `tel:${c.telefono.replace(/\s+/g, '')}`;
-  else cta.addEventListener('click', (e) => e.preventDefault());
 
   document.getElementById('year').textContent = String(new Date().getFullYear());
   document.getElementById('piva').innerHTML = ` · P.IVA ${c.partitaIva ? esc(c.partitaIva) : placeholder()}`;

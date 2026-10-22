@@ -7,6 +7,7 @@ import { buildWorld, keyframes, introPath } from './scene/world.js';
 import { Drone } from './scene/drone.js';
 import { Loader } from './ui/loader.js';
 import { renderContacts } from './ui/contacts.js';
+import { initBooking } from './ui/booking.js';
 
 const $ = (id) => document.getElementById(id);
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
@@ -38,6 +39,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 const body = document.body;
 const loader = new Loader();
 renderContacts();
+initBooking();
 paintGrain();
 
 // ---------------------------------------------------------------- Renderer
@@ -112,7 +114,7 @@ async function build() {
   scene.environmentIntensity = 0.95;
   loader.set(0.3);
 
-  const steps = 6;
+  const steps = 2;
   let done = 0;
   world = await buildWorld(scene, async () => {
     done++;
@@ -127,7 +129,7 @@ async function build() {
     m.clipShadows = true;
   }
 
-  drone.setKeyframes(keyframes(narrow));
+  drone.setKeyframes(keyframes(world, narrow));
   drone.update(0, 0);
   updateLights();
   // Compila tutti gli shader ora, per non avere scatti durante il volo.
@@ -261,7 +263,7 @@ window.addEventListener('resize', () => {
     const n = isNarrow();
     if (n !== narrow && world) {
       narrow = n;
-      drone.setKeyframes(keyframes(narrow));
+      drone.setKeyframes(keyframes(world, narrow));
     }
     computeAnchors();
   }, 120);
@@ -320,7 +322,7 @@ function intro(curtain) {
   const tc = new THREE.CatmullRomCurve3(path.targets, false, 'centripetal');
   const ov = { position: new THREE.Vector3(), target: new THREE.Vector3(), sx: 0, sy: 0, fov: 34, fog: [80, 120] };
   const st = { p: REDUCED_MOTION ? 1 : 0, rise: REDUCED_MOTION ? 1 : 0 };
-  const heroRoot = world.hero.root.parent;
+  const root = world.root;
   const apply = () => {
     pc.getPoint(st.p, ov.position);
     tc.getPoint(st.p, ov.target);
@@ -328,21 +330,18 @@ function intro(curtain) {
     ov.sx = heroKf.sx * k;
     ov.sy = heroKf.sy * k;
     ov.fog = [80 + (heroKf.fog[0] - 80) * k, 120 + (heroKf.fog[1] - 120) * k];
-    heroRoot.position.y = -3.6 * (1 - st.rise);
+    root.position.y = -5.4 * (1 - st.rise);
   };
   apply();
   drone.override = ov;
   introRunning = true;
-  // Nell'intro si vede solo la colonnina: le altre opere compaiono a volo finito.
-  for (const g of world.works) g.visible = false;
-  if (!REDUCED_MOTION) world.hero.justice.setAngle(0.2);
+  if (!REDUCED_MOTION) world.justice.setAngle(0.2);
 
   const finish = () => {
     introRunning = false;
     drone.override = null;
     drone.u = 0;
-    heroRoot.position.y = 0;
-    for (const g of world.works) g.visible = true;
+    root.position.y = 0;
     body.classList.remove('is-intro');
     computeAnchors();
     curtain.remove();
@@ -391,10 +390,9 @@ function frame(now) {
     drone.update(u, dt);
     updateLights();
 
-    // La bilancia "sente" lo scroll e poi ritrova l'equilibrio.
-    const nearHero = 1 - smoothstep(0.3, 0.9, st);
-    world.hero.justice.update(dt, THREE.MathUtils.clamp(scrollVel * 0.00012, -0.5, 0.5) * nearHero * drone.motion);
-    world.dante.update(dt, drone.motion);
+    // La bilancia "sente" lo scroll e poi ritrova l'equilibrio; i cieli e gli anelli girano.
+    world.justice.update(dt, THREE.MathUtils.clamp(scrollVel * 0.0001, -0.5, 0.5) * drone.motion);
+    world.monument.update(dt, drone.motion);
 
     // Il nodo si scioglie appena si arriva al Legal Design (e si riannoda tornando indietro);
     // le pagine del libro si girano scorrendo le Pubblicazioni.

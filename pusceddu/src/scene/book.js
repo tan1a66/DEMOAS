@@ -64,7 +64,8 @@ function blockGeometry(side) {
 }
 
 export class OpenBook {
-  constructor(material, makeMaterial) {
+  // lectern: true = leggio alto con piedistallo; false = solo un piccolo leggio basso.
+  constructor(material, makeMaterial, { lectern = true } = {}) {
     this.group = new THREE.Group();
     const add = (geo, mat, parent = this.group) => {
       const m = new THREE.Mesh(geo, mat);
@@ -73,31 +74,44 @@ export class OpenBook {
       return m;
     };
 
-    // Leggio: profilo trapezoidale estruso lungo X, piano inclinato verso chi guarda.
-    const prof = new THREE.Shape([
-      new THREE.Vector2(-0.28, 0),
-      new THREE.Vector2(0.28, 0),
-      new THREE.Vector2(0.28, 1.12),
-      new THREE.Vector2(-0.28, 0.98),
-    ]);
-    const lecternGeo = new THREE.ExtrudeGeometry(prof, {
-      depth: 0.78,
-      bevelEnabled: true,
-      bevelThickness: 0.012,
-      bevelSize: 0.012,
-      bevelSegments: 3,
-    });
-    lecternGeo.translate(0, 0, -0.39);
-    lecternGeo.rotateY(Math.PI / 2);
-    add(lecternGeo, material);
-    const foot = add(new RoundedBoxGeometry(0.88, 0.06, 0.66, 2, 0.01), material);
-    foot.position.y = 0.03;
-
-    // Piano del libro (inclinato come il leggio)
     this.desk = new THREE.Group();
-    this.desk.position.set(0, 1.05 + 0.014, 0);
     this.desk.rotation.x = SLOPE;
     this.group.add(this.desk);
+    if (lectern) {
+      // Leggio: profilo trapezoidale estruso lungo X, piano inclinato verso chi guarda.
+      const prof = new THREE.Shape([
+        new THREE.Vector2(-0.28, 0),
+        new THREE.Vector2(0.28, 0),
+        new THREE.Vector2(0.28, 1.12),
+        new THREE.Vector2(-0.28, 0.98),
+      ]);
+      const lecternGeo = new THREE.ExtrudeGeometry(prof, {
+        depth: 0.78,
+        bevelEnabled: true,
+        bevelThickness: 0.012,
+        bevelSize: 0.012,
+        bevelSegments: 3,
+      });
+      lecternGeo.translate(0, 0, -0.39);
+      lecternGeo.rotateY(Math.PI / 2);
+      add(lecternGeo, material);
+      const foot = add(new RoundedBoxGeometry(0.88, 0.06, 0.66, 2, 0.01), material);
+      foot.position.y = 0.03;
+      this.desk.position.set(0, 1.05 + 0.014, 0);
+    } else {
+      // Leggio basso: un cuneo di marmo appoggiato sul gradino.
+      const wedge = new THREE.Shape([
+        new THREE.Vector2(-0.24, 0),
+        new THREE.Vector2(0.24, 0),
+        new THREE.Vector2(0.24, 0.17),
+        new THREE.Vector2(-0.24, 0.05),
+      ]);
+      const wedgeGeo = new THREE.ExtrudeGeometry(wedge, { depth: 0.74, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01, bevelSegments: 2 });
+      wedgeGeo.translate(0, 0, -0.37);
+      wedgeGeo.rotateY(Math.PI / 2);
+      add(wedgeGeo, material);
+      this.desk.position.set(0, 0.11 + 0.014, 0);
+    }
     const ledge = add(new RoundedBoxGeometry(0.72, 0.03, 0.03, 2, 0.008), material, this.desk);
     ledge.position.set(0, 0.012, PH / 2 + 0.03);
 

@@ -3,6 +3,11 @@ import { QUALITY } from '../config.js';
 
 // Marmo statuario procedurale. Le venature sono calcolate in 3D sulla posizione
 // dell'oggetto (non su UV): ogni pezzo sembra ricavato da un unico blocco, senza cuciture.
+// Per togliere l'effetto "plastica":
+//   - venature su due livelli (grigio-azzurre), macchie nuvolose e grana del cristallo
+//   - lucidatura a specchio (clearcoat) che riflette lucernari e finestre dell'ambiente
+//   - traslucenza simulata: il marmo non diventa mai "nero", si illumina dall'interno ai bordi
+//   - micro-sfaccettature del calcare che scintillano quando la luce scorre
 
 // Rumore simplex 3D (Ashima Arts / Ian McEwan, licenza MIT).
 const NOISE = /* glsl */ `
@@ -57,51 +62,87 @@ float mr_fbm(vec3 p) {
   for (int i = 0; i < MARBLE_OCTAVES; i++) { s += a * mr_snoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
   return s;
 }
+float mr_fbm3(vec3 p) {
+  float a = 0.5, s = 0.0;
+  for (int i = 0; i < 3; i++) { s += a * mr_snoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+  return s;
+}
+vec3 mr_hash3(vec3 p) {
+  p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
+  return fract(sin(p) * 43758.5453123);
+}
 `;
 
 const MARBLE = /* glsl */ `
 varying vec3 vMarblePos;
 uniform vec3 uVein;
+uniform vec3 uVein2;
 uniform float uScale;
 uniform float uSeed;
 uniform float uVeinStrength;
+uniform float uSSS;
+uniform float uGrain;
 ${NOISE}
 vec3 marbleColor(vec3 base, out float roughAdd) {
   vec3 p = vMarblePos * uScale + vec3(uSeed * 13.1, uSeed * 7.3, uSeed * 3.7);
-  float cloud = mr_fbm(p * 0.35);
-  // Venature principali: bande deformate dalla turbolenza, che compaiono e scompaiono.
-  float turb = mr_fbm(p * 0.9 + vec3(0.0, cloud * 1.5, 0.0));
-  float band = sin(dot(p, vec3(0.8, 0.5, 0.3)) * 2.2 + turb * 5.5);
-  float main = 1.0 - smoothstep(0.0, 0.10, abs(band));
-  float mask = smoothstep(-0.2, 0.5, mr_fbm(p * 0.45 + 4.0));
-  // Venature capillari, più sottili e chiare.
-  float hair = 1.0 - smoothstep(0.0, 0.03, abs(sin(dot(p, vec3(0.2, 0.6, -0.7)) * 3.1 + turb * 6.5)));
-  float vein = clamp(main * 0.8 * mask + hair * 0.28 * (1.0 - mask * 0.6), 0.0, 1.0) * uVeinStrength;
-  vec3 col = base * (0.955 + 0.045 * cloud);
-  col = mix(col, uVein, vein);
-  roughAdd = vein * 0.08 + cloud * 0.025;
+  float cloud = mr_fbm3(p * 0.3);
+  float turb = mr_fbm(p * 0.8 + vec3(0.0, cloud * 1.6, 0.0));
+  // Venature principali: bande deformate, spessore variabile, compaiono e scompaiono.
+  float band = sin(dot(p, vec3(0.8, 0.5, 0.3)) * 1.9 + turb * 6.0);
+  float width = 0.09 + 0.12 * (0.5 + 0.5 * cloud);
+  float main = (1.0 - smoothstep(0.0, width, abs(band))) * (0.55 + 0.45 * (1.0 - smoothstep(0.0, width * 0.35, abs(band))));
+  float mask = smoothstep(-0.25, 0.45, mr_fbm3(p * 0.4 + 4.0));
+  // Venature secondarie, più chiare, con un'altra direzione.
+  float band2 = sin(dot(p, vec3(-0.3, 0.7, 0.6)) * 3.3 + turb * 7.5 + 1.7);
+  float sec = 1.0 - smoothstep(0.0, 0.07, abs(band2));
+  float mask2 = smoothstep(0.0, 0.6, mr_fbm3(p * 0.6 - 3.0));
+  // Capillari e macchie nuvolose grigie
+  float hair = 1.0 - smoothstep(0.0, 0.022, abs(sin(dot(p, vec3(0.2, 0.6, -0.7)) * 3.1 + turb * 6.5)));
+  float stain = smoothstep(0.15, 0.85, mr_fbm3(p * 0.7 + 9.0)) * 0.13;
+  vec3 col = base * (0.965 + 0.035 * cloud);
+  col = mix(col, uVein2, stain);
+  col = mix(col, uVein2, hair * 0.16);
+  col = mix(col, uVein2, sec * 0.32 * mask2 * uVeinStrength);
+  col = mix(col, uVein, main * 0.6 * mask * uVeinStrength);
+  // Grana del cristallo di calcite
+  col *= 0.988 + 0.024 * mr_hash3(floor(vMarblePos * 600.0)).x;
+  roughAdd = (main * mask + sec * mask2) * 0.07 + stain * 0.2;
   return col;
 }
 `;
 
 export function createMarble({
-  color = 0xf6f4f0,
-  vein = 0x7a7774,
+  color = 0xf5f3ef,
+  vein = 0x7a828c,
+  vein2 = 0xaeb2b8,
   scale = 1.6,
   seed = 0,
-  veinStrength = 0.78,
-  roughness = 0.3,
-  clearcoat = 0.4,
-  clearcoatRoughness = 0.22,
+  veinStrength = 0.85,
+  sss = 0.05,
+  grain = 0.035,
+  roughness = 0.2,
+  clearcoat = 1,
+  clearcoatRoughness = 0.06,
   restAttribute = false, // usa l'attributo `marbleRest` (geometrie che si deformano)
   ...rest
 } = {}) {
-  const mat = new THREE.MeshPhysicalMaterial({ color, roughness, clearcoat, clearcoatRoughness, ...rest });
+  const mat = new THREE.MeshPhysicalMaterial({
+    color,
+    roughness,
+    clearcoat,
+    clearcoatRoughness,
+    ior: 1.55,
+    specularIntensity: 0.45,
+    ...rest,
+  });
   const uniforms = {
     uVein: { value: new THREE.Color(vein) },
+    uVein2: { value: new THREE.Color(vein2) },
     uScale: { value: scale },
     uSeed: { value: seed },
     uVeinStrength: { value: veinStrength },
+    uSSS: { value: sss },
+    uGrain: { value: grain },
   };
   mat.userData.marble = uniforms;
   mat.onBeforeCompile = (shader) => {
@@ -119,6 +160,18 @@ export function createMarble({
       .replace(
         '#include <roughnessmap_fragment>',
         '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + marbleRough, 0.04, 1.0);'
+      )
+      // Micro-sfaccettature: piccole variazioni di normale che fanno scintillare la luce.
+      .replace(
+        '#include <normal_fragment_maps>',
+        '#include <normal_fragment_maps>\nnormal = normalize(normal + (mr_hash3(floor(vMarblePos * 420.0)) - 0.5) * uGrain);'
+      )
+      // Traslucenza: luce che "esce" dal marmo, più intensa ai bordi visti di taglio.
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        float mr_ndv = clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0);
+        totalEmissiveRadiance += diffuseColor.rgb * uSSS * (0.55 + 0.9 * pow(1.0 - mr_ndv, 2.0));`
       );
   };
   mat.customProgramCacheKey = () => `marble-${QUALITY.marbleOctaves}-${restAttribute}`;

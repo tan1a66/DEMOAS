@@ -2,12 +2,26 @@ import * as THREE from 'three';
 
 // Utilità di modellazione: torniture (lathe) e "sweep" lungo una curva.
 
-// Profilo [[raggio, altezza], ...] dal basso verso l'alto → solido di rotazione attorno a Y.
+// Profilo [[raggio, altezza, ao?], ...] dal basso verso l'alto → solido di rotazione attorno a Y.
+// Il terzo valore (facoltativo, 0..1) scurisce gli spigoli interni come l'occlusione
+// ambientale: va usato con un materiale `vertexColors: true`.
 export function lathe(profile, segments = 72) {
-  return new THREE.LatheGeometry(
+  const g = new THREE.LatheGeometry(
     profile.map(([r, y]) => new THREE.Vector2(Math.max(r, 1e-4), y)),
     segments
   );
+  if (profile.some((p) => p.length > 2)) {
+    const n = profile.length;
+    const colors = new Float32Array((segments + 1) * n * 3);
+    for (let i = 0; i <= segments; i++) {
+      for (let j = 0; j < n; j++) {
+        const ao = profile[j][2] ?? 1;
+        colors.set([ao, ao, ao], (i * n + j) * 3);
+      }
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  }
+  return g;
 }
 
 // Come lathe() ma con l'asse lungo X (per aste orizzontali: giogo, elsa).
