@@ -982,12 +982,6 @@ body.booking-open {
 }
 
 /* ------------------------------------------------------------ Didascalie e versi */
-.hero-note {
-  margin: 14px 0 0;
-  max-width: 32em;
-  font: italic 500 17px/1.45 var(--serif);
-  opacity: 0.88;
-}
 .verse {
   margin: 26px 0 0;
   padding: 16px 0 0 18px;
@@ -1071,9 +1065,6 @@ body.booking-open {
     margin-left: 0;
     padding: 11px 12px;
     letter-spacing: 0.14em;
-  }
-  .hero-note {
-    font-size: 16px;
   }
   .rail {
     display: none;
