@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { FRONT_WALL as FW, WINDOW } from './layout.js';
 
 // Percorso della telecamera guidato dallo scroll.
 // Ogni chiave: p = avanzamento dello scroll (0..1), pos/target, esposizione, peso del parallasse.
@@ -8,27 +9,44 @@ import * as THREE from 'three';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-export const KEYS = [
-  // 0 · orizzonte: monolite rosa sul mare, telecamera in piano (l'orizzonte è a metà schermo)
-  { p: 0.0, pos: V(-19.0, 12.4, 52), target: V(-2.0, 12.4, 6), exposure: 1.0, parallax: 1 },
-  { p: 0.12, pos: V(-10.5, 9.0, 37), target: V(-0.6, 7.4, 8), exposure: 1.0, parallax: 1 },
-  { p: 0.24, pos: V(-2.6, 6.5, 23), target: V(0.0, 5.95, 9), exposure: 1.0, parallax: 0.8 },
-  // 1 · allineamento e attraversamento della finestra circolare
-  { p: 0.32, pos: V(-0.05, 5.86, 14.5), target: V(0.0, 5.8, 0), exposure: 1.0, parallax: 0.35 },
-  { p: 0.38, pos: V(0.0, 5.8, 9.9), target: V(0.0, 5.55, -2), exposure: 1.3, parallax: 0.15 },
-  { p: 0.43, pos: V(0.0, 5.62, 7.3), target: V(0.1, 3.6, -2.4), exposure: 2.4, parallax: 0.3 },
-  // 2 · conversation pit: discesa, sguardo verso l'alto (pausa), ripartenza
-  { p: 0.51, pos: V(0.3, 4.55, 4.6), target: V(0.45, 2.1, -1.8), exposure: 3.2, parallax: 0.6 },
-  { p: 0.575, pos: V(0.6, 3.72, 2.75), target: V(0.4, 2.7, -2.2), exposure: 3.3, parallax: 0.6 },
-  { p: 0.63, pos: V(0.66, 3.6, 2.45), target: V(0.12, 9.6, 0.6), exposure: 3.3, parallax: 0.5 },
-  { p: 0.705, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 3.3, parallax: 0.5 },
-  { p: 0.765, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 3.2, parallax: 0.5 },
-  // 3 · verso il mare: grande apertura rettangolare, terrazza, il sole basso
-  { p: 0.84, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 1.9, parallax: 0.3 },
-  { p: 0.89, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.25, parallax: 0.15 },
-  { p: 0.94, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.05, parallax: 0.6 },
-  { p: 1.0, pos: V(-3.0, 4.7, -13.0), target: V(-30, 6.4, -9.2), exposure: 1.0, parallax: 1 },
-];
+// Distanza iniziale dal muro: il muro rosa deve riempire tutto lo schermo (niente mare né cielo
+// attorno alla struttura), con un margine per il parallasse. Dipende dal campo visivo.
+export function startDistance(fovDeg, aspect) {
+  const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2);
+  const tanH = tanV * aspect;
+  const margin = 0.55;
+  const vert = Math.min(WINDOW.cy - FW.y0, FW.y1 - WINDOW.cy) - margin;
+  const horiz = Math.min(-FW.x0, FW.x1) - margin;
+  return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
+}
+
+function buildKeys(d) {
+  const zw = FW.zOut;
+  const cy = WINDOW.cy;
+  return [
+    // 0 · il muro a cassero riempie lo schermo, la finestra circolare al centro; la telecamera è in
+    //     piano: l'unico orizzonte, visto attraverso la finestra e l'apertura di fondo, è a metà schermo
+    { p: 0.0, pos: V(0, cy, zw + d), target: V(0, cy, 0), exposure: 1.12, parallax: 0.6 },
+    { p: 0.1, pos: V(0, cy, zw + Math.max(3.6, d * 0.6)), target: V(0, cy, 0), exposure: 1.12, parallax: 0.45 },
+    // 1 · attraversamento della finestra circolare
+    { p: 0.17, pos: V(0, cy, zw + 2.2), target: V(0, cy - 0.1, -2), exposure: 1.15, parallax: 0.25 },
+    { p: 0.22, pos: V(0, cy, zw + 0.9), target: V(0, cy - 0.25, -2), exposure: 1.3, parallax: 0.15 },
+    { p: 0.283, pos: V(0.0, 5.62, 7.3), target: V(0.1, 3.6, -2.4), exposure: 2.4, parallax: 0.3 },
+    // 2 · conversation pit: discesa, sguardo verso l'alto (pausa), ripartenza
+    { p: 0.384, pos: V(0.3, 4.55, 4.6), target: V(0.45, 2.1, -1.8), exposure: 3.2, parallax: 0.6 },
+    { p: 0.465, pos: V(0.6, 3.72, 2.75), target: V(0.4, 2.7, -2.2), exposure: 3.3, parallax: 0.6 },
+    { p: 0.535, pos: V(0.66, 3.6, 2.45), target: V(0.12, 9.6, 0.6), exposure: 3.3, parallax: 0.5 },
+    { p: 0.629, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 3.3, parallax: 0.5 },
+    { p: 0.704, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 3.2, parallax: 0.5 },
+    // 3 · verso il mare: grande apertura rettangolare, terrazza, il sole basso (il mare si scopre solo qui)
+    { p: 0.799, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 1.9, parallax: 0.3 },
+    { p: 0.862, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.25, parallax: 0.15 },
+    { p: 0.925, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.05, parallax: 0.6 },
+    { p: 1.0, pos: V(-3.0, 4.7, -13.0), target: V(-30, 6.4, -9.2), exposure: 1.0, parallax: 1 },
+  ];
+}
+
+export const KEYS = buildKeys(startDistance(46, 16 / 10));
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
 function monotone(xs, ys) {
@@ -82,6 +100,15 @@ export function createCameraPath(camera, { reducedMotion = false } = {}) {
     state.target = pToU(THREE.MathUtils.clamp(p, 0, 1));
   }
 
+  // al resize: ricalcola le prime due chiavi in base al campo visivo (le curve usano gli stessi vettori)
+  function setFraming(fovDeg, aspect) {
+    const fresh = buildKeys(startDistance(fovDeg, aspect));
+    for (const i of [0, 1]) {
+      KEYS[i].pos.copy(fresh[i].pos);
+      KEYS[i].target.copy(fresh[i].target);
+    }
+  }
+
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale
   function update(dt, parallax = { x: 0, y: 0 }, amp = 0.22) {
     if (reducedMotion) state.u = state.target;
@@ -104,5 +131,5 @@ export function createCameraPath(camera, { reducedMotion = false } = {}) {
     return { exposure: uToExposure(u), u };
   }
 
-  return { setProgress, update, state, posCurve, tgtCurve };
+  return { setProgress, setFraming, update, state, posCurve, tgtCurve };
 }

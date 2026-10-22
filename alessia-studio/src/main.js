@@ -9,7 +9,7 @@ import { createCameraPath } from './camera-path.js';
 import { createParallax } from './parallax.js';
 import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
-import { ROOM, CEIL_Y } from './layout.js';
+import { ROOM } from './layout.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -52,12 +52,13 @@ function resize() {
   const vFromH = 2 * Math.atan(Math.tan(minHFov / 2) / camera.aspect);
   camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(Math.max(THREE.MathUtils.degToRad(46), vFromH)), 46, 78);
   camera.updateProjectionMatrix();
+  path.setFraming(camera.fov, camera.aspect);
 }
 new ResizeObserver(resize).observe(canvas);
 resize();
 
-// la telecamera è dentro la stanza? (il mare non si vede: niente riflesso da calcolare)
-const inside = (p) => p.x > ROOM.x0 && p.x < ROOM.x1 && p.z > ROOM.z0 + 0.2 && p.z < ROOM.z1 - 0.2 && p.y < CEIL_Y;
+// il riflesso dell'edificio sul mare serve solo dalla terrazza (davanti al muro il mare non si vede)
+const seaInView = (p) => p.z < ROOM.z0 + 0.2;
 
 // Statistiche per i test (window.__stats): fps medi, draw call, triangoli
 const stats = { frames: 0, time: 0, fps: 0, calls: 0, triangles: 0, dpr: adaptive.dpr, tier: quality.tier, gpu: quality.gpu };
@@ -72,7 +73,7 @@ async function start() {
     const { exposure } = path.update(0, parallax.value);
     lights.uniforms.uExposure.value = exposure;
     world.update(camera, adaptive.dpr);
-    world.sea.renderReflection(renderer, scene, camera, !inside(camera.position), quality.reflectionScale);
+    world.sea.renderReflection(renderer, scene, camera, seaInView(camera.position), quality.reflectionScale);
     const calls0 = renderer.info.render.calls;
     if (post) post.render(scene, camera, time);
     else renderer.render(scene, camera);
@@ -118,7 +119,7 @@ async function start() {
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
     world.update(camera, adaptive.dpr);
-    world.sea.renderReflection(renderer, scene, camera, !inside(camera.position), quality.reflectionScale);
+    world.sea.renderReflection(renderer, scene, camera, seaInView(camera.position), quality.reflectionScale);
     if (post) post.render(scene, camera, time);
     else renderer.render(scene, camera);
     adaptive.sample(dt);
