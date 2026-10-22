@@ -35,7 +35,7 @@ const logs = [];
 page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 const t0 = Date.now();
-const qs = [flags.q ? `q=${flags.q}` : '', flags.mask || flags.transition ? 'still' : '', flags.transition ? 'slowloader' : ''].filter(Boolean).join('&');
+const qs = [flags.q ? `q=${flags.q}` : '', flags.mask || flags.transition ? 'still' : '', flags.transition ? 'slowloader' : '', flags.notext ? 'notext' : ''].filter(Boolean).join('&');
 await page.goto(url + (url.includes('?') ? '&' : '?') + qs);
 if (flags.loader) {
   for (const t of [300, 900]) {
@@ -63,6 +63,7 @@ if (err) {
 console.log('ready in', Date.now() - t0, 'ms');
 const info = await page.evaluate(() => ({ ...window.__stats }));
 console.log('tier', info.tier, 'gpu', info.gpu, 'dpr', info.dpr);
+if (flags.sections) console.log('sections', JSON.stringify(await page.evaluate(() => window.__sections)));
 
 if (flags.scroll) {
   // scroll reale (rotella): la telecamera deve avanzare in modo continuo
@@ -77,7 +78,7 @@ if (flags.scroll) {
 
 for (const p of points) {
   await page.evaluate((p) => window.__jump(p), p);
-  await page.waitForTimeout(flags.fps ? 2500 : 400);
+  await page.waitForTimeout(flags.fps ? 2500 : +(flags.wait || 400));
   const s = await page.evaluate(() => ({ ...window.__stats }));
   const name = `p${String(Math.round(p * 1000)).padStart(4, '0')}.png`;
   await page.screenshot({ path: `${out}/${name}` });

@@ -2,10 +2,10 @@ import * as THREE from 'three';
 import { FRONT_WALL as FW, WINDOW } from './layout.js';
 
 // Percorso della telecamera guidato dallo scroll.
-// Ogni chiave: p = avanzamento dello scroll (0..1), pos/target, esposizione, peso del parallasse.
-// Due CatmullRomCurve3 (posizione e target) percorse con lo stesso parametro; la mappa
-// scroll -> parametro è una cubica monotona, così le soste (chiavi vicine nello spazio ma
-// lontane nello scroll) rallentano la telecamera senza scatti.
+// Il percorso è una sequenza di chiavi (posizione, target, esposizione, peso del parallasse) con una
+// durata di scroll ciascuna; le soste sono chiavi quasi ferme con molta durata. Due CatmullRomCurve3
+// (posizione e target) percorse con lo stesso parametro; la mappa scroll -> parametro è una cubica
+// monotona, così le soste rallentano la telecamera senza scatti.
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
@@ -20,33 +20,92 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-function buildKeys(d) {
-  const zw = FW.zOut;
-  const cy = WINDOW.cy;
-  return [
-    // 0 · il muro a cassero riempie lo schermo, la finestra circolare al centro; la telecamera è in
-    //     piano: l'unico orizzonte, visto attraverso la finestra e l'apertura di fondo, è a metà schermo
-    { p: 0.0, pos: V(0, cy, zw + d), target: V(0, cy, 0), exposure: 1.12, parallax: 0.6 },
-    { p: 0.1, pos: V(0, cy, zw + Math.max(3.6, d * 0.6)), target: V(0, cy, 0), exposure: 1.12, parallax: 0.45 },
-    // 1 · attraversamento della finestra circolare
-    { p: 0.17, pos: V(0, cy, zw + 2.2), target: V(0, cy - 0.1, -2), exposure: 1.15, parallax: 0.25 },
-    { p: 0.22, pos: V(0, cy, zw + 0.9), target: V(0, cy - 0.25, -2), exposure: 1.3, parallax: 0.15 },
-    { p: 0.283, pos: V(0.0, 5.62, 7.3), target: V(0.1, 3.6, -2.4), exposure: 2.4, parallax: 0.3 },
-    // 2 · conversation pit: discesa, sguardo verso l'alto (pausa), ripartenza
-    { p: 0.384, pos: V(0.3, 4.55, 4.6), target: V(0.45, 2.1, -1.8), exposure: 3.2, parallax: 0.6 },
-    { p: 0.465, pos: V(0.6, 3.72, 2.75), target: V(0.4, 2.7, -2.2), exposure: 3.3, parallax: 0.6 },
-    { p: 0.535, pos: V(0.66, 3.6, 2.45), target: V(0.12, 9.6, 0.6), exposure: 3.3, parallax: 0.5 },
-    { p: 0.629, pos: V(0.62, 3.62, 2.3), target: V(0.06, 9.6, 0.5), exposure: 3.3, parallax: 0.5 },
-    { p: 0.704, pos: V(0.25, 4.1, 0.55), target: V(0.0, 4.7, -8), exposure: 3.2, parallax: 0.5 },
-    // 3 · verso il mare: grande apertura rettangolare, terrazza, il sole basso (il mare si scopre solo qui)
-    { p: 0.799, pos: V(0.0, 4.35, -3.6), target: V(0.0, 4.5, -14), exposure: 1.9, parallax: 0.3 },
-    { p: 0.862, pos: V(0.0, 4.4, -7.4), target: V(-0.6, 4.55, -17), exposure: 1.25, parallax: 0.15 },
-    { p: 0.925, pos: V(-0.7, 4.55, -10.6), target: V(-7.5, 4.95, -19), exposure: 1.05, parallax: 0.6 },
-    { p: 1.0, pos: V(-3.0, 4.7, -13.0), target: V(-30, 6.4, -9.2), exposure: 1.0, parallax: 1 },
-  ];
+// Posizioni delle bolle dei progetti, in mare aperto oltre la punta della terrazza
+export function bubblePositions(n) {
+  return Array.from({ length: n }, (_, i) => V(-38 - 10.5 * i, -3.3 + 0.55 * Math.sin(i * 1.7), -13.5 + (i % 2 ? 1.6 : -1.6)));
 }
 
-export const KEYS = buildKeys(startDistance(46, 16 / 10));
+// d = distanza iniziale dal muro; n = numero di progetti (bolle); aspect = larghezza/altezza dello schermo
+export function buildStory(d, n, aspect = 1.6) {
+  const zw = FW.zOut;
+  const cy = WINDOW.cy;
+  const keys = [];
+  const marks = {};
+  // dur = scroll (in "unità", ~vh) per arrivare a questa chiave dalla precedente
+  const key = (dur, pos, target, exposure, parallax, mark) => {
+    keys.push({ dur, pos, target, exposure, parallax });
+    if (mark) marks[mark] = keys.length - 1;
+  };
+
+  // 0 · il muro a cassero riempie lo schermo; l'unico orizzonte, visto attraverso la finestra e
+  //     l'apertura di fondo, è a metà schermo (telecamera in piano)
+  key(0, V(0, cy, zw + d), V(0, cy, 0), 1.12, 0.6, 'start');
+  key(45, V(0, cy, zw + Math.max(3.6, d * 0.6)), V(0, cy, 0), 1.12, 0.45);
+  // 1 · attraversamento della finestra circolare
+  key(35, V(0, cy, zw + 2.2), V(0, cy - 0.1, -2), 1.15, 0.25);
+  key(25, V(0, cy, zw + 0.9), V(0, cy - 0.25, -2), 1.3, 0.15);
+  key(30, V(0.0, 5.62, 7.3), V(0.1, 3.6, -2.4), 2.4, 0.3);
+  // 2 · discesa nel conversation pit e sosta accanto al divano verde: ALESSIA STUDIO
+  key(45, V(-0.5, 4.35, 3.9), V(0.0, 2.5, -2.0), 3.1, 0.5);
+  key(45, V(-1.05, 3.18, 0.45), V(0.35, 2.58, -2.6), 3.3, 0.45, 'brandIn');
+  key(75, V(-1.12, 3.14, 0.32), V(0.38, 2.6, -2.6), 3.3, 0.45, 'brandOut');
+  // 3 · lo sguardo sale al lucernario e si ferma: VISIONE, cosa facciamo, servizi
+  key(45, V(-1.15, 3.12, 0.15), V(-0.25, 9.6, 0.5), 3.3, 0.4, 'visionIn');
+  key(115, V(-1.17, 3.12, 0.08), V(-0.3, 9.6, 0.45), 3.3, 0.4, 'visionOut');
+  // 4 · ripartenza attraverso il fascio di sole, grande apertura, terrazza, il sole basso
+  key(45, V(-0.3, 4.0, -1.6), V(0.0, 4.6, -9), 3.2, 0.5);
+  key(40, V(0.0, 4.35, -4.2), V(0.0, 4.5, -14), 1.9, 0.3);
+  key(30, V(0.0, 4.4, -7.4), V(-0.6, 4.55, -17), 1.25, 0.15);
+  key(30, V(-0.7, 4.55, -10.6), V(-7.5, 4.95, -19), 1.05, 0.6);
+  key(35, V(-4.0, 4.7, -13.0), V(-30, 6.4, -9.5), 1.0, 1, 'sun');
+  key(30, V(-6.0, 4.6, -13.1), V(-31, 6.0, -10.0), 1.0, 1);
+  // 5 · in fondo alla terrazza e giù, nel mare (attraversamento continuo della superficie)
+  key(45, V(-25.4, 3.95, -13.3), V(-31, 0.6, -13.4), 1.0, 0.4);
+  key(30, V(-27.0, 0.95, -13.4), V(-30.5, -2.6, -13.6), 1.0, 0.15);
+  key(25, V(-28.2, -0.9, -13.5), V(-32, -3.0, -13.6), 1.05, 0.15, 'dive');
+  key(35, V(-30.5, -3.1, -13.5), V(-40, -3.5, -13.4), 1.1, 0.4, 'underwater');
+  // 6 · le bolle: ogni progetto ha un avvicinamento e una sosta
+  const B = bubblePositions(n);
+  // schermo orizzontale: bolla a destra, scheda a sinistra; telefono in verticale: bolla in alto, scheda sotto
+  const portrait = aspect < 1;
+  const side = portrait ? 0 : 1.05;
+  const low = portrait ? -1.05 : 0;
+  const back = portrait ? 1.0 : 0;
+  B.forEach((b, i) => {
+    const tgt = () => V(b.x, b.y + low, b.z + side);
+    key(40, V(b.x + 7.5 + back, b.y + 0.4, b.z + 0.2), tgt(), 1.1, 0.6);
+    key(32, V(b.x + 4.1 + back, b.y + 0.15, b.z + 0.35), tgt(), 1.1, 0.5, `projectIn${i}`);
+    key(55, V(b.x + 3.85 + back, b.y + 0.12, b.z + 0.32), tgt(), 1.1, 0.5, `projectOut${i}`);
+  });
+  // 7 · contattaci: oltre l'ultima bolla, lo sguardo sale verso la luce della superficie
+  const last = B.length ? B[B.length - 1] : V(-38, -3.3, -13.5);
+  key(55, V(last.x - 6.0, -4.3, -13.5), V(last.x - 16, 2.6, -13.5), 1.1, 0.6, 'contactIn');
+  key(60, V(last.x - 7.0, -4.6, -13.5), V(last.x - 14, 4.6, -13.5), 1.1, 0.6, 'end');
+
+  // durate cumulate -> avanzamento dello scroll (0..1)
+  const total = keys.reduce((s, k) => s + k.dur, 0);
+  let acc = 0;
+  for (const k of keys) {
+    acc += k.dur;
+    k.p = acc / total;
+  }
+  const at = (name) => keys[marks[name]].p;
+  // finestra visibile di un testo: entra durante l'arrivo alla sosta, esce all'inizio della ripartenza
+  const range = (a, b, pre = 0.35, post = 0.25) => {
+    const ia = marks[a], ib = marks[b];
+    const before = keys[ia].p - keys[ia - 1].p;
+    const after = ib + 1 < keys.length ? keys[ib + 1].p - keys[ib].p : 0;
+    return [keys[ia].p - before * pre, keys[ib].p + after * post];
+  };
+  const sections = {
+    brand: range('brandIn', 'brandOut'),
+    vision: range('visionIn', 'visionOut'),
+    projectsTitle: [at('dive'), at('underwater') + (B.length ? (keys[marks.projectIn0 - 1].p - at('underwater')) * 0.6 : 0)],
+    projects: B.map((_, i) => range(`projectIn${i}`, `projectOut${i}`)),
+    contact: [at('contactIn') - (at('contactIn') - keys[marks.contactIn - 1].p) * 0.4, 1.01],
+  };
+  return { keys, sections, bubbles: B, total, dive: at('dive') };
+}
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
 function monotone(xs, ys) {
@@ -81,15 +140,18 @@ function monotone(xs, ys) {
   };
 }
 
-export function createCameraPath(camera, { reducedMotion = false } = {}) {
-  const n = KEYS.length;
-  const posCurve = new THREE.CatmullRomCurve3(KEYS.map((k) => k.pos), false, 'centripetal');
-  const tgtCurve = new THREE.CatmullRomCurve3(KEYS.map((k) => k.target), false, 'centripetal');
-  const ps = KEYS.map((k) => k.p);
-  const us = KEYS.map((_, i) => i / (n - 1));
+export function createCameraPath(camera, { reducedMotion = false, projects = 0 } = {}) {
+  const story = buildStory(startDistance(46, 1.6), projects);
+  const { keys } = story;
+  const n = keys.length;
+  const posCurve = new THREE.CatmullRomCurve3(keys.map((k) => k.pos), false, 'centripetal');
+  const tgtCurve = new THREE.CatmullRomCurve3(keys.map((k) => k.target), false, 'centripetal');
+  const ps = keys.map((k) => k.p);
+  const us = keys.map((_, i) => i / (n - 1));
   const pToU = monotone(ps, us);
-  const uToExposure = monotone(us, KEYS.map((k) => k.exposure));
-  const uToParallax = monotone(us, KEYS.map((k) => k.parallax));
+  const uToP = monotone(us, ps);
+  const uToExposure = monotone(us, keys.map((k) => k.exposure));
+  const uToParallax = monotone(us, keys.map((k) => k.parallax));
 
   const state = { target: 0, u: 0 };
   const pos = new THREE.Vector3(), tgt = new THREE.Vector3();
@@ -100,13 +162,14 @@ export function createCameraPath(camera, { reducedMotion = false } = {}) {
     state.target = pToU(THREE.MathUtils.clamp(p, 0, 1));
   }
 
-  // al resize: ricalcola le prime due chiavi in base al campo visivo (le curve usano gli stessi vettori)
+  // al resize: ricalcola le chiavi che dipendono dall'inquadratura (stesso numero di chiavi, stesse
+  // durate: cambiano solo posizioni e target, e le curve usano gli stessi vettori)
   function setFraming(fovDeg, aspect) {
-    const fresh = buildKeys(startDistance(fovDeg, aspect));
-    for (const i of [0, 1]) {
-      KEYS[i].pos.copy(fresh[i].pos);
-      KEYS[i].target.copy(fresh[i].target);
-    }
+    const fresh = buildStory(startDistance(fovDeg, aspect), projects, aspect).keys;
+    fresh.forEach((k, i) => {
+      keys[i].pos.copy(k.pos);
+      keys[i].target.copy(k.target);
+    });
   }
 
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale
@@ -128,8 +191,9 @@ export function createCameraPath(camera, { reducedMotion = false } = {}) {
     camera.position.copy(pos);
     camera.lookAt(tgt);
     camera.updateMatrixWorld();
-    return { exposure: uToExposure(u), u };
+    // p = avanzamento "visivo" (segue la telecamera smorzata): guida la comparsa dei testi
+    return { exposure: uToExposure(u), u, p: uToP(u) };
   }
 
-  return { setProgress, setFraming, update, state, posCurve, tgtCurve };
+  return { setProgress, setFraming, update, state, posCurve, tgtCurve, story };
 }

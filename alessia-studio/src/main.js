@@ -10,6 +10,8 @@ import { createParallax } from './parallax.js';
 import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
 import { ROOM } from './layout.js';
+import { PROJECTS } from './content.js';
+import { createOverlay } from './overlay.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,7 +37,13 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 600);
 camera.layers.enable(1);
 const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
-const path = createCameraPath(camera, { reducedMotion });
+const path = createCameraPath(camera, { reducedMotion, projects: PROJECTS.length });
+// lunghezza dello scroll proporzionale al percorso (soste comprese)
+document.getElementById('scroll').style.height = `${Math.round(path.story.total * 0.8 + 100)}vh`;
+// ?notext: scena senza testi (verifica automatica dei colori del 3D)
+const noText = new URLSearchParams(location.search).has('notext');
+const overlay = createOverlay(document.getElementById('overlay'), path.story.sections);
+if (noText) document.getElementById('overlay').style.display = 'none';
 // ?still: telecamera senza parallasse (test automatici)
 const still = new URLSearchParams(location.search).has('still');
 const parallax = createParallax({ enabled: !reducedMotion && !still });
@@ -65,34 +73,32 @@ const stats = { frames: 0, time: 0, fps: 0, calls: 0, triangles: 0, dpr: adaptiv
 window.__stats = stats;
 
 async function start() {
-  const world = await buildScene({ renderer, lights, quality, loader });
+  const world = await buildScene({ renderer, lights, quality, loader, projects: PROJECTS, bubbles: path.story.bubbles });
   const { scene } = world;
   let time = 0;
 
-  const frame = () => {
-    const { exposure } = path.update(0, parallax.value);
-    lights.uniforms.uExposure.value = exposure;
-    world.update(camera, adaptive.dpr);
+  const render = () => {
     world.sea.renderReflection(renderer, scene, camera, seaInView(camera.position), quality.reflectionScale);
-    const calls0 = renderer.info.render.calls;
     if (post) post.render(scene, camera, time);
     else renderer.render(scene, camera);
-    return calls0;
   };
 
-  // prima posizione e compilazione degli shader dietro al loader
+  // prima posizione e compilazione degli shader dietro al loader (anche quelli sott'acqua)
   path.setProgress(0);
-  path.update(1, parallax.value);
+  const first = path.update(1, parallax.value);
+  lights.uniforms.uExposure.value = first.exposure;
   world.update(camera, adaptive.dpr);
   renderer.setRenderTarget(post ? post.rtScene : null);
+  world.underwater.group.visible = true;
   await renderer.compileAsync(scene, camera);
   renderer.setRenderTarget(null);
-  frame();
+  world.update(camera, adaptive.dpr);
+  render();
 
   // scroll: Lenis (smooth) + ScrollTrigger; con reduced motion scroll nativo e nessuno smorzamento
   let lenis = null;
   if (!reducedMotion) {
-    lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9, touchMultiplier: 1.2 });
+    lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 1.1, touchMultiplier: 1.3 });
     lenis.on('scroll', ScrollTrigger.update);
     lenis.stop();
   }
@@ -115,13 +121,12 @@ async function start() {
     time = now - clock0;
     renderer.info.reset();
     parallax.update(dt, time);
-    const { exposure } = path.update(dt, parallax.value);
+    const { exposure, p } = path.update(dt, parallax.value);
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
-    world.update(camera, adaptive.dpr);
-    world.sea.renderReflection(renderer, scene, camera, seaInView(camera.position), quality.reflectionScale);
-    if (post) post.render(scene, camera, time);
-    else renderer.render(scene, camera);
+    const focus = overlay.update(p);
+    world.update(camera, adaptive.dpr, time, focus);
+    render();
     adaptive.sample(dt);
 
     stats.frames++;
@@ -135,8 +140,22 @@ async function start() {
     stats.triangles = renderer.info.render.triangles;
     stats.dpr = adaptive.dpr;
     stats.u = path.state.u;
+    stats.p = p;
   });
 
+  // clic su una bolla: apre la demo del progetto (se ha un link)
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  window.addEventListener('click', (e) => {
+    if (e.target.closest && e.target.closest('a')) return;
+    ndc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(world.underwater.bubbles, false)[0];
+    const url = hit?.object.userData.project?.url;
+    if (url) window.open(url, '_blank', 'noopener');
+  });
+
+  window.__sections = path.story.sections;
   // hook di test: salta a un punto del percorso senza smorzamento
   window.__jump = (p) => {
     path.setProgress(p);
@@ -146,7 +165,7 @@ async function start() {
   window.__mask = (on) => {
     world.cushions.material.uniforms.uMask.value = on ? 1 : 0;
     for (const m of Object.values(world.meshes)) m.material.uniforms.uMask.value = on ? 1 : 0;
-    world.beam.visible = world.dust.visible = !on;
+    world.beam.userData.maskHidden = world.dust.userData.maskHidden = on;
     if (post) {
       post.uniforms.uBloom.value = on ? 0 : 0.3;
       post.uniforms.uGrain.value = on ? 0 : 0.022;

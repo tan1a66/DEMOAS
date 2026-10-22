@@ -46,11 +46,8 @@ html.lenis, html.lenis body { height: auto; }
 #scroll {
   position: relative;
   z-index: 1;
-  height: 600vh;
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
+  height: 1400vh; /* sovrascritta dal percorso (src/main.js) */
 }
-.chapter { position: relative; }
 
 #loader {
   position: fixed;
@@ -78,4 +75,179 @@ html.lenis, html.lenis body { height: auto; }
   background: #fff;
   transform-origin: 0 50%;
   transform: scaleX(0);
+}
+
+/* ------------------------------------------------------------------------------------------
+   Testi sopra la scena
+   ------------------------------------------------------------------------------------------ */
+:root {
+  --green: #b8f03a;
+  --ink: #fff6f2;
+  --ink-soft: rgba(255, 246, 242, 0.78);
+  --gutter: clamp(20px, 5vw, 72px);
+  --font-display: 'Syne', 'Helvetica Neue', Arial, sans-serif;
+  --font-text: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+#overlay { font-family: var(--font-text); color: var(--ink); }
+
+.ov {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: none;
+  text-shadow: 0 1px 18px rgba(70, 25, 25, 0.35);
+}
+.ov.on { opacity: 1; transform: none; }
+.ov.on a { pointer-events: auto; }
+
+.ov .label {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.ov .title {
+  margin: 0 0 18px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4.2vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  max-width: 16ch;
+}
+.ov .lead { margin: 0 0 22px; font-size: clamp(15px, 1.25vw, 18px); line-height: 1.55; max-width: 46ch; color: var(--ink); }
+.ov p { margin: 0; line-height: 1.5; }
+
+.ov-scrim {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  background: linear-gradient(90deg, rgba(52, 22, 24, 0.5) 0%, rgba(52, 22, 24, 0.28) 32%, rgba(52, 22, 24, 0) 58%);
+}
+.ov-scrim.on { opacity: 1; }
+
+/* 1 · ALESSIA STUDIO, alla sosta accanto al divano */
+.ov-brand {
+  left: var(--gutter);
+  right: var(--gutter);
+  top: clamp(72px, 14vh, 150px);
+  text-align: center;
+  isolation: isolate;
+}
+/* alone scuro morbido dietro al titolo: il verde resta leggibile anche sopra l'apertura luminosa */
+.ov-brand::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(1100px, 120%);
+  height: 260%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(48, 20, 22, 0.55), rgba(48, 20, 22, 0.28) 55%, rgba(48, 20, 22, 0));
+  z-index: -1;
+  pointer-events: none;
+}
+.ov-brand .brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(44px, 10.5vw, 168px);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  color: var(--green);
+  text-shadow: 0 2px 34px rgba(46, 18, 20, 0.45);
+}
+.ov-brand .tagline {
+  margin-top: 18px;
+  font-size: clamp(12px, 1.1vw, 15px);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* 2 · VISIONE, sotto il lucernario */
+.ov-vision {
+  left: var(--gutter);
+  top: 50%;
+  transform: translateY(calc(-50% + 14px));
+  max-width: min(560px, 46vw);
+}
+.ov-vision.on { transform: translateY(-50%); }
+.ov-vision .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; font-size: 14px; color: var(--ink-soft); }
+.ov-vision .services { margin: 0; padding: 0; list-style: none; }
+.ov-vision .services li { padding: 6px 0; border-top: 1px solid rgba(255, 246, 242, 0.22); color: var(--ink); }
+
+/* 3 · progetti nelle bolle */
+.ov-projects-title { left: var(--gutter); bottom: clamp(48px, 12vh, 120px); }
+.ov-project {
+  left: var(--gutter);
+  top: 50%;
+  transform: translateY(calc(-50% + 14px));
+  max-width: min(400px, 34vw);
+}
+.ov-project.on { transform: translateY(-50%); }
+.ov-project .project-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(32px, 4.2vw, 60px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.ov-project .kind { margin-bottom: 16px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.ov-project .text { font-size: 15px; color: var(--ink); max-width: 38ch; }
+.ov-project.is-placeholder .project-title { color: var(--ink-soft); }
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 246, 242, 0.6);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  text-shadow: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+.cta:hover, .cta:focus-visible { background: var(--ink); color: #3d5f6c; border-color: var(--ink); }
+.cta.primary { background: var(--green); border-color: var(--green); color: #1f3300; }
+.cta.primary:hover, .cta.primary:focus-visible { background: #fff; border-color: #fff; color: #1f3300; }
+
+/* 4 · contattaci */
+.ov-contact { left: var(--gutter); right: var(--gutter); bottom: clamp(56px, 14vh, 140px); }
+.ov-contact .links { display: flex; flex-wrap: wrap; gap: 12px; }
+.ov-contact .links .cta { margin-top: 0; }
+
+@media (max-width: 720px) {
+  .ov-vision, .ov-project {
+    top: auto;
+    bottom: clamp(28px, 6vh, 56px);
+    left: var(--gutter);
+    right: var(--gutter);
+    max-width: none;
+    transform: translateY(14px);
+  }
+  .ov-vision.on, .ov-project.on { transform: none; }
+  .ov-vision .cols { grid-template-columns: 1fr; gap: 14px; }
+  .ov-vision .services { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .ov-vision .services li { padding: 0; border: 0; }
+  .ov-vision .services li:not(:last-child)::after { content: '·'; margin-left: 14px; color: var(--ink-soft); }
+  .ov-vision .lead { display: none; }
+  .ov-brand { top: clamp(64px, 12vh, 120px); }
+  .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.62) 0%, rgba(52, 22, 24, 0.35) 38%, rgba(52, 22, 24, 0) 62%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov { transition: opacity 0.3s ease; transform: none !important; }
 }

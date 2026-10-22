@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PALETTE, FRONT_WALL as FW, SHELL, TERRACE as T, ROOF_Y, SUN_INT } from './layout.js';
 import { GLSL_COMMON } from './materials.js';
+import { WATER } from './underwater.js';
 
 // Cielo + mare in un unico triangolo a schermo intero, disegnato dopo i volumi opachi
 // (depth = 1): il mare è un piano infinito fino al vero orizzonte, quindi l'orizzonte
@@ -36,6 +37,10 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
     tRefl: { value: null },
     uReflMatrix: { value: new THREE.Matrix4() },
     uReflOn: { value: 0 },
+    // colori dell'acqua vista da sotto
+    uDeep: { value: WATER.deep },
+    uMid: { value: WATER.mid },
+    uShallow: { value: WATER.shallow },
   };
   const material = new THREE.ShaderMaterial({
     uniforms,
@@ -63,6 +68,7 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
       uniform vec3 uCamPos;
       uniform vec3 uSeaNear, uSeaFar, uSkyLow, uSkyHigh, uFoam;
       uniform vec3 uBox0Min, uBox0Max, uBox1Min, uBox1Max, uBox2Min, uBox2Max;
+      uniform vec3 uDeep, uMid, uShallow;
       #ifdef USE_REFL
         uniform sampler2D tRefl;
         uniform mat4 uReflMatrix;
@@ -145,20 +151,58 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
         float n0 = vnoise(q + vec2(t * 0.35, t * 0.2));
         float nx = vnoise(q + vec2(e, 0.0) + vec2(t * 0.35, t * 0.2));
         float ny = vnoise(q + vec2(0.0, e) + vec2(t * 0.35, t * 0.2));
-        g += vec2(nx - n0, ny - n0) / e * 0.05 * fade;
+        // vicino alla telecamera le increspature si vedono di più
+        g += vec2(nx - n0, ny - n0) / e * (0.05 * fade + 0.22 * exp(-dist / 5.0));
         g *= mix(0.35, 1.0, fade);
         return normalize(vec3(-g.x, 1.0, -g.y));
+      }
+
+      // il mare visto da sotto: colore per profondità, superficie con la finestra di Snell, raggi di luce
+      vec3 underwater(vec3 ro, vec3 d) {
+        vec3 c = mix(uDeep, mix(uMid, uShallow, smoothstep(0.2, 0.9, d.y)), smoothstep(-0.7, 0.2, d.y));
+        if (d.y > 0.001) {
+          float t = max(-ro.y, 0.0) / d.y;
+          vec3 p = ro + d * t;
+          vec3 n = waveNormal(p.xz, t);
+          // dall'acqua all'aria: oltre ~48.6° dalla verticale c'è riflessione totale
+          vec3 rd = refract(d, -n, 1.33);
+          vec3 surf;
+          if (dot(rd, rd) > 0.0) {
+            rd = normalize(rd);
+            surf = sky(rd, false) * 1.15 + uSunColor * pow(max(dot(rd, uSunDir), 0.0), 300.0) * 2.5;
+            // bordo della finestra: anello più luminoso
+            surf += uShallow * smoothstep(0.35, 0.05, rd.y) * 0.35;
+          } else {
+            surf = mix(uMid, uShallow, 0.35) * (0.9 + 0.2 * vnoise(p.xz * 0.8 + uTime * 0.2));
+          }
+          c = mix(c, surf, exp(-t * 0.05) * 0.92);
+        }
+        // fasci di luce che scendono dalla superficie
+        float az = atan(d.z, d.x);
+        float s = vnoise(vec2(az * 13.0 + uTime * 0.035, 3.0)) * vnoise(vec2(az * 29.0 - uTime * 0.05, 7.0 + d.y));
+        float shafts = smoothstep(0.22, 0.62, s) * smoothstep(-0.25, 0.7, d.y) * (1.0 - smoothstep(0.8, 1.0, d.y));
+        c += uShallow * shafts * 0.25 * exp(max(ro.y, -12.0) * 0.06);
+        // più si scende, più l'acqua si scurisce
+        return c * mix(1.0, 0.72, smoothstep(0.0, 9.0, -ro.y));
       }
 
       void main() {
         vec4 wp = uInvViewProj * vec4(vNdc, 1.0, 1.0);
         vec3 d = normalize(wp.xyz / wp.w - uCamPos);
         vec3 col;
-        if (d.y < -0.00001) {
+        // per pixel: il raggio parte sopra o sotto il pelo dell'acqua? (linea d'acqua sull'obiettivo nel tuffo)
+        float startY = uCamPos.y + d.y * 0.06;
+        if (startY < 0.0) {
+          col = underwater(uCamPos, d);
+        } else if (d.y < -0.00001) {
           float t = -uCamPos.y / d.y;
           vec3 p = uCamPos + d * t;
           vec3 n = waveNormal(p.xz, t);
           vec3 base = mix(uSeaNear, uSeaFar, smoothstep(6.0, 220.0, t));
+          // guardando giù da vicino si vede dentro l'acqua: più profonda, con la luce che danza
+          float down = smoothstep(0.35, 0.85, -d.y) * exp(-t / 14.0);
+          float cz = pow(1.0 - abs(vnoise(p.xz * 1.3 + uTime * 0.3) - vnoise(p.xz * 2.1 - uTime * 0.25)), 6.0);
+          base = mix(base, mix(uMid, uShallow, 0.25 + 0.35 * cz), down * 0.75);
           // poco cielo riflesso (fresnel), contenuto per non schiarire troppo il blu
           float fr = 0.02 + 0.98 * pow(1.0 - max(dot(n, -d), 0.0), 5.0);
           vec3 r = reflect(d, n);

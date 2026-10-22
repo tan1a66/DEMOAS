@@ -9,6 +9,7 @@ import basisWasmUrl from 'three/examples/jsm/libs/basis/basis_transcoder.wasm?ur
 import manifest from '../assets/manifest.json';
 import { makeConcreteMaterial, makeCushionMaterial, makeBeam, makeDust } from './materials.js';
 import { createSea } from './sea.js';
+import { createUnderwater } from './underwater.js';
 
 // Asset generati dalla pipeline (npm run assets): GLB Draco + KTX2. Gli URL passano da Vite
 // (hash nel build normale, incorporati nel build a file unico).
@@ -23,7 +24,7 @@ const DECODERS = {
 
 const TILE = { formwork: 1.2, smooth: 2.0 };
 
-export async function buildScene({ renderer, lights, quality, loader }) {
+export async function buildScene({ renderer, lights, quality, loader, projects = [], bubbles = [] }) {
   const { manager } = loader;
   manager.setURLModifier((url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url));
   for (const [name, url] of Object.entries(DECODERS)) loader.expect(url, manifest.files[`decoders/${name}`]);
@@ -106,14 +107,23 @@ export async function buildScene({ renderer, lights, quality, loader }) {
   const dust = makeDust(lights, quality.tier === 'low' ? 220 : 420);
   scene.add(dust);
 
+  // sott'acqua: bolle dei progetti, bollicine, pulviscolo
+  const underwater = createUnderwater(lights, { projects, positions: bubbles, quality });
+  scene.add(underwater.group);
+
   // ombre in tempo reale solo per il pit, e solo se il dispositivo lo permette (calcolate una volta)
   if (useShadowMap) lights.bakeShadows(renderer, [meshes.intSmooth, meshes.intForm, cushions]);
   loader.stepDone();
 
-  function update(camera, dpr) {
+  const architecture = [...Object.values(meshes), cushions, beam, dust];
+  function update(camera, dpr, time = 0, focus = -1) {
     sea.update(camera);
     dust.material.uniforms.uPixelRatio.value = dpr;
+    underwater.update(camera, time, focus, dpr);
+    // sotto il pelo dell'acqua l'edificio non si vede (e non va disegnato)
+    const above = camera.position.y > -0.05;
+    for (const m of architecture) m.visible = above && m.userData.maskHidden !== true;
   }
 
-  return { scene, update, sea, meshes, cushions, beam, dust };
+  return { scene, update, sea, meshes, cushions, beam, dust, underwater };
 }
