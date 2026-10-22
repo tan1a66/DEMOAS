@@ -1,0 +1,23 @@
+{
+  "colori": [
+    {
+      "id": "verde",
+      "name": "Verde Alessia",
+      "hex": "#B8F03A",
+      "role": "Logo, titoli, accenti."
+    },
+    {
+      "id": "rosa",
+      "name": "Rosa Alessia",
+      "hex": "#D4A39C",
+      "role": "Fondo (il cemento rosa del sito)."
+    }
+  ],
+  "contrasti": [
+    {
+      "testo": "verde",
+      "sfondo": "rosa",
+      "rapporto": 1.64
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 // Screenshot e misure lungo il percorso (Playwright + Chromium headless).
-//   node tools/shoot.mjs <url> <outdir> [--device=desktop|phone|phone-land|ipad|ipad-land|ipad-pro]
+//   node tools/shoot.mjs <url> <outdir> [--device=desktop|phone|phone-land|ipad|ipad-land|ipad-pro|insta|story]
 //        [--stops] [--points=0,0.3,...] [--gallery] [--lang=es] [--fps] [--mask] [--scroll]
 //   --stops: uno scatto per ogni sosta dello scroll guidato; --gallery: apre la galleria del primo
 //   progetto; --scroll: gesti reali di rotella (una sosta per gesto)
@@ -29,6 +29,9 @@ const DEVICES = {
   ipad: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, userAgent: IPAD },
   'ipad-land': { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, userAgent: IPAD },
   'ipad-pro': { viewport: { width: 1024, height: 1366 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, userAgent: IPAD },
+  // formati Instagram: post verticale 4:5 e storia 9:16
+  insta: { viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 },
+  story: { viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 },
 };
 const device = flags.device || (flags.mobile ? 'phone' : 'desktop');
 const mobile = device !== 'desktop';

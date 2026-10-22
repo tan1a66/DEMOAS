@@ -7,3 +7,7 @@ video
 # anteprima a file unico di Alessia Studio (si rigenera con: cd alessia-studio && npm run build:preview)
 alessia-studio-anteprima.html
 alessia-studio-anteprima.zip
+
+# kit del marchio: file di lavoro e pacchetto (si rigenerano con tools/brand-kit.mjs e tools/brand-pdf.mjs)
+alessia-studio/brand/.build
+alessia-studio-brand-kit.zip
