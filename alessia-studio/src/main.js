@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 import { createLoader } from './loader.js';
 import { createLights } from './lights.js';
 import { buildScene } from './scene.js';
@@ -11,13 +9,11 @@ import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
 import { ROOM } from './layout.js';
 import { PROJECTS } from './content.js';
-import { createOverlay } from './overlay.js';
-
-gsap.registerPlugin(ScrollTrigger);
+import { createOverlay, pickLang } from './overlay.js';
+import { createGallery } from './gallery.js';
+import { createGuide } from './guide.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-window.scrollTo(0, 0);
 document.documentElement.classList.add('is-loading');
 
 const quality = detectTier();
@@ -38,12 +34,34 @@ camera.layers.enable(1);
 const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
 const path = createCameraPath(camera, { reducedMotion, projects: PROJECTS.length });
-// lunghezza dello scroll proporzionale al percorso (soste comprese)
-document.getElementById('scroll').style.height = `${Math.round(path.story.total * 0.8 + 100)}vh`;
+
+// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, bolle, contatti)
+let overlay = null;
+const guide = createGuide({
+  stops: path.story.stops,
+  units: path.story.total,
+  setProgress: path.setProgress,
+  reducedMotion,
+  onChange: (i, moving, last) => overlay?.setStop(i, moving, last),
+});
+
+// testi, lingua, galleria dei progetti
+const overlayRoot = document.getElementById('overlay');
+const lang = pickLang();
+const gallery = createGallery(document.body, {
+  lang,
+  onOpen: () => guide.setEnabled(false),
+  onClose: () => guide.setEnabled(true),
+});
+overlay = createOverlay(overlayRoot, path.story.sections, {
+  lang,
+  onLang: (l) => gallery.setLang(l),
+  onNext: () => guide.next(),
+  onOpen: (i) => gallery.open(i),
+});
 // ?notext: scena senza testi (verifica automatica dei colori del 3D)
 const noText = new URLSearchParams(location.search).has('notext');
-const overlay = createOverlay(document.getElementById('overlay'), path.story.sections);
-if (noText) document.getElementById('overlay').style.display = 'none';
+if (noText) overlayRoot.style.display = 'none';
 // ?still: telecamera senza parallasse (test automatici)
 const still = new URLSearchParams(location.search).has('still');
 const parallax = createParallax({ enabled: !reducedMotion && !still });
@@ -95,26 +113,38 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // scroll: Lenis (smooth) + ScrollTrigger; con reduced motion scroll nativo e nessuno smorzamento
-  let lenis = null;
-  if (!reducedMotion) {
-    lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 1.1, touchMultiplier: 1.3 });
-    lenis.on('scroll', ScrollTrigger.update);
-    lenis.stop();
-  }
-  ScrollTrigger.create({
-    trigger: '#scroll',
-    start: 'top top',
-    end: 'bottom bottom',
-    onUpdate: (self) => path.setProgress(self.progress),
+  // bolle dei progetti: quella sotto il puntatore si accende; un clic (o un tocco) apre la galleria
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  let bubblesOn = false, hover = -1;
+  const pick = (x, y) => {
+    ndc.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(world.underwater.bubbles, false)[0];
+    return hit ? world.underwater.bubbles.indexOf(hit.object) : -1;
+  };
+  const setHover = (i) => {
+    if (i === hover) return;
+    hover = i;
+    overlay.setHover(i);
+    canvas.style.cursor = i >= 0 ? 'pointer' : '';
+  };
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const overUi = e.target.closest?.('.ui, .gallery, a, button');
+    setHover(bubblesOn && !gallery.isOpen && !overUi ? pick(e.clientX, e.clientY) : -1);
+  });
+  window.addEventListener('click', (e) => {
+    if (!bubblesOn || gallery.isOpen || e.target.closest?.('a, button, .gallery')) return;
+    const i = pick(e.clientX, e.clientY);
+    if (i >= 0) gallery.open(i);
   });
 
   renderer.info.autoReset = false;
   let last = performance.now() / 1000;
   const clock0 = last;
   gsap.ticker.lagSmoothing(0);
-  gsap.ticker.add((t) => {
-    lenis?.raf(t * 1000);
+  gsap.ticker.add(() => {
     const now = performance.now() / 1000;
     const dt = Math.min(0.1, now - last);
     last = now;
@@ -124,8 +154,11 @@ async function start() {
     const { exposure, p } = path.update(dt, parallax.value);
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
-    const focus = overlay.update(p);
+    bubblesOn = overlay.update(p);
+    if (!bubblesOn && hover >= 0) setHover(-1);
+    const focus = gallery.isOpen ? gallery.project : hover;
     world.update(camera, adaptive.dpr, time, focus);
+    overlay.placeLabels(camera, world.underwater.bubbles, window.innerWidth, window.innerHeight);
     render();
     adaptive.sample(dt);
 
@@ -143,24 +176,15 @@ async function start() {
     stats.p = p;
   });
 
-  // clic su una bolla: apre la demo del progetto (se ha un link)
-  const ray = new THREE.Raycaster();
-  const ndc = new THREE.Vector2();
-  window.addEventListener('click', (e) => {
-    if (e.target.closest && e.target.closest('a')) return;
-    ndc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
-    ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(world.underwater.bubbles, false)[0];
-    const url = hit?.object.userData.project?.url;
-    if (url) window.open(url, '_blank', 'noopener');
-  });
-
   window.__sections = path.story.sections;
   // hook di test: salta a un punto del percorso senza smorzamento
   window.__jump = (p) => {
-    path.setProgress(p);
+    guide.jump(p);
     path.state.u = path.state.target;
   };
+  window.__stops = path.story.stops;
+  window.__gallery = gallery;
+  window.__overlay = overlay;
   // maschera dei cuscini (magenta, senza bloom e grana) per il controllo automatico dei colori
   window.__mask = (on) => {
     world.cushions.material.uniforms.uMask.value = on ? 1 : 0;
@@ -175,8 +199,7 @@ async function start() {
 
   await loader.finish();
   document.documentElement.classList.remove('is-loading');
-  lenis?.start();
-  ScrollTrigger.refresh();
+  guide.setEnabled(true);
   parallax.enable(2.5);
   window.__ready = true;
 }

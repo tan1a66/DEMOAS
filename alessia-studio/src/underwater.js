@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
 import { PALETTE } from './layout.js';
+import { BUBBLE_R } from './camera-path.js';
 
 // Sott'acqua: le bolle dei progetti (l'anteprima del progetto dentro una sfera, deformata come in
-// una lente, con il bordo iridescente), bollicine che salgono verso la superficie e pulviscolo.
+// una lente, con il bordo iridescente; quella sotto il puntatore si accende e si gonfia appena),
+// bollicine che salgono verso la superficie e pulviscolo.
 // Tutto sfuma nel colore dell'acqua con la distanza.
 
 const lin = (hex) => new THREE.Color(hex);
@@ -68,7 +70,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
   };
 
   // ---------------- bolle dei progetti ----------------
-  const R = 1.3;
+  const R = BUBBLE_R;
   const bubbleGeo = new THREE.SphereGeometry(R, 72, 54);
   const loader = new THREE.TextureLoader();
   const bubbles = projects.map((proj, i) => {
@@ -120,7 +122,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
           float r = length(q);
           vec2 uv = 0.5 + q * (0.5 + 0.12 * (1.0 - r)) * mix(0.92, 1.0, uFocus);
           vec3 img = texture2D(uImage, uv).rgb;
-          img = mix(img * 0.82, img, uFocus);
+          img = mix(img * 0.86, img * 1.06, uFocus);
           // pellicola sottile: iridescenza sul bordo, che scorre lentamente
           vec3 irid = 0.55 + 0.45 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + fres * 1.3 + uTime * 0.03 + vWorldPos.y * 0.1));
           vec3 col = mix(img, waterColor(-V) * 1.15, smoothstep(0.55, 1.0, fres));
@@ -140,7 +142,8 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     const mesh = new THREE.Mesh(bubbleGeo, mat);
     mesh.position.copy(positions[i]);
     mesh.userData.project = proj;
-    mesh.userData.base = positions[i].clone();
+    // stesso vettore del percorso: al resize la disposizione si aggiorna da sola
+    mesh.userData.base = positions[i];
     // l'anteprima si scarica solo quando ci si avvicina al mare (non pesa sul primo caricamento)
     mesh.userData.load = () => {
       if (!proj.image || mesh.userData.loading) return;
@@ -156,7 +159,8 @@ export function createUnderwater(lights, { projects, positions, quality }) {
   });
 
   // ---------------- bollicine che salgono ----------------
-  const minX = positions.length ? positions[positions.length - 1].x - 16 : -60;
+  // estensione del tratto sott'acqua (le bolle dei progetti stanno tra x -40 e -48)
+  const minX = -62;
   const count = Math.round((quality.tier === 'low' ? 2.2 : 4.5) * Math.max(60, -minX - 27));
   const small = new THREE.InstancedBufferGeometry().copy(new THREE.IcosahedronGeometry(1, 2));
   const aOffset = new Float32Array(count * 3);
@@ -283,7 +287,8 @@ export function createUnderwater(lights, { projects, positions, quality }) {
       b.position.set(base.x, base.y + Math.sin(time * 0.6 + i * 1.3) * 0.12, base.z + Math.cos(time * 0.45 + i) * 0.08);
       b.rotation.y = Math.sin(time * 0.2 + i) * 0.15;
       const f = b.material.uniforms.uFocus;
-      f.value += ((i === focusIndex ? 1 : 0) - f.value) * 0.08;
+      f.value += ((i === focusIndex ? 1 : 0) - f.value) * 0.12;
+      b.scale.setScalar(1 + f.value * 0.07);
     });
   }
 

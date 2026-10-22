@@ -20,13 +20,64 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-// Posizioni delle bolle dei progetti, in mare aperto oltre la punta della terrazza
-export function bubblePositions(n) {
-  return Array.from({ length: n }, (_, i) => V(-38 - 10.5 * i, -3.3 + 0.55 * Math.sin(i * 1.7), -13.5 + (i % 2 ? 1.6 : -1.6)));
+export const BUBBLE_R = 0.95;
+
+// Bolle dei progetti, tutte insieme davanti alla telecamera alla sosta sott'acqua: un alveare sfalsato
+// (schermo orizzontale: due file; verticale: file da 3 e 2), con la distanza scelta perché stia nello
+// spazio libero tra il titolo (in alto) e i pulsanti (in basso), con le etichette sotto le bolle.
+// Restituisce posizioni sullo schermo (sx, sy in metà larghezza/altezza) e distanza d.
+function clusterLayout(n, fovDeg, aspect) {
+  const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2);
+  const tanH = tanV * aspect;
+  const portrait = aspect < 1;
+  if (!n) return { slots: [], tanH, tanV };
+  const rows = [];
+  if (portrait) {
+    for (let left = n, k = 0; left > 0; k++) {
+      const c = Math.min(left, k % 2 ? 2 : 3);
+      rows.push(c);
+      left -= c;
+    }
+  } else if (n) {
+    rows.push(Math.ceil(n / 2));
+    if (n > 1) rows.push(Math.floor(n / 2));
+  }
+  // area libera (in metà schermo) e passo tra le bolle in raggi
+  const area = portrait ? { x0: -0.94, x1: 0.94, y0: -0.74, y1: 0.5 } : { x0: -0.66, x1: 0.8, y0: -0.7, y1: 0.42 };
+  const stepX = 2.5, stepY = 2.25, label = 0.075;
+  const spanCols = portrait ? Math.max(...rows) - 1 : Math.max(...rows) - 1 + (rows.length > 1 ? 0.5 : 0);
+  const nr = rows.length;
+  // raggio massimo (in metà larghezza / altezza) che fa stare tutto nell'area
+  const rW = (area.x1 - area.x0) / (spanCols * stepX + 2);
+  const rH = (area.y1 - area.y0 - (nr - 1) * label - label) / ((nr - 1) * stepY + 2);
+  const d = Math.max(7.5, BUBBLE_R / Math.min(rW * tanH, rH * tanV));
+  const rw = BUBBLE_R / (d * tanH), rh = BUBBLE_R / (d * tanV);
+  const cx = (area.x0 + area.x1) / 2, cy = (area.y0 + area.y1) / 2 + label / 2;
+  const out = [];
+  const jit = (i, k) => (Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1; // [-1, 1] deterministico
+  rows.forEach((cols, r) => {
+    const sy = cy + ((nr - 1) / 2 - r) * (stepY * rh + label);
+    const shift = portrait ? 0 : (r % 2 ? 0.25 : -0.25) * (nr > 1 ? 1 : 0);
+    for (let c = 0; c < cols; c++) {
+      const i = out.length;
+      const sx = cx + (c - (cols - 1) / 2 + shift) * stepX * rw;
+      out.push({ sx: sx + jit(i, 1) * rw * 0.12, sy: sy + jit(i, 2) * rh * 0.12, d: d * (1 + jit(i, 3) * 0.05) });
+    }
+  });
+  return { slots: out, tanH, tanV };
 }
 
-// d = distanza iniziale dal muro; n = numero di progetti (bolle); aspect = larghezza/altezza dello schermo
-export function buildStory(d, n, aspect = 1.6) {
+// posizioni nel mondo delle bolle, viste dalla posa della sosta (pos -> target)
+function bubbleWorld(n, fovDeg, aspect, pos, target) {
+  const { slots, tanH, tanV } = clusterLayout(n, fovDeg, aspect);
+  const f = new THREE.Vector3().subVectors(target, pos).normalize();
+  const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize();
+  const u = new THREE.Vector3().crossVectors(r, f);
+  return slots.map(({ sx, sy, d }) => pos.clone().addScaledVector(f, d).addScaledVector(r, sx * d * tanH).addScaledVector(u, sy * d * tanV));
+}
+
+// d = distanza iniziale dal muro; n = numero di progetti (bolle); fov verticale e aspect dello schermo
+export function buildStory(d, n, fovDeg = 46, aspect = 1.6) {
   const zw = FW.zOut;
   const cy = WINDOW.cy;
   const keys = [];
@@ -49,9 +100,22 @@ export function buildStory(d, n, aspect = 1.6) {
   key(45, V(-0.5, 4.35, 3.9), V(0.0, 2.5, -2.0), 3.1, 0.5);
   key(45, V(-1.05, 3.18, 0.45), V(0.35, 2.58, -2.6), 3.3, 0.45, 'brandIn');
   key(75, V(-1.12, 3.14, 0.32), V(0.38, 2.6, -2.6), 3.3, 0.45, 'brandOut');
-  // 3 · lo sguardo sale al lucernario e si ferma: VISIONE, cosa facciamo, servizi
-  key(45, V(-1.15, 3.12, 0.15), V(-0.25, 9.6, 0.5), 3.3, 0.4, 'visionIn');
-  key(115, V(-1.17, 3.12, 0.08), V(-0.3, 9.6, 0.45), 3.3, 0.4, 'visionOut');
+  // 3 · lo sguardo sale al lucernario e si ferma: VISIONE, poi COSA FACCIAMO (stessa sosta, lo
+  //     sguardo ruota appena)
+  //     Il disco luminoso non deve stare dietro ai testi: su schermo orizzontale va a destra (testi a
+  //     sinistra), in verticale in alto (testi in basso)
+  const sky = (pos, tgt) => {
+    const f = new THREE.Vector3().subVectors(tgt, pos).normalize();
+    const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize();
+    const u = new THREE.Vector3().crossVectors(r, f);
+    const land = THREE.MathUtils.smoothstep(aspect, 0.9, 1.25);
+    return tgt.addScaledVector(r, -1.45 * land).addScaledVector(u, -0.95 * (1 - land));
+  };
+  const s1 = V(-1.15, 3.12, 0.15), s2 = V(-1.17, 3.12, 0.08), s3 = V(-1.2, 3.11, -0.02), s4 = V(-1.22, 3.1, -0.08);
+  key(45, s1, sky(s1, V(-0.25, 9.6, 0.5)), 3.3, 0.4, 'visionIn');
+  key(60, s2, sky(s2, V(-0.3, 9.6, 0.45)), 3.3, 0.4, 'visionOut');
+  key(30, s3, sky(s3, V(-0.38, 9.6, 0.36)), 3.3, 0.4, 'servicesIn');
+  key(60, s4, sky(s4, V(-0.42, 9.6, 0.3)), 3.3, 0.4, 'servicesOut');
   // 4 · ripartenza attraverso il fascio di sole, grande apertura, terrazza, il sole basso
   key(45, V(-0.3, 4.0, -1.6), V(0.0, 4.6, -9), 3.2, 0.5);
   key(40, V(0.0, 4.35, -4.2), V(0.0, 4.5, -14), 1.9, 0.3);
@@ -64,23 +128,14 @@ export function buildStory(d, n, aspect = 1.6) {
   key(30, V(-27.0, 0.95, -13.4), V(-30.5, -2.6, -13.6), 1.0, 0.15);
   key(25, V(-28.2, -0.9, -13.5), V(-32, -3.0, -13.6), 1.05, 0.15, 'dive');
   key(35, V(-30.5, -3.1, -13.5), V(-40, -3.5, -13.4), 1.1, 0.4, 'underwater');
-  // 6 · le bolle: ogni progetto ha un avvicinamento e una sosta
-  const B = bubblePositions(n);
-  // schermo orizzontale: bolla a destra, scheda a sinistra; telefono in verticale: bolla in alto, scheda sotto
-  const portrait = aspect < 1;
-  const side = portrait ? 0 : 1.05;
-  const low = portrait ? -1.05 : 0;
-  const back = portrait ? 1.0 : 0;
-  B.forEach((b, i) => {
-    const tgt = () => V(b.x, b.y + low, b.z + side);
-    key(40, V(b.x + 7.5 + back, b.y + 0.4, b.z + 0.2), tgt(), 1.1, 0.6);
-    key(32, V(b.x + 4.1 + back, b.y + 0.15, b.z + 0.35), tgt(), 1.1, 0.5, `projectIn${i}`);
-    key(55, V(b.x + 3.85 + back, b.y + 0.12, b.z + 0.32), tgt(), 1.1, 0.5, `projectOut${i}`);
-  });
-  // 7 · contattaci: oltre l'ultima bolla, lo sguardo sale verso la luce della superficie
-  const last = B.length ? B[B.length - 1] : V(-38, -3.3, -13.5);
-  key(55, V(last.x - 6.0, -4.3, -13.5), V(last.x - 16, 2.6, -13.5), 1.1, 0.6, 'contactIn');
-  key(60, V(last.x - 7.0, -4.6, -13.5), V(last.x - 14, 4.6, -13.5), 1.1, 0.6, 'end');
+  // 6 · le bolle dei progetti, tutte insieme: una sola sosta (si tocca una bolla per aprire il progetto)
+  const stopPos = V(-33.0, -3.2, -13.5), stopTgt = V(-45, -3.45, -13.5);
+  key(40, stopPos, stopTgt, 1.1, 0.55, 'projectsIn');
+  key(60, V(-33.25, -3.2, -13.48), stopTgt.clone(), 1.1, 0.55, 'projectsOut');
+  const B = bubbleWorld(n, fovDeg, aspect, stopPos, stopTgt);
+  // 7 · contattaci: lo sguardo sale verso la luce della superficie, le bolle restano sotto
+  key(55, V(-35.0, -2.7, -13.5), V(-40, 6.0, -13.5), 1.1, 0.6, 'contactIn');
+  key(50, V(-35.6, -2.6, -13.5), V(-39.5, 7.6, -13.5), 1.1, 0.6, 'end');
 
   // durate cumulate -> avanzamento dello scroll (0..1)
   const total = keys.reduce((s, k) => s + k.dur, 0);
@@ -99,12 +154,22 @@ export function buildStory(d, n, aspect = 1.6) {
   };
   const sections = {
     brand: range('brandIn', 'brandOut'),
-    vision: range('visionIn', 'visionOut'),
-    projectsTitle: [at('dive'), at('underwater') + (B.length ? (keys[marks.projectIn0 - 1].p - at('underwater')) * 0.6 : 0)],
-    projects: B.map((_, i) => range(`projectIn${i}`, `projectOut${i}`)),
+    vision: range('visionIn', 'visionOut', 0.35, 0.3),
+    services: range('servicesIn', 'servicesOut', 0.6),
+    projects: range('projectsIn', 'projectsOut'),
     contact: [at('contactIn') - (at('contactIn') - keys[marks.contactIn - 1].p) * 0.4, 1.01],
   };
-  return { keys, sections, bubbles: B, total, dive: at('dive') };
+  // soste dello scroll guidato: ogni gesto porta alla successiva (a metà della sosta, telecamera quasi ferma)
+  const mid = (a, b) => (at(a) + at(b)) / 2;
+  const stops = [
+    { id: 'start', p: 0 },
+    { id: 'brand', p: mid('brandIn', 'brandOut') },
+    { id: 'vision', p: mid('visionIn', 'visionOut') },
+    { id: 'services', p: mid('servicesIn', 'servicesOut') },
+    { id: 'projects', p: mid('projectsIn', 'projectsOut') },
+    { id: 'contact', p: 1 },
+  ];
+  return { keys, sections, stops, bubbles: B, total, dive: at('dive') };
 }
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
@@ -141,7 +206,7 @@ function monotone(xs, ys) {
 }
 
 export function createCameraPath(camera, { reducedMotion = false, projects = 0 } = {}) {
-  const story = buildStory(startDistance(46, 1.6), projects);
+  const story = buildStory(startDistance(46, 1.6), projects, 46, 1.6);
   const { keys } = story;
   const n = keys.length;
   const posCurve = new THREE.CatmullRomCurve3(keys.map((k) => k.pos), false, 'centripetal');
@@ -162,14 +227,15 @@ export function createCameraPath(camera, { reducedMotion = false, projects = 0 }
     state.target = pToU(THREE.MathUtils.clamp(p, 0, 1));
   }
 
-  // al resize: ricalcola le chiavi che dipendono dall'inquadratura (stesso numero di chiavi, stesse
-  // durate: cambiano solo posizioni e target, e le curve usano gli stessi vettori)
+  // al resize: ricalcola le chiavi e le bolle che dipendono dall'inquadratura (stesso numero di chiavi,
+  // stesse durate: cambiano solo i vettori, che curve e bolle condividono)
   function setFraming(fovDeg, aspect) {
-    const fresh = buildStory(startDistance(fovDeg, aspect), projects, aspect).keys;
-    fresh.forEach((k, i) => {
+    const fresh = buildStory(startDistance(fovDeg, aspect), projects, fovDeg, aspect);
+    fresh.keys.forEach((k, i) => {
       keys[i].pos.copy(k.pos);
       keys[i].target.copy(k.target);
     });
+    fresh.bubbles.forEach((b, i) => story.bubbles[i].copy(b));
   }
 
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale

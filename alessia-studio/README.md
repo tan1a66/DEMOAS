@@ -7,35 +7,47 @@ npm run build          # dist/ (asset con hash)
 npm run build:preview  # dist-preview/index.html: un unico file, si apre con doppio clic
 ```
 
-Parametri utili nell'URL: `?q=low` / `?q=high` forza il livello di qualità, `?still` senza parallasse,
-`?notext` senza testi.
+Parametri utili nell'URL: `?lang=es|it|en|pt` lingua, `?q=low` / `?q=high` forza il livello di qualità,
+`?still` senza parallasse, `?notext` senza testi.
 
-## Percorso
-1. Il muro rosa a cassero riempie lo schermo (niente mare attorno): la linea del loader si dissolve
+## Percorso (scroll guidato)
+Ogni gesto (rotella, trackpad, dito, frecce/PagGiù/spazio della tastiera, o il pulsante "Scroll") porta
+alla sosta successiva; il passaggio tra due soste è un movimento continuo della telecamera.
+0. Il muro rosa a cassero riempie lo schermo (niente mare attorno): la linea del loader si dissolve
    nell'orizzonte visto attraverso la finestra circolare
-2. Attraversamento della finestra → sosta accanto al divano verde: **ALESSIA STUDIO**
-3. Lo sguardo sale al lucernario: **Visione**, cosa facciamo, servizi
-4. Il fascio di sole, la grande apertura, la terrazza con il sole basso
-5. In fondo alla terrazza ci si tuffa nel mare: **ogni bolla è un progetto** (una sosta per bolla)
-6. Oltre l'ultima bolla, lo sguardo sale verso la luce: **Contattaci**
+1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Desde Italia · Con base en
+   México · Trabajamos en todo el mundo*
+2. Sotto il lucernario: **Visión**
+3. Sempre sotto il lucernario (lo sguardo ruota appena): **Qué hacemos**, i servizi in tre gruppi
+4. Passando per il fascio di sole, la terrazza e il tuffo nel mare: **le bolle dei progetti**, tutte
+   insieme, ognuna con il suo nome; toccando una bolla si apre la galleria con gli screenshot del sito
+5. Lo sguardo sale verso la luce: **Contáctanos**
+
+Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra; la scelta viene ricordata), WhatsApp (in
+basso a destra) e l'invito a scorrere.
 
 ## Contenuti (`src/content.js`)
-Tutti i testi stanno in un solo file. Visione e servizi sono una prima bozza; **i contatti sono segnaposto**
-(`ciao@esempio.it`): vanno messi quelli veri (i campi vuoti non vengono mostrati).
+Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
+prima bozza. **Contatti segnaposto**: `CONTACT_LINKS` (email `ciao@esempio.it`, `whatsapp` vuoto). Finché
+il numero WhatsApp manca, il pulsante apre WhatsApp con il messaggio pronto ma senza destinatario.
 I progetti sono le 8 demo fatte finora (URBAZ, Piedra de Agua, Picheta, Avv. Pusceddu, Hacienda Teya,
 Antica Roma, CARNAL, Il Calabrese). Per ogni progetto:
-- `image`: anteprima dentro la bolla, file `src/assets/projects/<id>.jpg` (quadrato, ~768 px).
-  Quelle attuali sono screenshot delle demo (per Pusceddu l'immagine di anteprima della demo stessa)
-- `url`: link per "Apri la demo" (vuoto = nessun pulsante: le demo non sono ancora pubblicate)
-Aggiungere o togliere un progetto allunga o accorcia da solo il percorso sott'acqua e lo scroll.
+- `image`: anteprima dentro la bolla, `src/assets/projects/<id>.jpg` (quadrata, ~768 px)
+- galleria: `public/gallery/<id>/<nn>-{1280,720,320}.webp`, generate dagli screenshot con
+  `node tools/gallery.mjs <cartella-png> urbaz=0,1,3 ...` (aggiorna `src/assets/gallery.json`)
+- `url`: link del pulsante "Abrir la demo" nella galleria (vuoto = nessun pulsante)
+Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
 
 ## Struttura
 - `src/layout.js`: misure, soli, palette (condiviso tra runtime e pipeline)
 - `src/loader.js`: loader (avanzamento in byte reali via `THREE.LoadingManager`)
 - `src/scene.js`: carica GLB (Draco) e texture KTX2, assegna i materiali
 - `src/materials.js`: cemento (illuminazione fisica mappata sulla palette rosa), cuscini in velluto, fascio di luce, pulviscolo
-- `src/camera-path.js`: `CatmullRomCurve3` per posizione e target, chiavi con durata di scroll (soste), mappa monotona, smorzamento
-- `src/overlay.js`: i testi sopra il canvas, sincronizzati con la telecamera
+- `src/camera-path.js`: `CatmullRomCurve3` per posizione e target, chiavi con durata (soste), mappa monotona,
+  smorzamento; disposizione delle bolle adattata alla forma dello schermo
+- `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
+- `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere, nomi delle bolle
+- `src/gallery.js`: galleria di un progetto (frecce, miniature, tastiera, swipe)
 - `src/underwater.js`: bolle dei progetti, bollicine, pulviscolo
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
 - `src/lights.js`: soli, esposizione, mappa d'ombra opzionale del pit
@@ -57,11 +69,13 @@ Aggiungere o togliere un progetto allunga o accorcia da solo il percorso sott'ac
 ## Test
 ```bash
 npm run build && npx vite preview --port 4173 &
-node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --mask --fps          # desktop 1440x900
-node tools/shoot.mjs http://127.0.0.1:4173/ shots-m --mobile --q=high --mask --fps # 390x844 @2x
-node tools/check-colors.mjs shots
+node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --stops --gallery            # desktop 1440x900
+node tools/shoot.mjs http://127.0.0.1:4173/ shots-m --device=phone --stops --gallery    # 390x844 @2x
+node tools/shoot.mjs http://127.0.0.1:4173/ shots-t --device=ipad --stops               # iPad 820x1180
+node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --mask --fps && node tools/check-colors.mjs shots
 ```
-Opzioni: `--scroll` (rotella reale), `--reduced` (prefers-reduced-motion), `--transition` (loader → orizzonte).
+Dispositivi: `desktop`, `phone`, `phone-land`, `ipad`, `ipad-land`, `ipad-pro`. Opzioni: `--scroll` (gesti
+reali di rotella), `--lang=it`, `--reduced` (prefers-reduced-motion), `--transition` (loader → orizzonte).
 
 ## Peso del primo caricamento
 | livello | JS+CSS+HTML | decoder Draco/Basis | GLB + lightmap + texture | totale (gzip su JS/wasm) |
@@ -69,4 +83,8 @@ Opzioni: `--scroll` (rotella reale), `--reduced` (prefers-reduced-motion), `--tr
 | desktop (alta) | 0,26 MB | 0,33 MB | 2,66 MB | ~3,3 MB |
 | mobile / bassa | 0,26 MB | 0,33 MB | 1,17 MB | ~1,75 MB |
 
-Le anteprime dei progetti (~0,5 MB in tutto) si scaricano solo arrivando sulla terrazza, non nel primo caricamento.
+Le anteprime dei progetti (~0,5 MB in tutto) si scaricano solo arrivando sulla terrazza; le immagini della
+galleria (~150 KB l'una) solo aprendo la galleria di quel progetto.
+
+`npm run build:preview` produce `dist-preview/index.html` (tutto incorporato) e `dist-preview/gallery/`:
+per l'anteprima con doppio clic vanno tenuti insieme.
