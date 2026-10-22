@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { lathe } from './geometry.js';
+import { lathe, chisel } from './geometry.js';
 import { buildPedestal } from './column.js';
 import { JusticeSculpture } from './justice.js';
 import { buildShield } from './shield.js';
@@ -8,10 +8,10 @@ import { MorphKnot } from './knot.js';
 import { OpenBook } from './book.js';
 
 // IL MONUMENTO — tutto il sito in un'unica opera, il cosmo di Dante, sulla colonnina:
-//   Inferno: imbuto rovesciato a nove gironi (anello: «Giustizia mosse il mio alto fattore»)
-//   fascia del nome: ROBERTO · PUSCEDDU                                   → CHI SONO
+//   Inferno: imbuto rovesciato a nove gironi (anello: «Giustizia mosse il mio alto fattore»)  → CHI SONO
+//   fascia centrale liscia, con due filetti incisi
 //   Purgatorio: sette cornici collegate da scale scolpite, che salgono a spirale
-//     (anello: «Libertà va cercando, ch'è sì cara»); sui gradini sono nascosti
+//     (anello: «Libertà va cercando, ch'è sì cara» → CHI SONO); sui gradini sono nascosti
 //     lo scudo col filo rosso → TUTELA, il nodo che si scioglie → LEGAL DESIGN,
 //     il libro che si sfoglia → PUBBLICAZIONI
 //   Paradiso: la Giustizia sulla vetta, dentro i cieli che ruotano — il cielo di Giove
@@ -22,7 +22,6 @@ const VERSES = {
   purgatorio: 'LIBERTÀ VA CERCANDO, CH’È SÌ CARA · PURG. I, 71',
   paradiso: 'DILIGITE IUSTITIAM · QUI IUDICATIS TERRAM · PAR. XVIII, 91-93',
 };
-const NAME = 'ROBERTO · PUSCEDDU';
 
 const INF_H = 1.05; // altezza dell'Inferno
 const GIRONI = 9;
@@ -32,7 +31,7 @@ const CORNICI = 7;
 const RISER = 0.2; // altezza di ogni cornice
 const STEP = 0.18; // profondità di ogni cornice
 const R1 = 1.42; // raggio della prima parete del monte
-const JUSTICE_SCALE = 0.55;
+const JUSTICE_SCALE = 0.68;
 
 const deg = THREE.MathUtils.degToRad;
 
@@ -182,15 +181,29 @@ export class Monument {
     this.summitY = mountY + CORNICI * RISER;
 
     // Inferno, fascia del nome, Purgatorio
-    add(lathe(infernoProfile(y0, infTop), 192), stoneAO);
-    const band = inscribedBand(NAME, { radius: BAND_R, height: BAND_H, thickness: BAND_R - 1.49, material: stone, make, fontRatio: 0.58 });
-    band.position.y = infTop + BAND_H / 2;
-    band.rotation.y = band.userData.centerOffset;
-    this.group.add(band);
-    add(lathe(mountainProfile(mountY), 192), stoneAO);
+    add(chisel(lathe(infernoProfile(y0, infTop), 192), { amp: 0.009, freq: 6, seed: 3 }), stoneAO);
+    // Fascia centrale: marmo liscio con due filetti incisi (niente scritte).
+    const bandProfile = [
+      [1.49, 0],
+      [BAND_R, 0],
+      [BAND_R + 0.005, 0.01],
+      [BAND_R + 0.005, 0.05],
+      [BAND_R - 0.006, 0.056, 0.7],
+      [BAND_R + 0.005, 0.062],
+      [BAND_R + 0.005, BAND_H - 0.062],
+      [BAND_R - 0.006, BAND_H - 0.056, 0.7],
+      [BAND_R + 0.005, BAND_H - 0.05],
+      [BAND_R + 0.005, BAND_H - 0.01],
+      [BAND_R, BAND_H],
+      [1.49, BAND_H],
+    ];
+    add(lathe(bandProfile, 192), stoneAO).position.y = infTop;
+    add(chisel(lathe(mountainProfile(mountY), 192), { amp: 0.016, freq: 7, seed: 11 }), stoneAO);
 
-    // Scale scolpite tra una cornice e l'altra: salgono a spirale.
+    // Scale scolpite tra una cornice e l'altra: salgono a spirale. Ogni gradino è
+    // leggermente diverso (consumato, non perfettamente in squadra).
     const stairAz = (k) => deg(20 + 52 * k);
+    const jitter = (k, n, i) => Math.sin(k * 12.9898 + n * 78.233 + i * 37.719) * 0.5;
     for (let k = 1; k <= CORNICI; k++) {
       const r = R1 - (k - 1) * STEP;
       const yb = mountY + (k - 1) * RISER;
@@ -198,9 +211,11 @@ export class Monument {
       stair.rotation.y = stairAz(k);
       for (let n = 1; n <= 4; n++) {
         const depth = (5 - n) * 0.03 + 0.02;
-        const height = n * 0.05;
-        const s = add(new RoundedBoxGeometry(0.13, height, depth, 2, 0.005), stone, stair);
-        s.position.set(0, yb + height / 2, r - 0.02 + depth / 2);
+        const height = n * 0.05 - 0.004 * (1 + jitter(k, n, 1));
+        const width = 0.13 + 0.012 * jitter(k, n, 2);
+        const s = add(new RoundedBoxGeometry(width, height, depth, 2, 0.009), stone, stair);
+        s.position.set(0.006 * jitter(k, n, 3), yb + height / 2, r - 0.02 + depth / 2);
+        s.rotation.y = 0.05 * jitter(k, n, 4);
       }
       this.group.add(stair);
     }
@@ -227,11 +242,13 @@ export class Monument {
     this.justice.group.scale.setScalar(JUSTICE_SCALE);
     this.justice.group.position.y = this.summitY;
     this.group.add(this.justice.group);
-    this.heavenY = this.summitY + 0.57;
-    ring(VERSES.paradiso, this.heavenY, 0.95, 0.11, -0.05, deg(10));
+    // L'anello del Paradiso fa da corona ai piedi della Giustizia (non le passa davanti);
+    // i due cieli sottili le girano attorno all'altezza della bilancia.
+    ring(VERSES.paradiso, this.summitY + 0.22, 0.86, 0.1, -0.05, deg(6));
+    this.heavenY = this.summitY + 0.74;
     for (const [r, tilt, speed] of [
-      [0.66, 18, 0.22],
-      [0.79, 31, -0.16],
+      [0.66, 16, 0.22],
+      [0.8, 28, -0.16],
     ]) {
       const spinner = new THREE.Group();
       spinner.position.y = this.heavenY;
@@ -280,15 +297,14 @@ export class Monument {
     // Punti da inquadrare
     const at = (azDeg, radius, y) => new THREE.Vector3(Math.sin(deg(azDeg)) * radius, y, Math.cos(deg(azDeg)) * radius);
     this.points = {
-      center: new THREE.Vector3(0, (y0 + this.summitY) / 2 + 0.3, 0),
-      name: new THREE.Vector3(0, infTop + BAND_H / 2, BAND_R),
-      inferno: at(-28, this.infernoRing.r, this.infernoRing.y),
+      inferno: at(-40, this.infernoRing.r, this.infernoRing.y),
+      purgatorio: at(0, 1.8, mountY + 0.22),
       shield: { pos: at(40, R1 - STEP - 0.124, mountY + 2 * RISER + 0.12), az: 40 },
       knot: { pos: at(150, R1 - 3 * STEP - 0.104, mountY + 4 * RISER + 0.15), az: 150 },
       book: { pos: at(255, R1 - 5 * STEP - 0.1, mountY + 6 * RISER + 0.04), az: 255 },
-      scales: new THREE.Vector3(0, this.summitY + 0.58, 0),
+      scales: new THREE.Vector3(0, this.summitY + 0.75, 0),
     };
-    this.height = this.heavenY + 0.45;
+    this.height = this.heavenY + 0.4;
   }
 
   update(dt, motion = 1) {

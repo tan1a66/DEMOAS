@@ -11,13 +11,32 @@
       content="Avv. Roberto Pusceddu, Avvocato del Foro di Cagliari, Dottore di Ricerca (PhD) in Scienze Giuridiche. Tutela della donna e Codice Rosso, Legal Design nel contratto, pubblicazioni."
     />
     <meta name="theme-color" content="#9e1b22" />
+    <!-- Anteprima quando il link viene condiviso (WhatsApp, social, email) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:title" content="Avv. Roberto Pusceddu — Avvocato del Foro di Cagliari" />
+    <meta property="og:description" content="Tutela della donna e Codice Rosso, Legal Design nel contratto, pubblicazioni. Prenota una consulenza." />
+    <meta property="og:image" content="/og.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "LegalService",
+        "name": "Avv. Roberto Pusceddu — Roberto Pusceddu & Partners Law Firm",
+        "description": "Avvocato del Foro di Cagliari, Dottore di Ricerca (PhD) in Scienze Giuridiche, Specializzazione CNF in Diritto Civile.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Via Garibaldi n. 16",
+          "postalCode": "09069",
+          "addressLocality": "Maracalagonis",
+          "addressRegion": "CA",
+          "addressCountry": "IT"
+        },
+        "founder": { "@type": "Person", "name": "Roberto Pusceddu", "jobTitle": "Avvocato" },
+        "knowsAbout": ["Diritto civile", "Tutela della donna e Codice Rosso", "Legal Design nel contratto"]
+      }
+    </script>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%239e1b22'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='30' fill='%23f2ebdd' text-anchor='middle'%3ERP%3C/text%3E%3C/svg%3E" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body class="is-loading">
@@ -38,10 +57,13 @@
         <a href="#pubblicazioni" data-go="5"><i>III</i>Pubblicazioni</a>
         <a href="#contatti" data-go="6"><i>IV</i>Contatti</a>
       </nav>
+      <button class="topbar-book" type="button" data-book="">Prenota</button>
       <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav">
         <span>Menu</span>
       </button>
     </header>
+
+    <button class="intro-skip" id="intro-skip" type="button" hidden>Salta l'introduzione</button>
 
     <aside class="rail" id="rail" aria-hidden="true">
       <span data-sec="1">I</span>
@@ -57,6 +79,10 @@
           <p class="kicker">Avvocato del Foro di Cagliari</p>
           <h1 id="hero-title">Roberto<br />Pusceddu</h1>
           <p class="hero-sub">Dottore di Ricerca (PhD) in Scienze Giuridiche<br />Specializzazione CNF in Diritto Civile</p>
+          <p class="hero-note">
+            Un viaggio in marmo con Dante: dalla bilancia della Giustizia si scende all'Inferno, si risale il Purgatorio e si torna
+            alla Giustizia.
+          </p>
         </div>
         <ol class="hero-index">
           <li>
@@ -83,7 +109,7 @@
           <p class="lead">Conosci l'Avvocato Roberto Pusceddu e la mia missione di fornire servizi legali di eccellenza.</p>
           <figure class="portrait">
             <img src="./src/assets/img/ritratto.jpg" alt="Ritratto dell'Avvocato Roberto Pusceddu" width="572" height="542" loading="eager" />
-            <figcaption><strong>Avv. Roberto Pusceddu</strong><span>Amministratore Unico</span></figcaption>
+            <figcaption><strong>Avv. Roberto Pusceddu</strong><span>Avvocato del Foro di Cagliari</span></figcaption>
           </figure>
           <h3>Profilo Professionale</h3>
           <p>
@@ -91,9 +117,13 @@
             Cultore di materia in Filosofia del Diritto.
           </p>
           <p>
-            Ex stagista presso la Corte d'Appello di Cagliari (Seconda Sezione Penale), docente di diritto e autore di pubblicazioni
+            Tirocinio presso la Corte d'Appello di Cagliari (Seconda Sezione Penale); docente di diritto e autore di pubblicazioni
             giuridiche.
           </p>
+          <blockquote class="verse">
+            <p>«Giustizia mosse il mio alto fattore»</p>
+            <cite>Dante, Inferno III, 4 — l'anello che gira attorno ai gironi</cite>
+          </blockquote>
         </article>
       </section>
 
@@ -124,6 +154,10 @@
               approccio combina profonda conoscenza giuridica con attenzione personalizzata alle esigenze di ogni cliente.
             </p>
           </div>
+          <blockquote class="verse">
+            <p>«Libertà va cercando, ch'è sì cara»</p>
+            <cite>Dante, Purgatorio I, 71 — l'anello alla base del monte</cite>
+          </blockquote>
         </article>
       </section>
 
@@ -132,7 +166,9 @@
         <article class="panel panel--left">
           <p class="eyebrow"><i>II</i>Servizi</p>
           <h2 id="servizi-title">Aree di Specializzazione</h2>
-          <p class="lead">Scopri i miei ambiti di competenza specialistica per tutelare i tuoi diritti.</p>
+          <p class="lead">
+            Specializzazione CNF in Diritto Civile. Scopri i miei ambiti di competenza specialistica per tutelare i tuoi diritti.
+          </p>
           <div class="area area--red">
             <span class="area-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 2.8 4.5 5.6v5.6c0 4.7 3.1 8.6 7.5 10 4.4-1.4 7.5-5.3 7.5-10V5.6L12 2.8z" /><path d="m8.6 12 2.4 2.4 4.6-4.8" /></svg>
@@ -208,6 +244,10 @@
           <p class="eyebrow"><i>IV</i>Contatti</p>
           <h2 id="contatti-title">Contattami</h2>
           <p class="lead">Entra in contatto per una consulenza professionale personalizzata.</p>
+          <blockquote class="verse">
+            <p>«Diligite iustitiam, qui iudicatis terram»</p>
+            <cite>«Amate la giustizia, voi che giudicate la terra» — Dante, Paradiso XVIII, 91-93</cite>
+          </blockquote>
           <button class="btn btn--red btn--wa" type="button" data-book="">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg><span>Prenota una consulenza su WhatsApp</span>
           </button>
@@ -216,7 +256,12 @@
           <div class="offices" id="offices"></div>
           <footer class="footer">
             <p>
-              © <span id="year"></span> Avv. Roberto Pusceddu · Roberto Pusceddu &amp; Partners Law Firm<span id="piva"></span>
+              © <span id="year"></span> Avv. Roberto Pusceddu · Roberto Pusceddu &amp; Partners Law Firm · Iscritto all'Ordine degli
+              Avvocati di Cagliari<span id="piva"></span>
+            </p>
+            <p class="footer-links">
+              <button type="button" data-legal="privacy">Privacy</button>
+              <button type="button" data-legal="note-legali">Note legali</button>
             </p>
           </footer>
         </article>
@@ -268,6 +313,45 @@
           <button class="btn btn--red btn--wa" type="submit" id="booking-send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg><span>Invia su WhatsApp</span></button>
         </div>
       </form>
+    </dialog>
+
+    <!-- Privacy e note legali. Testi da far verificare all'Avvocato prima della pubblicazione. -->
+    <dialog class="booking legal" id="privacy" aria-labelledby="privacy-title">
+      <div class="booking-form">
+        <button class="booking-close" type="button" data-close aria-label="Chiudi">×</button>
+        <p class="eyebrow">Informativa</p>
+        <h2 id="privacy-title">Privacy</h2>
+        <p>
+          Titolare del trattamento: Avv. Roberto Pusceddu, Via Garibaldi n. 16 – 09069 Maracalagonis (CA)<span data-email-line></span>.
+        </p>
+        <p>
+          Questo sito non usa cookie di profilazione né strumenti di statistica e non si collega a servizi di terze parti durante la
+          navigazione: i caratteri tipografici sono ospitati sul sito stesso. Il browser memorizza soltanto se l'introduzione è già
+          stata vista, per accorciarla alla visita successiva.
+        </p>
+        <p>
+          Il modulo «Prenota una consulenza» non invia né salva dati: compone un messaggio che sei tu a scegliere di inviare tramite
+          WhatsApp. Da quel momento i dati sono trattati dallo studio per rispondere alla richiesta, e da WhatsApp secondo la sua
+          informativa. I collegamenti alle mappe aprono Google Maps.
+        </p>
+        <p>Per esercitare i diritti previsti dagli articoli 15-22 del GDPR puoi contattare lo studio ai recapiti indicati nella pagina.</p>
+      </div>
+    </dialog>
+    <dialog class="booking legal" id="note-legali" aria-labelledby="note-title">
+      <div class="booking-form">
+        <button class="booking-close" type="button" data-close aria-label="Chiudi">×</button>
+        <p class="eyebrow">Note legali</p>
+        <h2 id="note-title">Informazioni sullo studio</h2>
+        <p>
+          Avv. Roberto Pusceddu — Roberto Pusceddu &amp; Partners Law Firm. Avvocato iscritto all'Ordine degli Avvocati di Cagliari.
+          Dottore di Ricerca (PhD) in Scienze Giuridiche, Specializzazione CNF in Diritto Civile.
+        </p>
+        <p>Sede: Via Garibaldi n. 16 – 09069 Maracalagonis (CA)<span data-piva-line></span>.</p>
+        <p>
+          I contenuti del sito hanno carattere informativo e non costituiscono parere legale. Le citazioni dalla Divina Commedia di Dante
+          Alighieri sono di pubblico dominio.
+        </p>
+      </div>
     </dialog>
 
     <!-- Caricamento: fondo crema, barra rossa; alla fine la barra invade lo schermo. -->

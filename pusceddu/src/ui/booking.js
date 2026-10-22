@@ -74,7 +74,9 @@ export function initBooking() {
     }
     const number = waNumber();
     if (!number) {
-      warn.textContent = 'Numero WhatsApp dello studio da inserire (src/config.js). Intanto puoi copiare il messaggio.';
+      warn.textContent = CONFIG.mostraSegnaposto
+        ? 'Numero WhatsApp dello studio da inserire (src/config.js). Intanto puoi copiare il messaggio.'
+        : 'La prenotazione su WhatsApp sarà attiva a breve: intanto copia il messaggio e invialo allo studio.';
       warn.hidden = false;
       return;
     }

@@ -1,7 +1,11 @@
-// Configurazione generale. I campi vuoti sono SEGNAPOSTO: sul sito compaiono come
-// "da inserire" finché non vengono compilati con i dati confermati dall'Avvocato.
+// Configurazione generale. I campi vuoti vanno compilati con i dati confermati
+// dall'Avvocato; finché sono vuoti non compaiono (vedi `mostraSegnaposto`).
 
 export const CONFIG = {
+  // false = i dati mancanti semplicemente non compaiono (per le presentazioni);
+  // true = compaiono come "da inserire" (per controllare cosa manca).
+  mostraSegnaposto: false,
+
   contatti: {
     whatsapp: '', // numero per le prenotazioni, con prefisso: es. '+39 333 123 4567'
     email: '', // es. 'studio@dominio.it'

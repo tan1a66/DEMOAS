@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
 
-import { QUALITY, REDUCED_MOTION } from './config.js';
+import { QUALITY, REDUCED_MOTION, IS_MOBILE } from './config.js';
 import { createEnvironment } from './scene/environment.js';
 import { buildWorld, keyframes, introPath } from './scene/world.js';
 import { Drone } from './scene/drone.js';
@@ -34,10 +34,26 @@ THREE.ShaderChunk.fog_fragment = /* glsl */ `
 `;
 
 document.documentElement.classList.add('js');
+// Piccola memoria nel browser (solo per accorciare l'intro a chi torna).
+const recall = (k) => {
+  try {
+    return localStorage.getItem(k);
+  } catch {
+    return null;
+  }
+};
+const remember = (k, v) => {
+  try {
+    localStorage.setItem(k, v);
+  } catch {
+    /* navigazione privata: pazienza */
+  }
+};
+const RETURNING = recall('rp-intro-vista') === '1';
 // Si riparte sempre dall'inizio del percorso (niente scroll ripristinato dal browser).
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 const body = document.body;
-const loader = new Loader();
+const loader = new Loader({ minDuration: RETURNING ? 700 : 1800 });
 renderContacts();
 initBooking();
 paintGrain();
@@ -57,16 +73,19 @@ drone.motion = REDUCED_MOTION ? 0 : 1;
 let world = null;
 let narrow = isNarrow();
 
-// Luci: chiave calda con ombre, controluce per staccare il marmo dal rosso,
-// emisfero crema/rosso (il pavimento rosso "rimbalza" sul marmo).
-// Le luci sono orientate rispetto al drone (come un set fotografico che lo segue):
-// chiave in alto a sinistra davanti all'opera, controluce dietro a destra.
+// Luci: la chiave (con le ombre) è FISSA, come il lucernario di una galleria, così le
+// ombre non girano durante i voli. Un riempimento morbido e un controluce seguono il
+// drone, senza ombre, perché ogni dettaglio inquadrato resti leggibile.
+// Emisfero crema/rosso: il pavimento rosso "rimbalza" sul marmo.
 const UP = new THREE.Vector3(0, 1, 0);
 const _fwd = new THREE.Vector3();
 const _right = new THREE.Vector3();
-const key = new THREE.DirectionalLight(0xfff6ec, 2.6);
-const rim = new THREE.DirectionalLight(0xffe4d8, 1.5);
-scene.add(new THREE.HemisphereLight(0xfffaf2, 0x7a2a2c, 0.45), key, key.target, rim, rim.target);
+const key = new THREE.DirectionalLight(0xfff6ec, 2.4);
+const fill = new THREE.DirectionalLight(0xfff4ea, 1.1);
+const rim = new THREE.DirectionalLight(0xffe4d8, 1.4);
+key.position.set(-5.5, 10, 6.5);
+key.target.position.set(0, 2.8, 0);
+scene.add(new THREE.HemisphereLight(0xfffaf2, 0x7a2a2c, 0.45), key, key.target, fill, fill.target, rim, rim.target);
 scene.fog = new THREE.Fog(0x9e1b22, 18, 46); // distanze aggiornate dal drone; il colore non conta
 
 if (renderer) {
@@ -78,14 +97,14 @@ if (renderer) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = QUALITY.softShadows ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
-  renderer.localClippingEnabled = true;
   key.castShadow = true;
   key.shadow.mapSize.setScalar(QUALITY.shadowMap);
   key.shadow.bias = -0.0003;
   key.shadow.normalBias = 0.015;
   key.shadow.radius = 4;
-  key.shadow.camera.near = 0.5;
-  key.shadow.camera.far = 30;
+  // Il riquadro delle ombre copre tutto il monumento ed è fisso: ombre stabili.
+  Object.assign(key.shadow.camera, { left: -3, right: 3, top: 3.2, bottom: -3.2, near: 4, far: 22 });
+  key.shadow.camera.updateProjectionMatrix();
 }
 
 // ---------------------------------------------------------------- Costruzione
@@ -121,13 +140,6 @@ async function build() {
     loader.set(0.3 + (done / steps) * 0.45);
     await nextFrame();
   });
-
-  // Il pavimento taglia la colonna mentre sale nell'intro.
-  const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  for (const m of world.clipMaterials) {
-    m.clippingPlanes = [floorPlane];
-    m.clipShadows = true;
-  }
 
   drone.setKeyframes(keyframes(world, narrow));
   drone.update(0, 0);
@@ -270,29 +282,18 @@ window.addEventListener('resize', () => {
 });
 
 // ---------------------------------------------------------------- Luci che seguono il drone
-let shadowSize = 0;
 function updateLights() {
   const t = drone.current.target;
   _fwd.subVectors(t, camera.position).setY(0);
   if (_fwd.lengthSq() < 1e-6) _fwd.set(0, 0, -1);
   _fwd.normalize();
   _right.crossVectors(_fwd, UP);
-  key.target.position.copy(t);
-  key.position.copy(t).addScaledVector(_right, -3.4).addScaledVector(_fwd, -4.4).addScaledVector(UP, 7.5);
+  fill.target.position.copy(t);
+  fill.position.copy(t).addScaledVector(_right, -2.5).addScaledVector(_fwd, -5).addScaledVector(UP, 3);
   rim.target.position.copy(t);
   rim.position.copy(t).addScaledVector(_right, 3).addScaledVector(_fwd, 6).addScaledVector(UP, 3.2);
-  const d = camera.position.distanceTo(t);
   scene.fog.near = drone.current.fog[0];
   scene.fog.far = drone.current.fog[1];
-  const size = THREE.MathUtils.clamp(d * 0.62, 2.4, 17);
-  if (Math.abs(size - shadowSize) > 0.02) {
-    shadowSize = size;
-    const sc = key.shadow.camera;
-    sc.left = sc.bottom = -size;
-    sc.right = sc.top = size;
-    sc.far = 12 + size * 1.5;
-    sc.updateProjectionMatrix();
-  }
 }
 
 // ---------------------------------------------------------------- Intro
@@ -321,33 +322,33 @@ function intro(curtain) {
   const pc = new THREE.CatmullRomCurve3(path.positions, false, 'centripetal');
   const tc = new THREE.CatmullRomCurve3(path.targets, false, 'centripetal');
   const ov = { position: new THREE.Vector3(), target: new THREE.Vector3(), sx: 0, sy: 0, fov: 34, fog: [80, 120] };
-  const st = { p: REDUCED_MOTION ? 1 : 0, rise: REDUCED_MOTION ? 1 : 0 };
-  const root = world.root;
+  const st = { p: REDUCED_MOTION ? 1 : 0 };
   const apply = () => {
     pc.getPoint(st.p, ov.position);
     tc.getPoint(st.p, ov.target);
-    const k = smoothstep(0.72, 1, st.p);
+    const k = smoothstep(0.7, 1, st.p);
     ov.sx = heroKf.sx * k;
     ov.sy = heroKf.sy * k;
     ov.fog = [80 + (heroKf.fog[0] - 80) * k, 120 + (heroKf.fog[1] - 120) * k];
-    root.position.y = -5.4 * (1 - st.rise);
   };
   apply();
   drone.override = ov;
   introRunning = true;
   if (!REDUCED_MOTION) world.justice.setAngle(0.2);
 
+  const skip = $('intro-skip');
   const finish = () => {
     introRunning = false;
     drone.override = null;
     drone.u = 0;
-    root.position.y = 0;
     body.classList.remove('is-intro');
     computeAnchors();
     curtain.remove();
+    skip.hidden = true;
     removeEventListener('wheel', hurry);
     removeEventListener('touchstart', hurry);
     removeEventListener('keydown', hurry);
+    remember('rp-intro-vista', '1');
   };
 
   if (REDUCED_MOTION) {
@@ -356,14 +357,18 @@ function intro(curtain) {
     return;
   }
 
+  // Si parte a pochi centimetri dalla bilancia e ci si allontana. Chi è già passato
+  // di qui vede un'intro più rapida.
   const tl = gsap.timeline({ onUpdate: apply, onComplete: finish });
-  tl.to(curtain, { opacity: 0, duration: 1.2, ease: 'power2.out' }, 0)
-    .to(st, { rise: 1, duration: 2.8, ease: 'power3.out' }, 0.2)
-    .to(st, { p: 1, duration: 6.4, ease: 'power2.inOut' }, 0.1)
-    .add(showUi, 5.0);
-  // Chi ha fretta può accelerare l'intro con la rotella, il tocco o la tastiera.
+  tl.to(curtain, { opacity: 0, duration: 1.1, ease: 'power2.out' }, 0)
+    .to(st, { p: 1, duration: 5.2, ease: 'power2.inOut' }, 0.1)
+    .add(showUi, 3.6);
+  if (RETURNING) tl.timeScale(2.2);
+  skip.hidden = false;
+  skip.onclick = () => tl.progress(1);
+  // Rotella, tocco o tastiera: l'intro accelera e finisce subito.
   function hurry() {
-    tl.timeScale(4);
+    tl.timeScale(7);
   }
   addEventListener('wheel', hurry, { passive: true });
   addEventListener('touchstart', hurry, { passive: true });
@@ -377,8 +382,27 @@ let scrollVel = 0;
 let knotM = 0;
 let knotDir = -1;
 
+// Qualità adattiva: se i fotogrammi rallentano (telefoni meno potenti), si abbassa la
+// risoluzione del 3D a gradini. I testi restano nitidi: sono HTML.
+const perf = { t: 0, frames: 0, ratio: Math.min(window.devicePixelRatio, QUALITY.maxPixelRatio), min: IS_MOBILE ? 0.75 : 1 };
+function adaptQuality(rawDt) {
+  if (introRunning || document.hidden || rawDt > 0.5) return;
+  perf.t += rawDt;
+  perf.frames++;
+  if (perf.t < 2) return;
+  const fps = perf.frames / perf.t;
+  perf.t = 0;
+  perf.frames = 0;
+  if (fps < 42 && perf.ratio > perf.min) {
+    perf.ratio = Math.max(perf.min, perf.ratio - 0.25);
+    renderer.setPixelRatio(perf.ratio);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+  }
+}
+
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  const rawDt = (now - last) / 1000;
+  const dt = Math.min(0.05, rawDt);
   last = now;
   const y = window.scrollY;
   const st = introRunning ? 0 : scrollToStation(y);
@@ -405,6 +429,7 @@ function frame(now) {
     world.book.update(dt);
 
     renderer.render(scene, camera);
+    adaptQuality(rawDt);
   }
   updateActive(st);
   requestAnimationFrame(frame);

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { lathe } from './geometry.js';
 
-// La "colonnina": un grande tamburo dorico scanalato che fa da piedistallo al monumento.
+// La "colonnina": fusto dorico scanalato con capitello svasato, piedistallo del monumento.
 // Restituisce il gruppo e l'altezza del piano d'appoggio.
 
 function flutedShaft({ height, rBottom, rTop, flutes, depth, fillet = 0.08 }) {
@@ -43,53 +43,58 @@ export function buildPedestal(material, aoMaterial) {
     return m;
   };
 
-  // Base modanata
+  // Base modanata (plinto tondo, toro, scozia)
   add(
     lathe(
       [
         [1e-4, 0],
-        [1.5, 0],
-        [1.5, 0.06],
-        [1.475, 0.074],
-        [1.445, 0.1],
-        [1.42, 0.122, 0.8],
-        [1.4, 0.14, 0.85],
-        [1.34, 0.15],
-        [1.3, 0.168],
-        [1.27, 0.18, 0.7],
+        [1.08, 0],
+        [1.08, 0.07],
+        [1.06, 0.085],
+        [1.02, 0.1],
+        [0.96, 0.112, 0.8],
+        [0.9, 0.12],
+        [0.78, 0.13],
+        [0.72, 0.15, 0.75],
+        [0.7, 0.175],
+        [0.66, 0.19],
+        [0.63, 0.2, 0.7],
       ],
-      160
+      128
     ),
     aoMaterial
   );
 
-  const shaftH = 0.86;
-  add(flutedShaft({ height: shaftH, rBottom: 1.26, rTop: 1.23, flutes: 36, depth: 0.045 }), aoMaterial, 0.18);
+  // Fusto snello e scanalato: il monumento poggia su una colonnina, come un calice.
+  const shaftH = 0.95;
+  add(flutedShaft({ height: shaftH, rBottom: 0.61, rTop: 0.56, flutes: 24, depth: 0.03 }), aoMaterial, 0.2);
 
-  // Capitello: collarino, echino, abaco tondo
+  // Capitello che si apre (echino) e regge l'Inferno
   add(
     lathe(
       [
-        [1.215, 0, 0.7],
-        [1.245, 0.01],
-        [1.268, 0.025],
-        [1.262, 0.04],
-        [1.232, 0.05, 0.75],
-        [1.236, 0.078],
-        [1.29, 0.1],
-        [1.345, 0.128],
-        [1.375, 0.158],
-        [1.37, 0.185],
-        [1.345, 0.2],
-        [1.2, 0.207],
-        [0.6, 0.21],
-        [1e-4, 0.21],
+        [0.548, 0, 0.7],
+        [0.58, 0.012],
+        [0.6, 0.03],
+        [0.592, 0.046],
+        [0.565, 0.056, 0.7],
+        [0.57, 0.08],
+        [0.62, 0.1],
+        [0.72, 0.13],
+        [0.84, 0.16],
+        [0.94, 0.19],
+        [0.99, 0.212],
+        [1.0, 0.24],
+        [0.99, 0.262],
+        [0.9, 0.27],
+        [0.5, 0.272],
+        [1e-4, 0.272],
       ],
       160
     ),
     aoMaterial,
-    0.18 + shaftH
+    0.2 + shaftH
   );
 
-  return { group, top: 0.18 + shaftH + 0.21 };
+  return { group, top: 0.2 + shaftH + 0.272 };
 }

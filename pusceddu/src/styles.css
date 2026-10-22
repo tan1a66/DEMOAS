@@ -1,3 +1,12 @@
+/* Caratteri ospitati sul sito (niente richieste a Google: meglio per la privacy). */
+@import '@fontsource/cormorant-garamond/latin-500.css';
+@import '@fontsource/cormorant-garamond/latin-600.css';
+@import '@fontsource/cormorant-garamond/latin-500-italic.css';
+@import '@fontsource/cormorant-garamond/latin-600-italic.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+@import '@fontsource/manrope/latin-600.css';
+
 :root {
   --red: #9e1b22;
   --red-deep: #6e1218;
@@ -140,7 +149,7 @@ main {
 }
 .brand-role {
   margin-top: 6px;
-  font: 500 10px/1 var(--sans);
+  font: 500 11px/1 var(--sans);
   letter-spacing: 0.34em;
   text-transform: uppercase;
   opacity: 0.75;
@@ -153,8 +162,8 @@ main {
 .nav a {
   position: relative;
   text-decoration: none;
-  font: 500 11.5px/1 var(--sans);
-  letter-spacing: 0.22em;
+  font: 500 12.5px/1 var(--sans);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   padding: 8px 0;
   opacity: 0.82;
@@ -217,9 +226,9 @@ main {
   opacity: 1;
 }
 .rail span {
-  font: italic 500 14px/1 var(--serif);
+  font: italic 500 15px/1 var(--serif);
   color: var(--cream);
-  opacity: 0.35;
+  opacity: 0.8;
   text-align: center;
   transition: opacity 0.4s, transform 0.4s var(--ease);
 }
@@ -244,7 +253,7 @@ main {
 }
 .kicker {
   margin: 0 0 18px;
-  font: 500 11.5px/1 var(--sans);
+  font: 500 12.5px/1 var(--sans);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   opacity: 0.8;
@@ -287,9 +296,9 @@ main {
 }
 .hero-index p {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.6;
-  opacity: 0.72;
+  opacity: 0.9;
 }
 
 .scroll-cue {
@@ -331,10 +340,10 @@ main {
 /* ------------------------------------------------------------ Capitoli e schede */
 .chapter {
   position: relative;
-  padding: 92vh var(--gutter) 22vh;
+  padding: 72vh var(--gutter) 18vh;
 }
 .chapter--tight {
-  padding-top: 46vh;
+  padding-top: 36vh;
 }
 .chapter--last {
   padding-bottom: 14vh;
@@ -346,7 +355,7 @@ main {
   background: var(--cream);
   color: var(--ink);
   padding: clamp(28px, 3.6vw, 50px);
-  box-shadow: 0 40px 90px -30px rgba(40, 0, 4, 0.55), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
+  box-shadow: 0 0 0 1px rgba(60, 10, 12, 0.14), 0 30px 70px -20px rgba(40, 0, 4, 0.6), 0 2px 0 rgba(255, 255, 255, 0.5) inset;
 }
 .panel--right {
   margin-left: auto;
@@ -371,7 +380,7 @@ main {
 
 .eyebrow {
   margin: 0 0 18px;
-  font: 600 11px/1 var(--sans);
+  font: 600 12px/1 var(--sans);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--red);
@@ -518,8 +527,8 @@ main {
   border: 1px solid var(--ink);
   color: var(--ink);
   text-decoration: none;
-  font: 600 11px/1 var(--sans);
-  letter-spacing: 0.22em;
+  font: 600 12px/1 var(--sans);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   transition: background 0.35s, color 0.35s, border-color 0.35s;
 }
@@ -916,6 +925,108 @@ body.booking-open {
   pointer-events: none;
 }
 
+/* ------------------------------------------------------------ Navigazione da tastiera */
+:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+}
+.panel :focus-visible,
+.booking :focus-visible {
+  outline-color: var(--red);
+}
+
+/* ------------------------------------------------------------ Prenota (sempre visibile) */
+.topbar-book {
+  margin-left: clamp(8px, 2vw, 28px);
+  padding: 11px 18px;
+  border: 1px solid var(--cream);
+  background: var(--cream);
+  color: var(--red);
+  font: 600 12px/1 var(--sans);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+.topbar-book:hover {
+  background: transparent;
+  color: var(--cream);
+}
+.topbar {
+  justify-content: flex-start;
+}
+.brand {
+  margin-right: auto;
+}
+
+/* ------------------------------------------------------------ Salta l'introduzione */
+.intro-skip {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border: 1px solid rgba(242, 235, 221, 0.6);
+  background: rgba(70, 8, 12, 0.35);
+  color: var(--cream);
+  font: 600 12px/1 var(--sans);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.intro-skip:hover {
+  background: var(--cream);
+  color: var(--red);
+}
+
+/* ------------------------------------------------------------ Didascalie e versi */
+.hero-note {
+  margin: 14px 0 0;
+  max-width: 32em;
+  font: italic 500 17px/1.45 var(--serif);
+  opacity: 0.88;
+}
+.verse {
+  margin: 26px 0 0;
+  padding: 16px 0 0 18px;
+  border-left: 2px solid var(--red);
+}
+.verse p {
+  margin: 0 0 4px !important;
+  font: italic 500 21px/1.3 var(--serif);
+  color: var(--ink) !important;
+}
+.verse cite {
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------------ Piè di pagina e finestre legali */
+.footer-links {
+  margin-top: 6px !important;
+  display: flex;
+  gap: 18px;
+}
+.footer-links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: 600 12px/1.6 var(--sans);
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.legal p {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
 /* ------------------------------------------------------------ Mobile */
 @media (max-width: 900px) {
   .nav {
@@ -956,6 +1067,14 @@ body.booking-open {
   .nav-toggle {
     display: block;
   }
+  .topbar-book {
+    margin-left: 0;
+    margin-right: 10px;
+    padding: 11px 14px;
+  }
+  .hero-note {
+    font-size: 16px;
+  }
   .rail {
     display: none;
   }
@@ -973,11 +1092,11 @@ body.booking-open {
     display: none;
   }
   .chapter {
-    padding-top: 78vh;
-    padding-bottom: 14vh;
+    padding-top: 64vh;
+    padding-bottom: 12vh;
   }
   .chapter--tight {
-    padding-top: 58vh;
+    padding-top: 50vh;
   }
   .panel,
   .panel--wide {

@@ -11,6 +11,8 @@
     "build:preview": "vite build --config vite.preview.config.js"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
     "gsap": "^3.12.5",
     "three": "^0.169.0"
   },

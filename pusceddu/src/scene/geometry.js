@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Utilità di modellazione: torniture (lathe) e "sweep" lungo una curva.
 
@@ -157,4 +158,55 @@ export function lightPool(radius, opacity = 0.2, color = 0xffe9d2) {
   m.position.y = 0.002;
   m.renderOrder = -1;
   return m;
+}
+
+// Rumore di valore 3D (deterministico), per irregolarità della pietra.
+function hash3(x, y, z) {
+  let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, -1640531535);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return ((h >>> 0) / 4294967295) * 2 - 1;
+}
+function valueNoise(x, y, z) {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const zi = Math.floor(z);
+  const fx = x - xi;
+  const fy = y - yi;
+  const fz = z - zi;
+  const u = fx * fx * (3 - 2 * fx);
+  const v = fy * fy * (3 - 2 * fy);
+  const w = fz * fz * (3 - 2 * fz);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const c = (i, j, k) => hash3(xi + i, yi + j, zi + k);
+  return lerp(
+    lerp(lerp(c(0, 0, 0), c(1, 0, 0), u), lerp(c(0, 1, 0), c(1, 1, 0), u), v),
+    lerp(lerp(c(0, 0, 1), c(1, 0, 1), u), lerp(c(0, 1, 1), c(1, 1, 1), u), v),
+    w
+  );
+}
+
+// "Scalpellatura": sposta i vertici in direzione radiale con un rumore a due scale,
+// così le pareti diventano roccia e i bordi delle cornici non sono più cerchi perfetti
+// (i piani orizzontali restano piani). Il rumore dipende solo dalla posizione: la
+// cucitura del tornio resta chiusa.
+export function chisel(geo, { amp = 0.012, freq = 7, seed = 0 } = {}) {
+  geo.deleteAttribute('uv');
+  geo.deleteAttribute('normal');
+  const g = mergeVertices(geo, 1e-6);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i);
+    const y = p.getY(i);
+    const z = p.getZ(i);
+    const r = Math.hypot(x, z);
+    if (r < 0.02) continue;
+    const n =
+      valueNoise(x * freq + seed, y * freq * 1.6, z * freq) * 0.62 +
+      valueNoise(x * freq * 3.1, y * freq * 4.2 + seed, z * freq * 3.1) * 0.38;
+    const k = 1 + (n * amp) / r;
+    p.setXYZ(i, x * k, y, z * k);
+  }
+  g.computeVertexNormals();
+  return g;
 }
