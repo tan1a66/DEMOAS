@@ -78,7 +78,7 @@ function resize() {
   const vFromH = 2 * Math.atan(Math.tan(minHFov / 2) / camera.aspect);
   camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(Math.max(THREE.MathUtils.degToRad(46), vFromH)), 46, 78);
   camera.updateProjectionMatrix();
-  path.setFraming(camera.fov, camera.aspect);
+  path.setFraming(camera.fov, camera.aspect, h);
 }
 new ResizeObserver(resize).observe(canvas);
 resize();

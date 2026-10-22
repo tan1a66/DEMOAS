@@ -16,7 +16,7 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
     onChange?.(index, !!tween, last);
   }
 
-  let arrivedAt = 0;
+  let arrivedAt = -Infinity;
   function go(i) {
     i = clamp(i, 0, last);
     if (i === index && !tween) return;

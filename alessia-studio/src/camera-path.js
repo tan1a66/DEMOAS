@@ -26,7 +26,8 @@ export const BUBBLE_R = 0.95;
 // (schermo orizzontale: due file; verticale: file da 3 e 2), con la distanza scelta perché stia nello
 // spazio libero tra il titolo (in alto) e i pulsanti (in basso), con le etichette sotto le bolle.
 // Restituisce posizioni sullo schermo (sx, sy in metà larghezza/altezza) e distanza d.
-function clusterLayout(n, fovDeg, aspect) {
+// h = altezza dello schermo in px: su schermi bassi titolo, pulsanti ed etichette pesano di più.
+function clusterLayout(n, fovDeg, aspect, h = 900) {
   const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2);
   const tanH = tanV * aspect;
   const portrait = aspect < 1;
@@ -43,8 +44,12 @@ function clusterLayout(n, fovDeg, aspect) {
     if (n > 1) rows.push(Math.floor(n / 2));
   }
   // area libera (in metà schermo) e passo tra le bolle in raggi
-  const area = portrait ? { x0: -0.94, x1: 0.94, y0: -0.74, y1: 0.5 } : { x0: -0.66, x1: 0.8, y0: -0.7, y1: 0.42 };
-  const stepX = 2.5, stepY = 2.25, label = 0.075;
+  const px = (v) => (2 * v) / h; // pixel -> metà altezza
+  const low = h < 520;
+  const area = portrait
+    ? { x0: -0.9, x1: 0.9, y0: Math.max(-0.74, -1 + px(92)), y1: Math.min(0.5, 1 - px(190)) }
+    : { x0: low ? -0.6 : -0.66, x1: low ? 0.6 : 0.8, y0: Math.max(-0.7, -1 + px(low ? 100 : 92)), y1: Math.min(0.42, 1 - px(low ? 96 : 250)) };
+  const stepX = 2.5, stepY = 2.25, label = Math.max(0.075, px(26));
   const spanCols = portrait ? Math.max(...rows) - 1 : Math.max(...rows) - 1 + (rows.length > 1 ? 0.5 : 0);
   const nr = rows.length;
   // raggio massimo (in metà larghezza / altezza) che fa stare tutto nell'area
@@ -68,16 +73,17 @@ function clusterLayout(n, fovDeg, aspect) {
 }
 
 // posizioni nel mondo delle bolle, viste dalla posa della sosta (pos -> target)
-function bubbleWorld(n, fovDeg, aspect, pos, target) {
-  const { slots, tanH, tanV } = clusterLayout(n, fovDeg, aspect);
+function bubbleWorld(n, fovDeg, aspect, h, pos, target) {
+  const { slots, tanH, tanV } = clusterLayout(n, fovDeg, aspect, h);
   const f = new THREE.Vector3().subVectors(target, pos).normalize();
   const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize();
   const u = new THREE.Vector3().crossVectors(r, f);
   return slots.map(({ sx, sy, d }) => pos.clone().addScaledVector(f, d).addScaledVector(r, sx * d * tanH).addScaledVector(u, sy * d * tanV));
 }
 
-// d = distanza iniziale dal muro; n = numero di progetti (bolle); fov verticale e aspect dello schermo
-export function buildStory(d, n, fovDeg = 46, aspect = 1.6) {
+// d = distanza iniziale dal muro; n = numero di progetti (bolle); fov verticale, aspect e altezza (px)
+// dello schermo
+export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   const zw = FW.zOut;
   const cy = WINDOW.cy;
   const keys = [];
@@ -109,7 +115,8 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6) {
     const r = new THREE.Vector3().crossVectors(f, new THREE.Vector3(0, 1, 0)).normalize();
     const u = new THREE.Vector3().crossVectors(r, f);
     const land = THREE.MathUtils.smoothstep(aspect, 0.9, 1.25);
-    return tgt.addScaledVector(r, -1.45 * land).addScaledVector(u, -0.95 * (1 - land));
+    const side = 1.75 + Math.max(0, aspect - 1.6) * 1.2; // schermi molto larghi: un po' di più
+    return tgt.addScaledVector(r, -side * land).addScaledVector(u, -0.95 * (1 - land));
   };
   const s1 = V(-1.15, 3.12, 0.15), s2 = V(-1.17, 3.12, 0.08), s3 = V(-1.2, 3.11, -0.02), s4 = V(-1.22, 3.1, -0.08);
   key(45, s1, sky(s1, V(-0.25, 9.6, 0.5)), 3.3, 0.4, 'visionIn');
@@ -132,7 +139,7 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6) {
   const stopPos = V(-33.0, -3.2, -13.5), stopTgt = V(-45, -3.45, -13.5);
   key(40, stopPos, stopTgt, 1.1, 0.55, 'projectsIn');
   key(60, V(-33.25, -3.2, -13.48), stopTgt.clone(), 1.1, 0.55, 'projectsOut');
-  const B = bubbleWorld(n, fovDeg, aspect, stopPos, stopTgt);
+  const B = bubbleWorld(n, fovDeg, aspect, h, stopPos, stopTgt);
   // 7 · contattaci: lo sguardo sale verso la luce della superficie, le bolle restano sotto
   key(55, V(-35.0, -2.7, -13.5), V(-40, 6.0, -13.5), 1.1, 0.6, 'contactIn');
   key(50, V(-35.6, -2.6, -13.5), V(-39.5, 7.6, -13.5), 1.1, 0.6, 'end');
@@ -229,8 +236,8 @@ export function createCameraPath(camera, { reducedMotion = false, projects = 0 }
 
   // al resize: ricalcola le chiavi e le bolle che dipendono dall'inquadratura (stesso numero di chiavi,
   // stesse durate: cambiano solo i vettori, che curve e bolle condividono)
-  function setFraming(fovDeg, aspect) {
-    const fresh = buildStory(startDistance(fovDeg, aspect), projects, fovDeg, aspect);
+  function setFraming(fovDeg, aspect, h) {
+    const fresh = buildStory(startDistance(fovDeg, aspect), projects, fovDeg, aspect, h);
     fresh.keys.forEach((k, i) => {
       keys[i].pos.copy(k.pos);
       keys[i].target.copy(k.target);

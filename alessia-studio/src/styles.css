@@ -561,13 +561,14 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
 @media (max-height: 500px) and (orientation: landscape) {
   .ov .title { font-size: 24px; margin-bottom: 8px; }
   .ov .lead, .ov-services .lead { display: none; }
-  .ov-vision, .ov-services { max-width: min(560px, 60vw); }
+  .ov-vision, .ov-services { max-width: min(520px, 52vw); }
   .ov-services .group { padding: 5px 0; }
   .ov-services .services { font-size: 12px; line-height: 1.4; }
   .ov-brand { top: 44px; }
   .ov-brand .brand { font-size: 56px; }
   .ov-projects { top: 16px; }
   .ov-projects .label { display: none; }
+  .bubble-label { font-size: 9.5px; letter-spacing: 0.08em; padding: 4px; }
   .ov-contact { bottom: calc(var(--bottom-ui) + 4px); }
   .ov-contact .links { margin-bottom: 10px; }
   .ov-contact .origin { display: none; }
