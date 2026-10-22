@@ -1,0 +1,142 @@
+---
+import { avvocato, nomeCompleto } from '../content/site';
+
+interface Props {
+  /** Dove porta "Contatti": nella home la sezione, altrove la home o il contatto della pagina. */
+  contatti?: string;
+  /** Sulla pagina riservata la testata non resta fissa: in primo piano c’è "Esci subito". */
+  fissa?: boolean;
+}
+
+const { contatti = '/#contatti', fissa = true } = Astro.props;
+const percorso = Astro.url.pathname.replace(/\/$/, '') || '/';
+const qui = (href: string) => (percorso === href ? 'page' : undefined);
+---
+
+<header class:list={['testata', 'su-scuro', { 'testata--fissa': fissa }]}>
+  <a class="salta-al-contenuto" href="#contenuto">Vai al contenuto</a>
+  <a class="marchio" href="/" aria-current={qui('/')}>
+    <span class="marchio-sort" aria-hidden="true">RP</span>
+    <span class="marchio-nome"><span class="marchio-titolo">{avvocato.titolo}</span> {nomeCompleto}</span>
+    <span class="visivamente-nascosto marchio-sr">{avvocato.titolo} {nomeCompleto}, pagina iniziale</span>
+  </a>
+  <nav aria-label="Principale">
+    <ul>
+      <li>
+        <a href="/assistenza-riservata" aria-current={qui('/assistenza-riservata')}>Assistenza riservata</a>
+      </li>
+      <li><a href={contatti}>Contatti</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .testata {
+    position: relative;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    height: var(--testata-h);
+    padding-inline: var(--gutter);
+    background: var(--nero);
+    border-bottom: 1px solid var(--linea-scura);
+  }
+
+  .testata--fissa {
+    position: fixed;
+    inset: 0 0 auto;
+    background: rgb(20 20 20 / 0.94);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .testata--fissa {
+      background: rgb(20 20 20 / 0.86);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    text-decoration: none;
+  }
+
+  .marchio {
+    gap: 0.6rem;
+    font-family: var(--f-titoli);
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  /* Su mobile il nome diventa un carattere di piombo con le iniziali. */
+  .marchio-sort {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.25rem;
+    border: 1px solid var(--linea-scura);
+    border-radius: 2px;
+    font-size: 1.125rem;
+    letter-spacing: 0.04em;
+  }
+
+  .marchio-nome {
+    display: none;
+  }
+
+  .marchio-titolo {
+    font-style: italic;
+    color: var(--avorio-tenue);
+  }
+
+  ul {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  nav a {
+    padding-inline: 0.6rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--avorio);
+  }
+
+  nav a:hover,
+  .marchio:hover {
+    color: var(--avorio);
+    text-decoration: underline;
+    text-decoration-color: var(--rosso);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.45em;
+  }
+
+  nav a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.45em;
+  }
+
+  @media (min-width: 40rem) {
+    .marchio-sort,
+    .marchio-sr {
+      display: none;
+    }
+
+    .marchio-nome {
+      display: inline;
+    }
+
+    nav a {
+      padding-inline: 0.9rem;
+      font-size: 0.9375rem;
+    }
+  }
+</style>

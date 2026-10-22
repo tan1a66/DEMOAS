@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PaginaTesto from '../components/PaginaTesto.astro';
+import { nomeConTitolo } from '../content/site';
+---
+
+<Base titolo={`Cookie policy · ${nomeConTitolo}`} descrizione={`Cookie e memoria locale del sito di ${nomeConTitolo}.`}>
+  <PaginaTesto titolo="Cookie policy" occhiello="Informativa">
+    <p>Questo sito non usa cookie, né tecnici né di profilazione, e non usa strumenti di statistica.</p>
+
+    <h2>Memoria locale del browser</h2>
+    <p>
+      La pagina iniziale ricorda nel tuo browser (localStorage) solo se hai già visto l’animazione di apertura, così
+      alla visita successiva la scena parte già composta. Il dato resta sul tuo dispositivo, non viene inviato a
+      nessuno e puoi cancellarlo quando vuoi dalle impostazioni del browser.
+    </p>
+    <p>La pagina «Assistenza riservata» non salva nulla sul tuo dispositivo.</p>
+
+    <h2>Contenuti di terze parti</h2>
+    <p>
+      Il sito non incorpora contenuti esterni. I link «Apri in Maps» portano a Google Maps solo quando li apri: da quel
+      momento vale l’informativa di Google.
+    </p>
+  </PaginaTesto>
+</Base>

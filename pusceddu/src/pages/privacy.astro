@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import PaginaTesto from '../components/PaginaTesto.astro';
+import Mancante from '../components/Mancante.astro';
+import { contatti, indirizzoSede, nomeConTitolo, sedi } from '../content/site';
+
+const sede = sedi.find((s) => s !== null);
+---
+
+<Base titolo={`Privacy policy · ${nomeConTitolo}`} descrizione={`Informativa sul trattamento dei dati personali del sito di ${nomeConTitolo}.`}>
+  <PaginaTesto titolo="Privacy policy" occhiello="Informativa">
+    <p><Mancante cosa="Testo definitivo" nota="bozza da verificare e completare a cura dell’avvocato prima della pubblicazione" /></p>
+
+    <h2>Titolare del trattamento</h2>
+    <p>
+      {nomeConTitolo}{sede && `, ${indirizzoSede(sede)}`}. PEC:{' '}
+      {contatti.pec ? <a href={`mailto:${contatti.pec}`}>{contatti.pec}</a> : <Mancante cosa="PEC" />}.
+    </p>
+
+    <h2>Quali dati tratta questo sito</h2>
+    <p>
+      Il sito non contiene moduli, non usa cookie, non usa strumenti di statistica o di profilazione e non incorpora
+      contenuti di terze parti: i caratteri tipografici sono ospitati sul sito stesso e le mappe si aprono solo con un
+      link.
+    </p>
+    <p>
+      Se scrivi o telefoni allo studio, i dati che comunichi sono usati solo per risponderti e, se conferisci un
+      incarico, per svolgerlo.
+    </p>
+    <p><Mancante cosa="Registri tecnici del server" nota="indicare il fornitore di hosting e la durata di conservazione dei log" /></p>
+
+    <h2>Base giuridica, conservazione e diritti</h2>
+    <p><Mancante cosa="Base giuridica e tempi di conservazione" /></p>
+    <p>
+      Puoi chiedere in ogni momento l’accesso ai tuoi dati, la rettifica, la cancellazione, la limitazione del
+      trattamento, la portabilità e opporti al trattamento (artt. 15-22 del Regolamento UE 2016/679), scrivendo ai
+      recapiti del titolare. Puoi anche proporre reclamo al Garante per la protezione dei dati personali.
+    </p>
+  </PaginaTesto>
+</Base>

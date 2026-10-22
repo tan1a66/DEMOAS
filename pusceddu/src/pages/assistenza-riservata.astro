@@ -1,0 +1,341 @@
+---
+/**
+ * Assistenza riservata: per donne vittime di violenza, stalking, maltrattamenti, Codice Rosso.
+ * Chi la visita può essere in pericolo. Su questa pagina: nessun 3D, nessuna animazione,
+ * nessun suono, nessun popup, nessun banner, nessun analytics, nessun dato salvato.
+ * L’unico script è l’uscita rapida (pulsante o Esc premuto due volte → location.replace).
+ */
+import Base from '../layouts/Base.astro';
+import Mancante from '../components/Mancante.astro';
+import { assistenza, contatti, nomeConTitolo, telHref } from '../content/site';
+
+const titolo = `Assistenza riservata · ${nomeConTitolo}`;
+const descrizione =
+  'Assistenza legale riservata per donne che subiscono violenza, stalking o maltrattamenti. ' +
+  'Numero antiviolenza 1522, gratuito e attivo 24 ore su 24; 112 per le emergenze.';
+---
+
+<Base titolo={titolo} descrizione={descrizione} contatti="#contatto-studio" riservata>
+  <nav slot="prima" aria-label="Uscita rapida">
+    <a class="esci" href={assistenza.uscita} rel="noreferrer" data-esci>
+      <span class="esci-testo">Esci subito</span>
+      <span class="esci-nota">oppure premi Esc due volte</span>
+    </a>
+  </nav>
+
+  <div class="ar">
+    <h1>Assistenza riservata</h1>
+    <p class="ar-sottotitolo">Per donne che subiscono violenza, stalking o maltrattamenti.</p>
+
+    <section class="ar-numeri" aria-labelledby="numeri-titolo">
+      <h2 id="numeri-titolo" class="visivamente-nascosto">Numeri da chiamare</h2>
+      <ul>
+        {
+          assistenza.numeri.map((n) => (
+            <li>
+              <a class="numero" href={telHref(n.numero)}>
+                <span class="numero-cifre">{n.numero}</span>
+                <span class="visivamente-nascosto">: </span>
+                <span class="numero-nome">{n.nome}</span>
+                <span class="visivamente-nascosto">. </span>
+                <span class="numero-nota">{n.nota}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="contatto-studio" class="ar-blocco" aria-labelledby="studio-titolo">
+      <h2 id="studio-titolo">Parlare con l’avvocato</h2>
+      <p>
+        Puoi contattare direttamente l'{nomeConTitolo}. Quello che racconti resta riservato: l’avvocato è
+        tenuto al segreto professionale.
+      </p>
+      <ul class="ar-recapiti">
+        <li>
+          <span class="ar-etichetta">Telefono</span>
+          {
+            contatti.telefono ? (
+              <a href={telHref(contatti.telefono)}>{contatti.telefono}</a>
+            ) : (
+              <Mancante cosa="Telefono" />
+            )
+          }
+        </li>
+        <li>
+          <span class="ar-etichetta">Email</span>
+          {contatti.email ? <a href={`mailto:${contatti.email}`}>{contatti.email}</a> : <Mancante cosa="Email" />}
+        </li>
+      </ul>
+      <p>
+        Lo studio assiste in casi di violenza, stalking e maltrattamenti, anche nelle procedure del Codice Rosso
+        (legge 19 luglio 2019, n. 69).
+      </p>
+    </section>
+
+    <section class="ar-blocco" aria-labelledby="tracce-titolo">
+      <h2 id="tracce-titolo">Cancellare le tracce di questa visita</h2>
+      <p>
+        Il pulsante «Esci subito» apre Google e toglie questa pagina dal tasto Indietro. Le altre pagine viste restano
+        nella cronologia del browser. Per cancellarla:
+      </p>
+      <dl class="ar-istruzioni">
+        <div>
+          <dt>Chrome sul telefono</dt>
+          <dd>menu (⋮ oppure ⋯) › Cronologia › cancella i dati di navigazione.</dd>
+        </div>
+        <div>
+          <dt>Safari su iPhone</dt>
+          <dd>Impostazioni › Safari (nelle versioni recenti: App › Safari) › Cancella cronologia e dati dei siti web.</dd>
+        </div>
+        <div>
+          <dt>Computer</dt>
+          <dd>
+            <kbd>Ctrl</kbd> + <kbd>Maiusc</kbd> + <kbd>Canc</kbd> su Windows, <kbd>⌘</kbd> + <kbd>Maiusc</kbd> +{' '}
+            <kbd>⌫</kbd> su Mac: apre la cancellazione in Chrome, Edge e Firefox. In Safari su Mac: menu Cronologia › Cancella
+            cronologia.
+          </dd>
+        </div>
+      </dl>
+      <p>
+        La prossima volta puoi usare una finestra in incognito (navigazione privata): non viene salvata nella
+        cronologia. Chiamate e messaggi restano invece nel registro del telefono. Se qualcuno può controllare il tuo
+        telefono o la tua email, usa se puoi un dispositivo di cui ti fidi.
+      </p>
+      <p class="ar-nota">
+        Questa pagina non usa cookie, non salva dati sul tuo dispositivo e non registra statistiche di visita.
+      </p>
+    </section>
+  </div>
+
+  <script is:inline slot="dopo" define:vars={{ uscita: assistenza.uscita }}>
+    // Uscita rapida: location.replace toglie questa pagina dal tasto Indietro.
+    (function () {
+      function esci(evento) {
+        if (evento) evento.preventDefault();
+        document.body.hidden = true;
+        location.replace(uscita);
+      }
+      var pulsante = document.querySelector('[data-esci]');
+      if (pulsante) pulsante.addEventListener('click', esci);
+
+      var ultimoEsc = 0;
+      document.addEventListener('keydown', function (evento) {
+        if (evento.key !== 'Escape' && evento.key !== 'Esc') return;
+        var ora = Date.now();
+        if (ora - ultimoEsc < 1500) esci(evento);
+        else ultimoEsc = ora;
+      });
+    })();
+  </script>
+</Base>
+
+<style>
+  :global(html:has(body.riservata)) {
+    scroll-behavior: auto;
+  }
+
+  :global(:root:has(body.riservata)) {
+    --indice-h: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Esci subito: sempre visibile. In basso su mobile (a portata di pollice), in alto a destra su desktop. */
+  .esci {
+    position: fixed;
+    z-index: 90;
+    inset: auto 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--indice-h);
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    background: var(--rosso);
+    color: var(--avorio);
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 -2px 12px rgb(0 0 0 / 0.25);
+  }
+
+  .esci:hover {
+    background: #8f1e18;
+    color: var(--avorio);
+  }
+
+  .esci:focus-visible {
+    outline: 3px solid var(--nero);
+    outline-offset: -6px;
+    box-shadow:
+      inset 0 0 0 6px var(--avorio),
+      0 -2px 12px rgb(0 0 0 / 0.25);
+  }
+
+  .esci-testo {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .esci-nota {
+    display: none;
+    font-size: 0.8125rem;
+  }
+
+  @media (min-width: 64rem) {
+    :global(:root:has(body.riservata)) {
+      --indice-h: 0px;
+    }
+
+    :global(body.riservata .testata) {
+      padding-right: calc(var(--gutter) + 13rem);
+    }
+
+    .esci {
+      inset: 0.5rem var(--gutter) auto auto;
+      min-height: 3.5rem;
+      min-width: 12rem;
+      padding: 0.5rem 1.25rem;
+      border-radius: 2px;
+      box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+    }
+
+    .esci-nota {
+      display: block;
+    }
+  }
+
+  /* Il contenuto: calmo, leggibile, senza effetti. */
+  .ar {
+    max-width: 40rem;
+    margin-inline: auto;
+    padding: clamp(2.5rem, 8vw, 4.5rem) var(--gutter) 4rem;
+    font-size: 1.125rem;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 8vw, 3.25rem);
+  }
+
+  .ar-sottotitolo {
+    margin-top: 0.75rem;
+    font-size: 1.1875rem;
+    color: var(--nero);
+  }
+
+  .ar-numeri ul {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .numero {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 0 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border: 2px solid var(--nero);
+    border-radius: 2px;
+    background: var(--avorio);
+    text-decoration: none;
+  }
+
+  .numero:hover {
+    color: var(--nero);
+    background: var(--carta-ombra);
+  }
+
+  .numero-cifre {
+    grid-row: span 2;
+    font-family: var(--f-titoli);
+    font-size: clamp(2.75rem, 12vw, 3.5rem);
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: lining-nums;
+  }
+
+  .numero-nome {
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .numero-nota {
+    font-size: 1rem;
+    color: var(--grigio);
+  }
+
+  .ar-blocco {
+    margin-top: 3.5rem;
+  }
+
+  .ar-blocco h2 {
+    font-size: clamp(1.75rem, 6vw, 2.25rem);
+  }
+
+  .ar-blocco p,
+  .ar-blocco dl,
+  .ar-blocco ul {
+    margin-top: 1rem;
+  }
+
+  .ar-recapiti {
+    padding: 0;
+    list-style: none;
+  }
+
+  .ar-recapiti li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 1rem;
+    min-height: 2.75rem;
+  }
+
+  .ar-recapiti a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 600;
+  }
+
+  .ar-etichetta {
+    min-width: 5.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .ar-istruzioni {
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-left: 3px solid var(--piombo);
+    background: rgb(20 20 20 / 0.03);
+  }
+
+  dt {
+    font-weight: 600;
+    color: var(--nero);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  kbd {
+    padding: 0 0.3em;
+    border: 1px solid var(--linea);
+    border-radius: 2px;
+    font-family: var(--f-testo);
+    font-size: 0.9em;
+    background: var(--avorio);
+  }
+
+  .ar-nota {
+    font-size: 1rem;
+  }
+</style>

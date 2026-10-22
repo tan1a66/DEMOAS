@@ -1,0 +1,183 @@
+---
+/**
+ * 4. Pubblicazioni. Copertine da /public/images/copertine/ (finché mancano, una copertina tipografica).
+ * Su "La Costituzione all’ascolto" un player audio: mai autoplay, nessun download finché non si preme play.
+ * Fase 3: la pressa scende e stampa le copertine una alla volta.
+ */
+import { nomeCompleto, pubblicazioni } from '../../content/site';
+import Fregio from '../Fregio.astro';
+import Mancante from '../Mancante.astro';
+---
+
+<section id="pubblicazioni" class="sezione pubblicazioni" aria-labelledby="pubblicazioni-titolo">
+  <div class="contenitore">
+    <p class="paragrafo">§ 4</p>
+    <h2 id="pubblicazioni-titolo">Pubblicazioni</h2>
+
+    <ol class="libri">
+      {
+        pubblicazioni.map((p) => (
+          <li class="libro">
+            <div class="copertina">
+              {p.copertina ? (
+                <img
+                  src={p.copertina}
+                  alt={`Copertina di «${p.titolo}»`}
+                  width="400"
+                  height="600"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="copertina-tipografica" aria-hidden="true">
+                  <span class="ct-autore">{nomeCompleto}</span>
+                  <span class="ct-titolo">{p.titolo}</span>
+                  <Fregio tipo="losanga" class="ct-fregio" />
+                </div>
+              )}
+            </div>
+
+            <div class="libro-testo">
+              <h3>
+                <cite>{p.titolo}</cite>
+              </h3>
+              {p.sottotitolo && <p class="libro-sottotitolo">{p.sottotitolo}</p>}
+              {(!p.titoloCompleto || !p.copertina) && (
+                <p class="libro-mancanti">
+                  {!p.titoloCompleto && <Mancante cosa="Titolo completo" />}
+                  {!p.copertina && <Mancante cosa="Copertina" />}
+                </p>
+              )}
+
+              {p.audio &&
+                (p.audio.src ? (
+                  <figure class="ascolto">
+                    <figcaption>{p.audio.descrizione}</figcaption>
+                    <audio controls preload="none" src={p.audio.src} />
+                  </figure>
+                ) : (
+                  <p class="ascolto">
+                    <Mancante cosa="File audio" nota="estratto da ascoltare" />
+                  </p>
+                ))}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .libri {
+    display: grid;
+    gap: 3.5rem;
+    margin-top: 3rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .libro {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .copertina {
+    width: min(15rem, 58vw);
+    aspect-ratio: 2 / 3;
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.15),
+      0 18px 30px -12px rgb(0 0 0 / 0.45);
+  }
+
+  .copertina img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Copertina provvisoria composta solo con i caratteri. */
+  .copertina-tipografica {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 1.75rem 1.25rem 1.5rem;
+    border: 1px solid var(--linea);
+    background: var(--carta-ombra) url('../../assets/texture/carta.webp') 0 0 / 512px;
+    outline: 1px solid var(--nero);
+    outline-offset: -0.6rem;
+  }
+
+  .ct-autore {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--grigio);
+  }
+
+  .ct-titolo {
+    font-family: var(--f-titoli);
+    font-size: 1.3rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--nero);
+    text-wrap: balance;
+  }
+
+  .copertina-tipografica :global(.ct-fregio) {
+    color: var(--rosso);
+  }
+
+  .libro-testo {
+    max-width: 24rem;
+  }
+
+  h3 cite {
+    font-style: italic;
+  }
+
+  .libro-sottotitolo {
+    margin-top: 0.5rem;
+    font-family: var(--f-titoli);
+    font-size: 1.125rem;
+  }
+
+  .libro-mancanti {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .ascolto {
+    margin-top: 1.5rem;
+  }
+
+  .ascolto figcaption {
+    margin-bottom: 0.75rem;
+    font-size: 0.9375rem;
+  }
+
+  .ascolto audio {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  @media (min-width: 56rem) {
+    .libri {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .copertina {
+      width: min(15rem, 100%);
+    }
+  }
+</style>

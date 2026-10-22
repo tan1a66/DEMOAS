@@ -1,0 +1,41 @@
+---
+/** Impaginazione semplice per le pagine di solo testo (privacy, cookie, 404). */
+interface Props {
+  titolo: string;
+  occhiello?: string;
+}
+
+const { titolo, occhiello } = Astro.props;
+---
+
+<article class="pagina-testo">
+  {occhiello && <p class="paragrafo">{occhiello}</p>}
+  <h1>{titolo}</h1>
+  <div class="corpo"><slot /></div>
+</article>
+
+<style>
+  .pagina-testo {
+    max-width: 40rem;
+    margin-inline: auto;
+    padding: calc(var(--testata-h) + clamp(3rem, 10vw, 5rem)) var(--gutter) 5rem;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 8vw, 3.25rem);
+  }
+
+  .corpo :global(h2) {
+    margin-top: 2.5rem;
+    font-size: 1.625rem;
+  }
+
+  .corpo :global(p),
+  .corpo :global(ul) {
+    margin-top: 1rem;
+  }
+
+  .corpo :global(li + li) {
+    margin-top: 0.35rem;
+  }
+</style>

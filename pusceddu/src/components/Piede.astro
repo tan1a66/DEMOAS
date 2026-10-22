@@ -1,0 +1,86 @@
+---
+import { avvocato, contatti, fiscale, nomeConTitolo, studio } from '../content/site';
+import Mancante from './Mancante.astro';
+import Fregio from './Fregio.astro';
+---
+
+<footer class="piede banco su-scuro">
+  <div class="contenitore">
+    <Fregio tipo="losanga" class="piede-fregio" />
+    <p class="piede-nome">{nomeConTitolo}</p>
+    <p>{studio.nome}</p>
+    <p>Iscritto all'{avvocato.ordine}</p>
+    <dl class="piede-dati">
+      <div>
+        <dt><abbr title="Partita IVA">P.IVA</abbr></dt>
+        <dd>{fiscale.piva ?? <Mancante cosa="P.IVA" />}</dd>
+      </div>
+      <div>
+        <dt><abbr title="Posta elettronica certificata">PEC</abbr></dt>
+        <dd>{contatti.pec ? <a href={`mailto:${contatti.pec}`}>{contatti.pec}</a> : <Mancante cosa="PEC" />}</dd>
+      </div>
+    </dl>
+    <ul class="piede-link">
+      <li><a href="/privacy">Privacy policy</a></li>
+      <li><a href="/cookie">Cookie policy</a></li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .piede {
+    padding: 3.5rem var(--gutter) calc(3rem + var(--indice-h));
+    font-size: 0.9375rem;
+    text-align: center;
+    border-top: 1px solid var(--linea-scura);
+  }
+
+  .piede :global(.piede-fregio) {
+    margin-bottom: 1.5rem;
+    color: var(--piombo);
+  }
+
+  .piede-nome {
+    font-family: var(--f-titoli);
+    font-size: 1.375rem;
+    color: var(--avorio);
+  }
+
+  .piede-dati {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .piede-dati div {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  dt {
+    font-weight: 500;
+    color: var(--avorio);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .piede-link {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 1.5rem;
+    margin-top: 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .piede-link a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+</style>

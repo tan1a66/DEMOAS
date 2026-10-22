@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import IndiceSezioni from '../components/IndiceSezioni.astro';
+import Apertura from '../components/sezioni/Apertura.astro';
+import ChiSono from '../components/sezioni/ChiSono.astro';
+import Ambiti from '../components/sezioni/Ambiti.astro';
+import Formazione from '../components/sezioni/Formazione.astro';
+import Pubblicazioni from '../components/sezioni/Pubblicazioni.astro';
+import Contatti from '../components/sezioni/Contatti.astro';
+import { avvocato, nomeConTitolo, sedi } from '../content/site';
+import { schemaAvvocato } from '../content/schema';
+
+const sede = sedi.find((s) => s !== null);
+const titolo = `${nomeConTitolo} · ${avvocato.qualifica} del ${avvocato.foro}`;
+const descrizione =
+  `${nomeConTitolo}, avvocato del ${avvocato.foro}. Dottore di Ricerca in Scienze Giuridiche, ` +
+  `specializzazione CNF in Diritto Civile.${sede ? ` Studio a ${sede.comune}.` : ''}`;
+
+const voci = [
+  { id: 'apertura', etichetta: 'Apertura' },
+  { id: 'chi-sono', etichetta: 'Chi sono' },
+  { id: 'ambiti', etichetta: 'Ambiti' },
+  { id: 'formazione', etichetta: 'Formazione' },
+  { id: 'pubblicazioni', etichetta: 'Pubblicazioni' },
+  { id: 'contatti', etichetta: 'Contatti' },
+];
+---
+
+<Base titolo={titolo} descrizione={descrizione} contatti="#contatti" jsonLd={schemaAvvocato()}>
+  <Apertura />
+  <ChiSono />
+  <Ambiti />
+  <Formazione />
+  <Pubblicazioni />
+  <Contatti />
+  <IndiceSezioni slot="dopo" voci={voci} />
+</Base>

@@ -1,0 +1,71 @@
+---
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import Testata from '../components/Testata.astro';
+import Piede from '../components/Piede.astro';
+import { nomeConTitolo } from '../content/site';
+
+interface Props {
+  titolo: string;
+  descrizione: string;
+  /** Dove porta "Contatti" nella testata. */
+  contatti?: string;
+  /** Pagina riservata: testata non fissa, nessun referrer verso l’esterno. */
+  riservata?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const { titolo, descrizione, contatti, riservata = false, jsonLd } = Astro.props;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const immagineOg = Astro.site ? new URL('/og.jpg', Astro.site).href : '/og.jpg';
+---
+
+<!doctype html>
+<html lang="it" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      document.documentElement.classList.replace('no-js', 'js');
+    </script>
+    <title>{titolo}</title>
+    <meta name="description" content={descrizione} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {riservata && <meta name="referrer" content="no-referrer" />}
+    <meta name="theme-color" content="#141414" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:site_name" content={nomeConTitolo} />
+    <meta property="og:title" content={titolo} />
+    <meta property="og:description" content={descrizione} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={immagineOg} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <Font cssVariable="--font-bodoni" preload={[{ style: 'normal' }]} />
+    <Font cssVariable="--font-plex" preload={[{ style: 'normal' }]} />
+
+    {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
+    <slot name="head" />
+  </head>
+  <body class:list={{ riservata }}>
+    <slot name="prima" />
+    <Testata contatti={contatti} fissa={!riservata} />
+    <main id="contenuto" tabindex="-1">
+      <slot />
+    </main>
+    <Piede />
+    <slot name="dopo" />
+  </body>
+</html>
+
+<style>
+  main:focus {
+    outline: none;
+  }
+</style>

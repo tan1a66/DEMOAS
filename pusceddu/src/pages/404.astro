@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import PaginaTesto from '../components/PaginaTesto.astro';
+import { nomeConTitolo } from '../content/site';
+---
+
+<Base titolo={`Pagina non trovata · ${nomeConTitolo}`} descrizione="La pagina cercata non esiste.">
+  <PaginaTesto titolo="Pagina non trovata" occhiello="Errore 404">
+    <p>Questa pagina non esiste o è stata spostata.</p>
+    <p><a href="/">Torna alla pagina iniziale</a> oppure vai ai <a href="/#contatti">contatti</a>.</p>
+  </PaginaTesto>
+</Base>

@@ -1,0 +1,216 @@
+---
+/**
+ * Indicatore di avanzamento delle sezioni: di lato su desktop, in basso su mobile.
+ * La sezione corrente si "allarga" e mostra il suo nome, come una riga in composizione.
+ */
+export interface VoceIndice {
+  id: string;
+  etichetta: string;
+}
+
+interface Props {
+  voci: VoceIndice[];
+}
+
+const { voci } = Astro.props;
+---
+
+<nav class="indice su-scuro" aria-label="Sezioni della pagina" data-indice>
+  <ol>
+    {
+      voci.map((v, i) => (
+        <li>
+          <a href={`#${v.id}`} data-voce={v.id}>
+            <span class="num" aria-hidden="true">{i}</span>
+            <span class="etichetta">{v.etichetta}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<script>
+  const indice = document.querySelector<HTMLElement>('[data-indice]');
+  const link = [...(indice?.querySelectorAll<HTMLAnchorElement>('[data-voce]') ?? [])];
+  const sezioni = link
+    .map((a) => document.getElementById(a.dataset.voce ?? ''))
+    .filter((s): s is HTMLElement => s !== null);
+
+  const segna = (id: string) => {
+    for (const a of link) {
+      if (a.dataset.voce === id) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    }
+  };
+
+  if (sezioni.length) {
+    // Una sezione è "corrente" quando attraversa la linea a un terzo dello schermo.
+    const visibili = new Set<string>();
+    const osservatore = new IntersectionObserver(
+      (voci) => {
+        for (const v of voci) {
+          if (v.isIntersecting) visibili.add(v.target.id);
+          else visibili.delete(v.target.id);
+        }
+        const corrente = sezioni.find((s) => visibili.has(s.id));
+        if (corrente) segna(corrente.id);
+      },
+      { rootMargin: '-33% 0px -66% 0px' }
+    );
+    sezioni.forEach((s) => osservatore.observe(s));
+    segna(sezioni[0].id);
+  }
+</script>
+
+<style>
+  .indice {
+    position: fixed;
+    z-index: 40;
+    inset: auto 0 0;
+    height: var(--indice-h);
+    padding: 0 0.5rem env(safe-area-inset-bottom, 0px);
+    background: rgb(20 20 20 / 0.94);
+    border-top: 1px solid var(--linea-scura);
+  }
+
+  ol {
+    display: flex;
+    height: 3rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    flex: 1 1 2.75rem;
+    min-width: 2.75rem;
+    transition: flex-grow 0.35s ease;
+  }
+
+  li:has([aria-current]) {
+    flex-grow: 3;
+  }
+
+  a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 100%;
+    color: var(--avorio-tenue);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .num {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .etichetta {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* Su mobile le etichette si vedono solo per la sezione corrente. */
+  a:not([aria-current]) .etichetta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  a[aria-current] {
+    color: var(--avorio);
+  }
+
+  /* La riga di inchiostro sopra la voce corrente. */
+  a::before {
+    content: '';
+    position: absolute;
+    inset: -1px 25% auto;
+    height: 3px;
+    background: transparent;
+  }
+
+  a[aria-current]::before {
+    background: var(--rosso);
+  }
+
+  a:hover {
+    color: var(--avorio);
+  }
+
+  @media (min-width: 64rem) {
+    .indice {
+      inset: 50% 0 auto auto;
+      height: auto;
+      padding: 0;
+      background: none;
+      border: 0;
+      transform: translateY(-50%);
+    }
+
+    ol {
+      flex-direction: column;
+      align-items: flex-end;
+      height: auto;
+      padding-right: 0.75rem;
+    }
+
+    li {
+      flex: none;
+    }
+
+    a {
+      justify-content: flex-end;
+      gap: 0.5rem;
+      height: 2.75rem;
+      padding-inline: 0.75rem 2.5rem;
+    }
+
+    /* Filetto a destra di ogni voce; quello della voce corrente è più lungo e rosso. */
+    a::before {
+      inset: 50% 0.5rem auto auto;
+      width: 1.25rem;
+      height: 1px;
+      background: var(--piombo);
+    }
+
+    a[aria-current]::before {
+      width: 1.75rem;
+      height: 2px;
+      background: var(--rosso);
+    }
+
+    /* Su desktop il nome compare per la voce corrente, al passaggio del mouse e al focus. */
+    a:is(:hover, :focus-visible) .etichetta {
+      position: static;
+      width: auto;
+      height: auto;
+      clip-path: none;
+    }
+
+    .etichetta,
+    .num {
+      padding: 0.1rem 0.4rem;
+      border-radius: 2px;
+      background: rgb(243 237 225 / 0.92);
+    }
+
+    a,
+    a:hover,
+    a[aria-current] {
+      color: var(--nero);
+    }
+
+    a[aria-current] .num {
+      color: var(--rosso);
+    }
+  }
+</style>

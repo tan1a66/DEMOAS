@@ -1,0 +1,185 @@
+---
+/**
+ * 0. Apertura. In questa fase è la versione "stampata": un foglio sul banco, sotto la lampada.
+ * È anche il fallback quando il 3D non c’è (niente WebGL, device lento, reduced motion).
+ * Nella fase 2 il canvas (aria-hidden) si sovrappone e questo HTML resta per SEO e lettori di schermo.
+ */
+import { apertura } from '../../content/site';
+import Fregio from '../Fregio.astro';
+---
+
+<section id="apertura" class="apertura banco" aria-labelledby="apertura-titolo">
+  <div class="lampada" aria-hidden="true">
+    <span class="filo"></span>
+    <span class="paralume"></span>
+  </div>
+
+  <div class="stampa foglio su-chiaro">
+    <figure class="frase">
+      <blockquote>
+        <p>{apertura.frase}</p>
+      </blockquote>
+      <figcaption><cite>{apertura.fonte}</cite></figcaption>
+    </figure>
+
+    <Fregio tipo="filetto" class="stampa-fregio" />
+
+    <h1 id="apertura-titolo">
+      <span class="nome">{apertura.nome}</span><span class="visivamente-nascosto">, </span>
+      <span class="sottotitolo">{apertura.sottotitolo}</span>
+    </h1>
+  </div>
+</section>
+
+<style>
+  .apertura {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    padding: calc(var(--testata-h) + 5.5rem) var(--gutter) calc(var(--indice-h) + 3rem);
+    overflow: hidden;
+  }
+
+  /* La lampada sopra il banco: filo, paralume di metallo, luce calda. */
+  .lampada {
+    position: absolute;
+    top: var(--testata-h);
+    left: 50%;
+    width: 7rem;
+    translate: -50% 0;
+    isolation: isolate;
+    pointer-events: none;
+  }
+
+  .filo {
+    display: block;
+    width: 1px;
+    height: 2rem;
+    margin-inline: auto;
+    background: linear-gradient(#000, #3a3b3e);
+  }
+
+  .paralume {
+    position: relative;
+    display: block;
+    height: 2.25rem;
+    clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
+    background: linear-gradient(90deg, #0c0c0d, #3d3f43 38%, #6a6d72 46%, #2a2b2e 60%, #0c0c0d);
+  }
+
+  /* La lampadina vista da sotto e il cono di luce sul foglio. */
+  .paralume::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0;
+    height: 3px;
+    border-radius: 50%;
+    background: #ffe3b3;
+    box-shadow: 0 0 18px 6px rgb(255 214 150 / 0.55);
+  }
+
+  /* Il cono di luce parte dalla lampadina e sfuma in ogni direzione: nessun bordo netto. */
+  .lampada::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: -2rem;
+    left: 50%;
+    width: min(60rem, 180vw);
+    height: 44rem;
+    translate: -50% 0;
+    background: radial-gradient(ellipse 46% 52% at 50% 6.2rem, rgb(255 210 150 / 0.17), rgb(255 210 150 / 0.06) 55%, transparent 75%);
+  }
+
+  .stampa {
+    position: relative;
+    width: min(100%, 46rem);
+    padding: clamp(2.25rem, 8vw, 4.5rem) clamp(1.5rem, 7vw, 4.5rem);
+    text-align: center;
+    --storto: -0.6deg;
+  }
+
+  /* Il foglio è più chiaro dove arriva la luce della lampada. */
+  .stampa::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgb(255 250 238 / 0.5), transparent 70%);
+    rotate: -0.6deg;
+    pointer-events: none;
+  }
+
+  .frase {
+    position: relative;
+  }
+
+  .frase blockquote p {
+    font-family: var(--f-titoli);
+    font-size: clamp(1.875rem, 6.6vw, 3.5rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -0.005em;
+    color: var(--nero);
+    text-wrap: balance;
+  }
+
+  .frase blockquote p::before {
+    content: '«';
+  }
+
+  .frase blockquote p::after {
+    content: '»';
+  }
+
+  figcaption {
+    margin-top: 1.25rem;
+  }
+
+  cite {
+    font-family: var(--f-testo);
+    font-size: 0.8125rem;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--rosso);
+  }
+
+  .stampa :global(.stampa-fregio) {
+    width: min(10rem, 55%);
+    margin-block: clamp(1.75rem, 5vw, 2.75rem);
+    color: var(--piombo);
+  }
+
+  h1 {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .nome {
+    font-size: clamp(2rem, 8.4vw, 4rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .sottotitolo {
+    font-family: var(--f-testo);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--grigio);
+  }
+
+  @media (min-width: 64rem) {
+    .apertura {
+      padding-top: calc(var(--testata-h) + 7rem);
+    }
+  }
+</style>

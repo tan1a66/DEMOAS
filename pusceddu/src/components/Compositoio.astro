@@ -1,0 +1,108 @@
+---
+/**
+ * Caratteri di piombo composti in righe, come nel compositoio.
+ * Le lettere sono A SPECCHIO, come nei caratteri veri: si leggono solo una volta stampate.
+ * Decorativo: il testo vero è sempre in HTML accanto.
+ */
+interface Props {
+  testo: string;
+  /** Lunghezza massima di una riga, in caratteri: oltre si va a capo tra le parole. */
+  riga?: number;
+  /** Senza il compositoio d’acciaio intorno: solo il blocco di caratteri. */
+  nudo?: boolean;
+  class?: string;
+}
+
+const { testo, riga = Infinity, nudo = false, class: classe } = Astro.props;
+
+const righe: string[] = [];
+for (const parola of testo.split(/\s+/)) {
+  const ultima = righe.at(-1);
+  if (ultima !== undefined && ultima.length + 1 + parola.length <= riga) righe[righe.length - 1] = `${ultima} ${parola}`;
+  else righe.push(parola);
+}
+---
+
+<span class:list={['compositoio', { 'compositoio--nudo': nudo }, classe]} aria-hidden="true">
+  {
+    righe.map((r) => (
+      <span class="riga">
+        {[...r].map((l) => (l === ' ' ? <span class="sort sort--spazio" /> : <span class="sort"><span class="occhio">{l}</span></span>))}
+      </span>
+    ))
+  }
+</span>
+
+<style>
+  .compositoio {
+    --corpo: clamp(1.5rem, 5vw, 2.25rem);
+    display: inline-grid;
+    justify-items: end; /* allineato a sinistra, una volta a specchio, sta a destra */
+    gap: 1px;
+    padding: 0.35em 0.4em 0.3em;
+    border-radius: 2px;
+    background: linear-gradient(#2b2c2f, #1d1e20);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 2px 6px rgb(0 0 0 / 0.35);
+    font-family: var(--f-titoli);
+    font-size: var(--corpo);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .compositoio--nudo {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .riga {
+    display: flex;
+    flex-direction: row-reverse; /* a specchio anche l’ordine delle lettere */
+    gap: 1px;
+  }
+
+  /* Il fusto del carattere: piombo consumato, inchiostro rimasto nei bordi. */
+  .sort {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 0.62em;
+    height: 1.15em;
+    padding-inline: 0.04em;
+    border-radius: 1px;
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 18%, transparent 82%, rgb(0 0 0 / 0.3)),
+      linear-gradient(#7b7e83, #5e6166 45%, #4b4e52);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.22),
+      inset 0 -1px 0 rgb(0 0 0 / 0.35);
+  }
+
+  /* La tacca (nick) sul fusto: serve al compositore per orientare la lettera. */
+  .sort::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 0.16em;
+    height: 1px;
+    background: rgb(0 0 0 / 0.35);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.12);
+  }
+
+  .sort--spazio {
+    min-width: 0.32em;
+    background: linear-gradient(#55585c, #45484c);
+  }
+
+  .occhio {
+    display: block;
+    transform: scaleX(-1);
+    color: #2a2b2e;
+    text-shadow:
+      0 -1px 0 rgb(255 255 255 / 0.18),
+      0 1px 1px rgb(0 0 0 / 0.5);
+  }
+</style>

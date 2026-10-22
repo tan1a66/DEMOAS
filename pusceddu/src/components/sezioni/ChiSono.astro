@@ -1,0 +1,122 @@
+---
+/**
+ * 1. Chi sono. La riga composta nel compositoio (a specchio) e il foglio stampato con la bio.
+ * Fase 3: la riga va sotto la pressa e il foglio esce stampato.
+ */
+import { attivita, avvocato, bio, ruoli, studio } from '../../content/site';
+import Compositoio from '../Compositoio.astro';
+import Mancante from '../Mancante.astro';
+---
+
+<section id="chi-sono" class="sezione chi-sono" aria-labelledby="chi-sono-titolo">
+  <div class="contenitore griglia">
+    <header class="intestazione">
+      <p class="paragrafo">§ 1</p>
+      <h2 id="chi-sono-titolo">Chi sono</h2>
+      <Compositoio testo="CHI SONO" class="chi-sono-riga" />
+    </header>
+
+    <div class="foglio bio">
+      <div class="bio-testo">
+        {bio ? <p>{bio}</p> : <p><Mancante cosa="Bio breve" nota="2-3 frasi in prima persona, da scrivere con Roberto" /></p>}
+      </div>
+
+      <dl class="fatti">
+        <div>
+          <dt>Professione</dt>
+          <dd>{avvocato.qualifica} del {avvocato.foro}</dd>
+        </div>
+        <div>
+          <dt>Studio</dt>
+          <dd>{studio.nome}</dd>
+        </div>
+        <div>
+          <dt>Attività</dt>
+          <dd>
+            <ul>{attivita.map((a) => <li>{a}</li>)}</ul>
+          </dd>
+        </div>
+        <div>
+          <dt>Incarichi</dt>
+          <dd>
+            <ul>{ruoli.map((r) => <li>{r}</li>)}</ul>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .griglia {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .intestazione :global(.chi-sono-riga) {
+    margin-top: 1.75rem;
+  }
+
+  .bio {
+    padding: clamp(1.75rem, 6vw, 3.5rem);
+    --storto: 0.4deg;
+  }
+
+  .bio-testo {
+    font-family: var(--f-titoli);
+    font-size: clamp(1.375rem, 4.2vw, 1.875rem);
+    line-height: 1.35;
+    color: var(--nero);
+  }
+
+  .bio-testo :global(.mancante) {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .fatti {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2.25rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  dt {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rosso);
+  }
+
+  dd {
+    margin: 0.2rem 0 0;
+    color: var(--nero);
+  }
+
+  dd ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 48rem) {
+    .fatti {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem 2.5rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .griglia {
+      grid-template-columns: minmax(16rem, 5fr) 7fr;
+      align-items: start;
+      gap: 4rem;
+    }
+
+    .intestazione {
+      position: sticky;
+      top: calc(var(--testata-h) + 3rem);
+    }
+  }
+</style>

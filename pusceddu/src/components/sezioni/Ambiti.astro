@@ -1,0 +1,285 @@
+---
+/**
+ * 2. Ambiti. La cassa tipografica in legno: ogni scomparto grande è un ambito.
+ * Click/tap: il blocco di caratteri si solleva e si apre il pannello con la spiegazione.
+ * Senza JavaScript tutti i pannelli restano aperti.
+ * Fase 3: il sollevamento animato del blocco.
+ */
+import { ambiti } from '../../content/site';
+import Compositoio from '../Compositoio.astro';
+import Mancante from '../Mancante.astro';
+
+// Gli scomparti piccoli della cassa, solo decorativi: qualche carattere a specchio dentro.
+const piccoli = ['a', 'e', 'i', 'o', 'n', 'r', 's', 't', 'l', 'c', 'd', 'u'];
+const sopra = piccoli;
+const sotto = [...piccoli].reverse();
+---
+
+<section id="ambiti" class="sezione ambiti" aria-labelledby="ambiti-titolo">
+  <div class="contenitore">
+    <p class="paragrafo">§ 2</p>
+    <h2 id="ambiti-titolo">Ambiti</h2>
+    <p class="intro misura">Ogni scomparto della cassa è un ambito di attività. Aprilo per leggere di cosa si tratta.</p>
+
+    <div class="cassa" data-cassa>
+      {
+        sopra.map((l, i) => (
+          <span class:list={['piccolo', { 'solo-largo': i >= 6 }]} aria-hidden="true">
+            <Compositoio testo={l.repeat(3)} nudo class="piccolo-caratteri" />
+          </span>
+        ))
+      }
+
+      {
+        ambiti.map((a) => (
+          <>
+            <h3 class="scomparto-titolo">
+              <button
+                type="button"
+                class="scomparto"
+                id={`scomparto-${a.id}`}
+                aria-expanded="true"
+                aria-controls={`ambito-${a.id}`}
+                data-scomparto
+              >
+                <span class="blocco" aria-hidden="true">
+                  <Compositoio testo={a.titolo} riga={12} nudo class="blocco-caratteri" />
+                </span>
+                <span class="cartellino">{a.titolo}</span>
+              </button>
+            </h3>
+            <div class="pannello foglio" id={`ambito-${a.id}`} role="region" aria-labelledby={`scomparto-${a.id}`}>
+              {a.descrizione ? (
+                <p>{a.descrizione}</p>
+              ) : (
+                <p>
+                  <Mancante cosa="Descrizione" nota="2-3 frasi su cosa comprende questo ambito e per chi" />
+                </p>
+              )}
+              <p class="pannello-contatto">
+                <a href="#contatti">Contatta lo studio</a>
+              </p>
+            </div>
+          </>
+        ))
+      }
+
+      {
+        sotto.map((l, i) => (
+          <span class:list={['piccolo', { 'solo-largo': i >= 6 }]} aria-hidden="true">
+            <Compositoio testo={l.repeat(2)} nudo class="piccolo-caratteri" />
+          </span>
+        ))
+      }
+    </div>
+
+    <p class="rimando misura">
+      Per la tutela delle donne vittime di violenza c’è una pagina dedicata:
+      <a class="rimando-link" href="/assistenza-riservata">Assistenza riservata</a>
+    </p>
+  </div>
+</section>
+
+<script>
+  for (const cassa of document.querySelectorAll<HTMLElement>('[data-cassa]')) {
+    const scomparti = [...cassa.querySelectorAll<HTMLButtonElement>('[data-scomparto]')];
+    const pannello = (b: HTMLButtonElement) => document.getElementById(b.getAttribute('aria-controls') ?? '');
+
+    const apri = (scelto: HTMLButtonElement | null) => {
+      for (const b of scomparti) {
+        const aperto = b === scelto;
+        b.setAttribute('aria-expanded', String(aperto));
+        const p = pannello(b);
+        if (p) p.hidden = !aperto;
+      }
+    };
+
+    // Con JavaScript si parte con la cassa chiusa; un solo scomparto aperto alla volta.
+    apri(null);
+    for (const b of scomparti) {
+      b.addEventListener('click', () => apri(b.getAttribute('aria-expanded') === 'true' ? null : b));
+    }
+  }
+</script>
+
+<style>
+  .intro {
+    margin-top: 1.25rem;
+  }
+
+  /* La cassa: telaio di legno, scomparti scavati. */
+  .cassa {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+    padding: 0.625rem;
+    border-radius: 3px;
+    background: url('../../assets/texture/legno.webp') 0 0 / 320px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 230 200 / 0.25),
+      inset 0 -2px 0 rgb(0 0 0 / 0.35),
+      0 2px 3px rgb(0 0 0 / 0.2),
+      0 24px 48px -20px rgb(40 25 10 / 0.55);
+  }
+
+  .piccolo,
+  .scomparto {
+    border-radius: 2px;
+    background: radial-gradient(ellipse at 50% 30%, #2d241b, #17120d);
+    box-shadow:
+      inset 0 3px 6px rgb(0 0 0 / 0.7),
+      inset 0 -1px 0 rgb(255 220 180 / 0.12);
+  }
+
+  .piccolo {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+
+  .solo-largo {
+    display: none;
+  }
+
+  .piccolo :global(.piccolo-caratteri) {
+    --corpo: 0.95rem;
+    opacity: 0.85;
+  }
+
+  .scomparto-titolo {
+    grid-column: 1 / -1;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .scomparto {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
+    gap: 1rem;
+    width: 100%;
+    min-height: 10rem;
+    padding: 1.25rem 1rem 1rem;
+    border: 0;
+    color: inherit;
+    text-align: center;
+  }
+
+  .blocco {
+    align-self: center;
+    transition:
+      translate 0.3s ease,
+      filter 0.3s ease;
+    filter: drop-shadow(0 2px 1px rgb(0 0 0 / 0.6));
+  }
+
+  .blocco :global(.blocco-caratteri) {
+    --corpo: 1.125rem;
+  }
+
+  .scomparto:hover .blocco,
+  .scomparto[aria-expanded='true'] .blocco {
+    translate: 0 -6px;
+    filter: drop-shadow(0 12px 8px rgb(0 0 0 / 0.65));
+  }
+
+  /* Il cartellino di carta sul davanti dello scomparto. */
+  .cartellino {
+    display: block;
+    width: 100%;
+    max-width: 18rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 1px;
+    background: var(--carta-ombra) url('../../assets/texture/carta.webp') 0 0 / 512px;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+    font-family: var(--f-titoli);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nero);
+    text-wrap: balance;
+  }
+
+  .scomparto[aria-expanded='true'] .cartellino {
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.5),
+      inset 0 -3px 0 var(--rosso);
+  }
+
+  .scomparto:focus-visible {
+    outline-color: var(--avorio);
+    outline-offset: -5px;
+  }
+
+  .pannello {
+    grid-column: 1 / -1;
+    padding: 1.5rem;
+    border-radius: 2px;
+    font-size: 1rem;
+  }
+
+  .pannello-contatto {
+    margin-top: 1rem;
+  }
+
+  .pannello-contatto a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-weight: 500;
+  }
+
+  .rimando {
+    margin-top: 2rem;
+    font-size: 0.9375rem;
+  }
+
+  .rimando-link {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 2.75rem;
+    font-weight: 500;
+  }
+
+  .rimando-link::after {
+    content: '→';
+    margin-left: 0.4em;
+  }
+
+  @media (min-width: 48rem) {
+    .cassa {
+      grid-template-columns: repeat(12, 1fr);
+      gap: 0.625rem;
+      padding: 0.875rem;
+    }
+
+    .solo-largo {
+      display: grid;
+    }
+
+    .piccolo {
+      aspect-ratio: 4 / 3;
+    }
+
+    .blocco :global(.blocco-caratteri) {
+      --corpo: 1.5rem;
+    }
+
+    .scomparto-titolo {
+      grid-column: span 4;
+    }
+
+    .scomparto {
+      min-height: 15rem;
+    }
+
+    /* Con JavaScript il pannello aperto occupa la fila sotto i tre scomparti. */
+    :global(.js) .pannello {
+      grid-row: 3;
+      padding: 2rem 2.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,12 @@
+---
+/** Segnaposto per un contenuto ancora da fornire (vedi src/content/site.ts). */
+interface Props {
+  cosa: string;
+  /** Indicazione per chi scrive il testo. */
+  nota?: string;
+}
+
+const { cosa, nota } = Astro.props;
+---
+
+<span class="mancante">[{cosa} da fornire{nota && `: ${nota}`}]</span>

@@ -1,0 +1,47 @@
+---
+/** Fregio tipografico (al posto delle icone). Decorativo: sempre nascosto ai lettori di schermo. */
+import filetto from '../assets/fregi/filetto.svg?raw';
+import foglia from '../assets/fregi/foglia.svg?raw';
+import asterismo from '../assets/fregi/asterismo.svg?raw';
+import losanga from '../assets/fregi/losanga.svg?raw';
+
+const fregi = { filetto, foglia, asterismo, losanga };
+
+interface Props {
+  tipo: keyof typeof fregi;
+  class?: string;
+}
+
+const { tipo, class: classe } = Astro.props;
+---
+
+<span class:list={['fregio', `fregio--${tipo}`, classe]} aria-hidden="true" set:html={fregi[tipo]} />
+
+<style>
+  .fregio {
+    display: block;
+    margin-inline: auto;
+    line-height: 0;
+  }
+
+  .fregio :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+
+  .fregio--filetto {
+    width: min(12rem, 60%);
+  }
+
+  .fregio--foglia {
+    width: 2.75rem;
+  }
+
+  .fregio--asterismo {
+    width: 1.75rem;
+  }
+
+  .fregio--losanga {
+    width: 2.5rem;
+  }
+</style>

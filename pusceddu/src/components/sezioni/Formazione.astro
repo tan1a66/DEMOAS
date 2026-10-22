@@ -1,0 +1,190 @@
+---
+/** 3. Formazione e riconoscimenti, impaginati come il frontespizio di un libro antico. */
+import { formazione, riconoscimenti } from '../../content/site';
+import Fregio from '../Fregio.astro';
+---
+
+<section id="formazione" class="sezione formazione" aria-labelledby="formazione-titolo">
+  <div class="frontespizio foglio">
+    <div class="cornice">
+      <p class="paragrafo">§ 3</p>
+      <h2 id="formazione-titolo">
+        <span class="riga-grande">Formazione</span>{' '}
+        <span class="riga-e">e</span>{' '}
+        <span class="riga-media">riconoscimenti</span>
+      </h2>
+
+      <Fregio tipo="filetto" class="frontespizio-fregio" />
+
+      <ul class="voci">
+        {
+          formazione.map((f) => (
+            <li>
+              <span class="voce-titolo">{f.titolo}</span>{' '}
+              <span class="voce-dettaglio">{f.dettaglio}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <Fregio tipo="asterismo" class="frontespizio-fregio" />
+
+      <h3 class="occhiello">Riconoscimenti</h3>
+      <ul class="premi">
+        {
+          riconoscimenti.map((r) => (
+            <li>
+              <span class="premio-esito">{r.esito} del</span>{' '}
+              <span class="premio-nome">{r.premio}</span>
+              <span class="visivamente-nascosto">, </span>
+              <span class="premio-ente">{r.ente}</span>
+              <span class="visivamente-nascosto">, </span>
+              <span class="premio-motivo">{r.motivo}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <Fregio tipo="foglia" class="frontespizio-fregio frontespizio-fregio--fine" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .formazione {
+    padding-inline: max(0.75rem, var(--gutter));
+  }
+
+  .frontespizio {
+    max-width: 40rem;
+    margin-inline: auto;
+    padding: 0.75rem;
+    --foglio-colore: var(--carta-ombra);
+    text-align: center;
+  }
+
+  /* Doppio filetto intorno alla pagina, come nei frontespizi a stampa. */
+  .cornice {
+    padding: clamp(2rem, 8vw, 4rem) clamp(1.25rem, 6vw, 3.5rem);
+    border: 1px solid var(--nero);
+    outline: 3px double var(--nero);
+    outline-offset: -8px;
+  }
+
+  .paragrafo::after {
+    display: none;
+  }
+
+  h2 {
+    display: grid;
+    gap: 0.15em;
+    font-size: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .riga-grande {
+    font-size: clamp(2.125rem, 9vw, 3.5rem);
+    font-weight: 600;
+  }
+
+  .riga-e {
+    font-size: 1.25rem;
+    font-style: italic;
+    text-transform: none;
+    color: var(--rosso);
+  }
+
+  .riga-media {
+    font-size: clamp(1.25rem, 5.4vw, 2rem);
+    letter-spacing: 0.14em;
+  }
+
+  .cornice :global(.frontespizio-fregio) {
+    margin-block: clamp(1.75rem, 5vw, 2.5rem);
+    color: var(--rosso);
+  }
+
+  .cornice :global(.frontespizio-fregio--fine) {
+    width: 3.5rem;
+    margin-bottom: 0;
+    color: var(--nero);
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  .voci li {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  /* Tra una voce e l’altra, una losanga. */
+  .voci li + li::before {
+    content: '';
+    justify-self: center;
+    width: 2.25rem;
+    height: 0.7rem;
+    margin-block: 1.1rem;
+    background: var(--piombo);
+    mask: url('../../assets/fregi/losanga.svg') center / contain no-repeat;
+  }
+
+  .voce-titolo {
+    font-family: var(--f-titoli);
+    font-size: clamp(1.3125rem, 4.6vw, 1.625rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: var(--nero);
+  }
+
+  .voce-dettaglio {
+    font-family: var(--f-titoli);
+    font-size: 1.125rem;
+    font-style: italic;
+  }
+
+  .occhiello {
+    font-family: var(--f-testo);
+    font-size: 0.8125rem;
+    color: var(--rosso);
+  }
+
+  .premi li {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+
+  .premio-esito {
+    font-family: var(--f-titoli);
+    font-style: italic;
+    font-size: 1.125rem;
+  }
+
+  .premio-nome {
+    font-family: var(--f-titoli);
+    font-size: clamp(1.25rem, 4.4vw, 1.625rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--nero);
+    text-wrap: balance;
+  }
+
+  .premio-ente {
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nero);
+  }
+
+  .premio-motivo {
+    font-family: var(--f-titoli);
+    font-style: italic;
+    font-size: 1.125rem;
+  }
+</style>

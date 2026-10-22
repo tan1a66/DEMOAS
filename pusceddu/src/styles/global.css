@@ -1,0 +1,382 @@
+/* ==========================================================================
+   Caratteri mobili — stili di base
+   Palette: piombo, nero, carta avorio, inchiostro rosso (solo accenti), grigio testo.
+   ========================================================================== */
+
+:root {
+  --piombo: #5e6166;
+  --nero: #141414;
+  --avorio: #f3ede1;
+  --rosso: #b3261e;
+  --grigio: #4a4a47;
+
+  /* Derivati. Contrasti verificati: vedi README. */
+  --carta-ombra: #e8e0cf; /* carta un po' più vecchia: frontespizio, cartellini */
+  --avorio-tenue: #cdc6b8; /* testo secondario su nero (10,8:1) */
+  --linea: rgb(20 20 20 / 0.16);
+  --linea-scura: rgb(243 237 225 / 0.18);
+
+  --f-titoli: var(--font-bodoni);
+  --f-testo: var(--font-plex);
+
+  --gutter: clamp(1rem, 5vw, 3rem);
+  --misura: 36rem;
+  --largo: 72rem;
+  --testata-h: 3.5rem;
+  --indice-h: 0px;
+  --focus: var(--nero);
+
+  color-scheme: light;
+}
+
+@media (max-width: 63.99rem) {
+  /* Su mobile l'indice delle sezioni è una barra in basso: il piè di pagina le lascia spazio. */
+  :root:has([data-indice]) {
+    --indice-h: calc(3rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* --- Reset essenziale --------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--testata-h) + 1rem);
+  scroll-padding-bottom: calc(var(--indice-h) + 1rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  min-height: 100svh;
+  font-family: var(--f-testo);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--grigio);
+  background-color: var(--avorio);
+  background-image: url('../assets/texture/carta.webp');
+  background-size: 512px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 64rem) {
+  body {
+    font-size: 1.125rem;
+  }
+}
+
+img,
+svg,
+video,
+canvas,
+audio {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* --- Tipografia --------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--f-titoli);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--nero);
+  text-wrap: balance;
+  font-optical-sizing: auto;
+}
+
+h2 {
+  font-size: clamp(2.25rem, 7vw, 3.75rem);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: clamp(1.375rem, 3vw, 1.75rem);
+  line-height: 1.2;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--nero);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: var(--rosso);
+}
+
+strong {
+  font-weight: 600;
+  color: var(--nero);
+}
+
+abbr[title] {
+  text-decoration: none;
+}
+
+/* --- Focus visibile ----------------------------------------------------- */
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.su-scuro {
+  --focus: var(--avorio);
+  color: var(--avorio-tenue);
+}
+
+.su-scuro :is(h1, h2, h3, h4, strong, a) {
+  color: var(--avorio);
+}
+
+/* Un foglio chiaro appoggiato su un fondo scuro torna ai colori della carta. */
+.su-chiaro {
+  --focus: var(--nero);
+  color: var(--grigio);
+}
+
+.su-chiaro :is(h1, h2, h3, h4, strong, a) {
+  color: var(--nero);
+}
+
+/* --- Superfici ---------------------------------------------------------- */
+
+/* Il banco del tipografo: legno scuro sotto una lampada calda. */
+.banco {
+  background-color: var(--nero);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% -5%, rgb(255 206 140 / 0.2), transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 20%, rgb(255 190 120 / 0.06), transparent 75%),
+    linear-gradient(rgb(20 20 20 / 0.88), rgb(20 20 20 / 0.95)),
+    url('../assets/texture/legno.webp');
+  background-size: auto, auto, auto, 320px;
+}
+
+/*
+ * Un foglio di carta appoggiato sul banco.
+ * La carta è uno strato sotto il contenuto: con --storto si inclina il foglio
+ * mentre il testo resta dritto e nitido.
+ */
+.foglio {
+  position: relative;
+  isolation: isolate;
+  color: var(--grigio);
+}
+
+.foglio::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--foglio-colore, var(--avorio)) url('../assets/texture/carta.webp') 0 0 / 512px;
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.08),
+    0 12px 28px -8px rgb(0 0 0 / 0.35),
+    0 40px 80px -20px rgb(0 0 0 / 0.25);
+  rotate: var(--storto, 0deg);
+}
+
+.banco .foglio::before {
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.3),
+    0 18px 40px -10px rgb(0 0 0 / 0.7),
+    0 60px 120px -30px rgb(0 0 0 / 0.6);
+}
+
+/* --- Sezioni ------------------------------------------------------------ */
+
+.sezione {
+  padding-block: clamp(4.5rem, 12vw, 9rem);
+  padding-inline: var(--gutter);
+}
+
+.contenitore {
+  width: 100%;
+  max-width: var(--largo);
+  margin-inline: auto;
+}
+
+.misura {
+  max-width: var(--misura);
+}
+
+/* "§ 1" sopra il titolo di sezione: segno di paragrafo, giuridico e tipografico. */
+.paragrafo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5em;
+  margin-bottom: 1rem;
+  font-family: var(--f-titoli);
+  font-style: italic;
+  font-size: 1.125rem;
+  color: var(--rosso);
+}
+
+.su-scuro .paragrafo {
+  color: var(--avorio-tenue);
+}
+
+.paragrafo::after {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+  transform: translateY(-0.3em);
+}
+
+.occhiello {
+  font-family: var(--f-testo);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* --- Utilità ------------------------------------------------------------ */
+
+.visivamente-nascosto:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.salta-al-contenuto {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--avorio);
+  color: var(--nero);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.salta-al-contenuto:focus {
+  transform: none;
+}
+
+/* Contenuto ancora da fornire: ben visibile, mai scambiabile per un dato vero. */
+.mancante {
+  display: inline-block;
+  padding: 0.05em 0.45em;
+  border: 1px dashed currentColor;
+  border-radius: 2px;
+  font-family: var(--f-testo);
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--rosso);
+  background: rgb(179 38 30 / 0.06);
+}
+
+.su-scuro .mancante {
+  color: var(--avorio);
+  background: rgb(243 237 225 / 0.08);
+}
+
+.su-chiaro .mancante {
+  color: var(--rosso);
+  background: rgb(179 38 30 / 0.06);
+}
+
+/* Bottone e link "a blocchetto": target touch ≥ 44px. */
+.tasto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--nero);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--nero);
+  font-family: var(--f-testo);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.tasto:hover {
+  background: var(--nero);
+  color: var(--avorio);
+}
+
+.tasto--pieno {
+  background: var(--nero);
+  color: var(--avorio);
+}
+
+.tasto--pieno:hover {
+  background: var(--rosso);
+  border-color: var(--rosso);
+  color: var(--avorio);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

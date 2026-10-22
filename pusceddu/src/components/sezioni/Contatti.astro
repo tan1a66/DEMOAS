@@ -1,0 +1,238 @@
+---
+/** 5. Contatti: il biglietto da visita in letterpress, sul banco. */
+import {
+  apertura,
+  contatti,
+  indirizzoSede,
+  mapsHref,
+  nomeCompleto,
+  sedi,
+  studio,
+  telHref,
+} from '../../content/site';
+import Mancante from '../Mancante.astro';
+---
+
+<section id="contatti" class="sezione contatti banco su-scuro" aria-labelledby="contatti-titolo">
+  <div class="contenitore griglia">
+    <header>
+      <p class="paragrafo">§ 5</p>
+      <h2 id="contatti-titolo">Contatti</h2>
+    </header>
+
+    <div class="biglietto foglio su-chiaro">
+      <span class="rilievo-cieco" aria-hidden="true">RP</span>
+      <address>
+        <p class="b-nome">{nomeCompleto}</p>
+        <p class="b-qualifica">{apertura.sottotitolo}</p>
+        <p class="b-studio">{studio.nome}</p>
+
+        <ul class="b-recapiti">
+          <li>
+            <span class="b-etichetta">Telefono</span>
+            {
+              contatti.telefono ? (
+                <a href={telHref(contatti.telefono)}>{contatti.telefono}</a>
+              ) : (
+                <Mancante cosa="Telefono" />
+              )
+            }
+          </li>
+          <li>
+            <span class="b-etichetta">Email</span>
+            {contatti.email ? <a href={`mailto:${contatti.email}`}>{contatti.email}</a> : <Mancante cosa="Email" />}
+          </li>
+          <li>
+            <span class="b-etichetta">PEC</span>
+            {contatti.pec ? <a href={`mailto:${contatti.pec}`}>{contatti.pec}</a> : <Mancante cosa="PEC" />}
+          </li>
+        </ul>
+
+        <p class="b-etichetta b-etichetta--sedi">{sedi.length > 1 ? 'Sedi' : 'Sede'}</p>
+        <ul class="b-sedi">
+          {
+            sedi.map((s, i) =>
+              s ? (
+                <li>
+                  <span class="b-indirizzo">
+                    {s.via}
+                    <br />
+                    {s.cap} {s.comune} ({s.provincia})
+                  </span>
+                  <a class="b-mappa" href={mapsHref(s)} aria-label={`Apri in Maps: ${indirizzoSede(s)}`}>
+                    Apri in Maps
+                  </a>
+                </li>
+              ) : (
+                <li>
+                  <Mancante cosa={`Indirizzo della sede ${i + 1}`} />
+                </li>
+              )
+            )
+          }
+        </ul>
+      </address>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contatti {
+    padding-bottom: clamp(5rem, 12vw, 8rem);
+  }
+
+  .griglia {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .biglietto {
+    max-width: 36rem;
+    padding: clamp(2rem, 7vw, 3.25rem) clamp(1.5rem, 6vw, 3.25rem) clamp(6rem, 22vw, 7.5rem);
+    border-radius: 2px;
+    --storto: -0.5deg;
+  }
+
+  address {
+    position: relative;
+    font-style: normal;
+  }
+
+  /* Il monogramma impresso a secco in basso a destra: rilievo senza inchiostro. */
+  .rilievo-cieco {
+    position: absolute;
+    right: clamp(1.25rem, 5vw, 2.5rem);
+    bottom: 0.75rem;
+    font-family: var(--f-titoli);
+    font-size: clamp(4.5rem, 18vw, 6rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--avorio);
+    text-shadow:
+      -1px -1px 1px rgb(255 255 255 / 0.9),
+      1px 1px 2px rgb(0 0 0 / 0.16);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Letterpress: inchiostro premuto nella carta, luce dall’alto. */
+  .b-nome,
+  .b-recapiti a,
+  .b-indirizzo {
+    text-shadow:
+      0 1px 0 rgb(255 255 255 / 0.75),
+      0 -1px 0 rgb(0 0 0 / 0.12);
+  }
+
+  .b-nome {
+    font-family: var(--f-titoli);
+    font-size: clamp(1.75rem, 6.4vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--nero);
+  }
+
+  .b-qualifica {
+    margin-top: 0.6rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rosso);
+  }
+
+  .b-studio {
+    margin-top: 0.35rem;
+    font-family: var(--f-titoli);
+    font-style: italic;
+    font-size: 1.125rem;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  .b-recapiti {
+    display: grid;
+    margin-top: 1.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .b-recapiti li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 1rem;
+    min-height: 2.75rem;
+  }
+
+  .b-etichetta {
+    min-width: 5.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--grigio);
+  }
+
+  .b-recapiti a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .b-etichetta--sedi {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--linea);
+  }
+
+  .b-sedi {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .b-sedi li {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .b-indirizzo {
+    color: var(--nero);
+  }
+
+  .b-mappa {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .b-mappa::after {
+    content: '→';
+    margin-left: 0.4em;
+  }
+
+  @media (min-width: 64rem) {
+    .griglia {
+      grid-template-columns: 1fr minmax(0, 36rem);
+      align-items: start;
+      gap: 4rem;
+    }
+
+    .biglietto {
+      margin-top: 1rem;
+    }
+  }
+</style>
