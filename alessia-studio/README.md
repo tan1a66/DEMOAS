@@ -99,12 +99,14 @@ per l'anteprima con doppio clic vanno tenuti insieme.
 ```bash
 node tools/brand-kit.mjs                    # logo (SVG/PNG, verde e rosa), immagini del profilo, tavola dei colori
 node tools/brand-pdf.mjs                    # brand/alessia-studio-brand-kit.pdf: il kit per chi prepara i post
-node tools/presentation-pdf.mjs <cartella>           # brand/alessia-studio-presentacion.pdf: presentazione (ES, 16:9)
+node tools/presentation-pdf.mjs <cartella>           # brand/alessia-studio-presentacion.pdf: 16:9, 16 pagine, senza progetti né prezzi
 node tools/presentation-pdf-vertical.mjs <cartella>  # brand/alessia-studio-presentacion-vertical.pdf: A4, 6 pagine, senza progetti né prezzi
-# (per la verticale, immagini A4 senza testi: shoot.mjs "<url>?still" <cartella> --size=1191x1684 --notext --points=0.251,0.359)
+# immagini senza testi, nelle proporzioni della pagina (niente ritagli):
+#   orizzontale: shoot.mjs "<url>?still" <cartella> --size=1600x900 --notext --points=0,0.1,0.251,0.359,0.445,0.555,0.612,0.675
+#   verticale:   shoot.mjs "<url>?still" <cartella> --size=1191x1684 --notext --points=0.251,0.359
 ```
 Colori del marchio: solo **verde `#B8F03A`** e **rosa `#D4A39C`**. Font: Syne ExtraBold (logo e titoli), Inter
 (testi), in `brand/fonts`. Le immagini del sito in formato post sono in `brand/sito`
 (`node tools/shoot.mjs <url> <cartella> --device=insta --stops`). Contenuti comuni delle due presentazioni in
-`tools/lib/presentacion.mjs`; `<cartella>` (facoltativa) contiene le immagini del sito senza testi
-(`node tools/shoot.mjs <url> <cartella> --size=960x1080 --notext --points=0.251,0.359`).
+`tools/lib/presentacion.mjs`; `<cartella>` (facoltativa) contiene le immagini del sito senza testi (vedi sopra);
+in mancanza si usano quelle di `brand/sito`.
