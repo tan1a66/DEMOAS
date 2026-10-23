@@ -94,3 +94,13 @@ galleria (~150 KB l'una) solo aprendo la galleria di quel progetto.
 
 `npm run build:preview` produce `dist-preview/index.html` (tutto incorporato) e `dist-preview/gallery/`:
 per l'anteprima con doppio clic vanno tenuti insieme.
+
+## Marchio, social e presentazione (`brand/`)
+```bash
+node tools/brand-kit.mjs                    # logo (SVG/PNG, verde e rosa), immagini del profilo, tavola dei colori
+node tools/brand-pdf.mjs                    # brand/alessia-studio-brand-kit.pdf: il kit per chi prepara i post
+node tools/presentation-pdf.mjs <cartella>  # brand/alessia-studio-presentacion.pdf: presentazione per i clienti (ES)
+```
+Colori del marchio: solo **verde `#B8F03A`** e **rosa `#D4A39C`**. Font: Syne ExtraBold (logo e titoli), Inter
+(testi), in `brand/fonts`. Le immagini del sito in formato post sono in `brand/sito`
+(`node tools/shoot.mjs <url> <cartella> --device=insta --stops`).

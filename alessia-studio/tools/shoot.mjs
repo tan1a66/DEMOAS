@@ -41,8 +41,11 @@ mkdirSync(out, { recursive: true });
 const browser = await pw.chromium.launch({
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'],
 });
+// --size=1200x800: finestra su misura (al posto del dispositivo)
+const size = flags.size ? flags.size.split('x').map(Number) : null;
 const ctx = await browser.newContext({
   ...DEVICES[device],
+  ...(size ? { viewport: { width: size[0], height: size[1] }, deviceScaleFactor: 1 } : {}),
   reducedMotion: flags.reduced ? 'reduce' : 'no-preference',
 });
 const page = await ctx.newPage();
