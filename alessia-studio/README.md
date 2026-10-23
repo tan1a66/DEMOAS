@@ -99,8 +99,11 @@ per l'anteprima con doppio clic vanno tenuti insieme.
 ```bash
 node tools/brand-kit.mjs                    # logo (SVG/PNG, verde e rosa), immagini del profilo, tavola dei colori
 node tools/brand-pdf.mjs                    # brand/alessia-studio-brand-kit.pdf: il kit per chi prepara i post
-node tools/presentation-pdf.mjs <cartella>  # brand/alessia-studio-presentacion.pdf: presentazione per i clienti (ES)
+node tools/presentation-pdf.mjs <cartella>           # brand/alessia-studio-presentacion.pdf: presentazione (ES, 16:9)
+node tools/presentation-pdf-vertical.mjs <cartella>  # brand/alessia-studio-presentacion-vertical.pdf: la stessa in A4, 8 pagine
 ```
 Colori del marchio: solo **verde `#B8F03A`** e **rosa `#D4A39C`**. Font: Syne ExtraBold (logo e titoli), Inter
 (testi), in `brand/fonts`. Le immagini del sito in formato post sono in `brand/sito`
-(`node tools/shoot.mjs <url> <cartella> --device=insta --stops`).
+(`node tools/shoot.mjs <url> <cartella> --device=insta --stops`). Contenuti comuni delle due presentazioni in
+`tools/lib/presentacion.mjs`; `<cartella>` (facoltativa) contiene le immagini del sito senza testi
+(`node tools/shoot.mjs <url> <cartella> --size=960x1080 --notext --points=0.251,0.359`).

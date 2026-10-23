@@ -3,54 +3,21 @@
 // metodo, tecnologia, livelli e prezzi, contatto. Colori del marchio (verde e rosa), font Syne e Inter.
 //   node tools/presentation-pdf.mjs [cartella-immagini-del-sito]  ->  brand/alessia-studio-presentacion.pdf
 // La cartella facoltativa contiene p0251.png (divani), p0359.png (lucernario), senza testi (?notext).
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
-import { execSync } from 'node:child_process';
-import sharp from 'sharp';
+import { writeFileSync } from 'node:fs';
+import { brand, V, R, INK, svg, fileUrl as f, fontFaces, PROJECTS, workDir, sitePic, projectPics, renderPdf } from './lib/presentacion.mjs';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
-const brand = `${root}brand`;
-const tmp = `${brand}/.build/deck`;
-mkdirSync(tmp, { recursive: true });
-const V = '#B8F03A', R = '#D4A39C', INK = '#111';
-const svg = (f) => readFileSync(`${brand}/logo/${f}.svg`, 'utf8');
-const f = (p) => `file://${p}`;
-const gallery = JSON.parse(readFileSync(`${root}src/assets/gallery.json`, 'utf8'));
-
-// immagini del sito senza testi (copertina e manifesto); in mancanza, quelle con i testi
+const tmp = workDir('deck');
 const clean = process.argv[2];
-const sitePic = async (name, fallback, out) => {
-  const src = clean && existsSync(`${clean}/${name}.png`) ? `${clean}/${name}.png` : `${brand}/sito/${fallback}.jpg`;
-  await sharp(src).resize(640 * 2, 720 * 2, { fit: 'cover' }).jpeg({ quality: 84, mozjpeg: true }).toFile(`${tmp}/${out}.jpg`);
-};
-await sitePic('p0251', '02-divani', 'cover');
-await sitePic('p0359', '03-vision', 'vision');
-
-const PROJECTS = [
-  ['urbaz', 'URBAZ', 'Bienes raíces · Yucatán, México', 'La península de Yucatán en 3D: desarrollos para explorar, búsqueda con filtros y rutas animadas.', '03'],
-  ['piedra-de-agua', 'Piedra de Agua', 'Hotel boutique · Mérida, México', 'Del agua al patio: un recorrido inmersivo por las habitaciones del hotel.', '02'],
-  ['picheta', 'Picheta', 'Restaurante · Mérida, México', 'La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas.', '03'],
-  ['pusceddu', 'Avv. Pusceddu', 'Despacho de abogados · Cagliari, Italia', 'Un dron recorre un monumento de mármol inspirado en Dante: cada cornisa, un área de práctica.', '02'],
-  ['hacienda-teya', 'Hacienda Teya', 'Hacienda y restaurante · Yucatán, México', 'Una espina de henequén borda el nombre sobre el lino; la historia se vuelve recorrido.', '02'],
-  ['antica-roma', 'Antica Roma', 'Restaurante · Mérida, México', 'Un avión despega del Coliseo y aterriza en Paseo de Montejo; los platos son los botones.', '01'],
-  ['carnal', 'CARNAL', 'Carnicería boutique · Mérida, México', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.', '01'],
-  ['il-calabrese', 'Il Calabrese', 'Pizzería · Mérida, México', 'Del cielo de Calabria a la mesa familiar: menú, reservas y mapa son platos que se tocan.', '02'],
-];
-for (const p of PROJECTS) {
-  const n = gallery[p[0]]?.includes(p[4]) ? p[4] : gallery[p[0]]?.[0];
-  await sharp(`${root}public/gallery/${p[0]}/${n}-1280.webp`).resize(760).jpeg({ quality: 82, mozjpeg: true }).toFile(`${tmp}/${p[0]}.jpg`);
-}
+await sitePic(clean, 'p0251', '02-divani', `${tmp}/cover.jpg`, 1280, 1440);
+await sitePic(clean, 'p0359', '03-vision', `${tmp}/vision.jpg`, 1280, 1440);
+await projectPics(tmp, 760);
 
 let page = 0;
 const foot = (dark = false) => `<div class="foot"><span class="fl">${svg(dark ? 'logo-rosa' : 'logo-verde')}</span><span>Presentación de servicios · 2026</span><span>${++page}</span></div>`;
 const cards = (list, cls = 'c3') => `<div class="cols ${cls}">${list.map(([t, d, hi]) => `<div class="card${hi ? ' hi' : ''}"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>`;
 
 const html = `<!doctype html><html lang="es"><meta charset="utf-8"><title>Alessia Studio · Presentación de servicios</title><style>
-@font-face { font-family: Syne; font-weight: 800; src: url(${f(`${brand}/fonts/Syne-800.ttf`)}); }
-@font-face { font-family: Inter; font-weight: 400; src: url(${f(`${brand}/fonts/Inter-400.ttf`)}); }
-@font-face { font-family: Inter; font-weight: 500; src: url(${f(`${brand}/fonts/Inter-500.ttf`)}); }
-@font-face { font-family: Inter; font-weight: 600; src: url(${f(`${brand}/fonts/Inter-600.ttf`)}); }
+${fontFaces()}
 @page { size: 1280px 720px; margin: 0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -308,17 +275,5 @@ ${[0, 1].map((k) => `<section class="s">
 </body></html>`;
 writeFileSync(`${tmp}/deck.html`, html);
 
-const require = createRequire(import.meta.url);
-let pw;
-try {
-  pw = require('playwright');
-} catch {
-  pw = require(`${execSync('npm root -g').toString().trim()}/playwright`);
-}
-const browser = await pw.chromium.launch();
-const tab = await browser.newPage();
-await tab.goto(`file://${tmp}/deck.html`, { waitUntil: 'load' });
-await tab.evaluate(() => document.fonts.ready);
-await tab.pdf({ path: `${brand}/alessia-studio-presentacion.pdf`, preferCSSPageSize: true, printBackground: true });
-await browser.close();
+await renderPdf(`${tmp}/deck.html`, `${brand}/alessia-studio-presentacion.pdf`);
 console.log('brand/alessia-studio-presentacion.pdf');
