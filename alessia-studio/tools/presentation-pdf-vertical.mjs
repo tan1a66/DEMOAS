@@ -64,15 +64,16 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
 /* pagine con la scena del sito a tutta pagina e il testo sopra, come sul sito */
 .hero { color: ${IVORY}; }
 .hero .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.hero .ink { color: ${IVORY}; text-shadow: 0 1px 18px rgba(70, 25, 25, 0.45); }
+/* niente text-shadow né drop-shadow: nel PDF diventano riquadri attorno alle scritte; leggibilità dalle sfumature */
+.hero .ink { color: ${IVORY}; }
 .hero .halo { position: absolute; left: 50%; width: 980px; height: 560px; transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgba(48, 20, 22, 0.55), rgba(48, 20, 22, 0.28) 55%, rgba(48, 20, 22, 0)); }
+  background: radial-gradient(closest-side, rgba(48, 20, 22, 0.62), rgba(48, 20, 22, 0.34) 55%, rgba(48, 20, 22, 0)); }
 .hero .top { position: absolute; left: 56px; right: 56px; text-align: center; }
-.hero .top .logo svg { width: 560px; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 2px 26px rgba(46, 18, 20, 0.45)); }
+.hero .top .logo svg { width: 560px; height: auto; display: block; margin: 0 auto; }
 .hero .scrim { position: absolute; left: 0; right: 0; bottom: 0; padding: 220px 56px 70px;
-  background: linear-gradient(0deg, rgba(52, 22, 24, 0.78) 0%, rgba(52, 22, 24, 0.5) 45%, rgba(52, 22, 24, 0) 100%); }
+  background: linear-gradient(0deg, rgba(52, 22, 24, 0.84) 0%, rgba(52, 22, 24, 0.56) 45%, rgba(52, 22, 24, 0) 100%); }
 .hero .world { border-left: 1.2px solid rgba(255, 246, 242, 0.55); padding-left: 14px; font-size: 13px; max-width: 560px; margin-top: 16px; }
-.foot.on-img { color: ${IVORY}; text-shadow: 0 1px 10px rgba(46, 18, 20, 0.5); }
+.foot.on-img { color: ${IVORY}; }
 .ct .lab { font: 600 10px Inter; letter-spacing: .22em; text-transform: uppercase; margin-bottom: 4px; }
 .ct .val { font: 600 22px/1.2 Inter; letter-spacing: -.01em; }
 /* in Syne i numeri sono "all'antica" per impostazione: qui sempre allineati (3D) */
@@ -218,9 +219,8 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
     <div class="k">Contacto</div>
     <div class="big" style="font-size:40px">Hablemos de tu proyecto.</div>
     <p class="lead" style="max-width:620px">Primera llamada de 30 minutos, sin costo: nos cuentas sobre tu marca y te mostramos lo que podemos construir juntos.</p>
-    <div class="cols c2" style="margin-top:22px">
-      <div><div class="lab">WhatsApp</div><div class="val">+39 346 175 8562</div></div>
-      <div><div class="lab">Correo</div><div class="val">alessiapir@icloud.com</div></div>
+    <div style="margin-top:22px">
+      <div class="lab">Escríbenos por WhatsApp</div><div class="val" style="font-size:30px">+39 346 175 8562</div>
     </div>
     <h3 style="margin-top:30px;font-size:17px">Trabajamos con marcas de todo el mundo, sin fronteras ni distancias.</h3>
     <div class="cols c3" style="margin-top:12px;gap:20px">

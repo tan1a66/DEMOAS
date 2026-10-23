@@ -68,16 +68,17 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
 .n { font: 600 13px Inter; letter-spacing: .14em; text-transform: uppercase; }
 .foot { position: absolute; left: 72px; right: 72px; bottom: 28px; display: flex; align-items: center; gap: 18px; font: 500 10.5px Inter; letter-spacing: .2em; text-transform: uppercase; z-index: 3; }
 .foot span:nth-child(2) { flex: 1; } .fl svg { height: 11px; width: auto; display: block; }
-.foot.ink { color: ${IVORY}; text-shadow: 0 1px 10px rgba(46, 18, 20, .5); }
+.foot.ink { color: ${IVORY}; }
 
 /* scene del sito a tutta pagina, con il testo sopra come sul sito */
 .scene { padding: 0; color: ${IVORY}; }
 .scene .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.shade-l { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(52,22,24,.72) 0%, rgba(52,22,24,.46) 38%, rgba(52,22,24,0) 70%); }
-.shade-b { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(52,22,24,.82) 0%, rgba(52,22,24,.5) 38%, rgba(52,22,24,0) 68%); }
-.halo { position: absolute; left: 50%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(48,20,22,.58), rgba(48,20,22,.3) 55%, rgba(48,20,22,0)); }
+.shade-l { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(52,22,24,.78) 0%, rgba(52,22,24,.54) 40%, rgba(52,22,24,0) 72%); }
+.shade-b { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(52,22,24,.86) 0%, rgba(52,22,24,.56) 40%, rgba(52,22,24,0) 70%); }
+.halo { position: absolute; left: 50%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(48,20,22,.66), rgba(48,20,22,.36) 55%, rgba(48,20,22,0)); }
 .box { position: absolute; z-index: 2; }
-.scene .ink, .scene .box { color: ${IVORY}; text-shadow: 0 1px 18px rgba(70, 25, 25, .45); }
+/* niente text-shadow né drop-shadow: nel PDF diventano riquadri attorno alle scritte; leggibilità dalle sfumature */
+.scene .ink, .scene .box { color: ${IVORY}; }
 .scene .big { font: 800 54px/1.08 Syne; letter-spacing: -.03em; padding-bottom: .06em; margin-bottom: 18px; }
 .scene .lead { color: ${IVORY}; }
 .scene .rule { border-top-color: rgba(255,246,242,.55); }
@@ -116,7 +117,7 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
 
 /* il nostro sito: collage di tre viste */
 .mosaic { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 600px; }
-.mosaic img { width: 100%; display: block; border-radius: 14px; object-fit: cover; box-shadow: 0 18px 40px rgba(52, 22, 24, .22); }
+.mosaic img { width: 100%; display: block; border-radius: 14px; object-fit: cover; }
 .mosaic img:first-child { grid-column: span 2; aspect-ratio: 16 / 9; }
 .mosaic img:not(:first-child) { aspect-ratio: 16 / 9; }
 .chap.dk { color: ${INK}; }
@@ -131,7 +132,7 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
   <img class="bg" src="${img('sofa')}">
   <div class="halo" style="top:150px;width:1300px;height:430px"></div>
   <div class="box" style="left:0;right:0;top:70px;text-align:center">
-    <div style="width:940px;margin:0 auto;filter:drop-shadow(0 2px 30px rgba(46,18,20,.45))">${svg('logo-verde').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ')}</div>
+    <div style="width:940px;margin:0 auto">${svg('logo-verde').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ')}</div>
     <p class="k" style="margin:26px 0 6px;font-size:13px">Branding · Dirección creativa · Sitios web 3D</p>
     <p class="k" style="margin:0;font-size:11px;opacity:.92">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
   </div>
@@ -387,9 +388,8 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
     ${chap('07', 'Contacto')}
     <div class="big" style="font-size:72px;margin-bottom:16px">Hablemos de<br>tu proyecto.</div>
     <p class="lead" style="font-size:19px;max-width:640px">Primera llamada de 30 minutos, sin costo: nos cuentas sobre tu marca y te mostramos lo que podemos construir juntos.</p>
-    <div class="cols c2" style="margin-top:30px;max-width:760px">
-      <div><div class="lab">WhatsApp</div><div class="val hl">+39 346 175 8562</div></div>
-      <div><div class="lab">Correo</div><div class="val hl">alessiapir@icloud.com</div></div>
+    <div style="margin-top:32px">
+      <div class="lab">Escríbenos por WhatsApp</div><div class="val hl" style="font-size:54px">+39 346 175 8562</div>
     </div>
     <p class="k" style="margin:30px 0 0">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
   </div>
