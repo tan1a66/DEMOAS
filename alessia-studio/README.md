@@ -101,6 +101,7 @@ node tools/brand-kit.mjs                    # logo (SVG/PNG, verde e rosa), imma
 node tools/brand-pdf.mjs                    # brand/alessia-studio-brand-kit.pdf: il kit per chi prepara i post
 node tools/presentation-pdf.mjs <cartella>           # brand/alessia-studio-presentacion.pdf: presentazione (ES, 16:9)
 node tools/presentation-pdf-vertical.mjs <cartella>  # brand/alessia-studio-presentacion-vertical.pdf: A4, 6 pagine, senza progetti né prezzi
+# (per la verticale, immagini A4 senza testi: shoot.mjs "<url>?still" <cartella> --size=1191x1684 --notext --points=0.251,0.359)
 ```
 Colori del marchio: solo **verde `#B8F03A`** e **rosa `#D4A39C`**. Font: Syne ExtraBold (logo e titoli), Inter
 (testi), in `brand/fonts`. Le immagini del sito in formato post sono in `brand/sito`

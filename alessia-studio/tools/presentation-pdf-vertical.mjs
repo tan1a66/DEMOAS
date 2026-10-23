@@ -1,18 +1,22 @@
-// Presentazione dei servizi in verticale (A4, in spagnolo), 6 pagine con due sezioni ciascuna. Solo
-// Alessia Studio (niente progetti di altri marchi) e senza prezzi. Colori del marchio (verde e rosa),
-// font Syne e Inter.
+// Presentazione dei servizi in verticale (A4, in spagnolo), 6 pagine. Solo Alessia Studio (niente
+// progetti di altri marchi) e senza prezzi. Copertina e visione sono le scene del sito a tutta pagina
+// con il testo sopra, come sul sito. Colori del marchio (verde e rosa), font Syne e Inter.
 //   node tools/presentation-pdf-vertical.mjs [cartella-immagini-del-sito]
 //     ->  brand/alessia-studio-presentacion-vertical.pdf
+// La cartella contiene p0251.png (divani) e p0359.png (lucernario) senza testi, nelle proporzioni A4:
+//   node tools/shoot.mjs "http://127.0.0.1:4173/?still" <cartella> --size=1191x1684 --q=high --notext --points=0.251,0.359
 import { writeFileSync } from 'node:fs';
 import { brand, V, R, INK, svg, fileUrl as f, fontFaces, workDir, sitePic, renderPdf } from './lib/presentacion.mjs';
 
 const tmp = workDir('deck-vertical');
 const clean = process.argv[2];
-await sitePic(clean, 'p0251', '02-divani', `${tmp}/cover.jpg`, 1588, 1000);
-await sitePic(clean, 'p0359', '03-vision', `${tmp}/vision.jpg`, 1364, 760);
+// a tutta pagina: stesse proporzioni dell'A4, l'immagine non viene tagliata
+await sitePic(clean, 'p0251', '02-divani', `${tmp}/cover.jpg`, 1191, 1684);
+await sitePic(clean, 'p0359', '03-vision', `${tmp}/vision.jpg`, 1191, 1684);
 
 let page = 1; // la copertina è la pagina 1, senza piè di pagina
-const foot = (dark = false) => `<div class="foot"><span class="fl">${svg(dark ? 'logo-rosa' : 'logo-verde')}</span><span>Presentación de servicios · 2026</span><span>${++page}</span></div>`;
+const foot = (dark = false, cls = '') => `<div class="foot ${cls}"><span class="fl">${svg(dark ? 'logo-rosa' : 'logo-verde')}</span><span>Presentación de servicios · 2026</span><span>${++page}</span></div>`;
+const IVORY = '#FFF6F2';
 const cards = (list, cls) => `<div class="cols ${cls}">${list.map(([t, d, hi]) => `<div class="card${hi ? ' hi' : ''}"><h3>${t}</h3><p>${d}</p></div>`).join('')}</div>`;
 
 const html = `<!doctype html><html lang="es"><meta charset="utf-8"><title>Alessia Studio · Presentación de servicios</title><style>
@@ -49,9 +53,6 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
 .rows p { font-size: 13px; }
 .strip { margin-top: 12px; padding-top: 10px; border-top: 1.2px solid rgba(0,0,0,.28); font-size: 12.5px; }
 .strip b, .note b { font-weight: 600; }
-.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.shots img { width: 100%; aspect-ratio: 4/5; object-fit: cover; object-position: top; border-radius: 8px; display: block; }
-.cap { font-size: 10.5px; margin-top: 5px; }
 .steps .st { display: grid; grid-template-columns: 136px 150px 1fr; gap: 14px; align-items: baseline; padding: 13px 0; border-top: 1.2px solid rgba(0,0,0,.22); }
 .steps .st:last-child { border-bottom: 1.2px solid rgba(0,0,0,.22); }
 .steps .n { font: 600 10px Inter; letter-spacing: .12em; text-transform: uppercase; }
@@ -60,44 +61,60 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
 .steps h3 { font-size: 17px; }
 .stack .card { padding: 18px; } .stack .card p { font-size: 13px; } .stack h3 { font-size: 16.5px; }
 .note { font-size: 12.5px; margin-top: 12px; }
-.cover .logo svg { width: 300px; height: auto; display: block; }
-.cover img { width: 794px; height: 500px; object-fit: cover; display: block; margin-top: auto; }
+/* pagine con la scena del sito a tutta pagina e il testo sopra, come sul sito */
+.hero { color: ${IVORY}; }
+.hero .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero .ink { color: ${IVORY}; text-shadow: 0 1px 18px rgba(70, 25, 25, 0.45); }
+.hero .halo { position: absolute; left: 50%; width: 980px; height: 560px; transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(48, 20, 22, 0.55), rgba(48, 20, 22, 0.28) 55%, rgba(48, 20, 22, 0)); }
+.hero .top { position: absolute; left: 56px; right: 56px; text-align: center; }
+.hero .top .logo svg { width: 560px; height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 2px 26px rgba(46, 18, 20, 0.45)); }
+.hero .scrim { position: absolute; left: 0; right: 0; bottom: 0; padding: 220px 56px 70px;
+  background: linear-gradient(0deg, rgba(52, 22, 24, 0.78) 0%, rgba(52, 22, 24, 0.5) 45%, rgba(52, 22, 24, 0) 100%); }
+.hero .world { border-left: 1.2px solid rgba(255, 246, 242, 0.55); padding-left: 14px; font-size: 13px; max-width: 560px; margin-top: 16px; }
+.foot.on-img { color: ${IVORY}; text-shadow: 0 1px 10px rgba(46, 18, 20, 0.5); }
 .ct .lab { font: 600 10px Inter; letter-spacing: .22em; text-transform: uppercase; margin-bottom: 4px; }
 .ct .val { font: 600 22px/1.2 Inter; letter-spacing: -.01em; }
 /* in Syne i numeri sono "all'antica" per impostazione: qui sempre allineati (3D) */
 .p h1, .p h3, .p .big { font-feature-settings: "lnum" 1; font-variant-numeric: lining-nums; }
 </style><body>
 
-<!-- 1 · portada -->
-<section class="p cover">
-  <div class="sec" style="padding-top:56px">
+<!-- 1 · portada: i divani verdi a tutta pagina, ALESSIA STUDIO come sul sito -->
+<section class="p hero">
+  <img class="bg" src="${f(`${tmp}/cover.jpg`)}">
+  <div class="halo" style="top:200px"></div>
+  <div class="top" style="top:96px">
     <div class="logo">${svg('logo-verde-2-righe')}</div>
-    <div class="big" style="font-size:38px;margin-top:44px;max-width:600px">Sitios que se exploran, no solo se miran.</div>
-    <p class="lead" style="max-width:560px">Creamos sitios web 3D inmersivos para marcas que quieren ser recordadas, en cualquier parte del mundo.</p>
-    <p class="k" style="margin-top:26px;line-height:1.7">Branding · Dirección creativa · Sitios web 3D<br>Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
+    <p class="k ink" style="margin:26px 0 6px;font-size:11px">Branding · Dirección creativa · Sitios web 3D</p>
+    <p class="k ink" style="margin:0;font-size:10px;opacity:.9">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
   </div>
-  <img src="${f(`${tmp}/cover.jpg`)}">
+  <div class="scrim">
+    <div class="big ink" style="font-size:38px;max-width:620px">Sitios que se exploran, no solo se miran.</div>
+    <p class="lead ink" style="max-width:560px">Creamos sitios web 3D inmersivos para marcas que quieren ser recordadas, en cualquier parte del mundo.</p>
+    <p class="k ink" style="margin:26px 0 0">Presentación de servicios · 2026</p>
+  </div>
 </section>
 
-<!-- 2 · el problema, la visión, nuestro sitio -->
+<!-- 2 · la visión: el lucernario a tutta pagina, il testo in basso come sul sito -->
+<section class="p hero">
+  <img class="bg" src="${f(`${tmp}/vision.jpg`)}">
+  <div class="scrim">
+    <div class="k ink">Nuestra visión</div>
+    <div class="big ink" style="font-size:40px;max-width:640px">Un sitio web puede ser un lugar, no una página.</div>
+    <p class="lead ink" style="max-width:600px">Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y movimiento que cuentan una marca como una visita. Cada scroll es un paso; cada detalle está hecho para quedarse.</p>
+    <p class="world ink">Así es nuestro propio sitio: un edificio de cemento rosa sobre el mar. Se entra por una ventana circular, se descansa junto a los sofás verdes, se mira la luz de este tragaluz y se termina bajo el agua.</p>
+  </div>
+  ${foot(false, 'on-img')}
+</section>
+
+<!-- 3 · el problema, qué es un sitio inmersivo, por qué funciona -->
 <section class="p">
   <div class="band">
     <div class="k">El problema</div>
     <div class="big">En internet todos los sitios se parecen. Y lo que se parece, se olvida.</div>
     <p class="lead">Mismas plantillas, mismas fotos, mismo scroll. Tu cliente visita tu sitio, luego el de un competidor, y ya no recuerda cuál era el tuyo.</p>
   </div>
-  <div class="sec">
-    <div class="k">Nuestra visión</div>
-    <h1 style="font-size:38px">Un sitio web puede ser un lugar, no una página.</h1>
-    <p class="lead" style="font-size:16px">Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y movimiento que cuentan una marca como una visita. Cada scroll es un paso; cada detalle está hecho para quedarse.</p>
-    <img src="${f(`${tmp}/vision.jpg`)}" style="width:100%;height:380px;object-fit:cover;border-radius:10px;display:block;margin-top:24px">
-  </div>
-  ${foot()}
-</section>
-
-<!-- 3 · qué es un sitio inmersivo, por qué funciona -->
-<section class="p">
-  <div class="sec">
+  <div class="sec" style="padding-top:36px">
     <div class="k">Sitios inmersivos</div>
     <h1>Qué es un sitio inmersivo.</h1>
     <div class="cols c3" style="margin-top:8px">
@@ -107,25 +124,18 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
         ['03', 'Se recuerda', 'Una experiencia vivida se queda en la mente más que una página leída. Tu marca se vuelve de la que todos hablan.'],
       ].map(([n, t, d]) => `<div class="card" style="padding:18px"><div class="num">${n}</div><h3 style="font-size:17px">${t}</h3><p>${d}</p></div>`).join('')}
     </div>
-    <h3 style="margin-top:24px;font-size:17px">Nuestro propio sitio es un recorrido</h3>
-    <p style="margin-bottom:10px">Un edificio de cemento rosa sobre el mar: se entra por una ventana circular, se descansa junto a los sofás verdes, se mira la luz del tragaluz y se termina bajo el agua, donde cada burbuja es un proyecto.</p>
-    <div class="shots">
-      <div><img src="${f(`${brand}/sito/01-muro.jpg`)}"><div class="cap">La entrada: la ventana circular</div></div>
-      <div><img src="${f(`${brand}/sito/02-divani.jpg`)}"><div class="cap">Los sofás verdes</div></div>
-      <div><img src="${f(`${brand}/sito/03-vision.jpg`)}"><div class="cap">Bajo el tragaluz</div></div>
-    </div>
   </div>
-  <div class="band fill" style="margin-top:26px">
+  <div class="sec" style="padding-top:36px">
     <div class="k">Por qué funciona</div>
-    <div class="big">Un sitio que la gente explora es un sitio que la gente recuerda.</div>
-    <div class="cols c2" style="margin-top:18px;gap:18px 26px">
+    <h1>Un sitio que la gente explora es un sitio que la gente recuerda.</h1>
+    <div class="cols c2" style="margin-top:8px;gap:16px 26px">
       <div class="rule"><h3>Más tiempo en el sitio</h3><p>Explorar es una invitación a quedarse.</p></div>
       <div class="rule"><h3>Percepción premium</h3><p>El sitio comunica el valor de la marca.</p></div>
       <div class="rule"><h3>Recomendación</h3><p>Las experiencias bonitas se comparten.</p></div>
       <div class="rule"><h3>Funciona en todas partes</h3><p>Carga ligera y calidad que se adapta: celular, tablet y computadora.</p></div>
     </div>
   </div>
-  ${foot(true)}
+  ${foot()}
 </section>
 
 <!-- 4 · servicios, para quién trabajamos -->
