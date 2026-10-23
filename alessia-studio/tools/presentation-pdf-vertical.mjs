@@ -1,15 +1,15 @@
-// Presentazione dei servizi in verticale (A4, in spagnolo), stessi contenuti di quella orizzontale in
-// 8 pagine: due sezioni per pagina. Colori del marchio (verde e rosa), font Syne e Inter.
+// Presentazione dei servizi in verticale (A4, in spagnolo), 6 pagine con due sezioni ciascuna. Solo
+// Alessia Studio (niente progetti di altri marchi) e senza prezzi. Colori del marchio (verde e rosa),
+// font Syne e Inter.
 //   node tools/presentation-pdf-vertical.mjs [cartella-immagini-del-sito]
 //     ->  brand/alessia-studio-presentacion-vertical.pdf
 import { writeFileSync } from 'node:fs';
-import { brand, V, R, INK, svg, fileUrl as f, fontFaces, PROJECTS, workDir, sitePic, projectPics, renderPdf } from './lib/presentacion.mjs';
+import { brand, V, R, INK, svg, fileUrl as f, fontFaces, workDir, sitePic, renderPdf } from './lib/presentacion.mjs';
 
 const tmp = workDir('deck-vertical');
 const clean = process.argv[2];
 await sitePic(clean, 'p0251', '02-divani', `${tmp}/cover.jpg`, 1588, 1000);
 await sitePic(clean, 'p0359', '03-vision', `${tmp}/vision.jpg`, 1364, 760);
-await projectPics(tmp, 520);
 
 let page = 1; // la copertina è la pagina 1, senza piè di pagina
 const foot = (dark = false) => `<div class="foot"><span class="fl">${svg(dark ? 'logo-rosa' : 'logo-verde')}</span><span>Presentación de servicios · 2026</span><span>${++page}</span></div>`;
@@ -52,13 +52,6 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
 .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .shots img { width: 100%; aspect-ratio: 4/5; object-fit: cover; object-position: top; border-radius: 8px; display: block; }
 .cap { font-size: 10.5px; margin-top: 5px; }
-.proj { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 14px; }
-.proj img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 7px; display: block; margin-bottom: 8px; }
-.proj .t { font: 800 15px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-bottom: .05em; }
-.proj .kd { font: 600 8.5px/1.4 Inter; letter-spacing: .12em; text-transform: uppercase; margin: 3px 0 4px; }
-.proj p { font-size: 11.5px; line-height: 1.45; }
-.proj .hi { background: ${V}; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; }
-.proj .hi .big { font-size: 21px; margin-bottom: 8px; }
 .steps .st { display: grid; grid-template-columns: 136px 150px 1fr; gap: 14px; align-items: baseline; padding: 13px 0; border-top: 1.2px solid rgba(0,0,0,.22); }
 .steps .st:last-child { border-bottom: 1.2px solid rgba(0,0,0,.22); }
 .steps .n { font: 600 10px Inter; letter-spacing: .12em; text-transform: uppercase; }
@@ -67,16 +60,12 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
 .steps h3 { font-size: 17px; }
 .stack .card { padding: 18px; } .stack .card p { font-size: 13px; } .stack h3 { font-size: 16.5px; }
 .note { font-size: 12.5px; margin-top: 12px; }
-.price .tier { font: 800 16px Syne; color: ${V}; margin-bottom: 4px; }
-.price .hi .tier { color: ${INK}; }
-.price .pr { font: 600 21px/1.2 Inter; letter-spacing: -.02em; margin-bottom: 10px; }
-.price ul { padding-left: 15px; font-size: 12px; line-height: 1.55; }
 .cover .logo svg { width: 300px; height: auto; display: block; }
 .cover img { width: 794px; height: 500px; object-fit: cover; display: block; margin-top: auto; }
 .ct .lab { font: 600 10px Inter; letter-spacing: .22em; text-transform: uppercase; margin-bottom: 4px; }
 .ct .val { font: 600 22px/1.2 Inter; letter-spacing: -.01em; }
 /* in Syne i numeri sono "all'antica" per impostazione: qui sempre allineati (3D) */
-.p h1, .p h3, .p .big, .p .t, .p .tier { font-feature-settings: "lnum" 1; font-variant-numeric: lining-nums; }
+.p h1, .p h3, .p .big { font-feature-settings: "lnum" 1; font-variant-numeric: lining-nums; }
 </style><body>
 
 <!-- 1 · portada -->
@@ -121,9 +110,9 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
     <h3 style="margin-top:24px;font-size:17px">Nuestro propio sitio es un recorrido</h3>
     <p style="margin-bottom:10px">Un edificio de cemento rosa sobre el mar: se entra por una ventana circular, se descansa junto a los sofás verdes, se mira la luz del tragaluz y se termina bajo el agua, donde cada burbuja es un proyecto.</p>
     <div class="shots">
+      <div><img src="${f(`${brand}/sito/01-muro.jpg`)}"><div class="cap">La entrada: la ventana circular</div></div>
       <div><img src="${f(`${brand}/sito/02-divani.jpg`)}"><div class="cap">Los sofás verdes</div></div>
       <div><img src="${f(`${brand}/sito/03-vision.jpg`)}"><div class="cap">Bajo el tragaluz</div></div>
-      <div><img src="${f(`${brand}/sito/05-proyectos.jpg`)}"><div class="cap">En el mar: cada burbuja es un proyecto</div></div>
     </div>
   </div>
   <div class="band fill" style="margin-top:26px">
@@ -170,47 +159,7 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
   ${foot()}
 </section>
 
-<!-- 5 · proyectos y propuestas -->
-<section class="p">
-  <div class="sec">
-    <div class="k">Proyectos y propuestas</div>
-    <h1>Una selección.</h1>
-    <p class="lead" style="margin-bottom:22px">Proyectos y propuestas de concepto para marcas de México e Italia: hoteles, restaurantes, bienes raíces, despachos.</p>
-    <div class="proj">
-      ${PROJECTS.map(([id, t, kind, text]) => `<div><img src="${f(`${tmp}/${id}.jpg`)}"><div class="t">${t}</div><div class="kd">${kind}</div><p>${text}</p></div>`).join('')}
-      <div class="hi"><div class="big">Cada proyecto, un lugar distinto.</div><p style="font-size:12px">Cada uno tiene su galería de capturas en nuestro sitio.</p></div>
-    </div>
-  </div>
-  ${foot()}
-</section>
-
-<!-- 6 · quiénes somos, estudio remoto -->
-<section class="p">
-  <div class="sec">
-    <div class="k">Quiénes somos</div>
-    <h1>Un núcleo creativo, una red de especialistas.</h1>
-    <p class="lead" style="margin-bottom:18px">Alessia Studio diseña marcas y sitios web 3D inmersivos. Para cada proyecto reunimos el talento adecuado, esté donde esté. Tú tienes un solo interlocutor, de principio a fin.</p>
-    ${cards([
-      ['Dirección creativa y desarrollo 3D', 'Idea, dirección del proyecto y código Three.js.', true],
-      ['Artista 3D', 'Modelos, materiales y luces que hacen creíble el producto o el espacio.'],
-      ['UI y diseño visual', 'Interfaz, tipografía e identidad visual coherentes con tu marca.'],
-      ['Motion y sound design', 'Animaciones y sonidos que dan ritmo y atmósfera a la experiencia.'],
-    ], 'c2')}
-  </div>
-  <div class="band fill" style="margin-top:40px">
-    <div class="k">Estudio remoto, clientes en todo el mundo</div>
-    <div class="big">Trabajamos con marcas de todo el mundo, sin fronteras ni distancias.</div>
-    <div class="cols c3" style="margin-top:18px;gap:20px">
-      <div class="rule"><h3>Cuatro idiomas</h3><p>Español, italiano, inglés y portugués.</p></div>
-      <div class="rule"><h3>Tu zona horaria</h3><p>Las llamadas se agendan en tu horario, no en el nuestro.</p></div>
-      <div class="rule"><h3>Base: Mérida, México</h3><p>Disponibles también para reuniones en persona.</p></div>
-    </div>
-    <p class="k" style="margin:18px 0 0">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
-  </div>
-  ${foot(true)}
-</section>
-
-<!-- 7 · cómo trabajamos, stack tecnológico -->
+<!-- 5 · cómo trabajamos, stack tecnológico -->
 <section class="p">
   <div class="sec">
     <div class="k">Cómo trabajamos</div>
@@ -242,30 +191,34 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
   ${foot()}
 </section>
 
-<!-- 8 · niveles y precios, contacto -->
-<section class="p price">
+<!-- 6 · quiénes somos, contacto y estudio remoto -->
+<section class="p">
   <div class="sec">
-    <div class="k">Inversión</div>
-    <h1>Tres niveles de experiencia.</h1>
-    <div class="cols c3">
-      <div class="card"><div class="tier">Esencial</div><div class="pr">desde US$2,500</div>
-        <ul><li>Landing page con una escena 3D</li><li>Animaciones con el scroll</li><li>Optimizada para el celular</li><li>Entrega en 3–4 semanas</li></ul></div>
-      <div class="card hi"><div class="tier">Inmersivo</div><div class="pr">desde US$5,000</div>
-        <ul><li>Sitio completo multisección en 3D</li><li>Modelos 3D a medida</li><li>Interacciones y microanimaciones</li><li>Entrega en 5–6 semanas</li></ul></div>
-      <div class="card"><div class="tier">Signature</div><div class="pr">desde US$9,000</div>
-        <ul><li>Experiencia 3D explorable</li><li>Configurador o recorrido virtual</li><li>Sound design y shaders únicos</li><li>Contenido en video para redes</li></ul></div>
-    </div>
-    <p class="note" style="font-size:11.5px">Precios indicativos en dólares estadounidenses (USD), impuestos no incluidos. Cotización a medida después de la primera llamada.</p>
+    <div class="k">Quiénes somos</div>
+    <h1>Un núcleo creativo, una red de especialistas.</h1>
+    <p class="lead" style="margin-bottom:18px">Alessia Studio diseña marcas y sitios web 3D inmersivos. Para cada proyecto reunimos el talento adecuado, esté donde esté. Tú tienes un solo interlocutor, de principio a fin.</p>
+    ${cards([
+      ['Dirección creativa y desarrollo 3D', 'Idea, dirección del proyecto y código Three.js.', true],
+      ['Artista 3D', 'Modelos, materiales y luces que hacen creíble el producto o el espacio.'],
+      ['UI y diseño visual', 'Interfaz, tipografía e identidad visual coherentes con tu marca.'],
+      ['Motion y sound design', 'Animaciones y sonidos que dan ritmo y atmósfera a la experiencia.'],
+    ], 'c2')}
   </div>
-  <div class="band ct fill" style="margin-top:40px">
+  <div class="band ct fill" style="margin-top:36px">
     <div class="k">Contacto</div>
     <div class="big" style="font-size:40px">Hablemos de tu proyecto.</div>
-    <p class="lead" style="max-width:600px">Primera llamada de 30 minutos, sin costo: nos cuentas sobre tu marca y te mostramos lo que podemos construir juntos.</p>
-    <div class="cols c2" style="margin-top:26px">
+    <p class="lead" style="max-width:620px">Primera llamada de 30 minutos, sin costo: nos cuentas sobre tu marca y te mostramos lo que podemos construir juntos.</p>
+    <div class="cols c2" style="margin-top:22px">
       <div><div class="lab">WhatsApp</div><div class="val">+39 346 175 8562</div></div>
       <div><div class="lab">Correo</div><div class="val">alessiapir@icloud.com</div></div>
     </div>
-    <p style="margin-top:18px;font-size:12.5px">Desde Italia · Con base en México · Trabajamos en todo el mundo · Español, italiano, inglés y portugués</p>
+    <h3 style="margin-top:30px;font-size:17px">Trabajamos con marcas de todo el mundo, sin fronteras ni distancias.</h3>
+    <div class="cols c3" style="margin-top:12px;gap:20px">
+      <div class="rule"><h3>Cuatro idiomas</h3><p>Español, italiano, inglés y portugués.</p></div>
+      <div class="rule"><h3>Tu zona horaria</h3><p>Las llamadas se agendan en tu horario, no en el nuestro.</p></div>
+      <div class="rule"><h3>Base: Mérida, México</h3><p>Disponibles también para reuniones en persona.</p></div>
+    </div>
+    <p class="k" style="margin:18px 0 0">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
   </div>
   ${foot(true)}
 </section>
