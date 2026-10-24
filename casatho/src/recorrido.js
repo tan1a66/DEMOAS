@@ -4,14 +4,14 @@
 import * as THREE from 'three';
 import { L } from './scene/layout.js';
 
-// Paseo de Montejo: en escritorio desde la calle (fachada completa entre almendros);
-// en el teléfono desde el andador del jardín (sin banqueta ni asfalto en el cuadro).
+// Paseo de Montejo: desde el jardín, ya pasada la reja (sin banqueta ni asfalto en el cuadro);
+// en escritorio un poco más atrás y más de lado, para que entre más fachada.
 const HERO = {
-  desk: { pos: [0, 1.72, 27.5], pos2: [0, 1.74, 26.2], look: [0, 3.0, 0], look2: [0, 2.9, 0] },
+  desk: { pos: [5.6, 1.9, 11.05], pos2: [5.0, 1.9, 10.4], look: [-3.4, 3.95, 0], look2: [-3.1, 3.85, 0] },
   cine: { pos: [-2.3, 1.88, 10.15], pos2: [-1.95, 1.88, 9.5], look: [0.9, 4.25, 0], look2: [0.75, 4.1, 0] },
 };
 const HERO_VIA = {
-  desk: [[0, 1.74, 22.6], [0, 1.78, 17.8], [0, 1.82, 13.4], [0, 1.86, 9.4], [0, 1.9, 6.0], [0, 1.94, 4.0]],
+  desk: [[3.7, 1.9, 7.7], [1.3, 1.92, 5.4], [0.2, 1.94, 4.1]],
   cine: [[-1.0, 1.9, 7.3], [-0.15, 1.92, 5.0], [0, 1.95, 3.7]],
 };
 
@@ -60,8 +60,8 @@ export class Recorrido {
       this.curves.push(new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5));
     }
     this.n = this.stops.length;
-    // La reja se abre cuando la cámara se acerca (en el teléfono ya se abrió en la intro).
-    this.gateRange = mode === 'cine' ? null : [this._Tat(0, L.fence + 4.5), this._Tat(0, L.fence + 1.4)];
+    // La reja se abre durante la intro (la cámara entra por el portón).
+    this.gateRange = null;
     this.items = [];
     this._a = new THREE.Vector3();
     this._b = new THREE.Vector3();

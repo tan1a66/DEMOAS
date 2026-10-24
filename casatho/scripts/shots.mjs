@@ -29,10 +29,10 @@ for (let i = 0; i < 7; i++) {
   // vista limpia de la parada (sin tarjeta) y vista con la tarjeta
   await page.evaluate((i) => { window.__T = 2 * i + 0.5; window.scrollTo(0, 0); }, i);
   await settle(4);
-  await page.evaluate(() => { document.querySelector('main').style.visibility = 'hidden'; document.querySelector('.scrim').style.visibility = 'hidden'; });
+  await page.evaluate(() => { document.querySelector('main').style.visibility = 'hidden'; });
   await settle(2);
   await page.screenshot({ path: `${out}/${names[i]}-3d.png` });
-  await page.evaluate(() => { document.querySelector('main').style.visibility = ''; document.querySelector('.scrim').style.visibility = ''; });
+  await page.evaluate(() => { document.querySelector('main').style.visibility = ''; });
   await page.evaluate((i) => { const y = window.__rec.scrollForStop(i, innerHeight); window.scrollTo(0, y); window.__T = undefined; }, i);
   await settle(4);
   await page.screenshot({ path: `${out}/${names[i]}-card.png` });
@@ -41,10 +41,10 @@ if (process.env.TRAVEL) {
   for (const T of process.env.TRAVEL.split(',').map(Number)) {
     await page.evaluate((T) => { window.__T = T; }, T);
     await settle(4);
-    await page.evaluate(() => { document.querySelector('main').style.visibility = 'hidden'; document.querySelector('.scrim').style.visibility = 'hidden'; });
+    await page.evaluate(() => { document.querySelector('main').style.visibility = 'hidden'; });
     await settle(1);
     await page.screenshot({ path: `${out}/t-${T}.png` });
-    await page.evaluate(() => { document.querySelector('main').style.visibility = ''; document.querySelector('.scrim').style.visibility = ''; });
+    await page.evaluate(() => { document.querySelector('main').style.visibility = ''; });
   }
 }
 const info = await page.evaluate(() => ({ calls: window.__world.renderer.info.render.calls, tris: window.__world.renderer.info.render.triangles, h: document.documentElement.scrollHeight, vh: innerHeight }));

@@ -85,7 +85,7 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
     [-12.4, FL, -2.0], [12.4, FL, -2.0],
   ];
   const F = L.fence;
-  const ground = [[-4.4, 0.25, 5.4], [-9.6, 0.25, 4.0], [-14.6, 0.25, 5.6], [-12.2, 0.25, 2.2], [-3.0, 0.25, 6.6], [4.6, 0.25, F - 1.3], [10.4, 0.25, F - 1.4], [15.5, 0.25, F - 1.8], [-16.5, 0.24, -6], [16.4, 0.24, -5], [-9.8, 0.25, 8.4]];
+  const ground = [[-4.4, 0.25, 5.4], [-9.6, 0.25, 4.0], [-14.6, 0.25, 5.6], [-12.2, 0.25, 2.2], [10.4, 0.25, F - 1.4], [15.5, 0.25, F - 1.8], [-16.5, 0.24, -6], [16.4, 0.24, -5], [-9.8, 0.25, 8.4]];
   const potM = [], canes = [], arecaM = [];
   const areca = (x, y, z, s) => {
     const nC = 3;
@@ -103,7 +103,6 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
   out.pots = potted;
   for (const [x, y, z] of ground) areca(x, y, z, 1.0);
   // macetas con pasto alto en el portón
-  for (const s of [-1, 1]) potM.push(mat4(s * 3.2, 0.25, F - 0.7, 0, 0.95));
   root.add(instanced(potGeometry(0.44, 0.78), M.maceta, potM));
   const caneMesh = new THREE.Mesh(mergeGeometries(canes.map(clean)), M.capitel);
   caneMesh.castShadow = true; root.add(caneMesh);
@@ -150,7 +149,7 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
     const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
     return Math.hypot(x - (ax + t * dx), z - (az + t * dz));
   };
-  const free = (x, z) => Math.abs(x) > 1.75 && !(Math.abs(x) < 2.3 && z < 3.2) && segDist(x, z, -2.6, 10.9, -0.6, 6.6) > 1.25;
+  const free = (x, z) => Math.abs(x) > 1.75 && !(Math.abs(x) < 2.3 && z < 3.2) && segDist(x, z, -2.6, 10.9, -0.6, 6.6) > 1.25 && segDist(x, z, 6.8, 11.0, 0.8, 4.6) > 1.3;
   for (let i = 0; i < 170 * quality; i++) {
     const x = -17.2 + r() * 15.2, z = 1.8 + r() * (F - 2.2);
     if (free(x, z)) tufts.push(mat4(x, 0.25, z, r() * PI, 0.7 + r() * 0.5));
@@ -160,7 +159,6 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
     if (free(x, z)) tufts.push(mat4(x, 0.25, z, r() * PI, 0.7 + r() * 0.45));
   }
   for (let x = 2.4; x < 12.8; x += 0.85 + r() * 0.4) tufts.push(mat4(x, 0.24, 1.85 + r() * 0.3, r() * PI, 0.75 + r() * 0.3));
-  for (const s of [-1, 1]) for (let k = 0; k < 3; k++) tufts.push(mat4(s * 3.2 + (r() - 0.5) * 0.2, 0.96, F - 0.7 + (r() - 0.5) * 0.2, r() * PI, 1.25));
   // borde de pasto a lo largo del andador
   for (let z = 3.4; z < F - 0.6; z += 0.55 + r() * 0.25) for (const s of [-1, 1]) tufts.push(mat4(s * (1.55 + r() * 0.15), 0.25, z, r() * PI, 0.55 + r() * 0.2));
   const tuftIm = instanced(crossedPlanes(0.85, 0.95), M.pastoMata, tufts, { cast: true, receive: false });

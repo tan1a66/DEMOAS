@@ -155,6 +155,12 @@ export class World {
     this._applyProjection();
   }
 
+  setShift(s) {
+    if (Math.abs(s.x - this.shift.x) < 1e-4 && Math.abs(s.y - this.shift.y) < 1e-4) return;
+    this.shift = { x: s.x, y: s.y };
+    this._applyProjection();
+  }
+
   _applyProjection() {
     const c = this.camera;
     c.updateProjectionMatrix();

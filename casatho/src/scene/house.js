@@ -90,14 +90,16 @@ export function buildHouse(root, M) {
   M.enfrente1 = new THREE.MeshLambertMaterial({ color: '#efe4d2' });
   M.enfrente2 = new THREE.MeshLambertMaterial({ color: '#e9ddd0' });
   M.enfrente3 = new THREE.MeshLambertMaterial({ color: '#f1ece2' });
+  M.guarnicion = new THREE.MeshLambertMaterial({ color: '#a89c8d' });
+  M.bronce = new THREE.MeshLambertMaterial({ color: '#5b544b' });
 
   /* ---------------- Paseo de Montejo ---------------- */
   const [s0, s1] = L.sidewalk;
   add('adoquin', slab(-80, 0, s0, 80, 0.15, s1, 2));
-  add('banqueta', boxFromTo(-80, 0, s1, 80, 0.17, s1 + 0.18));
+  add('guarnicion', boxFromTo(-80, 0, s1, 80, 0.16, s1 + 0.18));
   add('asfalto', floor(-80, L.road[0], 80, L.road[1], 0.0, 4));
   const A = L.across;
-  add('banqueta', boxFromTo(-80, 0, A - 0.15, 80, 0.17, A + 0.05));
+  add('guarnicion', boxFromTo(-80, 0, A - 0.15, 80, 0.16, A + 0.05));
   add('adoquin', slab(-80, 0, A + 0.05, 80, 0.15, A + 5.5, 2));
   // casas de enfrente: volúmenes suaves con cornisa
   const across = [[-46, -33, 7.2, 1], [-31, -19, 6.4, 2], [-17, -6, 7.6, 3], [-4, 8, 6.8, 1], [10, 22, 7.4, 2], [24, 37, 6.6, 3], [39, 52, 7.0, 1]];
@@ -111,7 +113,7 @@ export function buildHouse(root, M) {
     const tz = L.streetTrees;
     add('grava', floor(x - 0.7, tz - 0.7, x + 0.7, tz + 0.7, 0.152, 1.4));
     for (const [a, c, d, e] of [[-0.7, -0.72, 0.7, -0.68], [-0.7, 0.68, 0.7, 0.72], [-0.72, -0.72, -0.68, 0.72], [0.68, -0.72, 0.72, 0.72]]) {
-      add('hierroOscuro', boxFromTo(x + a, 0.15, tz + c, x + d, 0.3, tz + e));
+      add('bronce', boxFromTo(x + a, 0.15, tz + c, x + d, 0.22, tz + e));
     }
   }
 

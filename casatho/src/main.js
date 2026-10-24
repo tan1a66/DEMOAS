@@ -28,7 +28,6 @@ const loader = $('#loader');
 const bar = $('#loader-bar');
 const mark = $('#loader-mark');
 const veil = $('#veil');
-const scrim = $('#scrim');
 const dots = [...document.querySelectorAll('.dots button')];
 
 const progress = (p) => { bar.style.width = `${Math.round(p * 100)}%`; };
@@ -114,6 +113,13 @@ async function boot() {
   // ---- tamaño y encuadre (lente descentrada: la casa arriba, el texto abajo) ----
   const canvas = $('#gl');
   let lastW = 0, lastH = 0;
+  let baseShift = { x: 0, y: 0 }, heroShift = { x: 0, y: 0 };
+  let Ts;
+  const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  function shiftAt(T) {
+    const w = 1 - smoothstep(0.5, 1.45, T);
+    return { x: baseShift.x + (heroShift.x - baseShift.x) * w, y: baseShift.y + (heroShift.y - baseShift.y) * w };
+  }
   function resize(force = false) {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     const nowCine = phoneQuery.matches;
@@ -128,9 +134,10 @@ async function boot() {
     if (!force && w === lastW && Math.abs(h - lastH) < 120) return;
     lastW = w; lastH = h;
     const aspect = w / h;
-    let shift = aspect < 0.8 ? { x: 0, y: 0.3 } : aspect < 1.25 ? { x: 0.08, y: 0.18 } : { x: 0.24, y: 0.06 };
-    if (params.has('og')) shift = { x: 0, y: -0.02 };
-    world.resize(w, h, shift);
+    baseShift = aspect < 0.8 ? { x: 0, y: 0.3 } : aspect < 1.25 ? { x: 0.08, y: 0.18 } : { x: 0.24, y: 0.06 };
+    heroShift = aspect < 0.8 ? { x: 0, y: -0.27 } : aspect < 1.25 ? { x: 0.04, y: -0.14 } : { x: 0.12, y: -0.16 };
+    if (params.has('og')) baseShift = heroShift = { x: 0.08, y: -0.08 };
+    world.resize(w, h, shiftAt(Ts ?? 0));
     rec.measure();
   }
   resize(true);
@@ -143,17 +150,17 @@ async function boot() {
   const cam = world.camera;
   const pos = new THREE.Vector3(), dir = new THREE.Vector3(), look = new THREE.Vector3();
   const smoothDir = new THREE.Vector3(0, 0, -1);
-  // Inicio de la intro: en el teléfono la cámara entra por el portón de la reja (curva),
-  // en escritorio retrocede 4 m por la calle.
+  // Inicio de la intro: la cámara entra por el portón de la reja y gira hacia el jardín (curva).
   const intro = { k: reduced || CAPTURE ? 1 : 0, open: 0, gate: 0 };
   const introStart = new THREE.Vector3(), introCtrl = new THREE.Vector3();
   function setIntroPath() {
     rec.pose(0, pos, dir);
     if (cine) { introStart.set(0, 2.2, 14.6); introCtrl.set(0, 2.0, 10.8); }
-    else { introStart.copy(pos).add(new THREE.Vector3(0, 0.3, 4.2)); introCtrl.copy(pos).lerp(introStart, 0.5); }
+    else { introStart.set(0, 2.2, 15.4); introCtrl.set(0, 2.0, 9.2); }
   }
   setIntroPath();
-  let Ts = rec.timelineFromScroll(window.scrollY, innerHeight);
+  Ts = rec.timelineFromScroll(window.scrollY, innerHeight);
+  world.setShift(shiftAt(Ts));
   let lastStop = -1;
 
   function place(T, snap, dt = 0.016) {
@@ -180,11 +187,7 @@ async function boot() {
       if (on) active = el;
       if (el.classList.contains('show') !== on) el.classList.toggle('show', on);
     }
-    if (active !== shownCap) {
-      shownCap = active;
-      html.classList.toggle('has-cap', !!active);
-      if (active) scrim.style.setProperty('--scrim-h', `${Math.min(innerHeight * 0.92, active.offsetHeight + 200)}px`);
-    }
+    shownCap = active;
   }
 
   // primer cuadro y compilación de shaders antes de quitar el loader
@@ -266,9 +269,10 @@ async function boot() {
       setTimeout(() => veil.classList.remove('on'), 260);
     }
     lastStop = stop;
+    world.setShift(shiftAt(Ts));
     place(Ts, false, dt);
     if (world.curtain.group.visible) world.curtain.update(time, intro.open);
-    world.gateOverride = cine ? (intro.k < 1 ? intro.gate : 1) : 0;
+    world.gateOverride = intro.k < 1 ? intro.gate : 1;
     world.update(time, rec.state(Ts));
     world.render();
     syncCaptions(Ts);
