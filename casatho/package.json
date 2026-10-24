@@ -1,0 +1,24 @@
+{
+  "name": "casatho-recorrido",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Casa T'HŌ — Recorrido: demo de sitio 3D (concepto de Alessia Studio).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "shots": "node scripts/shots.mjs",
+    "og": "node scripts/og.mjs",
+    "zip": "vite build && cd dist && zip -qr ../casatho-recorrido.zip . && cd .. && ls -la casatho-recorrido.zip"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.2.0",
+    "@fontsource/jost": "^5.2.0",
+    "gsap": "^3.12.5",
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

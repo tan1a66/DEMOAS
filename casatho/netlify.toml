@@ -1,0 +1,9 @@
+# Casa T'HŌ — Recorrido (demo). Si se conecta el repositorio en Netlify:
+#   Base directory: casatho · Build command: npm run build · Publish directory: dist
+# Si se sube la carpeta dist a mano (Netlify Drop), los encabezados vienen en dist/_headers.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"

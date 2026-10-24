@@ -1,0 +1,21 @@
+// Revisa la versión sin WebGL (?nowebgl) y con movimiento reducido (?reduced).
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { chromium } = require('playwright');
+const out = process.argv[2];
+const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+const errs = []; page.on('pageerror', (e) => errs.push(e.message));
+await page.goto('http://127.0.0.1:5180/?nowebgl', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(2500);
+await page.screenshot({ path: `${out}/nowebgl-top.png` });
+await page.screenshot({ path: `${out}/nowebgl-full.png`, fullPage: true });
+const p2 = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+p2.on('pageerror', (e) => errs.push(e.message));
+await p2.goto('http://127.0.0.1:5180/', { waitUntil: 'domcontentloaded' });
+await p2.waitForFunction(() => !document.getElementById('loader'), null, { timeout: 120000 });
+await p2.evaluate(() => window.scrollTo(0, innerHeight * 3.2));
+await p2.waitForTimeout(3000);
+await p2.screenshot({ path: `${out}/reduced.png` });
+console.log(errs.join('\n') || 'no errors');
+await browser.close();
