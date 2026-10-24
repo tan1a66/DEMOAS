@@ -96,28 +96,30 @@ export function buildHouse(root, M) {
   add('adoquin', slab(-80, 0, s0, 80, 0.15, s1, 2));
   add('banqueta', boxFromTo(-80, 0, s1, 80, 0.17, s1 + 0.18));
   add('asfalto', floor(-80, L.road[0], 80, L.road[1], 0.0, 4));
-  add('banqueta', boxFromTo(-80, 0, 25.85, 80, 0.17, 26.05));
-  add('adoquin', slab(-80, 0, 26.05, 80, 0.15, 31.5, 2));
+  const A = L.across;
+  add('banqueta', boxFromTo(-80, 0, A - 0.15, 80, 0.17, A + 0.05));
+  add('adoquin', slab(-80, 0, A + 0.05, 80, 0.15, A + 5.5, 2));
   // casas de enfrente: volúmenes suaves con cornisa
   const across = [[-46, -33, 7.2, 1], [-31, -19, 6.4, 2], [-17, -6, 7.6, 3], [-4, 8, 6.8, 1], [10, 22, 7.4, 2], [24, 37, 6.6, 3], [39, 52, 7.0, 1]];
   for (const [x0, x1, h, c] of across) {
-    add('enfrente' + c, boxFromTo(x0, 0, 33, x1, h, 42));
-    add('moldura', boxFromTo(x0 - 0.15, h - 0.4, 32.8, x1 + 0.15, h - 0.1, 33.2));
-    for (let x = x0 + 1.6; x < x1 - 1; x += 3.2) add('interior', place(new THREE.PlaneGeometry(1.1, 2.6), x, 2.3, 32.98, PI));
+    add('enfrente' + c, boxFromTo(x0, 0, A + 7, x1, h, A + 16));
+    add('moldura', boxFromTo(x0 - 0.15, h - 0.4, A + 6.8, x1 + 0.15, h - 0.1, A + 7.2));
+    for (let x = x0 + 1.6; x < x1 - 1; x += 3.2) add('interior', place(new THREE.PlaneGeometry(1.1, 2.6), x, 2.3, A + 6.98, PI));
   }
   // alcorques de los almendros de la banqueta
   for (const x of [-6.0, 6.4, -18.0, 18.6, -30, 31]) {
-    add('grava', floor(x - 0.7, 9.9, x + 0.7, 11.3, 0.152, 1.4));
-    for (const [a, c, d, e] of [[-0.7, 9.88, 0.7, 9.92], [-0.7, 11.28, 0.7, 11.32], [-0.72, 9.88, -0.68, 11.32], [0.68, 9.88, 0.72, 11.32]]) {
-      add('hierroOscuro', boxFromTo(x + a, 0.15, c, x + d, 0.3, e));
+    const tz = L.streetTrees;
+    add('grava', floor(x - 0.7, tz - 0.7, x + 0.7, tz + 0.7, 0.152, 1.4));
+    for (const [a, c, d, e] of [[-0.7, -0.72, 0.7, -0.68], [-0.7, 0.68, 0.7, 0.72], [-0.72, -0.72, -0.68, 0.72], [0.68, -0.72, 0.72, 0.72]]) {
+      add('hierroOscuro', boxFromTo(x + a, 0.15, tz + c, x + d, 0.3, tz + e));
     }
   }
 
   /* ---------------- Jardín y reja ---------------- */
   const F = L.fence;
-  add('tierra', slab(-18, 0, L.porchFront, -1.3, 0.25, F - 0.16, 2));
-  add('tierra', slab(1.3, 0, 5.4, 18, 0.25, F - 0.16, 2));
-  add('pasto', slab(1.3, 0, L.porchFront, 18, 0.24, 5.4, 3));
+  add('pasto', slab(-18, 0, L.porchFront, -1.3, 0.25, F - 0.16, 3));
+  add('tierra', slab(1.3, 0, F - 2.4, 18, 0.25, F - 0.16, 2));
+  add('pasto', slab(1.3, 0, L.porchFront, 18, 0.24, F - 2.4, 3));
   add('piedra', slab(-1.3, 0, 2.9, 1.3, 0.2, F + 0.2, 2.4));
   // patios laterales
   add('pasto', slab(-24, 0, -32, -13.2, 0.24, L.porchFront, 3));
@@ -259,14 +261,16 @@ export function buildHouse(root, M) {
   const leafR = leafGeometry(lw, lh);
   leafR.frame.translate(-lw, 0, 0); leafR.panel.translate(-lw, 0, 0);
   M.puertaTablero = new THREE.MeshLambertMaterial({ color: '#e6d9b9' });
+  M.laton = new THREE.MeshStandardMaterial({ color: '#b08d57', roughness: 0.35, metalness: 0.8 });
   const handle = (x) => mergeGeometries([
-    place(new THREE.BoxGeometry(0.05, 0.32, 0.05), x, 1.55, 0.09),
-    place(new THREE.BoxGeometry(0.05, 0.32, 0.05), x, 1.55, -0.09),
+    place(new THREE.SphereGeometry(0.035, 10, 8), x, 1.5, 0.08),
+    place(new THREE.SphereGeometry(0.035, 10, 8), x, 1.5, -0.08),
+    place(new THREE.BoxGeometry(0.03, 0.16, 0.012), x, 1.5, 0.052),
   ].map(clean));
   const doorL = new THREE.Group(); doorL.position.set(-1.3, FL, W - 0.2);
   const doorR = new THREE.Group(); doorR.position.set(1.3, FL, W - 0.2);
   for (const [grp, geo, hx] of [[doorL, leafL, lw - 0.12], [doorR, leafR, -lw + 0.12]]) {
-    for (const [g, mat] of [[geo.frame, M.puerta], [geo.panel, M.puertaTablero], [handle(hx), M.hierroOscuro]]) {
+    for (const [g, mat] of [[geo.frame, M.puerta], [geo.panel, M.puertaTablero], [handle(hx), M.laton]]) {
       const mesh = new THREE.Mesh(g, mat); mesh.castShadow = true; mesh.receiveShadow = true;
       grp.add(mesh);
     }
@@ -307,8 +311,8 @@ export function buildHouse(root, M) {
   // plataformas de los portales (escalón hacia la grava)
   add('piedra', boxFromTo(LX, GR - 0.3, AZ - 0.36, RX, FL, ze));
   add('piedra', boxFromTo(LX, GR - 0.3, BZ, AX + 0.36, FL, AZ - 0.36));
-  add('marmol', floor(LX, AZ - 0.36, RX, ze, FL + 0.003, 1.6));
-  add('marmol', floor(LX, BZ, AX + 0.36, AZ - 0.36, FL + 0.003, 1.6));
+  add('marmolSombra', floor(LX, AZ - 0.36, RX, ze, FL + 0.003, 1.6));
+  add('marmolSombra', floor(LX, BZ, AX + 0.36, AZ - 0.36, FL + 0.003, 1.6));
   add('grava', floor(AX + 0.36, BZ, RX, AZ - 0.36, GR, 3));
   // columnas de los portales sobre pedestal
   const arcCol = ionicColumn(3.3, 0.21);

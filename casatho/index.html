@@ -27,8 +27,9 @@
   </head>
   <body>
     <canvas id="gl" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="scrim" id="scrim" aria-hidden="true"></div>
     <div id="veil" aria-hidden="true"></div>
-    <div class="scrim" aria-hidden="true"></div>
 
     <header class="bar" id="bar">
       <a class="brand" href="#paseo" data-go="0" aria-label="Casa T'HŌ, inicio">CASA T'HŌ</a>
@@ -40,11 +41,9 @@
         <a href="#salida" data-go="6">Visítanos</a>
       </nav>
       <div class="bar-cta">
-        <a class="icon-btn" href="#salida" data-go="6" aria-label="Cómo llegar">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>
-        </a>
-        <a class="pill pill-line" href="https://www.casatho.com/cotizacion" target="_blank" rel="noopener">Cotizar evento</a>
-        <a class="pill pill-solid only-desktop" href="https://wa.link/215mdw" target="_blank" rel="noopener">Reservar</a>
+        <a class="pill pill-line only-desktop" href="https://www.casatho.com/cotizacion" target="_blank" rel="noopener">Cotizar evento</a>
+        <a class="pill pill-solid pill-reservar" href="https://wa.link/215mdw" target="_blank" rel="noopener" aria-label="Reservar por WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg><span>Reservar</span></a>
+        <button class="menu-btn" id="menu-btn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
       </div>
     </header>
 
@@ -58,22 +57,38 @@
       <button type="button" data-go="6" aria-label="Visítanos"><i></i><span>Visítanos</span></button>
     </nav>
 
-    <a class="wa-fab" id="wa-fab" href="https://wa.link/215mdw" target="_blank" rel="noopener" aria-label="Reservar por WhatsApp">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg>
-      <span>Reservar</span>
-    </a>
+    <div class="menu" id="menu" aria-hidden="true">
+      <div class="menu-inner">
+        <p class="kicker">Recorrido</p>
+        <ol class="menu-stops">
+          <li><a href="#paseo" data-go="0"><span>01</span>Paseo de Montejo</a></li>
+          <li><a href="#porton" data-go="1"><span>02</span>El portón</a></li>
+          <li><a href="#patio" data-go="2"><span>03</span>El patio</a></li>
+          <li><a href="#boutiques" data-go="3"><span>04</span>Boutiques</a></li>
+          <li><a href="#aperitivo" data-go="4"><span>05</span>T'HŌ Aperitivo</a></li>
+          <li><a href="#eventos" data-go="5"><span>06</span>Eventos</a></li>
+          <li><a href="#salida" data-go="6"><span>07</span>Visítanos</a></li>
+        </ol>
+        <div class="menu-actions">
+          <a class="pill pill-solid" href="https://wa.link/215mdw" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z"/></svg>Reservar por WhatsApp</a>
+          <a class="pill pill-line" href="https://www.casatho.com/cotizacion" target="_blank" rel="noopener">Cotizar evento</a>
+          <a class="pill pill-line" href="https://www.google.com/maps/search/?api=1&amp;query=Casa+T%27H%C5%8C+Paseo+de+Montejo+498+M%C3%A9rida" target="_blank" rel="noopener">Cómo llegar</a>
+        </div>
+        <p class="menu-foot">Paseo de Montejo 498, Centro, Mérida · <a href="tel:+529999232350">999 923 2350</a></p>
+      </div>
+    </div>
 
     <main id="recorrido">
       <!-- 1 · PASEO DE MONTEJO -->
-      <section class="stop stop-hero" id="paseo" data-stop="0">
+      <section class="stop stop-hero" id="paseo" data-stop="0" data-m="0.6">
         <div class="hero">
           <p class="kicker">Paseo de Montejo 498 · Mérida</p>
           <h1>Una casona.<br />Once boutiques.<br /><em>Un patio entre palmeras.</em></h1>
           <p class="lead">Diseño, moda, arte y mesa mexicana en una mansión ecléctica de principios del siglo XX.</p>
-          <div class="actions">
+          <div class="actions only-desktop-flex">
             <a class="pill pill-solid" href="#porton" data-go="1">Entrar a la casa <span aria-hidden="true">↓</span></a>
           </div>
-          <p class="hint" aria-hidden="true"><i></i>Desliza para entrar</p>
+          <div class="scroll-cue" aria-hidden="true"><span class="cue-mouse"><i></i></span><b>Scroll</b><small>para entrar a la casa</small></div>
         </div>
         <article class="card">
           <p class="kicker">Nuestra Casa</p>
@@ -82,20 +97,20 @@
           <p>Le dimos el nombre de <strong>T'HŌ</strong>, el nombre maya original de Mérida, para honrar el lugar al que pertenecemos.</p>
         </article>
       </section>
-      <div class="travel" data-len="1.35"></div>
+      <div class="travel" data-len="1.35" data-m="1.2"></div>
 
       <!-- 2 · EL PORTÓN -->
-      <section class="stop" id="porton" data-stop="1">
+      <section class="stop" id="porton" data-stop="1" data-m="0.8">
         <article class="card card-short">
           <p class="kicker">El zaguán</p>
           <h2><em>Pase usted.</em></h2>
           <p>Detrás del portón, el zaguán: fresco y en penumbra, como en toda casona yucateca. Al fondo, la luz del patio.</p>
         </article>
       </section>
-      <div class="travel" data-len="1.25"></div>
+      <div class="travel" data-len="1.25" data-m="1.0"></div>
 
       <!-- 3 · EL PATIO -->
-      <section class="stop" id="patio" data-stop="2">
+      <section class="stop" id="patio" data-stop="2" data-m="0.7">
         <article class="card">
           <p class="kicker">El patio</p>
           <h2>Todo gira alrededor del patio</h2>
@@ -103,14 +118,14 @@
           <figure class="photo"><img src="/fotos/patio-palmas.jpg" alt="Palmeras reales del patio de Casa T'HŌ frente a los muros blancos" loading="lazy" width="773" height="1100" /></figure>
         </article>
       </section>
-      <div class="travel" data-len="0.95"></div>
+      <div class="travel" data-len="0.95" data-m="0.6"></div>
 
       <!-- 4 · BOUTIQUES -->
-      <section class="stop" id="boutiques" data-stop="3">
+      <section class="stop" id="boutiques" data-stop="3" data-m="0.75">
         <article class="card">
           <p class="kicker">Boutiques</p>
           <h2>Hecho en México, habitación por habitación</h2>
-          <p>Once boutiques de diseño, moda, arte y objetos para la casa, de talentos mexicanos. Trabajamos con artesanos mexicanos, buscando poner en alto el talento mexicano y promoviendo el comercio justo.</p>
+          <p>Once boutiques de diseño, moda, arte y objetos para la casa. Trabajamos con artesanos mexicanos, buscando poner en alto el talento mexicano y promoviendo el comercio justo.</p>
           <div class="strip" role="list">
             <figure role="listitem"><img src="/fotos/puerta-boutique.jpg" alt="Puerta de boutique con vidrios en arco" loading="lazy" width="852" height="1100" /></figure>
             <figure role="listitem"><img src="/fotos/portal-mecedora.jpg" alt="Portal con faroles y mecedora" loading="lazy" width="805" height="1100" /></figure>
@@ -120,14 +135,14 @@
           <p class="meta">Abiertos todos los días · 10:00 – 21:00</p>
         </article>
       </section>
-      <div class="travel" data-len="1.3"></div>
+      <div class="travel" data-len="1.3" data-m="0.95"></div>
 
       <!-- 5 · T'HŌ APERITIVO -->
-      <section class="stop" id="aperitivo" data-stop="4">
+      <section class="stop" id="aperitivo" data-stop="4" data-m="0.85">
         <article class="card">
-          <p class="kicker">T'HŌ Aperitivo</p>
-          <h2>Parte restaurante, parte bar, parte cafetería</h2>
-          <p>Combina la majestuosidad de Paseo de Montejo con la atemporalidad del diseño y la comida mexicana: gastronomía mexicana y mediterránea, café de calidad, refrescantes bebidas y cócteles.</p>
+          <p class="kicker">Restaurante · Bar · Café</p>
+          <h2>T'HŌ Aperitivo</h2>
+          <p>Parte restaurante, parte bar, parte cafetería: gastronomía mexicana y mediterránea, café de calidad, refrescantes bebidas y cócteles bajo los arcos.</p>
           <div class="strip strip-2" role="list">
             <figure role="listitem"><img src="/fotos/portal-mesas.jpg" alt="Mesas de mármol y sillas de mimbre bajo los arcos" loading="lazy" width="585" height="1100" /></figure>
             <figure role="listitem"><img src="/fotos/portal-tarde.jpg" alt="Portal de T'HŌ Aperitivo con faroles encendidos" loading="lazy" width="848" height="1100" /></figure>
@@ -141,26 +156,26 @@
             <li><strong>Música entre Las Palmeras</strong> · viernes y sábado 19:30 · domingo 10:30</li>
             <li><strong>Cine Al Fresco</strong> · funciones en el patio</li>
           </ul>
-          <a class="pill pill-solid pill-wide" href="https://wa.link/215mdw" target="_blank" rel="noopener">Reservar mesa por WhatsApp</a>
+          <a class="pill pill-solid pill-wide" href="https://wa.link/215mdw" target="_blank" rel="noopener">Reservar mesa</a>
         </article>
       </section>
-      <div class="travel" data-len="1.1"></div>
+      <div class="travel" data-len="1.1" data-m="0.7"></div>
 
       <!-- 6 · EVENTOS -->
-      <section class="stop" id="eventos" data-stop="5">
+      <section class="stop" id="eventos" data-stop="5" data-m="0.85">
         <article class="card">
           <p class="kicker">Eventos</p>
           <h2>Elige Casa T'HŌ para tu evento</h2>
           <p>Rentamos nuestros espacios para eventos a la medida: bodas íntimas, cenas privadas, aniversarios y celebraciones.</p>
           <ul class="spaces">
-            <li><span class="cap">20–40 personas</span><strong>Cena entre Las Palmeras</strong><small>Bodas íntimas, cenas de celebración, rehearsal dinners y aniversarios.</small></li>
-            <li><span class="cap">10–40 personas</span><strong>Celebraciones entre Arcos</strong><small>Brunch de novias y cenas privadas.</small></li>
-            <li><span class="cap">10–20 personas</span><strong>Salón Espejo</strong><small>Cenas privadas, wine dinners y bodas civiles.</small></li>
+            <li><span class="pax">20–40 personas</span><strong>Cena entre Las Palmeras</strong><small>Bodas íntimas, cenas de celebración, rehearsal dinners y aniversarios.</small></li>
+            <li><span class="pax">10–40 personas</span><strong>Celebraciones entre Arcos</strong><small>Brunch de novias y cenas privadas.</small></li>
+            <li><span class="pax">10–20 personas</span><strong>Salón Espejo</strong><small>Cenas privadas, wine dinners y bodas civiles.</small></li>
           </ul>
           <a class="pill pill-solid pill-wide" href="https://www.casatho.com/cotizacion" target="_blank" rel="noopener">Solicitar cotización</a>
         </article>
       </section>
-      <div class="travel" data-len="1.2"></div>
+      <div class="travel" data-len="1.2" data-m="0.9"></div>
 
       <!-- 7 · SALIDA -->
       <section class="stop stop-last" id="salida" data-stop="6">

@@ -10,7 +10,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { World } from './scene/world.js';
 import { uniforms } from './scene/materials.js';
-import { Recorrido, STOPS } from './recorrido.js';
+import { Recorrido } from './recorrido.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -19,7 +19,8 @@ const html = document.documentElement;
 const params = new URLSearchParams(location.search);
 const CAPTURE = params.has('capture');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches || params.has('reduced');
-const mobile = matchMedia('(pointer: coarse)').matches || innerWidth < 900;
+const coarse = matchMedia('(pointer: coarse)').matches;
+const phoneQuery = matchMedia('(max-width: 899px)');
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 const $ = (s) => document.querySelector(s);
@@ -27,6 +28,7 @@ const loader = $('#loader');
 const bar = $('#loader-bar');
 const mark = $('#loader-mark');
 const veil = $('#veil');
+const scrim = $('#scrim');
 const dots = [...document.querySelectorAll('.dots button')];
 
 const progress = (p) => { bar.style.width = `${Math.round(p * 100)}%`; };
@@ -42,19 +44,45 @@ function hasWebGL() {
 
 function staticFallback() {
   html.classList.add('no-webgl');
-  html.classList.remove('loading', 'intro');
+  html.classList.remove('loading', 'intro', 'cine');
   loader.remove();
 }
 
-// travesías: alto según la distancia recorrida
-for (const t of document.querySelectorAll('.travel')) {
-  const len = parseFloat(t.dataset.len || '1.2');
-  t.style.height = `${len * 100}vh`;
-  t.style.height = `${len * 100}svh`;
+// ---- menú del teléfono ----
+const menuBtn = $('#menu-btn');
+function setMenu(open) {
+  html.classList.toggle('menu-open', open);
+  menuBtn.setAttribute('aria-expanded', String(open));
+  $('#menu').setAttribute('aria-hidden', String(!open));
 }
+menuBtn.addEventListener('click', () => setMenu(!html.classList.contains('menu-open')));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+// ---- separadores: en el teléfono el texto va fijo y el scroll solo mueve la cámara ----
+function layoutSpacers(cine) {
+  for (const el of document.querySelectorAll('#recorrido > .travel, #recorrido > .stop[data-m]')) {
+    const len = parseFloat((cine ? el.dataset.m : el.dataset.len) || '');
+    if (el.classList.contains('stop') && !cine) { el.style.height = ''; continue; }
+    if (!len) continue;
+    el.style.height = `${len * 100}vh`;
+    el.style.height = `${len * 100}svh`;
+  }
+}
+
+// Textos que en el teléfono aparecen sincronizados con la cámara: [elemento, desde T, hasta T]
+const captions = [
+  [$('#paseo .hero'), -1, 0.9],
+  [$('#paseo .card'), 1.03, 1.6],
+  ...[1, 2, 3, 4, 5].map((i) => [document.querySelector(`.stop[data-stop="${i}"] .card`), 2 * i - 0.3, 2 * i + 1.12]),
+];
 
 async function boot() {
   if (!hasWebGL() || params.has('nowebgl')) return staticFallback();
+  let cine = phoneQuery.matches;
+  html.classList.toggle('cine', cine);
+  for (const [el] of captions) el.classList.toggle('cap', cine);
+  layoutSpacers(cine);
+
   progress(0.12);
   await Promise.race([
     Promise.all([document.fonts.load('400 40px Jost'), document.fonts.load('500 40px "Cormorant Garamond"')]),
@@ -65,7 +93,7 @@ async function boot() {
 
   let world;
   try {
-    world = new World($('#gl'), { mobile });
+    world = new World($('#gl'), { mobile: coarse || cine });
   } catch (e) {
     console.error(e);
     return staticFallback();
@@ -73,17 +101,30 @@ async function boot() {
   progress(0.7);
   await frame();
 
-  const rec = new Recorrido();
-  rec.reduced = reduced;
-  if (reduced) uniforms.uWind.value = 0.25;
   const items = [...document.querySelectorAll('#recorrido > .stop, #recorrido > .travel')];
-  rec.bind(items);
+  let rec;
+  function makeRecorrido() {
+    rec = new Recorrido(cine ? 'cine' : 'desk');
+    rec.reduced = reduced;
+    rec.bind(items);
+  }
+  makeRecorrido();
+  if (reduced) uniforms.uWind.value = 0.25;
 
-  // ---- tamaño y encuadre (lente descentrada: la casa arriba, las tarjetas abajo) ----
+  // ---- tamaño y encuadre (lente descentrada: la casa arriba, el texto abajo) ----
   const canvas = $('#gl');
   let lastW = 0, lastH = 0;
   function resize(force = false) {
     const w = canvas.clientWidth, h = canvas.clientHeight;
+    const nowCine = phoneQuery.matches;
+    if (nowCine !== cine) {
+      cine = nowCine;
+      html.classList.toggle('cine', cine);
+      for (const [el] of captions) el.classList.toggle('cap', cine);
+      layoutSpacers(cine);
+      makeRecorrido();
+      force = true;
+    }
     if (!force && w === lastW && Math.abs(h - lastH) < 120) return;
     lastW = w; lastH = h;
     const aspect = w / h;
@@ -102,14 +143,25 @@ async function boot() {
   const cam = world.camera;
   const pos = new THREE.Vector3(), dir = new THREE.Vector3(), look = new THREE.Vector3();
   const smoothDir = new THREE.Vector3(0, 0, -1);
-  const introFrom = new THREE.Vector3(0, 0.3, 4.2);
-  const intro = { k: reduced || CAPTURE ? 1 : 0 };
+  // Inicio de la intro: en el teléfono la cámara entra por el portón de la reja (curva),
+  // en escritorio retrocede 4 m por la calle.
+  const intro = { k: reduced || CAPTURE ? 1 : 0, open: 0, gate: 0 };
+  const introStart = new THREE.Vector3(), introCtrl = new THREE.Vector3();
+  function setIntroPath() {
+    rec.pose(0, pos, dir);
+    if (cine) { introStart.set(0, 2.2, 14.6); introCtrl.set(0, 2.0, 10.8); }
+    else { introStart.copy(pos).add(new THREE.Vector3(0, 0.3, 4.2)); introCtrl.copy(pos).lerp(introStart, 0.5); }
+  }
+  setIntroPath();
   let Ts = rec.timelineFromScroll(window.scrollY, innerHeight);
-  let lastG = -1;
+  let lastStop = -1;
 
-  function place(G, k, snap, dt = 0.016) {
-    rec.pose(G, pos, dir);
-    if (k < 1) pos.addScaledVector(introFrom, 1 - k);
+  function place(T, snap, dt = 0.016) {
+    rec.pose(T, pos, dir);
+    if (intro.k < 1) {
+      const k = intro.k, a = (1 - k) * (1 - k), b = 2 * (1 - k) * k, c = k * k;
+      pos.set(a * introStart.x + b * introCtrl.x + c * pos.x, a * introStart.y + b * introCtrl.y + c * pos.y, a * introStart.z + b * introCtrl.z + c * pos.z);
+    }
     if (snap || CAPTURE) smoothDir.copy(dir);
     else smoothDir.lerp(dir, 1 - Math.exp(-dt * 14)).normalize();
     cam.position.copy(pos);
@@ -117,9 +169,28 @@ async function boot() {
     cam.lookAt(look);
   }
 
+  // ---- textos sincronizados (teléfono) ----
+  let shownCap = null;
+  function syncCaptions(T) {
+    if (!cine) return;
+    let active = null;
+    const introOn = html.classList.contains('intro');
+    for (const [el, a, b] of captions) {
+      const on = !introOn && T >= a && T < b;
+      if (on) active = el;
+      if (el.classList.contains('show') !== on) el.classList.toggle('show', on);
+    }
+    if (active !== shownCap) {
+      shownCap = active;
+      html.classList.toggle('has-cap', !!active);
+      if (active) scrim.style.setProperty('--scrim-h', `${Math.min(innerHeight * 0.92, active.offsetHeight + 200)}px`);
+    }
+  }
+
   // primer cuadro y compilación de shaders antes de quitar el loader
-  place(rec.G(Ts), intro.k, true);
+  place(Ts, true);
   world.update(0, rec.state(Ts));
+  world.curtain.group.visible = !(reduced || CAPTURE);
   if (world.renderer.compileAsync) await world.renderer.compileAsync(world.scene, cam);
   else world.renderer.compile(world.scene, cam);
   world.render();
@@ -146,6 +217,7 @@ async function boot() {
 
   let jumping = false;
   async function goTo(i) {
+    setMenu(false);
     const y = rec.scrollForStop(i, innerHeight);
     const cur = rec.stopIndex(Ts);
     if (reduced || Math.abs(i - cur) > 1) {
@@ -154,12 +226,12 @@ async function boot() {
       await wait(330);
       window.scrollTo(0, y);
       Ts = rec.timelineFromScroll(y, innerHeight);
-      place(rec.G(Ts), 1, true);
+      place(Ts, true);
       await frame();
       veil.classList.remove('on');
       jumping = false;
     } else {
-      gsap.to(window, { scrollTo: { y, autoKill: true }, duration: 1.5, ease: 'power2.inOut' });
+      gsap.to(window, { scrollTo: { y, autoKill: true }, duration: 1.4, ease: 'power2.inOut' });
     }
   }
   document.addEventListener('click', (e) => {
@@ -168,6 +240,12 @@ async function boot() {
     e.preventDefault();
     goTo(+a.dataset.go);
   });
+
+  // escritorio: las tarjetas entran al llegar a su parada
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) if (en.isIntersecting) en.target.classList.add('in');
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.card').forEach((c) => io.observe(c));
 
   // ---- bucle ----
   let last = performance.now(), time = 0;
@@ -181,17 +259,20 @@ async function boot() {
     const target = rec.timelineFromScroll(window.scrollY, innerHeight);
     if (CAPTURE) Ts = window.__T ?? target;
     else if (reduced || jumping) Ts = target;
-    else Ts += (target - Ts) * (1 - Math.exp(-dt * 5.2));
-    const G = rec.G(Ts);
-    if (reduced && lastG >= 0 && Math.round(G) !== Math.round(lastG)) {
+    else Ts += (target - Ts) * (1 - Math.exp(-dt * 8.5));
+    const stop = rec.stopIndex(Ts);
+    if (reduced && lastStop >= 0 && stop !== lastStop) {
       veil.classList.add('on');
       setTimeout(() => veil.classList.remove('on'), 260);
     }
-    lastG = G;
-    place(G, intro.k, false, dt);
+    lastStop = stop;
+    place(Ts, false, dt);
+    if (world.curtain.group.visible) world.curtain.update(time, intro.open);
+    world.gateOverride = cine ? (intro.k < 1 ? intro.gate : 1) : 0;
     world.update(time, rec.state(Ts));
     world.render();
-    setActive(rec.stopIndex(Ts));
+    syncCaptions(Ts);
+    setActive(stop);
 
     // calidad adaptativa: si el teléfono sufre, baja la resolución
     acc += dt; frames++; dprCheck += dt;
@@ -226,24 +307,33 @@ async function boot() {
 
   function staticIntroEnd() {
     world.M.letrero.opacity = 1;
+    intro.gate = 1;
     html.classList.remove('loading', 'intro');
     loader.remove();
+    world.curtain.dispose();
   }
 
-  // ---- intro: hojas que se abren + logo que se posa en la fachada ----
+  // ---- intro: ramas de almendro que se abren + logo que se posa en la fachada ----
   function runIntro() {
     html.classList.add('intro');
     html.classList.remove('loading');
-    const { curtain, curtainLeaves } = world.plants;
-    curtain.visible = true;
     world.M.letrero.opacity = 0;
 
+    // las ramas se colocan frente a la cámara inicial
+    setIntroPath();
+    rec.pose(Ts, pos, dir);
+    const startPos = introStart.clone();
+    const startCam = new THREE.Object3D();
+    startCam.position.copy(startPos);
+    startCam.lookAt(startPos.clone().sub(dir));
+    world.curtain.group.position.copy(startPos);
+    world.curtain.group.quaternion.copy(startCam.quaternion);
+    world.curtain.group.visible = true;
+
     // dónde queda el letrero 3D al final del movimiento
-    const end = new THREE.Vector3(), endDir = new THREE.Vector3();
-    rec.pose(rec.G(Ts), end, endDir);
     const probe = cam.clone();
-    probe.position.copy(end);
-    probe.lookAt(end.clone().add(endDir));
+    probe.position.copy(pos);
+    probe.lookAt(pos.clone().add(dir));
     probe.updateMatrixWorld();
     probe.projectionMatrix.copy(cam.projectionMatrix);
     const sign = world.house.sign;
@@ -263,25 +353,18 @@ async function boot() {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        curtain.visible = false;
         loader.remove();
+        world.curtain.dispose();
       },
     });
-    tl.add(() => loader.classList.add('clear'), 0.15);
-    tl.to(intro, { k: 1, duration: 3.4, ease: 'power2.inOut' }, 0);
-    curtainLeaves.forEach((leaf, i) => {
-      const side = leaf.userData.side;
-      tl.to(leaf.position, {
-        x: leaf.userData.base.x + side * (3.6 + (i % 4) * 0.5),
-        y: leaf.userData.base.y + 0.9 + (i % 3) * 0.4,
-        duration: 2.4, ease: 'power2.inOut',
-      }, 0.25 + (i % 6) * 0.05);
-      tl.to(leaf.rotation, { z: leaf.rotation.z + side * 0.9, duration: 2.4, ease: 'power2.inOut' }, 0.25);
-    });
-    tl.to(mark, { x: dx, y: dy, scale, duration: 3.3, ease: 'power2.inOut' }, 0.1);
-    tl.to(world.M.letrero, { opacity: 1, duration: 0.5, ease: 'none' }, 3.25);
-    tl.to(mark, { opacity: 0, duration: 0.5, ease: 'none' }, 3.3);
-    tl.add(() => html.classList.remove('intro'), 2.7);
+    tl.add(() => loader.classList.add('clear'), 0.1);
+    tl.to(intro, { k: 1, duration: 3.6, ease: 'power2.inOut' }, 0);
+    tl.to(intro, { open: 1, duration: 2.0, ease: 'power1.inOut' }, 0.45);
+    tl.to(intro, { gate: 1, duration: 1.7, ease: 'power2.inOut' }, 0.5);
+    tl.to(mark, { x: dx, y: dy, scale, duration: 3.4, ease: 'power2.inOut' }, 0.15);
+    tl.to(world.M.letrero, { opacity: 1, duration: 0.5, ease: 'none' }, 3.4);
+    tl.to(mark, { opacity: 0, duration: 0.5, ease: 'none' }, 3.45);
+    tl.add(() => html.classList.remove('intro'), 2.9);
 
     if (params.has('introtest')) { tl.pause(); window.__introTL = tl; window.__ready = true; return; }
     const skip = () => { if (tl.isActive()) tl.timeScale(4); };

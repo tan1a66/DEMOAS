@@ -84,7 +84,8 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
     [-12.0, FL, -10.6], [9.0, FL, -10.6], [-8.2, GR, -14.3], [8.9, GR, -14.2],
     [-12.4, FL, -2.0], [12.4, FL, -2.0],
   ];
-  const ground = [[-4.4, 0.25, 5.4], [-9.6, 0.25, 4.0], [-14.6, 0.25, 5.6], [-12.2, 0.25, 2.2], [4.6, 0.25, 6.7], [10.4, 0.25, 6.6], [15.5, 0.25, 6.2], [-16.5, 0.24, -6], [16.4, 0.24, -5]];
+  const F = L.fence;
+  const ground = [[-4.4, 0.25, 5.4], [-9.6, 0.25, 4.0], [-14.6, 0.25, 5.6], [-12.2, 0.25, 2.2], [-3.0, 0.25, 6.6], [4.6, 0.25, F - 1.3], [10.4, 0.25, F - 1.4], [15.5, 0.25, F - 1.8], [-16.5, 0.24, -6], [16.4, 0.24, -5], [-9.8, 0.25, 8.4]];
   const potM = [], canes = [], arecaM = [];
   const areca = (x, y, z, s) => {
     const nC = 3;
@@ -99,9 +100,10 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
     }
   };
   for (const [x, y, z] of potted) { potM.push(mat4(x, y, z, 0, 1)); areca(x, y + 0.7, z, 1.15); }
+  out.pots = potted;
   for (const [x, y, z] of ground) areca(x, y, z, 1.0);
   // macetas con pasto alto en el portón
-  for (const s of [-1, 1]) potM.push(mat4(s * 2.62, 0.25, 7.3, 0, 0.95));
+  for (const s of [-1, 1]) potM.push(mat4(s * 3.2, 0.25, F - 0.7, 0, 0.95));
   root.add(instanced(potGeometry(0.44, 0.78), M.maceta, potM));
   const caneMesh = new THREE.Mesh(mergeGeometries(canes.map(clean)), M.capitel);
   caneMesh.castShadow = true; root.add(caneMesh);
@@ -111,8 +113,8 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
 
   /* ---------- Almendros ---------- */
   const trees = [
-    [-6.0, 0.15, 10.6, 1.05], [6.4, 0.15, 10.6, 1.0], [-18.0, 0.15, 10.6, 0.95], [18.6, 0.15, 10.6, 1.05], [-30, 0.15, 10.6, 1], [31, 0.15, 10.6, 1],
-    [-24, 0.15, 28.8, 1], [-11.5, 0.15, 28.8, 1.1], [5.6, 0.15, 28.8, 0.95], [12.5, 0.15, 28.8, 1.05], [25, 0.15, 28.8, 1],
+    ...[[-6.0, 1.05], [6.4, 1.0], [-18.0, 0.95], [18.6, 1.05], [-30, 1], [31, 1]].map(([x, s]) => [x, 0.15, L.streetTrees, s]),
+    ...[[-24, 1], [-11.5, 1.1], [5.6, 0.95], [12.5, 1.05], [25, 1]].map(([x, s]) => [x, 0.15, L.across + 2.8, s]),
     [-17.5, 0.24, -15, 1.15], [-19.5, 0.24, -26, 1.2], [15.8, 0.24, -19, 1.15], [16.2, 0.24, -30.5, 1.2],
     [-6, 0, -35, 1.25], [6.5, 0, -36, 1.2], [-21.5, 0.24, -3.5, 1.0], [21.5, 0.24, -6, 1.0],
   ];
@@ -143,39 +145,27 @@ export function buildPlants(root, M, { quality = 1 } = {}) {
 
   /* ---------- Matas de pasto ---------- */
   const tufts = [];
-  const free = (x, z) => Math.abs(x) > 1.75 && !(Math.abs(x) < 2.3 && z < 3.2);
-  for (let i = 0; i < 120 * quality; i++) {
-    const x = -17.2 + r() * 15.2, z = 1.8 + r() * 5.8;
+  const segDist = (x, z, ax, az, bx, bz) => {
+    const dx = bx - ax, dz = bz - az;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
+    return Math.hypot(x - (ax + t * dx), z - (az + t * dz));
+  };
+  const free = (x, z) => Math.abs(x) > 1.75 && !(Math.abs(x) < 2.3 && z < 3.2) && segDist(x, z, -2.6, 10.9, -0.6, 6.6) > 1.25;
+  for (let i = 0; i < 170 * quality; i++) {
+    const x = -17.2 + r() * 15.2, z = 1.8 + r() * (F - 2.2);
     if (free(x, z)) tufts.push(mat4(x, 0.25, z, r() * PI, 0.7 + r() * 0.5));
   }
   for (let i = 0; i < 46 * quality; i++) {
-    const x = 1.9 + r() * 15.5, z = 5.6 + r() * 2.0;
+    const x = 1.9 + r() * 15.5, z = F - 2.2 + r() * 2.0;
     if (free(x, z)) tufts.push(mat4(x, 0.25, z, r() * PI, 0.7 + r() * 0.45));
   }
   for (let x = 2.4; x < 12.8; x += 0.85 + r() * 0.4) tufts.push(mat4(x, 0.24, 1.85 + r() * 0.3, r() * PI, 0.75 + r() * 0.3));
-  for (const s of [-1, 1]) for (let k = 0; k < 3; k++) tufts.push(mat4(s * 2.62 + (r() - 0.5) * 0.2, 0.96, 7.3 + (r() - 0.5) * 0.2, r() * PI, 1.25));
+  for (const s of [-1, 1]) for (let k = 0; k < 3; k++) tufts.push(mat4(s * 3.2 + (r() - 0.5) * 0.2, 0.96, F - 0.7 + (r() - 0.5) * 0.2, r() * PI, 1.25));
+  // borde de pasto a lo largo del andador
+  for (let z = 3.4; z < F - 0.6; z += 0.55 + r() * 0.25) for (const s of [-1, 1]) tufts.push(mat4(s * (1.55 + r() * 0.15), 0.25, z, r() * PI, 0.55 + r() * 0.2));
   const tuftIm = instanced(crossedPlanes(0.85, 0.95), M.pastoMata, tufts, { cast: true, receive: false });
   tuftIm.customDepthMaterial = M.pastoMataDepth;
   root.add(tuftIm);
 
-  /* ---------- Cortina de hojas de la intro (delante de la cámara) ---------- */
-  const curtain = new THREE.Group();
-  const leafGeo = new THREE.PlaneGeometry(1, 1);
-  const curtainLeaves = [];
-  for (let i = 0; i < 18; i++) {
-    const side = i % 2 ? 1 : -1;
-    const m = new THREE.Mesh(leafGeo, M.almendro);
-    const bx = side * (0.2 + r() * 2.4), by = 0.9 + r() * 3.0;
-    m.position.set(bx, by, (r() - 0.5) * 1.2);
-    m.rotation.set((r() - 0.5) * 0.8, (r() - 0.5) * 0.8, r() * PI);
-    m.scale.setScalar(1.7 + r() * 1.1);
-    m.userData.base = m.position.clone();
-    m.userData.side = side;
-    curtainLeaves.push(m); curtain.add(m);
-  }
-  curtain.position.set(0, 0, 25.5);
-  curtain.visible = false;
-  root.add(curtain);
-  out.curtain = curtain; out.curtainLeaves = curtainLeaves;
   return out;
 }

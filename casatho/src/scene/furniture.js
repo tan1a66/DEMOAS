@@ -78,6 +78,7 @@ export function buildFurniture(root, M) {
       chairM.push(mat4(x + Math.sin(a) * 0.74, y, z + Math.cos(a) * 0.74, a + PI));
     }
   });
+  out.tables = tables.map(([x, z, y = FL]) => [x, y, z]);
   const t = marbleTable();
   root.add(instanced(wickerChair(), M.mimbre, chairM));
   root.add(instanced(t.top, M.marmolMesa, topM));

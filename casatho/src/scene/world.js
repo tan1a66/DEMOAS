@@ -5,6 +5,8 @@ import { setMaxAnisotropy } from './textures.js';
 import { buildHouse } from './house.js';
 import { buildPlants } from './plants.js';
 import { buildFurniture } from './furniture.js';
+import { buildAO } from './ao.js';
+import { buildCurtain } from './foliage.js';
 
 const SUN_DIR = new THREE.Vector3(0.45, 0.72, 0.53).normalize();
 
@@ -87,15 +89,50 @@ export class World {
     this.scene.add(skyDome());
     this.clouds = [];
 
+    // cielo como luz ambiental para los materiales con brillo (mármol, vidrio, hojas)
+    this.env = this._environment();
+    this.scene.environment = this.env;
+
     const { m } = createMaterials();
     this.M = m;
+    m.marmol.envMapIntensity = 0.22;
+    m.marmol.roughness = 0.5;
+    m.marmolSombra.envMapIntensity = 0.14;
+    m.marmolSombra.roughness = 0.45;
+    m.vidrio.envMapIntensity = 1.1;
     const root = new THREE.Group();
     this.scene.add(root);
     this.house = buildHouse(root, m);
     this.plants = buildPlants(root, m, { quality: mobile ? 0.85 : 1 });
     this.furniture = buildFurniture(root, m);
+    buildAO(root, { pots: this.plants.pots, tables: this.furniture.tables });
+    this.curtain = buildCurtain(this.env);
+    this.scene.add(this.curtain.group);
     this._addClouds();
     this.root = root;
+  }
+
+  _environment() {
+    const envScene = new THREE.Scene();
+    const mat = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: `varying vec3 vD;
+        void main(){
+          float h = vD.y;
+          vec3 sky = mix(vec3(0.86,0.91,0.93), vec3(0.42,0.62,0.84), smoothstep(0.0, 0.7, h));
+          vec3 ground = mix(vec3(0.86,0.82,0.74), vec3(0.62,0.58,0.5), smoothstep(0.0, -0.6, h));
+          vec3 c = h > 0.0 ? sky : ground;
+          float s = max(dot(vD, normalize(vec3(0.45,0.72,0.53))), 0.0);
+          c += vec3(1.0,0.95,0.85) * pow(s, 40.0) * 2.0;
+          gl_FragColor = vec4(c, 1.0);
+        }`,
+    });
+    envScene.add(new THREE.Mesh(new THREE.SphereGeometry(10, 24, 12), mat));
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const tex = pmrem.fromScene(envScene, 0, 0.1, 50).texture;
+    pmrem.dispose();
+    return tex;
   }
 
   _addClouds() {
@@ -153,7 +190,7 @@ export class World {
   update(time, state) {
     uniforms.uTime.value = time;
     if (state) {
-      const g = Math.min(1, Math.max(0, state.gate));
+      const g = Math.min(1, Math.max(0, Math.max(state.gate, this.gateOverride || 0)));
       this.house.gateL.rotation.y = g * 1.72;
       this.house.gateR.rotation.y = -g * 1.72;
       const d = Math.min(1, Math.max(0, state.doors));

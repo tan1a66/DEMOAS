@@ -17,9 +17,11 @@ export const L = {
   leftWall: -12.6,
   rightWall: 9.8,
   backWall: -27.6,
-  fence: 8.0,
-  sidewalk: [8.2, 12.45],
-  road: [12.6, 26],
+  fence: 11.5,
+  sidewalk: [11.7, 15.95],
+  road: [16.1, 29.5],
+  across: 29.5,         // banqueta de enfrente
+  streetTrees: 13.9,    // eje de los almendros de la banqueta
   porchCols: [-12.4, -7.0, -1.85, 1.85, 7.0, 12.4],
   windows: [-9.6, -4.6, 4.6, 9.6],
   frontArcadeCols: [-9.2, -5.6, -2.0, 2.0, 5.6],

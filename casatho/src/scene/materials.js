@@ -58,7 +58,7 @@ export function createMaterials() {
     techo: L({ color: '#e9e4da' }),
     piedra: L({ color: '#ffffff', map: tex.stone }),
     marmol: new THREE.MeshStandardMaterial({ color: '#ffffff', map: tex.marble, roughness: 0.38, metalness: 0 }),
-    marmolSombra: new THREE.MeshStandardMaterial({ color: '#c9c1b4', map: tex.marble, roughness: 0.32, metalness: 0 }),
+    marmolSombra: new THREE.MeshStandardMaterial({ color: '#d2c8b8', map: tex.marble, roughness: 0.32, metalness: 0 }),
     grava: L({ color: '#ffffff', map: tex.gravel }),
     adoquin: L({ color: '#ffffff', map: tex.pavers }),
     asfalto: L({ color: '#ffffff', map: tex.asphalt }),

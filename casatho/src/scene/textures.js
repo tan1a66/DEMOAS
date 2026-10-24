@@ -297,35 +297,97 @@ export function palmFrondTexture({ seed = 21, hue = 'real' } = {}) {
   return toTex(c);
 }
 
-// Racimo de hojas del almendro (Terminalia catappa), con alguna hoja roja.
-export function almendroTexture() {
-  const r = rng(31); const [c, ctx] = cnv(256, 256);
-  const greens = ['#4f7f33', '#5f8f3b', '#43702b', '#6d9c44', '#7aa64c', '#3e6627'];
-  const reds = ['#a8643c', '#b8824a', '#9a6a3a'];
-  const leaf = (x, y, ang, L, col) => {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
-    ctx.fillStyle = col;
+// Hoja de almendro (Terminalia catappa) pintada con detalle: obovada, base en cuña,
+// nervadura central y laterales, brillo ceroso y borde más oscuro. Se dibuja sobre +x.
+export const LEAF_PALETTES = {
+  deep: { base: '#55752b', mid: '#3d6324', tip: '#30541e', sheen: 'rgba(214,236,178,0.42)', edge: 'rgba(22,38,14,0.5)', vein: 'rgba(206,224,160,0.38)', rib: '#c2cd92' },
+  fresh: { base: '#86a23a', mid: '#628f2f', tip: '#4f7d27', sheen: 'rgba(240,252,200,0.45)', edge: 'rgba(34,54,18,0.42)', vein: 'rgba(232,242,186,0.42)', rib: '#d5dc9c' },
+  sun: { base: '#a9ad3f', mid: '#86a03a', tip: '#6c8e31', sheen: 'rgba(255,250,210,0.5)', edge: 'rgba(60,70,20,0.4)', vein: 'rgba(250,246,196,0.45)', rib: '#e6e2a2' },
+  red: { base: '#cf6a33', mid: '#bb452b', tip: '#9e3424', sheen: 'rgba(255,224,186,0.4)', edge: 'rgba(80,20,12,0.45)', vein: 'rgba(255,206,170,0.42)', rib: '#ecb48a' },
+};
+
+export function leafHalfWidth(v) {
+  return 0.3 * Math.pow(Math.sin(Math.PI * Math.min(1, v * 0.93 + 0.05)), 0.75) * (0.26 + 0.74 * Math.pow(v, 0.55));
+}
+
+export function paintLeaf(ctx, cx, cy, ang, L, pal, r) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+  const N = 30;
+  const hw = (v) => L * leafHalfWidth(v);
+  const outline = () => {
     ctx.beginPath(); ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(L * 0.25, -L * 0.18, L * 0.95, -L * 0.34, L, 0);
-    ctx.bezierCurveTo(L * 0.95, L * 0.34, L * 0.25, L * 0.18, 0, 0);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(30,50,20,0.35)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(L * 0.9, 0); ctx.stroke();
-    ctx.restore();
+    for (let i = 1; i <= N; i++) { const v = i / N; ctx.lineTo(v * L, -hw(v) * (1 + Math.sin(v * 40) * 0.006)); }
+    for (let i = N; i >= 0; i--) { const v = i / N; ctx.lineTo(v * L, hw(v) * (1 + Math.cos(v * 37) * 0.006)); }
+    ctx.closePath();
   };
+  outline();
+  const g = ctx.createLinearGradient(0, 0, L, 0);
+  g.addColorStop(0, pal.base); g.addColorStop(0.5, pal.mid); g.addColorStop(1, pal.tip);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.save(); outline(); ctx.clip();
+  // mitades con distinto tono (la hoja está plegada sobre la nervadura)
+  ctx.fillStyle = 'rgba(0,0,0,0.07)'; ctx.fillRect(0, 0, L, L);
+  const sh = ctx.createRadialGradient(L * 0.58, -L * 0.07, 0, L * 0.58, -L * 0.07, L * 0.42);
+  sh.addColorStop(0, pal.sheen); sh.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = sh; ctx.fillRect(0, -L, L, 2 * L);
+  // nervaduras laterales
+  ctx.strokeStyle = pal.vein; ctx.lineCap = 'round';
+  for (let i = 0; i < 10; i++) {
+    const v = 0.1 + i * 0.083, x0 = v * L;
+    ctx.lineWidth = Math.max(0.8, L * (0.0075 - i * 0.0004));
+    for (const sg of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(x0, 0);
+      ctx.quadraticCurveTo(x0 + L * 0.06, sg * hw(v) * 0.5, x0 + L * 0.15, sg * hw(Math.min(1, v + 0.15)) * 0.9);
+      ctx.stroke();
+    }
+  }
+  // textura fina
+  if (r) {
+    for (let i = 0; i < L * 1.4; i++) {
+      ctx.fillStyle = r() < 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+      const x = r() * L, y = (r() - 0.5) * 2 * hw(x / L);
+      ctx.fillRect(x, y, 1 + r() * L * 0.006, 1 + r() * L * 0.006);
+    }
+  }
+  // borde oscuro hacia adentro
+  outline(); ctx.lineWidth = L * 0.035; ctx.strokeStyle = pal.edge; ctx.stroke();
+  ctx.restore();
+  // nervadura central, más gruesa en la base
+  ctx.strokeStyle = pal.rib; ctx.lineCap = 'round';
+  ctx.lineWidth = L * 0.024; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(L * 0.45, 0); ctx.stroke();
+  ctx.lineWidth = L * 0.012; ctx.beginPath(); ctx.moveTo(L * 0.4, 0); ctx.lineTo(L * 0.93, 0); ctx.stroke();
+  ctx.restore();
+}
+
+// Racimo de hojas para las copas de los almendros (hojas en rosetas, alguna roja).
+export function almendroTexture() {
+  const r = rng(31); const [c, ctx] = cnv(512, 512);
+  const pals = [LEAF_PALETTES.deep, LEAF_PALETTES.deep, LEAF_PALETTES.fresh, LEAF_PALETTES.fresh, LEAF_PALETTES.sun];
   const rosette = (cx, cy, n, L) => {
     for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + r() * 0.4;
-      const col = r() < 0.025 ? reds[(r() * reds.length) | 0] : greens[(r() * greens.length) | 0];
-      leaf(cx, cy, a, L * (0.75 + r() * 0.35), col);
+      const a = (i / n) * Math.PI * 2 + r() * 0.5;
+      const pal = r() < 0.04 ? LEAF_PALETTES.red : pals[(r() * pals.length) | 0];
+      paintLeaf(ctx, cx, cy, a, L * (0.72 + r() * 0.38), pal, r);
     }
   };
-  for (let i = 0; i < 7; i++) {
-    const a = r() * Math.PI * 2, d = 20 + r() * 62;
-    rosette(128 + Math.cos(a) * d, 128 + Math.sin(a) * d, 6 + ((r() * 3) | 0), 40);
+  for (let i = 0; i < 8; i++) {
+    const a = r() * Math.PI * 2, d = 50 + r() * 120;
+    rosette(256 + Math.cos(a) * d, 256 + Math.sin(a) * d, 6 + ((r() * 3) | 0), 78);
   }
-  rosette(128, 128, 8, 48);
+  rosette(256, 256, 8, 92);
   return toTex(c);
+}
+
+// Atlas de 4 hojas grandes (verde oscuro, verde fresco, verde al sol, roja) para el
+// primer plano de la intro. Cada celda: 512 x 1024, base abajo y punta arriba.
+export function leafAtlasTexture() {
+  const r = rng(33); const [c, ctx] = cnv(2048, 1024);
+  [LEAF_PALETTES.deep, LEAF_PALETTES.fresh, LEAF_PALETTES.sun, LEAF_PALETTES.red].forEach((pal, i) => {
+    paintLeaf(ctx, i * 512 + 256, 1012, -Math.PI / 2, 996, pal, r);
+  });
+  const t = toTex(c);
+  t.anisotropy = maxAniso;
+  return t;
 }
 
 // Matas de pasto (dianela) del jardín.
