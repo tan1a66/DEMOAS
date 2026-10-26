@@ -110,7 +110,7 @@ pre { font: 400 5.4pt/1.35 ui-monospace, Menlo, monospace; white-space: pre-wrap
       <h2>Cosa fa</h2><p>Branding, direzione creativa e siti web 3D immersivi.</p>
       <h2>In una frase</h2><p>Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y movimiento que cuentan una marca como una visita. Cada scroll es un paso; cada detalle está hecho para quedarse.</p>
       <h2>Lingue</h2><p>Post in <b>spagnolo</b>; se serve, una riga in inglese. Lo studio lavora in spagnolo, italiano, inglese e portoghese.</p>
-      <h2>Contatto</h2><p>alessiapir@icloud.com<br>WhatsApp +39 346 175 8562<br>Profilo Instagram: da aggiungere.</p>
+      <h2>Contatto</h2><p>Solo WhatsApp: +39 346 175 8562<br>(niente email nei post)<br>Profilo Instagram: da aggiungere.</p>
     </div>
     <div>
       <h2>Posizionamento</h2>

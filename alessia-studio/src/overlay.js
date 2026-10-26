@@ -120,8 +120,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       </div>`;
     renderProject();
     const links = [
-      CONTACT_LINKS.email && `<a class="cta primary" href="mailto:${esc(CONTACT_LINKS.email)}">${esc(CONTACT_LINKS.email)}</a>`,
-      `<a class="cta" href="${esc(waHref(T.ui.whatsappMsg))}" target="_blank" rel="noopener">WhatsApp</a>`,
+      `<a class="cta primary" href="${esc(waHref(T.ui.whatsappMsg))}" target="_blank" rel="noopener">${WA_ICON}<span>${esc(T.contact.cta)}</span></a>`,
       CONTACT_LINKS.instagram && `<a class="cta" href="https://instagram.com/${esc(CONTACT_LINKS.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">Instagram</a>`,
     ].filter(Boolean).join('');
     contact.innerHTML = `

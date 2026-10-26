@@ -15,7 +15,7 @@ Serve a chi prepara i post: tutto quello che c'è da sapere sta qui.
   movimiento que cuentan una marca como una visita.
 - **Lingue:** i post in **spagnolo**; se serve, una riga in inglese. Lo studio lavora in spagnolo,
   italiano, inglese e portoghese.
-- **Contatto:** alessiapir@icloud.com · WhatsApp +39 346 175 8562 · profilo Instagram: da aggiungere
+- **Contatto:** solo WhatsApp +39 346 175 8562 (niente email nei post) · profilo Instagram: da aggiungere
 
 ## Colori: solo due
 | | Nome | HEX | RGB | Uso |

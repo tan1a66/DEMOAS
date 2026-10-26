@@ -288,6 +288,7 @@ body { touch-action: manipulation; }
 }
 .cta:hover, .cta:focus-visible { background: var(--ink); color: #3d5f6c; border-color: var(--ink); }
 .cta.primary { background: var(--green); border-color: var(--green); color: #1f3300; }
+.cta svg { width: 18px; height: 18px; flex: none; }
 .cta.primary:hover, .cta.primary:focus-visible { background: #fff; border-color: #fff; color: #1f3300; }
 
 /* 5 · contattaci */

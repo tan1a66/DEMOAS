@@ -31,8 +31,8 @@ basso a destra) e l'invito a scorrere.
 
 ## Contenuti (`src/content.js`)
 Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
-prima bozza. Contatti in `CONTACT_LINKS`: email `alessiapir@icloud.com`, WhatsApp `+39 346 175 8562` (il
-pulsante apre la chat con un messaggio pronto nella lingua scelta).
+prima bozza. Contatti in `CONTACT_LINKS`: solo WhatsApp `+39 346 175 8562`, niente email (il pulsante apre la chat
+con un messaggio pronto nella lingua scelta).
 I progetti sono le 8 demo fatte finora, **senza nomi di clienti, marchi o persone** (non c'è
 l'autorizzazione): ogni bolla ha come titolo la categoria (`projects.items` nelle quattro lingue:
 titolo, tipo, descrizione) e immagini ritagliate dalle scene 3D senza testi, loghi, indirizzi o volti.

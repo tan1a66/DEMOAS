@@ -39,10 +39,10 @@ export const PROJECTS = [
   { id: 'pizzeria' },
 ].map((p) => ({ url: '', image: img(p.id), gallery: shots(p.id), ...p }));
 
-// Contatti (i valori vuoti non vengono mostrati). whatsapp: numero con prefisso internazionale; il
+// Contatti: solo WhatsApp (niente email sul sito). whatsapp: numero con prefisso internazionale; il
 // pulsante WhatsApp è sempre visibile e apre la chat con un messaggio pronto nella lingua scelta.
+// instagram: vuoto = non mostrato.
 export const CONTACT_LINKS = {
-  email: 'alessiapir@icloud.com',
   whatsapp: '+39 346 175 8562',
   instagram: '',
 };
@@ -92,6 +92,7 @@ const TEXT = {
       label: 'Contáctanos',
       title: '¿Tienes un lugar que construir?',
       text: 'Marca, sitio web o contenido: cuéntanos tu proyecto, estés donde estés. Trabajamos en remoto en español, italiano, inglés y portugués.',
+      cta: 'Escríbenos por WhatsApp',
     },
     langLabel: 'Idioma',
     ui: {
@@ -151,6 +152,7 @@ const TEXT = {
       label: 'Contattaci',
       title: 'Hai un luogo da costruire?',
       text: 'Brand, sito o contenuti: raccontaci il progetto, ovunque tu sia. Lavoriamo da remoto in italiano, spagnolo, inglese e portoghese.',
+      cta: 'Scrivici su WhatsApp',
     },
     langLabel: 'Lingua',
     ui: {
@@ -210,6 +212,7 @@ const TEXT = {
       label: 'Contact us',
       title: 'Got a place to build?',
       text: 'Brand, website or content: tell us about your project, wherever you are. We work remotely in English, Spanish, Italian and Portuguese.',
+      cta: 'Message us on WhatsApp',
     },
     langLabel: 'Language',
     ui: {
@@ -269,6 +272,7 @@ const TEXT = {
       label: 'Fale conosco',
       title: 'Tem um lugar para construir?',
       text: 'Marca, site ou conteúdo: conte-nos sobre o seu projeto, onde quer que você esteja. Trabalhamos à distância em português, espanhol, italiano e inglês.',
+      cta: 'Fale conosco no WhatsApp',
     },
     langLabel: 'Idioma',
     ui: {
