@@ -4,6 +4,8 @@ import gsap from 'gsap';
 // quella precedente, e il passaggio tra due soste è un movimento continuo della telecamera.
 // Un gesto vale una sosta: la coda d'inerzia del trackpad non fa saltare la sosta dopo.
 // stops: [{ id, p }] in ordine; units: lunghezza del percorso (durate delle chiavi) per i tempi.
+// Una sosta può avere un passo proprio per il tratto che arriva a lei (pace: secondi per unità,
+// maxDur, ease): il tuffo è più lento e più dolce degli altri passaggi.
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 
@@ -22,15 +24,16 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
     if (i === index && !tween) return;
     const to = stops[i].p;
     const dist = Math.abs(to - state.p) * units;
-    // più lungo il tratto, più tempo; il tuffo dalla terrazza è il passaggio più lungo
-    const duration = clamp(0.8 + dist * 0.011, 1.2, 5.2) * (reducedMotion ? 0.6 : 1);
+    // più lungo il tratto, più tempo; il tratto prende il passo della sosta più avanti tra le due
+    const seg = stops[Math.max(i, index)];
+    const duration = clamp(0.8 + dist * (seg.pace || 0.011), 1.2, seg.maxDur || 5.2) * (reducedMotion ? 0.6 : 1);
     dir = Math.sign(i - index) || dir;
     index = i;
     tween?.kill();
     tween = gsap.to(state, {
       p: to,
       duration,
-      ease: 'power2.inOut',
+      ease: seg.ease || 'power2.inOut',
       onUpdate: () => setProgress(state.p),
       onComplete: () => {
         tween = null;

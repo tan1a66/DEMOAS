@@ -2,7 +2,8 @@
 // viene disegnato in una texture e mostrato da un piccolo canvas WebGL nella stessa posizione.
 // Passando col mouse o col dito il testo si deforma come un liquido (si trascina nella direzione
 // del gesto, con increspature che si allargano) e torna fermo in meno di un secondo.
-// Finché nessuno lo tocca, ogni tanto il titolo fa da sé una piccola onda (un invito a giocarci).
+// Ogni tanto il titolo fa da sé una piccola onda (un invito a giocarci), anche dopo averlo toccato;
+// mentre qualcuno ci gioca, l'onda aspetta.
 // Senza WebGL2 o con "riduci movimento" resta il testo normale.
 
 const MAX_PTS = 16;
@@ -53,7 +54,7 @@ void main() {
   outColor = c;
 }`;
 
-export function createLiquidTitle(section, { onTouch } = {}) {
+export function createLiquidTitle(section) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
   canvas.className = 'liquid-title';
@@ -203,22 +204,24 @@ export function createLiquidTitle(section, { onTouch } = {}) {
     if (!raf && (dirty || active)) raf = requestAnimationFrame(frame);
   }
 
-  // il primo gesto vero: niente più onde da sole né invito
+  // un gesto vero: le onde da sole aspettano che smetta
   function touch() {
-    if (touched) return;
-    touched = true;
-    clearTimeout(teaseTimer);
-    onTouch?.();
+    lastUser = performance.now();
   }
-  // onda da sola: una passata breve su due lettere a caso, ogni ~5 s finché nessuno lo tocca
-  let centers = [], touched = false, teaseTimer = 0;
+  // onda da sola: una passata breve su due lettere a caso, ogni ~5 s; se qualcuno ci ha appena
+  // giocato aspetta che smetta
+  let centers = [], teaseTimer = 0, lastUser = -1e9;
   function tease() {
-    if (!active || touched || !ready || !centers.length) return;
+    if (!active || !ready || !centers.length) return;
+    if (performance.now() - lastUser < 3000) {
+      teaseTimer = setTimeout(tease, 1500);
+      return;
+    }
     const c = centers[Math.floor(Math.random() * centers.length)];
     const len = Math.max(fs, 78) * 1.1, steps = 6, dt = 0.035;
     for (let i = 0; i <= steps; i++) {
       setTimeout(() => {
-        if (!active || touched) return;
+        if (!active) return;
         const x = c.x - len * 0.45 + (len * i) / steps;
         add(x, c.y + Math.sin(i * 0.9) * fs * 0.06, len / (steps * dt), 0, 0.7);
       }, i * dt * 1000);
@@ -307,7 +310,7 @@ export function createLiquidTitle(section, { onTouch } = {}) {
       active = on;
       clearTimeout(teaseTimer);
       if (!on) last = null;
-      else if (!touched) teaseTimer = setTimeout(tease, 1400);
+      else teaseTimer = setTimeout(tease, 1400);
       kick();
     },
     relayout,

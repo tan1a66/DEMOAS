@@ -97,14 +97,18 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   key(30, V(0.0, 4.4, -7.4), V(-0.6, 4.55, -17), 1.25, 0.15);
   key(35, V(-1.2, 4.6, -11.2), V(-14.2, 4.85, -24.6), 1.05, 0.45, 'servicesIn');
   key(75, V(-1.65, 4.6, -11.65), V(-14.9, 4.85, -24.9), 1.05, 0.45, 'servicesOut');
-  // 5 · lungo la terrazza, verso il sole basso
+  // 5 · lungo la terrazza fino al bordo, verso il sole basso: una sosta davanti al mare, senza testi
   key(40, V(-4.0, 4.7, -13.0), V(-30, 6.4, -9.5), 1.0, 1, 'sun');
-  key(30, V(-6.0, 4.6, -13.1), V(-31, 6.0, -10.0), 1.0, 1);
-  // 6 · in fondo alla terrazza e giù, nel mare (attraversamento continuo della superficie)
-  key(45, V(-25.4, 3.95, -13.3), V(-31, 0.6, -13.4), 1.0, 0.4);
-  key(30, V(-27.0, 0.95, -13.4), V(-30.5, -2.6, -13.6), 1.0, 0.15);
-  key(25, V(-28.2, -0.9, -13.5), V(-32, -3.0, -13.6), 1.05, 0.15, 'dive');
-  key(35, V(-30.5, -3.1, -13.5), V(-40, -3.5, -13.4), 1.1, 0.4, 'underwater');
+  key(40, V(-14.0, 4.62, -13.2), V(-40, 6.0, -10.6), 1.0, 0.8);
+  key(40, V(-21.9, 4.58, -13.3), V(-48, 5.6, -11.2), 1.0, 0.6, 'edgeIn');
+  key(45, V(-22.4, 4.56, -13.3), V(-48.4, 5.5, -11.3), 1.0, 0.6, 'edgeOut');
+  // 6 · il tuffo: un gesto a sé, lento, scivolando nell'acqua con lo sguardo appena verso il basso
+  //     (niente picchiata); molte unità attorno alla superficie, così l'attraversamento è calmo
+  key(40, V(-25.0, 3.7, -13.35), V(-34.5, 1.3, -13.45), 1.0, 0.3);
+  key(40, V(-27.2, 1.7, -13.4), V(-36.5, -0.6, -13.5), 1.0, 0.2);
+  key(40, V(-28.9, 0.32, -13.45), V(-38.0, -1.7, -13.5), 1.02, 0.15);
+  key(45, V(-30.3, -0.65, -13.5), V(-39.3, -2.5, -13.5), 1.05, 0.15, 'dive');
+  key(40, V(-32.2, -2.3, -13.5), V(-41.0, -3.3, -13.4), 1.1, 0.3, 'underwater');
   // 7 · il viaggio tra le bolle dei progetti: ogni gesto porta alla bolla successiva (si tocca la
   //     bolla per aprire il progetto)
   const B = bubbleLine(n);
@@ -149,7 +153,9 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'brand', p: mid('brandIn', 'brandOut') },
     { id: 'vision', p: mid('visionIn', 'visionOut') },
     { id: 'services', p: mid('servicesIn', 'servicesOut') },
-    ...B.map((_, i) => ({ id: `bubble-${i}`, p: mid(`b${i}In`, `b${i}Out`) })),
+    { id: 'edge', p: mid('edgeIn', 'edgeOut') },
+    // il tuffo (dal bordo alla prima bolla): più lento e con un'accelerazione più dolce
+    ...B.map((_, i) => ({ id: `bubble-${i}`, p: mid(`b${i}In`, `b${i}Out`), ...(i ? {} : { pace: 0.019, maxDur: 7, ease: 'sine.inOut' }) })),
     { id: 'contact', p: 1 },
   ];
   return { keys, sections, stops, bubbles: B, total, dive: at('dive') };
