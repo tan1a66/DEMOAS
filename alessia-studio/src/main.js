@@ -8,7 +8,7 @@ import { createParallax } from './parallax.js';
 import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
 import { ROOM } from './layout.js';
-import { SERVICES, getText, waLink } from './content.js';
+import { SERVICES, getText } from './content.js';
 import { createOverlay, pickLang } from './overlay.js';
 import { createGuide } from './guide.js';
 
@@ -46,27 +46,15 @@ const guide = createGuide({
   ignoreTouch: (x, y) => !!overlay?.onTitle(x, y),
 });
 
-// testi e lingua; sott'acqua i servizi (testi nella scena) aprono WhatsApp con il loro messaggio
+// testi e lingua; sott'acqua i servizi sono testi nella scena (src/words.js)
 const overlayRoot = document.getElementById('overlay');
 const lang = pickLang();
 let words = null;
-const wordTexts = (l) => {
-  const T = getText(l);
-  const hint = window.matchMedia('(hover: hover) and (pointer: fine)').matches ? T.deep.hintClick : T.deep.hintTouch;
-  return { texts: SERVICES.map((s) => T.deep.items[s.id]), hint };
-};
-const openWord = (i) => {
-  const it = getText(overlay.lang).deep.items[SERVICES[i]?.id];
-  if (it) window.open(waLink(it.msg), '_blank', 'noopener');
-};
+const wordTexts = (l) => SERVICES.map((s) => getText(l).deep.items[s.id]);
 overlay = createOverlay(overlayRoot, path.story.sections, {
   lang,
-  onLang: (l) => {
-    const w = wordTexts(l);
-    words?.setTexts(w.texts, w.hint);
-  },
+  onLang: (l) => words?.setTexts(wordTexts(l)),
   onNext: () => guide.next(),
-  onWord: openWord,
 });
 // ?notext: scena senza testi (verifica automatica dei colori del 3D)
 const noText = new URLSearchParams(location.search).has('notext');
@@ -125,21 +113,15 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // servizi sott'acqua: il testo sotto il puntatore si accende; un clic (o un tocco) apre WhatsApp.
-  // Nell'acqua libera il puntatore scosta le bollicine, un tocco libera uno sbuffo, trascinare una scia.
+  // sott'acqua il puntatore scosta le bollicine, un tocco libera uno sbuffo (e fa increspare il testo
+  // vicino), trascinare lascia una scia
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const uw = world.underwater;
-  let deepOn = false, hover = -1;
   const aim = (x, y) => {
     ndc.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     return ray.ray;
-  };
-  const pick = (x, y) => {
-    aim(x, y);
-    const hit = ray.intersectObjects(uw.words.meshes, false)[0];
-    return hit ? uw.words.meshes.indexOf(hit.object) : -1;
   };
   const inWater = () => uw.group.visible;
   let lastTrail = 0, lx = 0, ly = 0;
@@ -150,15 +132,9 @@ async function start() {
     ly = y;
     uw.trail(aim(x, y));
   };
-  const setHover = (i) => {
-    if (i === hover) return;
-    hover = i;
-    canvas.style.cursor = i >= 0 ? 'pointer' : '';
-  };
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
     const overUi = e.target.closest?.('.ui, a, button');
-    setHover(deepOn && !overUi ? pick(e.clientX, e.clientY) : -1);
     if (inWater() && !overUi) {
       uw.setPointer(aim(e.clientX, e.clientY), { hover: true });
       trailAt(e.clientX, e.clientY, e.timeStamp);
@@ -172,13 +148,9 @@ async function start() {
     trailAt(t.clientX, t.clientY, e.timeStamp);
   }, { passive: true });
   window.addEventListener('click', (e) => {
-    if (e.target.closest?.('a, button')) return;
-    const i = deepOn ? pick(e.clientX, e.clientY) : -1;
-    if (inWater()) {
-      uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
-      uw.burst(aim(e.clientX, e.clientY));
-    }
-    if (i >= 0) openWord(i);
+    if (e.target.closest?.('a, button') || !inWater()) return;
+    uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
+    uw.burst(aim(e.clientX, e.clientY));
   });
 
   renderer.info.autoReset = false;
@@ -195,10 +167,9 @@ async function start() {
     const { exposure, p } = path.update(dt, parallax.value);
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
-    deepOn = overlay.update(p);
-    if (!deepOn && hover >= 0) setHover(-1);
-    // il testo acceso: quello sotto il puntatore o quello della sosta
-    const focus = hover >= 0 ? hover : overlay.current;
+    overlay.update(p);
+    // il testo acceso: quello della sosta
+    const focus = overlay.current;
     world.update(camera, adaptive.dpr, time, focus);
     render();
     adaptive.sample(dt);

@@ -5,7 +5,9 @@ import gsap from 'gsap';
 // Un gesto vale una sosta: la coda d'inerzia del trackpad non fa saltare la sosta dopo.
 // stops: [{ id, p }] in ordine; units: lunghezza del percorso (durate delle chiavi) per i tempi.
 // Una sosta può avere un passo proprio per il tratto che arriva a lei (pace: secondi per unità,
-// maxDur, ease): il tuffo è più lento e più dolce degli altri passaggi.
+// maxDur, ease): il tuffo è più lento e più dolce degli altri passaggi. Con via: { p, hold } il tratto
+// passa per un punto intermedio e lì si ferma un attimo (hold, secondi) senza aspettare un altro gesto:
+// è la pausa sul bordo della terrazza prima del tuffo.
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 
@@ -24,18 +26,17 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
     i = clamp(i, 0, last);
     if (i === index && !tween) return;
     const to = stops[i].p;
-    const dist = Math.abs(to - state.p) * units;
     // più lungo il tratto, più tempo; il tratto prende il passo della sosta più avanti tra le due
     const seg = stops[Math.max(i, index)];
-    const duration = clamp(0.7 + dist * (seg.pace || 0.0095), 1.0, seg.maxDur || 4.6) * (reducedMotion ? 0.6 : 1);
+    const k = reducedMotion ? 0.6 : 1;
+    const time = (dist, pace, max) => clamp(0.7 + dist * pace, 1.0, max) * k;
+    const onUpdate = () => setProgress(state.p);
+    // con un punto intermedio (via) solo se è davvero tra la partenza e l'arrivo
+    const via = seg.via && (seg.via.p - state.p) * (to - seg.via.p) > 0 ? seg.via : null;
     dir = Math.sign(i - index) || dir;
     index = i;
     tween?.kill();
-    tween = gsap.to(state, {
-      p: to,
-      duration,
-      ease: seg.ease || 'power2.inOut',
-      onUpdate: () => setProgress(state.p),
+    tween = gsap.timeline({
       onComplete: () => {
         tween = null;
         arrivedAt = performance.now();
@@ -48,6 +49,20 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
         }
       },
     });
+    if (via) {
+      // camminata fino al bordo (passo normale), pausa, poi il tuffo col passo della sosta; tornando
+      // indietro lo stesso al contrario, con una pausa più breve
+      const forward = to > state.p;
+      const dA = Math.abs(via.p - state.p) * units, dB = Math.abs(to - via.p) * units;
+      const walk = { duration: time(forward ? dA : dB, 0.0095, 4.6), ease: 'power2.inOut' };
+      const dive = { duration: time(forward ? dB : dA, seg.pace || 0.0095, seg.maxDur || 4.6), ease: seg.ease || 'power2.inOut' };
+      const [first, second] = forward ? [walk, dive] : [dive, walk];
+      tween.to(state, { p: via.p, ...first, onUpdate });
+      tween.to(state, { p: to, ...second, onUpdate }, `+=${(forward ? via.hold : via.hold * 0.4) * k}`);
+    } else {
+      const dist = Math.abs(to - state.p) * units;
+      tween.to(state, { p: to, duration: time(dist, seg.pace || 0.0095, seg.maxDur || 4.6), ease: seg.ease || 'power2.inOut', onUpdate });
+    }
     emit();
   }
 

@@ -94,12 +94,13 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   key(30, V(0.0, 4.4, -7.4), V(-0.6, 4.55, -17), 1.25, 0.15);
   key(35, V(-1.2, 4.6, -11.2), V(-14.2, 4.85, -24.6), 1.05, 0.45, 'servicesIn');
   key(75, V(-1.65, 4.6, -11.65), V(-14.9, 4.85, -24.9), 1.05, 0.45, 'servicesOut');
-  // 5 · lungo la terrazza fino al bordo, verso il sole basso: una sosta davanti al mare, senza testi
+  // 5 · lungo la terrazza fino al bordo, verso il sole basso: una pausa davanti al mare, senza testi,
+  //     dentro lo stesso gesto del tuffo (non serve un altro scroll)
   key(40, V(-4.0, 4.7, -13.0), V(-30, 6.4, -9.5), 1.0, 1, 'sun');
   key(40, V(-14.0, 4.62, -13.2), V(-40, 6.0, -10.6), 1.0, 0.8);
   key(40, V(-21.9, 4.58, -13.3), V(-48, 5.6, -11.2), 1.0, 0.6, 'edgeIn');
   key(45, V(-22.4, 4.56, -13.3), V(-48.4, 5.5, -11.3), 1.0, 0.6, 'edgeOut');
-  // 6 · il tuffo: un gesto a sé, lento, scivolando nell'acqua con lo sguardo appena verso il basso
+  // 6 · il tuffo, lento, scivolando nell'acqua con lo sguardo appena verso il basso
   //     (niente picchiata); molte unità attorno alla superficie, così l'attraversamento è calmo
   key(40, V(-25.0, 3.7, -13.35), V(-34.5, 1.3, -13.45), 1.0, 0.3);
   key(40, V(-27.2, 1.7, -13.4), V(-36.5, -0.6, -13.5), 1.0, 0.2);
@@ -149,9 +150,13 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'brand', p: mid('brandIn', 'brandOut') },
     { id: 'vision', p: mid('visionIn', 'visionOut') },
     { id: 'services', p: mid('servicesIn', 'servicesOut') },
-    { id: 'edge', p: mid('edgeIn', 'edgeOut') },
-    // il tuffo (dal bordo al primo testo): più lento e con un'accelerazione più dolce
-    ...P.map((_, i) => ({ id: `word-${i}`, p: mid(`w${i}In`, `w${i}Out`), ...(i ? {} : { pace: 0.019, maxDur: 7, ease: 'sine.inOut' }) })),
+    // dalla terrazza al primo testo in un solo gesto: si cammina fino al bordo, una pausa davanti al
+    // sole, poi il tuffo (più lento e con un'accelerazione più dolce)
+    ...P.map((_, i) => ({
+      id: `word-${i}`,
+      p: mid(`w${i}In`, `w${i}Out`),
+      ...(i ? {} : { via: { p: mid('edgeIn', 'edgeOut'), hold: 1.1 }, pace: 0.016, maxDur: 6, ease: 'sine.inOut' }),
+    })),
     { id: 'contact', p: 1 },
   ];
   return { keys, sections, stops, words: P, total, dive: at('dive') };

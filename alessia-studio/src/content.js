@@ -12,10 +12,9 @@ export const LANGS = [
 export const DEFAULT_LANG = 'es';
 
 // Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua, una sosta per
-// testo (testi in deep.items: titolo su due righe, una riga di dettaglio, messaggio WhatsApp pronto).
-// Toccandolo si apre WhatsApp con quel messaggio. Aggiungere o togliere un servizio cambia da solo
-// il percorso sott'acqua.
-export const SERVICES = [{ id: 'digital' }, { id: 'software' }, { id: 'marca' }];
+// testo (testi in deep.items: titolo su due righe e una riga di dettaglio). Aggiungere o togliere un
+// servizio cambia da solo il percorso sott'acqua.
+export const SERVICES = [{ id: 'digital' }, { id: 'marca' }];
 
 // Contatti: solo WhatsApp (niente email sul sito). whatsapp: numero con prefisso internazionale; il
 // pulsante WhatsApp è sempre visibile e apre la chat con un messaggio pronto nella lingua scelta.
@@ -43,17 +42,14 @@ const TEXT = {
       text: 'Del concepto a la publicación, con un solo equipo: cada proyecto cuidado como una obra de arquitectura, y rápido también en el celular.',
       groups: [
         { label: 'Marca', items: ['Estrategia y posicionamiento', 'Branding e identidad visual', 'Naming y tono de voz', 'Dirección creativa y de arte'] },
-        { label: 'Digital', items: ['Sitios web 3D inmersivos', 'Diseño UX/UI', 'Showrooms y configuradores 3D', 'Software de gestión y sistemas de reservas', 'Desarrollo, publicación y mantenimiento'] },
+        { label: 'Digital', items: ['Sitios web 3D inmersivos', 'Diseño UX/UI', 'Showrooms y configuradores 3D', 'Desarrollo, publicación y mantenimiento'] },
         { label: 'Contenido', items: ['Renders y animaciones 3D', 'Motion design y video', 'Contenido para redes sociales', 'Campañas y lanzamientos'] },
       ],
     },
     deep: {
-      hintClick: 'Haz clic para escribirnos por WhatsApp',
-      hintTouch: 'Toca para escribirnos por WhatsApp',
       items: {
-        digital: { title: 'Sitios 3D\ninmersivos', lines: 'Diseño UX/UI · Configuradores 3D · Recorridos virtuales', msg: 'Hola Alessia Studio, me interesa un sitio web 3D inmersivo.' },
-        software: { title: 'Reservas\ny gestión', lines: 'Sistemas de reservas · Software de gestión · Sitios inteligentes', msg: 'Hola Alessia Studio, me interesa un sistema de reservas o un software de gestión.' },
-        marca: { title: 'Marca y\ncontenido', lines: 'Branding · Dirección creativa · Renders y motion', msg: 'Hola Alessia Studio, me interesa trabajar la marca y el contenido.' },
+        digital: { title: 'Sitios 3D\ninmersivos', lines: 'Diseño UX/UI · Configuradores 3D · Recorridos virtuales' },
+        marca: { title: 'Marca y\ncontenido', lines: 'Branding · Dirección creativa · Renders y motion' },
       },
     },
     contact: {
@@ -88,17 +84,14 @@ const TEXT = {
       text: "Dal concept alla messa online, con un solo team: ogni progetto curato come un'opera di architettura, e veloce anche su telefono.",
       groups: [
         { label: 'Brand', items: ['Strategia e posizionamento', 'Branding e identità visiva', 'Naming e tono di voce', 'Direzione creativa e art direction'] },
-        { label: 'Digitale', items: ['Siti web 3D immersivi', 'Design UX/UI', 'Showroom e configuratori 3D', 'Software gestionali e sistemi di prenotazione', 'Sviluppo, messa online e manutenzione'] },
+        { label: 'Digitale', items: ['Siti web 3D immersivi', 'Design UX/UI', 'Showroom e configuratori 3D', 'Sviluppo, messa online e manutenzione'] },
         { label: 'Contenuti', items: ['Render e animazioni 3D', 'Motion design e video', 'Contenuti per i social', 'Campagne e lanci'] },
       ],
     },
     deep: {
-      hintClick: 'Clicca per scriverci su WhatsApp',
-      hintTouch: 'Tocca per scriverci su WhatsApp',
       items: {
-        digital: { title: 'Siti 3D\nimmersivi', lines: 'Design UX/UI · Configuratori 3D · Tour virtuali', msg: 'Ciao Alessia Studio, mi interessa un sito web 3D immersivo.' },
-        software: { title: 'Prenotazioni\ne gestionali', lines: 'Sistemi di prenotazione · Software gestionali · Siti intelligenti', msg: 'Ciao Alessia Studio, mi interessa un sistema di prenotazione o un gestionale.' },
-        marca: { title: 'Brand e\ncontenuti', lines: 'Branding · Direzione creativa · Render e motion', msg: 'Ciao Alessia Studio, mi interessa lavorare su brand e contenuti.' },
+        digital: { title: 'Siti 3D\nimmersivi', lines: 'Design UX/UI · Configuratori 3D · Tour virtuali' },
+        marca: { title: 'Brand e\ncontenuti', lines: 'Branding · Direzione creativa · Render e motion' },
       },
     },
     contact: {
@@ -133,17 +126,14 @@ const TEXT = {
       text: 'From concept to launch, with one team: every project crafted like a work of architecture, and fast on phones too.',
       groups: [
         { label: 'Brand', items: ['Strategy and positioning', 'Branding and visual identity', 'Naming and tone of voice', 'Creative and art direction'] },
-        { label: 'Digital', items: ['Immersive 3D websites', 'UX/UI design', '3D showrooms and configurators', 'Management software and booking systems', 'Development, launch and maintenance'] },
+        { label: 'Digital', items: ['Immersive 3D websites', 'UX/UI design', '3D showrooms and configurators', 'Development, launch and maintenance'] },
         { label: 'Content', items: ['3D renders and animation', 'Motion design and video', 'Social media content', 'Campaigns and launches'] },
       ],
     },
     deep: {
-      hintClick: 'Click to message us on WhatsApp',
-      hintTouch: 'Tap to message us on WhatsApp',
       items: {
-        digital: { title: 'Immersive\n3D websites', lines: 'UX/UI design · 3D configurators · Virtual tours', msg: "Hi Alessia Studio, I'm interested in an immersive 3D website." },
-        software: { title: 'Bookings &\nmanagement', lines: 'Booking systems · Management software · Smart websites', msg: "Hi Alessia Studio, I'm interested in a booking system or management software." },
-        marca: { title: 'Brand &\ncontent', lines: 'Branding · Creative direction · Renders and motion', msg: "Hi Alessia Studio, I'd like to work on my brand and content." },
+        digital: { title: 'Immersive\n3D websites', lines: 'UX/UI design · 3D configurators · Virtual tours' },
+        marca: { title: 'Brand &\ncontent', lines: 'Branding · Creative direction · Renders and motion' },
       },
     },
     contact: {
@@ -178,17 +168,14 @@ const TEXT = {
       text: 'Do conceito à publicação, com uma só equipe: cada projeto cuidado como uma obra de arquitetura, e rápido também no celular.',
       groups: [
         { label: 'Marca', items: ['Estratégia e posicionamento', 'Branding e identidade visual', 'Naming e tom de voz', 'Direção criativa e de arte'] },
-        { label: 'Digital', items: ['Sites 3D imersivos', 'Design UX/UI', 'Showrooms e configuradores 3D', 'Software de gestão e sistemas de reservas', 'Desenvolvimento, publicação e manutenção'] },
+        { label: 'Digital', items: ['Sites 3D imersivos', 'Design UX/UI', 'Showrooms e configuradores 3D', 'Desenvolvimento, publicação e manutenção'] },
         { label: 'Conteúdo', items: ['Renders e animações 3D', 'Motion design e vídeo', 'Conteúdo para redes sociais', 'Campanhas e lançamentos'] },
       ],
     },
     deep: {
-      hintClick: 'Clique para nos escrever no WhatsApp',
-      hintTouch: 'Toque para nos escrever no WhatsApp',
       items: {
-        digital: { title: 'Sites 3D\nimersivos', lines: 'Design UX/UI · Configuradores 3D · Tours virtuais', msg: 'Olá Alessia Studio, tenho interesse em um site 3D imersivo.' },
-        software: { title: 'Reservas\ne gestão', lines: 'Sistemas de reservas · Software de gestão · Sites inteligentes', msg: 'Olá Alessia Studio, tenho interesse em um sistema de reservas ou um software de gestão.' },
-        marca: { title: 'Marca e\nconteúdo', lines: 'Branding · Direção criativa · Renders e motion', msg: 'Olá Alessia Studio, quero trabalhar a marca e o conteúdo.' },
+        digital: { title: 'Sites 3D\nimersivos', lines: 'Design UX/UI · Configuradores 3D · Tours virtuais' },
+        marca: { title: 'Marca e\nconteúdo', lines: 'Branding · Direção criativa · Renders e motion' },
       },
     },
     contact: {

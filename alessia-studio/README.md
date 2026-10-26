@@ -18,10 +18,9 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
 1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Italia · México · Colombia · Worldwide*
 2. Sotto il lucernario: **Visión**
 3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
-4. Sul bordo della terrazza, davanti al sole (senza testi); poi il tuffo, lento, è un gesto a sé
-5. Sott'acqua, **i servizi**: tre grandi testi che galleggiano nell'acqua, uno per sosta (Sitios 3D
-   inmersivos · Reservas y gestión · Marca y contenido; dietro si intravedono i successivi). Toccando un
-   testo si apre WhatsApp con un messaggio pronto su quel servizio
+4. Nello stesso gesto: fino al bordo della terrazza, una pausa davanti al sole, poi il tuffo, lento
+5. Sott'acqua, **i servizi**: due grandi testi che galleggiano nell'acqua, uno per sosta (Sitios 3D
+   inmersivos · Marca y contenido; dietro si intravede il successivo); un tocco li fa increspare
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
 Sott'acqua: due squaletti nuotano attorno ai testi (toccati, scattano via); il puntatore scosta le
@@ -49,7 +48,7 @@ cambia da solo il percorso sott'acqua.
   smorzamento; inquadratura dei testi sott'acqua adattata alla forma dello schermo
 - `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
-- `src/words.js`: i servizi sott'acqua, testi nella scena 3D che galleggiano e aprono WhatsApp
+- `src/words.js`: i servizi sott'acqua, testi nella scena 3D che galleggiano nell'acqua
 - `src/underwater.js`: testi dei servizi, bollicine (anche al tocco), pulviscolo
 - `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi

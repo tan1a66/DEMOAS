@@ -4,9 +4,9 @@ import { FOG_GLSL } from './water-glsl.js';
 import { WORD_SIZE } from './camera-path.js';
 
 // Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua. Un piano con il
-// testo disegnato in una texture (numero, titolo in Syne verde, una riga di dettaglio e l'invito a
-// scrivere su WhatsApp) che ondeggia appena, tremola come visto attraverso l'acqua e se ne vela con
-// la distanza: dalla sosta di un testo si vedono dietro i successivi, più piccoli e sbiaditi.
+// testo disegnato in una texture (numero, titolo in Syne verde, una riga di dettaglio) che ondeggia
+// appena, tremola come visto attraverso l'acqua e se ne vela con la distanza: dalla sosta di un
+// testo si intravede dietro il successivo, sbiadito. Un tocco lo fa increspare.
 // Due formati di texture: orizzontale (schermi larghi) e verticale (telefoni).
 
 const GREEN = '#B8F03A', IVORY = '#FFF6F2';
@@ -40,7 +40,7 @@ function spaced(ctx, px) {
   if ('letterSpacing' in ctx) ctx.letterSpacing = `${px}px`;
 }
 
-function draw(canvas, layout, item, i, n, hint) {
+function draw(canvas, layout, item, i, n) {
   const [W, H] = TEX[layout];
   canvas.width = W;
   canvas.height = H;
@@ -54,20 +54,27 @@ function draw(canvas, layout, item, i, n, hint) {
   ctx.shadowColor = 'rgba(8, 34, 44, 0.55)';
   ctx.shadowBlur = H * 0.04;
 
-  // numero (01 / 03)
-  const nn = (k) => String(k).padStart(2, '0');
+  // misure: numero, titolo (in verde, su più righe) e dettaglio, tutto centrato in altezza
   const kSize = H * (port ? 0.026 : 0.034);
-  ctx.font = `600 ${kSize}px Inter, sans-serif`;
-  spaced(ctx, kSize * 0.3);
-  ctx.fillStyle = IVORY;
-  let y = H * (port ? 0.2 : 0.17);
-  ctx.fillText(`${nn(i + 1)} / ${nn(n)}`, cx, y);
-  spaced(ctx, 0);
-
-  // titolo, in verde
   const tl = item.title.split('\n');
   const tFont = (s) => `800 ${s}px Syne, 'Helvetica Neue', Arial, sans-serif`;
   const tSize = fit(ctx, tl, tFont, H * (port ? 0.15 : 0.22), W * 0.9);
+  const dSize = H * (port ? 0.032 : 0.044);
+  ctx.font = `500 ${dSize}px Inter, sans-serif`;
+  const dl = wrap(ctx, item.lines, W * 0.86);
+  const gap = tSize * 0.5 + dSize * 1.1; // dalla base dell'ultima riga del titolo a quella del dettaglio
+  const block = kSize + tSize * 1.12 + tSize * 0.98 * (tl.length - 1) + gap + dSize * 1.45 * (dl.length - 1);
+  let y = (H - block) / 2 + kSize;
+
+  // numero (01 / 02)
+  const nn = (k) => String(k).padStart(2, '0');
+  ctx.font = `600 ${kSize}px Inter, sans-serif`;
+  spaced(ctx, kSize * 0.3);
+  ctx.fillStyle = IVORY;
+  ctx.fillText(`${nn(i + 1)} / ${nn(n)}`, cx, y);
+  spaced(ctx, 0);
+
+  // titolo
   ctx.font = tFont(tSize);
   spaced(ctx, -tSize * 0.035);
   ctx.fillStyle = GREEN;
@@ -79,40 +86,13 @@ function draw(canvas, layout, item, i, n, hint) {
   spaced(ctx, 0);
 
   // dettaglio
-  const dSize = H * (port ? 0.03 : 0.042);
   ctx.font = `500 ${dSize}px Inter, sans-serif`;
   ctx.fillStyle = IVORY;
-  y += dSize * 0.5;
-  for (const l of wrap(ctx, item.lines, W * 0.86)) {
+  y += gap - tSize * 0.98;
+  for (const l of dl) {
     ctx.fillText(l, cx, y);
     y += dSize * 1.45;
   }
-
-  // invito: una pillola con la goccia verde
-  const hSize = H * (port ? 0.024 : 0.032);
-  ctx.font = `600 ${hSize}px Inter, sans-serif`;
-  spaced(ctx, hSize * 0.12);
-  const label = hint.toUpperCase();
-  const tw = ctx.measureText(label).width;
-  const dot = hSize * 0.38, gap = hSize * 0.8, padX = hSize * 1.1, ph = hSize * 2.4;
-  const pw = tw + dot * 2 + gap + padX * 2;
-  const px = cx - pw / 2, py = y + hSize * 0.6;
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(12, 44, 54, 0.5)';
-  ctx.strokeStyle = GREEN;
-  ctx.lineWidth = Math.max(2, hSize * 0.08);
-  ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(px, py, pw, ph, ph / 2) : ctx.rect(px, py, pw, ph);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = GREEN;
-  ctx.beginPath();
-  ctx.arc(px + padX + dot, py + ph / 2, dot, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = IVORY;
-  ctx.textAlign = 'left';
-  ctx.fillText(label, px + padX + dot * 2 + gap, py + ph / 2 + hSize * 0.36);
-  spaced(ctx, 0);
 }
 
 export function createWords(shared, { positions, items, quality }) {
@@ -185,21 +165,20 @@ export function createWords(shared, { positions, items, quality }) {
     return mesh;
   });
 
-  let texts = null, hint = '';
+  let texts = null;
   function redraw() {
     if (!texts) return;
     meshes.forEach((m, i) => {
-      draw(m.userData.canvas, layout, texts[i], i, meshes.length, hint);
+      draw(m.userData.canvas, layout, texts[i], i, meshes.length);
       m.userData.tex.needsUpdate = true;
       const [w, h] = WORD_SIZE[layout];
       m.scale.set(1, h, w); // il piano (ruotato) ha larghezza lungo z e altezza lungo y
     });
   }
 
-  // testi nella lingua scelta (items: [{ title, lines }], hint: invito a toccare)
-  async function setTexts(list, h) {
+  // testi nella lingua scelta ([{ title, lines }])
+  async function setTexts(list) {
     texts = list;
-    hint = h;
     redraw();
     // ridisegna quando i font del sito sono pronti (Syne per il titolo, Inter per il resto)
     try {
@@ -238,6 +217,6 @@ export function createWords(shared, { positions, items, quality }) {
     });
   }
 
-  setTexts(items.texts, items.hint);
+  setTexts(items);
   return { group, meshes, update, poke, setTexts, setLayout };
 }
