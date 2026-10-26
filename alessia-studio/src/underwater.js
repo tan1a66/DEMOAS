@@ -146,19 +146,38 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     return mesh;
   });
 
+  // ---------------- tratto sott'acqua ----------------
+  // dal tuffo lungo la fila delle bolle dei progetti (e un po' oltre l'ultima): bollicine e
+  // pulviscolo sono distribuiti lungo questo percorso, in proporzione alla sua lunghezza
+  const route = [new THREE.Vector3(-27, 0, -13.5), ...positions.map((b) => b.clone().setY(0))];
+  if (positions.length) route.push(route[route.length - 1].clone().add(new THREE.Vector3(-8, 0, -4)));
+  else route.push(new THREE.Vector3(-62, 0, -13.5));
+  const seg = route.slice(1).map((b, i) => b.distanceTo(route[i]));
+  const routeLen = seg.reduce((a, b) => a + b, 0);
+  // punto a caso lungo il percorso, scostato di lato fino a ±spread/2 metri
+  const along = (spread, out) => {
+    let t = Math.random() * routeLen, i = 0;
+    while (i < seg.length - 1 && t > seg[i]) t -= seg[i++];
+    out.lerpVectors(route[i], route[i + 1], Math.min(1, t / seg[i]));
+    const dx = route[i + 1].x - route[i].x, dz = route[i + 1].z - route[i].z, l = Math.hypot(dx, dz) || 1;
+    const side = (Math.random() - 0.5) * spread;
+    return out.set(out.x - (dz / l) * side, 0, out.z + (dx / l) * side);
+  };
+  const tmpP = new THREE.Vector3();
+
   // ---------------- bollicine che salgono ----------------
-  // estensione del tratto sott'acqua (le bolle dei progetti stanno tra x -40 e -48)
-  const minX = -62;
-  const count = Math.round((quality.tier === 'low' ? 2.2 : 4.5) * Math.max(60, -minX - 27));
+  const count = Math.round((quality.tier === 'low' ? 2.2 : 4.5) * Math.max(60, routeLen));
   const small = new THREE.InstancedBufferGeometry().copy(new THREE.IcosahedronGeometry(1, 2));
   const aOffset = new Float32Array(count * 3);
   const aParams = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
     // più fitte vicino al punto del tuffo, poi sparse lungo il percorso tra le bolle
     const nearDive = i < count * 0.3;
-    aOffset[i * 3] = nearDive ? -28.5 + (Math.random() - 0.5) * 5 : THREE.MathUtils.lerp(-30, minX, Math.random());
+    if (nearDive) tmpP.set(-28.5 + (Math.random() - 0.5) * 5, 0, -13.5 + (Math.random() - 0.5) * 5);
+    else along(14, tmpP);
+    aOffset[i * 3] = tmpP.x;
     aOffset[i * 3 + 1] = -Math.random() * 9 - 0.3;
-    aOffset[i * 3 + 2] = -13.5 + (Math.random() - 0.5) * (nearDive ? 5 : 14);
+    aOffset[i * 3 + 2] = tmpP.z;
     aParams[i * 4] = 0.008 + Math.random() ** 3 * 0.06; // raggio
     aParams[i * 4 + 1] = 0.35 + Math.random() * 0.6; // velocità di salita
     aParams[i * 4 + 2] = Math.random() * 100; // fase
@@ -222,12 +241,13 @@ export function createUnderwater(lights, { projects, positions, quality }) {
 
   // ---------------- pulviscolo sospeso ----------------
   // pulviscolo in proporzione alla lunghezza del tratto sott'acqua
-  const nDust = Math.round((quality.tier === 'low' ? 6 : 13) * Math.max(40, -minX - 27));
+  const nDust = Math.round((quality.tier === 'low' ? 6 : 13) * Math.max(40, routeLen));
   const dPos = new Float32Array(nDust * 3);
   for (let i = 0; i < nDust; i++) {
-    dPos[i * 3] = THREE.MathUtils.lerp(-27, minX, Math.random());
+    along(18, tmpP);
+    dPos[i * 3] = tmpP.x;
     dPos[i * 3 + 1] = -Math.random() * 10 - 0.2;
-    dPos[i * 3 + 2] = -13.5 + (Math.random() - 0.5) * 18;
+    dPos[i * 3 + 2] = tmpP.z;
   }
   const dGeo = new THREE.BufferGeometry();
   dGeo.setAttribute('position', new THREE.BufferAttribute(dPos, 3));
@@ -392,7 +412,12 @@ export function createUnderwater(lights, { projects, positions, quality }) {
     pushHold -= dt;
     if (pushHold <= 0 && !hoverActive) pushTarget = 0;
     shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 6));
-    sharks.update(dt, bubbles.map((b) => b.userData.base));
+    // gli squali girano attorno alla bolla più vicina alla telecamera e alla successiva
+    let kNear = 0;
+    bubbles.forEach((b, i) => {
+      if (b.userData.base.distanceToSquared(camera.position) < bubbles[kNear].userData.base.distanceToSquared(camera.position)) kNear = i;
+    });
+    sharks.update(dt, bubbles.slice(kNear, kNear + 2).map((b) => b.userData.base));
     shared.uCamY.value = camera.position.y;
     if (!requested && camera.position.z < -9) {
       requested = true;

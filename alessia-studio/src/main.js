@@ -35,7 +35,7 @@ const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
 const path = createCameraPath(camera, { reducedMotion, projects: PROJECTS.length });
 
-// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, bolle, contatti)
+// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, una bolla dopo l'altra, contatti)
 let overlay = null;
 const guide = createGuide({
   stops: path.story.stops,
@@ -186,9 +186,9 @@ async function start() {
     lights.update(time);
     bubblesOn = overlay.update(p);
     if (!bubblesOn && hover >= 0) setHover(-1);
-    const focus = gallery.isOpen ? gallery.project : hover;
+    // la bolla accesa: quella del progetto aperto, quella sotto il puntatore o quella della sosta
+    const focus = gallery.isOpen ? gallery.project : hover >= 0 ? hover : overlay.current;
     world.update(camera, adaptive.dpr, time, focus);
-    overlay.placeLabels(camera, world.underwater.bubbles, window.innerWidth, window.innerHeight);
     render();
     adaptive.sample(dt);
 

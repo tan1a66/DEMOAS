@@ -34,11 +34,13 @@ basso a destra) e l'invito a scorrere.
 Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
 prima bozza. Contatti in `CONTACT_LINKS`: email `alessiapir@icloud.com`, WhatsApp `+39 346 175 8562` (il
 pulsante apre la chat con un messaggio pronto nella lingua scelta).
-I progetti sono le 8 demo fatte finora (URBAZ, Piedra de Agua, Picheta, Avv. Pusceddu, Hacienda Teya,
-Antica Roma, CARNAL, Il Calabrese). Per ogni progetto:
+I progetti sono le 8 demo fatte finora, **senza nomi di clienti, marchi o persone** (non c'è
+l'autorizzazione): ogni bolla ha come titolo la categoria (`projects.items` nelle quattro lingue:
+titolo, tipo, descrizione) e immagini ritagliate dalle scene 3D senza testi, loghi, indirizzi o volti.
+Per ogni progetto:
 - `image`: anteprima dentro la bolla, `src/assets/projects/<id>.jpg` (quadrata, ~768 px)
-- galleria: `public/gallery/<id>/<nn>-{1280,720,320}.webp`, generate dagli screenshot con
-  `node tools/gallery.mjs <cartella-png> urbaz=0,1,3 ...` (aggiorna `src/assets/gallery.json`)
+- galleria: `public/gallery/<id>/<nn>-{1280,720,320}.webp`, generate dalle immagini con
+  `node tools/gallery.mjs <cartella-png> hotel=0,1 ...` (aggiorna `src/assets/gallery.json`)
 - `url`: link del pulsante "Abrir la demo" nella galleria (vuoto = nessun pulsante)
 Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
 

@@ -181,22 +181,29 @@ export function createSharks(shared) {
   const UP = new THREE.Vector3(0, 1, 0), m = new THREE.Matrix4(), bank = new THREE.Quaternion(), AX = new THREE.Vector3(1, 0, 0);
   let ez2 = 3, ey2 = 1;
 
-  // centro ed estensione del gruppo di bolle (cambia con la forma dello schermo)
-  function fit(bubbles) {
+  // centro ed estensione delle bolle attorno a cui girare: cambiano passando da una bolla all'altra,
+  // e gli squali le seguono nuotando (centro smorzato, niente salti)
+  const Ct = new THREE.Vector3();
+  let placed = false;
+  function fit(bubbles, dt) {
     if (!bubbles.length) return;
-    C.set(0, 0, 0);
-    bubbles.forEach((b) => C.add(b));
-    C.multiplyScalar(1 / bubbles.length);
-    ez2 = 0;
-    ey2 = 0;
+    Ct.set(0, 0, 0);
+    bubbles.forEach((b) => Ct.add(b));
+    Ct.multiplyScalar(1 / bubbles.length);
+    let ez = 0, ey = 0;
     bubbles.forEach((b) => {
-      ez2 = Math.max(ez2, Math.abs(b.z - C.z));
-      ey2 = Math.max(ey2, Math.abs(b.y - C.y));
+      ez = Math.max(ez, Math.abs(b.z - Ct.z));
+      ey = Math.max(ey, Math.abs(b.y - Ct.y));
     });
+    const k = placed ? 1 - Math.exp(-dt * 0.7) : 1;
+    placed = true;
+    C.lerp(Ct, k);
+    ez2 += (ez - ez2) * k;
+    ey2 += (ey - ey2) * k;
   }
 
   function update(dt, bubbles) {
-    fit(bubbles);
+    fit(bubbles, dt);
     for (const sh of sharks) {
       const boost = 1 + sh.kick;
       sh.kick *= Math.exp(-dt * 0.9);

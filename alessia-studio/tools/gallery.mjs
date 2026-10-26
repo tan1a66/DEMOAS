@@ -1,5 +1,5 @@
 // Screenshot delle demo -> immagini della galleria (WebP in tre misure) + elenco per il sito.
-//   node tools/gallery.mjs <cartella-png> urbaz=0,2,3 picheta=1,2 ...
+//   node tools/gallery.mjs <cartella-png> hotel=0,2,3 pizzeria=1,2 ...
 // Per ogni progetto prende <cartella>/<id>-<n>.png nell'ordine indicato e scrive
 // public/gallery/<id>/01-{1280,720,320}.webp ...; aggiorna src/assets/gallery.json (gli altri progetti
 // restano come sono). Le immagini vengono ritagliate a 16:10.

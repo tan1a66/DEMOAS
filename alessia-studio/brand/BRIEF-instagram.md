@@ -60,22 +60,24 @@ designer). Il sito non si "guarda": si visita, si attraversa.
 
 ## Il sito (immagini in `sito/`)
 Un percorso in 3D guidato dallo scroll, in un edificio di cemento rosa sul mare: si entra dalla finestra
-circolare, ci si ferma accanto ai divani verdi (ALESSIA STUDIO), sotto il lucernario (Visión, Qué
-hacemos), poi ci si tuffa nel mare, dove ogni bolla è un progetto (con due squaletti attorno).
+circolare, ci si ferma accanto ai divani verdi (ALESSIA STUDIO), sotto il lucernario (Visión), fuori
+sulla terrazza davanti al mare (Qué hacemos), poi ci si tuffa: sott'acqua ogni scroll porta alla bolla
+successiva, ogni bolla è un progetto (con due squaletti attorno).
 
 ## Progetti (immagini in `progetti/`)
-Sono **demo e proposte**: prima di pubblicarne gli screenshot va chiesto il permesso ai clienti
-(URBAZ, in particolare, è stata fatta solo per una presentazione).
+Sono **demo e proposte**. Non c'è l'autorizzazione a mostrare nomi, marchi o dati dei clienti: nei post
+si parla solo della **categoria** e dell'idea, mai di chi è il progetto, e si usano solo le immagini di
+`progetti/` (ritagli delle scene 3D senza testi, loghi, indirizzi, numeri o volti).
 | Progetto | Tipo | In una frase |
 |---|---|---|
-| URBAZ | Bienes raíces · mapa 3D · Yucatán | La península de Yucatán en 3D: desarrollos para explorar, búsqueda con filtros y rutas animadas. |
-| Piedra de Agua | Hotel boutique · Mérida | Del agua al patio: un recorrido inmersivo por las habitaciones del hotel. |
-| Picheta | Restaurante · cocina yucateca de autor · Mérida | La casa se vuelve el sitio: de la entrada a la terraza sobre Mérida. |
-| Avv. Pusceddu | Despacho de abogados · Cagliari | Un dron recorre un monumento de mármol inspirado en el cosmos de Dante. |
-| Hacienda Teya | Hacienda · restaurante desde 1683 · Yucatán | Una espina de henequén borda el nombre sobre el lino; la historia se vuelve recorrido. |
-| Antica Roma | Restaurante · cocina romana · Mérida | Un avión despega del Coliseo y aterriza en Paseo de Montejo. |
-| CARNAL | Carnicería boutique · Mérida | Ocho escenas en una sola película con scroll. |
-| Il Calabrese | Pizzería · Mérida | Del cielo de Calabria a la mesa familiar: menú, reservas y mapa son platos que se tocan. |
+| Bienes raíces | Mapa 3D interactivo | Una península en 3D: desarrollos para explorar, búsqueda con filtros y rutas animadas. |
+| Hotel boutique | Casona histórica | Del agua al patio: un recorrido inmersivo por la casona y sus habitaciones. |
+| Restaurante de autor | Cocina regional | La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas. |
+| Despacho de abogados | Sitio profesional | Un monumento de mármol inspirado en el cosmos de Dante. |
+| Hacienda | Restaurante y eventos | Una espina de henequén borda sobre el lino; la historia de la casa se vuelve recorrido. |
+| Restaurante italiano | Cocina romana | Un avión despega del Coliseo y aterriza en tu ciudad. |
+| Carnicería boutique | Cortes selectos | Ocho escenas en una sola película con scroll. |
+| Pizzería | Cocina del sur de Italia | Del cielo del sur de Italia a la mesa familiar: menú, reservas y mapa son platos que se tocan. |
 
 ## Formati
 - Post: **1080 × 1350** (4:5) · quadrato 1080 × 1080 · storie e reel 1080 × 1920
@@ -89,7 +91,7 @@ Sono **demo e proposte**: prima di pubblicarne gli screenshot va chiesto il perm
 4. Rosa su verde: *Desde Italia · Con base en México · Trabajamos en todo el mundo*
 5. Carosello dei servizi: Marca / Digital / Contenido (una slide per gruppo)
 6. Il sito: il lucernario
-7. Un progetto (carosello di screenshot), con il permesso del cliente
+7. Un progetto (carosello con le immagini di `progetti/`): solo la categoria, nessun nome
 8. Il sito: le bolle dei progetti sott'acqua
 9. Verde su rosa: *¿Tienes un lugar que construir?* + contatto
 

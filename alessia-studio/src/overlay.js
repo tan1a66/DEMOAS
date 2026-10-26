@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import { LANGS, DEFAULT_LANG, BRAND_NAME, PROJECTS, CONTACT_LINKS, getText } from './content.js';
+import { LANGS, DEFAULT_LANG, BRAND_NAME, PROJECTS, CONTACT_LINKS, getText, projectText } from './content.js';
 import { BUBBLE_R } from './camera-path.js';
 import { createLiquidTitle } from './liquid-title.js';
 
 // Testi sopra il canvas (HTML vero: selezionabile, leggibile dagli screen reader).
 // Ogni sezione ha una finestra di avanzamento [da, a] calcolata dal percorso: appare quando la
 // telecamera arriva alla sosta e scompare quando riparte. Sempre visibili: lingua, WhatsApp e
-// l'invito a scorrere. Alla sosta delle bolle ogni bolla ha il suo nome (un pulsante) sotto.
+// l'invito a scorrere. Nel viaggio tra le bolle la didascalia segue la bolla davanti alla
+// telecamera (numero, categoria, tipo e il pulsante per aprire il progetto).
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const isLang = (l) => LANGS.some((x) => x.code === l);
@@ -49,7 +50,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const scrim = document.createElement('div');
   scrim.className = 'ov-scrim';
   root.appendChild(scrim);
-  const scrimRanges = [sections.vision, sections.services, sections.contact];
+  const scrimRanges = [sections.vision, sections.services, sections.projects, sections.contact];
 
   const brand = add('ov-brand', sections.brand);
   const liquid = createLiquidTitle(brand);
@@ -58,19 +59,10 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const projects = add('ov-projects', sections.projects);
   const contact = add('ov-contact', sections.contact);
 
-  // nomi sotto le bolle (pulsanti: si aprono anche da tastiera)
-  const labels = document.createElement('div');
-  labels.className = 'ov-labels';
-  root.appendChild(labels);
-  const labelEls = PROJECTS.map((p, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'bubble-label';
-    b.textContent = p.title;
-    b.tabIndex = -1;
-    b.addEventListener('click', () => onOpen?.(i));
-    labels.appendChild(b);
-    return b;
+  // didascalia della bolla corrente: cambia mentre è nascosta, tra una sosta e l'altra
+  let current = -1, shown = -1, hiddenAt = -1e9;
+  projects.addEventListener('click', (e) => {
+    if (e.target.closest('[data-open]') && shown >= 0) onOpen?.(shown);
   });
 
   // sempre visibili: lingua (in alto a destra), WhatsApp (in basso a destra), invito a scorrere
@@ -118,10 +110,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
           <ul class="services">${g.items.map((s) => `<li>${esc(s)}</li>`).join('')}</ul>
         </div>`).join('')}
       </div>`;
-    projects.innerHTML = `
-      <p class="label">${esc(T.projects.label)}</p>
-      <h2 class="title">${esc(T.projects.title)}</h2>
-      <p class="hint">${esc(canHover ? T.projects.hintClick : T.projects.hintTouch)}</p>`;
+    renderProject();
     const links = [
       CONTACT_LINKS.email && `<a class="cta primary" href="mailto:${esc(CONTACT_LINKS.email)}">${esc(CONTACT_LINKS.email)}</a>`,
       `<a class="cta" href="${esc(waHref(T.ui.whatsappMsg))}" target="_blank" rel="noopener">WhatsApp</a>`,
@@ -133,7 +122,6 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       <p class="lead">${esc(T.contact.text)}</p>
       <div class="links">${links}</div>
       ${origin}`;
-    labelEls.forEach((b, i) => b.setAttribute('aria-label', `${T.ui.open}: ${PROJECTS[i].title}`));
     langNav.setAttribute('aria-label', T.langLabel);
     langNav.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'));
     wa.href = waHref(T.ui.whatsappMsg);
@@ -141,6 +129,20 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     wa.innerHTML = `${WA_ICON}<span>WhatsApp</span>`;
     hint.innerHTML = `<span class="ui-scroll-line" aria-hidden="true"></span><span class="ui-scroll-text">${esc(T.ui.scroll)}</span>`;
     document.documentElement.lang = lang;
+  }
+
+  function renderProject() {
+    if (shown < 0) return;
+    const T = getText(lang);
+    const [title, kind] = projectText(lang, PROJECTS[shown].id);
+    const nn = (k) => String(k).padStart(2, '0');
+    projects.innerHTML = `
+      <p class="label">${esc(T.projects.label)} <span class="count">${nn(shown + 1)} / ${nn(PROJECTS.length)}</span></p>
+      ${shown === 0 ? `<p class="intro">${esc(T.projects.title)}</p>` : ''}
+      <h2 class="title">${esc(title)}</h2>
+      <p class="kind">${esc(kind)}</p>
+      <button type="button" class="cta" data-open>${esc(T.projects.open)} <span aria-hidden="true">→</span></button>
+      <p class="hint">${esc(canHover ? T.projects.hintClick : T.projects.hintTouch)}</p>`;
   }
 
   function setLang(l, user = false) {
@@ -157,39 +159,31 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     onLang?.(l);
   }
 
-  let labelsOn = false;
   function update(p) {
     scrim.classList.toggle('on', scrimRanges.some((r) => p >= r[0] && p <= r[1]));
+    // bolla davanti alla telecamera (-1 tra una sosta e l'altra)
+    current = sections.bubbles.findIndex((r) => p >= r[0] && p <= r[1]);
+    // il testo cambia solo quando la dissolvenza in uscita è finita
+    if (current >= 0 && current !== shown && !projects.classList.contains('on') && performance.now() - hiddenAt > 450) {
+      shown = current;
+      renderProject();
+    }
     items.forEach(({ el, range }) => {
-      const on = p >= range[0] && p <= range[1];
+      let on = p >= range[0] && p <= range[1];
+      if (el === projects) on = current >= 0 && current === shown;
       if (on !== el.classList.contains('on')) {
+        if (el === projects && !on) hiddenAt = performance.now();
         el.classList.toggle('on', on);
         el.setAttribute('aria-hidden', on ? 'false' : 'true');
       }
     });
     liquid.setActive(brand.classList.contains('on'));
-    const lo = p >= sections.projects[0] && p <= sections.projects[1];
-    if (lo !== labelsOn) {
-      labelsOn = lo;
-      labels.classList.toggle('on', lo);
-      labelEls.forEach((b) => (b.tabIndex = lo ? 0 : -1));
-    }
-    return labelsOn;
+    return p >= sections.projects[0] && p <= sections.projects[1];
   }
 
-  // posiziona i nomi sotto le bolle (proiezione del punto più basso della bolla)
-  const v = new THREE.Vector3(), down = new THREE.Vector3();
-  function placeLabels(camera, meshes, w, h) {
-    if (!labelsOn) return;
-    down.set(0, 1, 0).applyQuaternion(camera.quaternion).multiplyScalar(-BUBBLE_R * 1.08);
-    meshes.forEach((m, i) => {
-      v.copy(m.position).add(down).project(camera);
-      labelEls[i].style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, 6px)`;
-    });
-  }
-
+  // il puntatore sulla bolla della didascalia accende il pulsante
   function setHover(i) {
-    labelEls.forEach((b, k) => b.classList.toggle('hover', k === i));
+    projects.classList.toggle('hover', i >= 0 && i === shown);
   }
 
   // invito a scorrere: nascosto durante il passaggio tra due soste e all'ultima
@@ -199,5 +193,5 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   }
 
   render();
-  return { update, placeLabels, setHover, setStop, setLang, get lang() { return lang; } };
+  return { update, setHover, setStop, setLang, get lang() { return lang; }, get current() { return current; } };
 }

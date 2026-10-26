@@ -24,17 +24,19 @@ const shots = (id) => (GALLERY[id] || []).map((n) => {
 });
 
 // Ogni progetto diventa una bolla sott'acqua (le demo fatte finora). Toccando la bolla si apre la
-// galleria con gli screenshot del sito. image: anteprima dentro la bolla; url: dove porta il pulsante
+// galleria con le immagini del sito. image: anteprima dentro la bolla; url: dove porta il pulsante
 // "Abrir la demo" nella galleria (vuoto = nessun pulsante: le demo non sono ancora pubblicate).
+// Niente nomi di clienti, marchi o persone (nessuna autorizzazione): il titolo di ogni bolla è la
+// categoria, tradotta in projects.items; le immagini sono ritagli delle scene 3D senza testi né loghi.
 export const PROJECTS = [
-  { id: 'urbaz', title: 'URBAZ' },
-  { id: 'piedra-de-agua', title: 'Piedra de Agua' },
-  { id: 'picheta', title: 'Picheta' },
-  { id: 'pusceddu', title: 'Avv. Pusceddu' },
-  { id: 'hacienda-teya', title: 'Hacienda Teya' },
-  { id: 'antica-roma', title: 'Antica Roma' },
-  { id: 'carnal', title: 'CARNAL' },
-  { id: 'il-calabrese', title: 'Il Calabrese' },
+  { id: 'inmobiliaria' },
+  { id: 'hotel' },
+  { id: 'restaurante' },
+  { id: 'abogados' },
+  { id: 'hacienda' },
+  { id: 'cocina-italiana' },
+  { id: 'carniceria' },
+  { id: 'pizzeria' },
 ].map((p) => ({ url: '', image: img(p.id), gallery: shots(p.id), ...p }));
 
 // Contatti (i valori vuoti non vengono mostrati). whatsapp: numero con prefisso internazionale; il
@@ -70,18 +72,20 @@ const TEXT = {
     projects: {
       label: 'Proyectos',
       title: 'Cada burbuja es un proyecto.',
-      hintClick: 'Haz clic en una burbuja para ver el sitio.',
-      hintTouch: 'Toca una burbuja para ver el sitio.',
+      hintClick: 'Haz clic en la burbuja para verlo · scroll para la siguiente.',
+      hintTouch: 'Toca la burbuja para verlo · desliza para la siguiente.',
+      open: 'Ver el proyecto',
       cta: 'Abrir la demo',
+      // [titolo della bolla, tipo, descrizione]
       items: {
-        urbaz: ['Bienes raíces · Mapa 3D interactivo · Yucatán, México', 'La península de Yucatán en 3D: desarrollos inmobiliarios para explorar, búsqueda con filtros y rutas animadas.'],
-        'piedra-de-agua': ['Hotel boutique · Mérida, México', 'Del agua al patio: un recorrido inmersivo por las habitaciones del hotel, en 3D procedural con fotos reales como materia.'],
-        picheta: ['Restaurante · Cocina yucateca de autor · Mérida, México', 'La casa se vuelve el sitio: de la entrada a la terraza sobre Mérida, con menú, autores y reservas.'],
-        pusceddu: ['Despacho de abogados · Cagliari, Italia', 'Un dron recorre un monumento de mármol inspirado en el cosmos de Dante: cada cornisa cuenta un área de práctica.'],
-        'hacienda-teya': ['Hacienda · Restaurante desde 1683 · Yucatán, México', 'Una espina de henequén borda el nombre sobre el lino; después la historia, del Antes al Hoy, se vuelve el recorrido 3D.'],
-        'antica-roma': ['Restaurante · Cocina romana · Mérida, México', 'Un avión despega del Coliseo y aterriza en Paseo de Montejo; sobre el mantel, los platos son los botones del sitio.'],
-        carnal: ['Carnicería boutique · Mérida, México', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.'],
-        'il-calabrese': ['Pizzería · Mérida, México', 'Del cielo de Calabria a la mesa familiar: menú, reservas y mapa son platos que se tocan.'],
+        inmobiliaria: ['Bienes raíces', 'Mapa 3D interactivo', 'Una península en 3D: desarrollos inmobiliarios para explorar, búsqueda con filtros y rutas animadas.'],
+        hotel: ['Hotel boutique', 'Casona histórica', 'Del agua al patio: un recorrido inmersivo por la casona y sus habitaciones, en 3D con fotos reales como materia.'],
+        restaurante: ['Restaurante de autor', 'Cocina regional', 'La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas.'],
+        abogados: ['Despacho de abogados', 'Sitio profesional', 'Un monumento de mármol inspirado en el cosmos de Dante: cada cornisa cuenta un área de práctica.'],
+        hacienda: ['Hacienda', 'Restaurante y eventos', 'Una espina de henequén borda sobre el lino; después la historia de la casa, de ayer a hoy, se vuelve el recorrido 3D.'],
+        'cocina-italiana': ['Restaurante italiano', 'Cocina romana', 'Un avión despega del Coliseo y aterriza en tu ciudad; sobre el mantel, los platos son los botones del sitio.'],
+        carniceria: ['Carnicería boutique', 'Cortes selectos', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.'],
+        pizzeria: ['Pizzería', 'Cocina del sur de Italia', 'Del cielo del sur de Italia a la mesa familiar: menú, reservas y mapa son platos que se tocan.'],
       },
     },
     contact: {
@@ -125,18 +129,19 @@ const TEXT = {
     projects: {
       label: 'Progetti',
       title: 'Ogni bolla è un progetto.',
-      hintClick: 'Clicca su una bolla per vedere il sito.',
-      hintTouch: 'Tocca una bolla per vedere il sito.',
+      hintClick: 'Clicca sulla bolla per vederlo · scroll per la successiva.',
+      hintTouch: 'Tocca la bolla per vederlo · scorri per la successiva.',
+      open: 'Vedi il progetto',
       cta: 'Apri la demo',
       items: {
-        urbaz: ['Real estate · Mappa 3D interattiva · Yucatán, Messico', 'La penisola dello Yucatán in 3D: progetti immobiliari esplorabili, ricerca con filtri e percorsi animati.'],
-        'piedra-de-agua': ['Hotel boutique · Mérida, Messico', "Dall'acqua al patio: un percorso immersivo tra le stanze dell'hotel, in 3D procedurale con le foto vere come materia."],
-        picheta: ["Ristorante · Cucina yucateca d'autore · Mérida, Messico", "La casa diventa il sito: dall'ingresso alla terrazza sopra Mérida, con menù, autori e prenotazione."],
-        pusceddu: ['Studio legale · Cagliari, Italia', "Un drone esplora un monumento in marmo ispirato al cosmo di Dante: ogni cornice racconta un'area di attività."],
-        'hacienda-teya': ['Hacienda · Ristorante dal 1683 · Yucatán, Messico', 'Una spina di henequén ricama il nome sul lino; poi la storia, da Antes a Hoy, diventa il percorso 3D.'],
-        'antica-roma': ['Ristorante · Cucina romana · Mérida, Messico', 'Un aereo parte dal Colosseo e atterra sul Paseo de Montejo; sulla tovaglia, i piatti sono i pulsanti del sito.'],
-        carnal: ['Macelleria boutique · Mérida, Messico', "Otto scene in un'unica pellicola a scroll: vetrine, tagli, il privato e la prenotazione."],
-        'il-calabrese': ['Pizzeria · Mérida, Messico', 'Dal cielo della Calabria alla tavola di famiglia: menù, prenotazione e mappa sono piatti da toccare.'],
+        inmobiliaria: ['Immobiliare', 'Mappa 3D interattiva', 'Una penisola in 3D: progetti immobiliari esplorabili, ricerca con filtri e percorsi animati.'],
+        hotel: ['Hotel boutique', 'Casona storica', "Dall'acqua al patio: un percorso immersivo tra la casona e le sue stanze, in 3D con le foto vere come materia."],
+        restaurante: ["Ristorante d'autore", 'Cucina regionale', "La casa diventa il sito: dall'ingresso alla terrazza, con menù, autori e prenotazione."],
+        abogados: ['Studio legale', 'Sito professionale', "Un monumento in marmo ispirato al cosmo di Dante: ogni cornice racconta un'area di attività."],
+        hacienda: ['Hacienda', 'Ristorante ed eventi', 'Una spina di henequén ricama sul lino; poi la storia della casa, da ieri a oggi, diventa il percorso 3D.'],
+        'cocina-italiana': ['Ristorante italiano', 'Cucina romana', 'Un aereo parte dal Colosseo e atterra nella tua città; sulla tovaglia, i piatti sono i pulsanti del sito.'],
+        carniceria: ['Macelleria boutique', 'Tagli selezionati', "Otto scene in un'unica pellicola a scroll: vetrine, tagli, il privato e la prenotazione."],
+        pizzeria: ['Pizzeria', 'Cucina del Sud Italia', 'Dal cielo del Sud Italia alla tavola di famiglia: menù, prenotazione e mappa sono piatti da toccare.'],
       },
     },
     contact: {
@@ -180,18 +185,19 @@ const TEXT = {
     projects: {
       label: 'Projects',
       title: 'Every bubble is a project.',
-      hintClick: 'Click a bubble to see the site.',
-      hintTouch: 'Tap a bubble to see the site.',
+      hintClick: 'Click the bubble to see it · scroll for the next one.',
+      hintTouch: 'Tap the bubble to see it · swipe for the next one.',
+      open: 'See the project',
       cta: 'Open the demo',
       items: {
-        urbaz: ['Real estate · Interactive 3D map · Yucatán, Mexico', 'The Yucatán peninsula in 3D: explorable real-estate developments, filtered search and animated routes.'],
-        'piedra-de-agua': ['Boutique hotel · Mérida, Mexico', "From the water to the patio: an immersive walk through the hotel's rooms, in procedural 3D with real photos as material."],
-        picheta: ['Restaurant · Yucatecan auteur cuisine · Mérida, Mexico', 'The house becomes the website: from the entrance to the terrace above Mérida, with menu, chefs and bookings.'],
-        pusceddu: ['Law firm · Cagliari, Italy', "A drone explores a marble monument inspired by Dante's cosmos: each ledge tells a practice area."],
-        'hacienda-teya': ['Hacienda · Restaurant since 1683 · Yucatán, Mexico', 'A henequen thorn embroiders the name on linen; then the story, from Then to Now, becomes the 3D journey.'],
-        'antica-roma': ['Restaurant · Roman cuisine · Mérida, Mexico', "A plane takes off from the Colosseum and lands on Paseo de Montejo; on the tablecloth, the plates are the site's buttons."],
-        carnal: ['Boutique butcher shop · Mérida, Mexico', 'Eight scenes in a single scrolling film: display cases, cuts, the private room and booking.'],
-        'il-calabrese': ['Pizzeria · Mérida, Mexico', 'From the Calabrian sky to the family table: menu, booking and map are plates you can touch.'],
+        inmobiliaria: ['Real estate', 'Interactive 3D map', 'A peninsula in 3D: explorable real-estate developments, filtered search and animated routes.'],
+        hotel: ['Boutique hotel', 'Historic townhouse', 'From the water to the patio: an immersive walk through the house and its rooms, in 3D with real photos as material.'],
+        restaurante: ['Signature restaurant', 'Regional cuisine', 'The house becomes the website: from the entrance to the terrace, with menu, chefs and bookings.'],
+        abogados: ['Law firm', 'Professional website', "A marble monument inspired by Dante's cosmos: each ledge tells a practice area."],
+        hacienda: ['Hacienda', 'Restaurant and events', "A henequen thorn embroiders on linen; then the house's story, from past to present, becomes the 3D journey."],
+        'cocina-italiana': ['Italian restaurant', 'Roman cuisine', "A plane takes off from the Colosseum and lands in your city; on the tablecloth, the plates are the site's buttons."],
+        carniceria: ['Boutique butcher', 'Select cuts', 'Eight scenes in a single scrolling film: display cases, cuts, the private room and booking.'],
+        pizzeria: ['Pizzeria', 'Southern Italian cuisine', 'From the southern Italian sky to the family table: menu, booking and map are plates you can touch.'],
       },
     },
     contact: {
@@ -235,18 +241,19 @@ const TEXT = {
     projects: {
       label: 'Projetos',
       title: 'Cada bolha é um projeto.',
-      hintClick: 'Clique em uma bolha para ver o site.',
-      hintTouch: 'Toque em uma bolha para ver o site.',
+      hintClick: 'Clique na bolha para ver · role para a próxima.',
+      hintTouch: 'Toque na bolha para ver · deslize para a próxima.',
+      open: 'Ver o projeto',
       cta: 'Abrir a demo',
       items: {
-        urbaz: ['Imóveis · Mapa 3D interativo · Yucatán, México', 'A península de Yucatán em 3D: empreendimentos imobiliários para explorar, busca com filtros e rotas animadas.'],
-        'piedra-de-agua': ['Hotel boutique · Mérida, México', 'Da água ao pátio: um percurso imersivo pelos quartos do hotel, em 3D procedural com fotos reais como matéria.'],
-        picheta: ['Restaurante · Cozinha yucateca autoral · Mérida, México', 'A casa vira o site: da entrada ao terraço sobre Mérida, com cardápio, chefs e reservas.'],
-        pusceddu: ['Escritório de advocacia · Cagliari, Itália', 'Um drone explora um monumento de mármore inspirado no cosmos de Dante: cada cornija conta uma área de atuação.'],
-        'hacienda-teya': ['Hacienda · Restaurante desde 1683 · Yucatán, México', 'Um espinho de henequém borda o nome no linho; depois a história, do Antes ao Hoje, vira o percurso 3D.'],
-        'antica-roma': ['Restaurante · Cozinha romana · Mérida, México', 'Um avião decola do Coliseu e pousa no Paseo de Montejo; sobre a toalha, os pratos são os botões do site.'],
-        carnal: ['Açougue boutique · Mérida, México', 'Oito cenas em um único filme com scroll: vitrines, cortes, o reservado e a reserva.'],
-        'il-calabrese': ['Pizzaria · Mérida, México', 'Do céu da Calábria à mesa da família: cardápio, reservas e mapa são pratos para tocar.'],
+        inmobiliaria: ['Imobiliária', 'Mapa 3D interativo', 'Uma península em 3D: empreendimentos imobiliários para explorar, busca com filtros e rotas animadas.'],
+        hotel: ['Hotel boutique', 'Casarão histórico', 'Da água ao pátio: um percurso imersivo pelo casarão e seus quartos, em 3D com fotos reais como matéria.'],
+        restaurante: ['Restaurante autoral', 'Cozinha regional', 'A casa vira o site: da entrada ao terraço, com cardápio, chefs e reservas.'],
+        abogados: ['Escritório de advocacia', 'Site profissional', 'Um monumento de mármore inspirado no cosmos de Dante: cada cornija conta uma área de atuação.'],
+        hacienda: ['Hacienda', 'Restaurante e eventos', 'Um espinho de henequém borda no linho; depois a história da casa, de ontem a hoje, vira o percurso 3D.'],
+        'cocina-italiana': ['Restaurante italiano', 'Cozinha romana', 'Um avião decola do Coliseu e pousa na sua cidade; sobre a toalha, os pratos são os botões do site.'],
+        carniceria: ['Açougue boutique', 'Cortes selecionados', 'Oito cenas em um único filme com scroll: vitrines, cortes, o reservado e a reserva.'],
+        pizzeria: ['Pizzaria', 'Cozinha do sul da Itália', 'Do céu do sul da Itália à mesa da família: cardápio, reservas e mapa são pratos para tocar.'],
       },
     },
     contact: {
@@ -272,3 +279,6 @@ const TEXT = {
 export function getText(lang) {
   return TEXT[lang] || TEXT[DEFAULT_LANG];
 }
+
+// [titolo, tipo, descrizione] di un progetto nella lingua scelta
+export const projectText = (lang, id) => getText(lang).projects.items[id] || [id, '', ''];

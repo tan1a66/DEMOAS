@@ -220,32 +220,22 @@ body { touch-action: manipulation; }
 .ov-services .services li:not(:last-child)::after { content: ' · '; color: var(--ink-soft); }
 
 /* 4 · le bolle dei progetti */
-.ov-projects { left: var(--gutter); top: clamp(72px, 12vh, 120px); max-width: min(520px, 40vw); }
-.ov-projects .title { font-size: clamp(26px, 3.2vw, 46px); margin-bottom: 12px; }
-.ov-projects .hint { font-size: 14px; color: var(--ink-soft); }
-
-.ov-labels { position: absolute; inset: 0; opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
-.ov-labels.on { opacity: 1; }
-.bubble-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: 8px 10px;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: 600 12px/1.25 var(--font-text);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-shadow: 0 1px 12px rgba(8, 36, 46, 0.7);
-  cursor: pointer;
-  pointer-events: none;
-  will-change: transform;
-  transition: color 0.25s;
+/* 4 · il viaggio tra le bolle: didascalia della bolla davanti alla telecamera (a sinistra; la bolla
+   è a destra) */
+.ov-projects {
+  left: var(--gutter);
+  top: 50%;
+  transform: translateY(calc(-50% + 14px));
+  max-width: min(480px, 38vw);
 }
-.ov-labels.on .bubble-label { pointer-events: auto; }
-.bubble-label.hover, .bubble-label:hover, .bubble-label:focus-visible { color: var(--green); outline: none; }
+.ov-projects.on { transform: translateY(-50%); }
+.ov-projects .count { margin-left: 10px; color: var(--ink); letter-spacing: 0.16em; }
+.ov-projects .intro { margin: 0 0 10px; font-size: clamp(15px, 1.25vw, 18px); color: var(--ink); }
+.ov-projects .title { font-size: clamp(30px, 3.8vw, 54px); margin-bottom: 10px; }
+.ov-projects .kind { font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
+.ov-projects .cta { margin-top: 18px; background: none; font-family: inherit; cursor: pointer; }
+.ov-projects.hover .cta { background: var(--ink); color: #3d5f6c; border-color: var(--ink); }
+.ov-projects .hint { margin-top: 14px; font-size: 13px; color: var(--ink-soft); }
 
 .cta {
   display: inline-flex;
@@ -283,7 +273,7 @@ body { touch-action: manipulation; }
   transition: opacity 0.6s ease;
   -webkit-tap-highlight-color: transparent;
 }
-html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opacity: 0 !important; pointer-events: none !important; }
+html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-events: none !important; }
 
 .ui-lang {
   top: max(16px, var(--safe-t));
@@ -525,6 +515,8 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
     transform: translateY(14px);
   }
   .ov-vision.on, .ov-services.on { transform: none; }
+  .ov-projects { top: auto; bottom: calc(var(--bottom-ui) + 32px); max-width: min(560px, calc(100% - 2 * var(--gutter))); transform: translateY(14px); }
+  .ov-projects.on { transform: none; }
   .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.62) 0%, rgba(52, 22, 24, 0.36) 42%, rgba(52, 22, 24, 0) 68%); }
 }
 
@@ -551,16 +543,19 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
   .ov-brand .tagline { letter-spacing: 0.14em; font-size: 10.5px; }
   .ov-brand .origin { flex-direction: column; gap: 4px; letter-spacing: 0.18em; font-size: 10.5px; }
   .ov-brand .origin .dot { display: none; }
-  .ov-projects { top: calc(max(16px, var(--safe-t)) + 56px); right: var(--gutter); max-width: none; }
-  .ov-projects .title { font-size: clamp(24px, 6.6vw, 30px); margin-bottom: 8px; }
-  .ov-projects .hint { font-size: 13px; }
+  .ov-projects { top: auto; bottom: calc(var(--bottom-ui) + 18px); right: var(--gutter); max-width: none; transform: translateY(14px); }
+  .ov-projects.on { transform: none; }
+  .ov-projects .title { font-size: clamp(26px, 7.4vw, 34px); margin-bottom: 6px; }
+  .ov-projects .intro { font-size: 14px; }
+  .ov-projects .kind { font-size: 14px; }
+  .ov-projects .cta { margin-top: 12px; }
+  .ov-projects .hint { margin-top: 10px; font-size: 12px; }
   .ov-contact { right: var(--gutter); bottom: calc(var(--bottom-ui) + 16px); }
   .ov-contact .lead { font-size: 14px; }
   .ov-contact .origin { letter-spacing: 0.16em; font-size: 10.5px; gap: 4px 10px; }
   .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.66) 0%, rgba(52, 22, 24, 0.4) 40%, rgba(52, 22, 24, 0) 66%); }
   .ui-wa { width: 54px; height: 54px; padding: 0; justify-content: center; }
   .ui-wa span { display: none; }
-  .bubble-label { font-size: 10.5px; letter-spacing: 0.12em; padding: 6px 6px; }
 }
 
 /* telefono in orizzontale: poco spazio in altezza */
@@ -572,9 +567,9 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
   .ov-services .services { font-size: 12px; line-height: 1.4; }
   .ov-brand { top: 44px; }
   .ov-brand .brand { font-size: 56px; }
-  .ov-projects { top: 16px; }
-  .ov-projects .label { display: none; }
-  .bubble-label { font-size: 9.5px; letter-spacing: 0.08em; padding: 4px; }
+  .ov-projects { max-width: min(420px, 40vw); }
+  .ov-projects .intro, .ov-projects .hint { display: none; }
+  .ov-projects .cta { margin-top: 10px; }
   .ov-contact { bottom: calc(var(--bottom-ui) + 4px); }
   .ov-contact .links { margin-bottom: 10px; }
   .ov-contact .origin { display: none; }

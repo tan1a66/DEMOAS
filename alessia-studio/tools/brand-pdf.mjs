@@ -20,14 +20,14 @@ const gallery = JSON.parse(readFileSync(`${root}src/assets/gallery.json`, 'utf8'
 
 // un'immagine per progetto (JPEG, per un PDF leggero)
 const PROJECTS = [
-  ['urbaz', 'URBAZ', 'Bienes raíces · mapa 3D interactivo · Yucatán, México', 'La península de Yucatán en 3D: desarrollos inmobiliarios para explorar, búsqueda con filtros y rutas animadas.', '03'],
-  ['piedra-de-agua', 'Piedra de Agua', 'Hotel boutique · Mérida, México', 'Del agua al patio: un recorrido inmersivo por las habitaciones del hotel, en 3D con fotos reales como materia.', '02'],
-  ['picheta', 'Picheta', 'Restaurante · cocina yucateca de autor · Mérida, México', 'La casa se vuelve el sitio: de la entrada a la terraza sobre Mérida, con menú, autores y reservas.', '03'],
-  ['pusceddu', 'Avv. Pusceddu', 'Despacho de abogados · Cagliari, Italia', 'Un dron recorre un monumento de mármol inspirado en el cosmos de Dante: cada cornisa cuenta un área de práctica.', '02'],
-  ['hacienda-teya', 'Hacienda Teya', 'Hacienda · restaurante desde 1683 · Yucatán, México', 'Una espina de henequén borda el nombre sobre el lino; después la historia, del Antes al Hoy, se vuelve el recorrido 3D.', '02'],
-  ['antica-roma', 'Antica Roma', 'Restaurante · cocina romana · Mérida, México', 'Un avión despega del Coliseo y aterriza en Paseo de Montejo; sobre el mantel, los platos son los botones del sitio.', '01'],
-  ['carnal', 'CARNAL', 'Carnicería boutique · Mérida, México', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.', '01'],
-  ['il-calabrese', 'Il Calabrese', 'Pizzería · Mérida, México', 'Del cielo de Calabria a la mesa familiar: menú, reservas y mapa son platos que se tocan.', '02'],
+  ['inmobiliaria', 'Bienes raíces', 'Mapa 3D interactivo', 'Una península en 3D: desarrollos inmobiliarios para explorar, búsqueda con filtros y rutas animadas.', '01'],
+  ['hotel', 'Hotel boutique', 'Casona histórica', 'Del agua al patio: un recorrido inmersivo por la casona y sus habitaciones, en 3D con fotos reales como materia.', '01'],
+  ['restaurante', 'Restaurante de autor', 'Cocina regional', 'La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas.', '02'],
+  ['abogados', 'Despacho de abogados', 'Sitio profesional', 'Un monumento de mármol inspirado en el cosmos de Dante: cada cornisa cuenta un área de práctica.', '01'],
+  ['hacienda', 'Hacienda', 'Restaurante y eventos', 'Una espina de henequén borda sobre el lino; después la historia de la casa, de ayer a hoy, se vuelve el recorrido 3D.', '01'],
+  ['cocina-italiana', 'Restaurante italiano', 'Cocina romana', 'Un avión despega del Coliseo y aterriza en tu ciudad; sobre el mantel, los platos son los botones del sitio.', '02'],
+  ['carniceria', 'Carnicería boutique', 'Cortes selectos', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.', '01'],
+  ['pizzeria', 'Pizzería', 'Cocina del sur de Italia', 'Del cielo del sur de Italia a la mesa familiar: menú, reservas y mapa son platos que se tocan.', '01'],
 ];
 for (const p of PROJECTS) {
   const n = gallery[p[0]]?.includes(p[4]) ? p[4] : gallery[p[0]]?.[0];
@@ -38,8 +38,8 @@ const SITE = [
   ['01-muro', 'La entrada: el muro de cemento rosa y la ventana circular'],
   ['02-divani', 'Los sofás verdes: ALESSIA STUDIO'],
   ['03-vision', 'Bajo el tragaluz: Visión'],
-  ['04-que-hacemos', 'Bajo el tragaluz: Qué hacemos'],
-  ['05-proyectos', 'En el mar: cada burbuja es un proyecto'],
+  ['04-que-hacemos', 'En la terraza, frente al mar: Qué hacemos'],
+  ['05-proyectos', 'Bajo el agua: cada burbuja es un proyecto'],
   ['06-contacto', 'Hacia la luz: Contáctanos'],
 ];
 const f = (p) => `file://${p}`;
@@ -171,7 +171,7 @@ pre { font: 400 5.4pt/1.35 ui-monospace, Menlo, monospace; white-space: pre-wrap
 
 <section class="page">
   <h1>Il sito</h1>
-  <p style="margin-bottom:6mm">Un percorso in 3D guidato dallo scroll, in un edificio di cemento rosa sul mare: si entra dalla finestra circolare, ci si ferma accanto ai divani verdi, sotto il lucernario, poi ci si tuffa nel mare, dove ogni bolla è un progetto (con due squaletti attorno). Immagini in formato post (4:5).</p>
+  <p style="margin-bottom:6mm">Un percorso in 3D guidato dallo scroll, in un edificio di cemento rosa sul mare: si entra dalla finestra circolare, ci si ferma accanto ai divani verdi, sotto il lucernario, fuori sulla terrazza davanti al mare, poi ci si tuffa: sott'acqua ogni scroll porta alla bolla successiva, ogni bolla è un progetto (con due squaletti attorno). Immagini in formato post (4:5).</p>
   <div class="site">
     ${SITE.map(([file, cap]) => `<div><img src="${f(`${brand}/sito/${file}.jpg`)}"><div class="cap">${cap}</div></div>`).join('')}
   </div>
@@ -183,7 +183,7 @@ ${[0, 1].map((k) => `<section class="page">
   <div class="proj">
     ${PROJECTS.slice(k * 4, k * 4 + 4).map(([id, t, kind, text]) => `<div><img src="${f(`${tmp}/${id}.jpg`)}"><div class="t">${t}</div><div class="k">${kind}</div><p>${text}</p></div>`).join('')}
   </div>
-  <div class="note">${k ? 'Ogni progetto ha da 2 a 6 screenshot nella galleria del sito.' : 'Sono <b>demo e proposte</b>: prima di pubblicarne gli screenshot va chiesto il permesso ai clienti (URBAZ, in particolare, è stata fatta solo per una presentazione).'}</div>
+  <div class="note">${k ? 'Ogni progetto ha da 1 a 3 immagini nella galleria del sito.' : 'Sono <b>demo e proposte</b>, senza autorizzazione a mostrare nomi, marchi o dati dei clienti: si parla solo della categoria e si usano solo queste immagini (scene 3D senza testi, loghi, indirizzi o volti).'}</div>
   <div class="foot"><span>Alessia Studio · brand kit</span><span>${6 + k}</span></div>
 </section>`).join('')}
 
@@ -199,7 +199,7 @@ ${[0, 1].map((k) => `<section class="page">
     <li>Rosa su verde: <i>Desde Italia · Con base en México · Trabajamos en todo el mundo</i></li>
     <li>Carosello dei servizi: Marca / Digital / Contenido (una slide per gruppo)</li>
     <li>Il sito: il lucernario</li>
-    <li>Un progetto (carosello di screenshot), con il permesso del cliente</li>
+    <li>Un progetto (carosello con le immagini di progetti/): solo la categoria, nessun nome</li>
     <li>Il sito: le bolle dei progetti sott'acqua</li>
     <li>Verde su rosa: <i>¿Tienes un lugar que construir?</i> + contatto</li>
   </ol>

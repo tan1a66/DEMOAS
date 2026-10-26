@@ -1,4 +1,4 @@
-import { PROJECTS, getText } from './content.js';
+import { PROJECTS, getText, projectText } from './content.js';
 
 // Galleria di un progetto: si apre toccando la sua bolla. Screenshot del sito con frecce, contatore
 // e miniature; accanto (sotto, sul telefono) la scheda del progetto. Tastiera: ← → per le immagini,
@@ -59,7 +59,7 @@ export function createGallery(root, { lang, onOpen, onClose } = {}) {
     img.srcset = s.mid !== s.full ? `${s.mid} 720w, ${s.full} 1280w` : '';
     img.sizes = '(max-width: 720px) 100vw, 72vw';
     img.src = s.full;
-    img.alt = `${PROJECTS[pi].title} · ${ii + 1}/${shots.length}`;
+    img.alt = `${projectText(lang, PROJECTS[pi].id)[0]} · ${ii + 1}/${shots.length}`;
     count.textContent = `${ii + 1} / ${shots.length}`;
     thumbs.querySelectorAll('button').forEach((b, k2) => b.setAttribute('aria-current', k2 === ii ? 'true' : 'false'));
     thumbs.children[ii]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
@@ -75,9 +75,9 @@ export function createGallery(root, { lang, onOpen, onClose } = {}) {
     if (pi < 0) return;
     const T = getText(lang);
     const p = PROJECTS[pi];
-    const [kind, text] = T.projects.items[p.id] || ['', ''];
+    const [title, kind, text] = projectText(lang, p.id);
     $('.gal-meta').textContent = `${String(pi + 1).padStart(2, '0')} / ${String(PROJECTS.length).padStart(2, '0')}`;
-    $('.gal-title').textContent = p.title;
+    $('.gal-title').textContent = title;
     $('.gal-kind').textContent = kind;
     $('.gal-text').textContent = text;
     $('.gal-actions').innerHTML = p.url
@@ -88,7 +88,7 @@ export function createGallery(root, { lang, onOpen, onClose } = {}) {
     $('.gal-arrow.next').setAttribute('aria-label', T.ui.next);
     $('.gal-pp span').textContent = T.ui.prevProject;
     $('.gal-np span').textContent = T.ui.nextProject;
-    thumbs.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-label', `${p.title} · ${k + 1}`));
+    thumbs.querySelectorAll('button').forEach((b, k) => b.setAttribute('aria-label', `${title} · ${k + 1}`));
   }
 
   function setProject(i) {
