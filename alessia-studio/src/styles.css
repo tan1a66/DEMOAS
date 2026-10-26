@@ -180,6 +180,38 @@ body { touch-action: manipulation; }
 /* titolo liquido (src/liquid-title.js): il testo resta nel DOM ma lo disegna il canvas */
 .ov-brand .brand.is-liquid { -webkit-text-fill-color: transparent; text-shadow: none; }
 .ov-brand .liquid-title { position: absolute; pointer-events: none; }
+/* invito a toccarlo: una goccia che pulsa e una riga breve, sparisce al primo tocco */
+.ov-brand .liquid-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition: opacity 0.6s ease;
+}
+.ov-brand .liquid-hint.gone { opacity: 0; }
+.ov-brand .liquid-hint .drop {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.ov-brand .liquid-hint .drop::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--green);
+  border-radius: 50%;
+  animation: liquid-drop 2.2s ease-out infinite;
+}
+@keyframes liquid-drop {
+  0% { transform: scale(0.3); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
 .ov-brand .tagline {
   margin-top: 18px;
   font-size: clamp(12px, 1.1vw, 15px);

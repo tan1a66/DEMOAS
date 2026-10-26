@@ -53,7 +53,14 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const scrimRanges = [sections.vision, sections.services, sections.projects, sections.contact];
 
   const brand = add('ov-brand', sections.brand);
-  const liquid = createLiquidTitle(brand);
+  // invito a giocare col titolo liquido: sparisce al primo tocco
+  let liquidTouched = false;
+  const liquid = createLiquidTitle(brand, {
+    onTouch() {
+      liquidTouched = true;
+      brand.querySelector('.liquid-hint')?.classList.add('gone');
+    },
+  });
   const vision = add('ov-vision', sections.vision);
   const services = add('ov-services', sections.services);
   const projects = add('ov-projects', sections.projects);
@@ -92,6 +99,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     const origin = `<p class="origin">${T.origin.map((s) => `<span>${esc(s)}</span>`).join('<span class="dot" aria-hidden="true">·</span>')}</p>`;
     brand.innerHTML = `
       <h1 class="brand">${esc(BRAND_NAME)}</h1>
+      ${liquid.enabled ? `<p class="liquid-hint${liquidTouched ? ' gone' : ''}" aria-hidden="true"><span class="drop"></span>${esc(canHover ? T.ui.liquidHover : T.ui.liquidTouch)}</p>` : ''}
       <p class="tagline">${esc(T.tagline)}</p>
       ${origin}`;
     liquid.attach(brand.querySelector('.brand'));

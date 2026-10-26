@@ -2,6 +2,7 @@
 // viene disegnato in una texture e mostrato da un piccolo canvas WebGL nella stessa posizione.
 // Passando col mouse o col dito il testo si deforma come un liquido (si trascina nella direzione
 // del gesto, con increspature che si allargano) e torna fermo in meno di un secondo.
+// Finché nessuno lo tocca, ogni tanto il titolo fa da sé una piccola onda (un invito a giocarci).
 // Senza WebGL2 o con "riduci movimento" resta il testo normale.
 
 const MAX_PTS = 16;
@@ -52,13 +53,13 @@ void main() {
   outColor = c;
 }`;
 
-export function createLiquidTitle(section) {
+export function createLiquidTitle(section, { onTouch } = {}) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.createElement('canvas');
   canvas.className = 'liquid-title';
   canvas.setAttribute('aria-hidden', 'true');
   const gl = reduce ? null : canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false });
-  const none = { attach() {}, setActive() {}, relayout() {} };
+  const none = { attach() {}, setActive() {}, relayout() {}, enabled: false };
   if (!gl) return none;
 
   const sh = (type, src) => {
@@ -132,7 +133,7 @@ export function createLiquidTitle(section) {
       range.setEnd(node, i + 1);
       const r = range.getBoundingClientRect();
       if (!r.width) continue;
-      glyphs.push({ ch, x: r.left - sec.left, y: r.top - sec.top });
+      glyphs.push({ ch, x: r.left - sec.left, y: r.top - sec.top, w: r.width, h: r.height });
       x0 = Math.min(x0, r.left - sec.left); x1 = Math.max(x1, r.right - sec.left);
       y0 = Math.min(y0, r.top - sec.top); y1 = Math.max(y1, r.bottom - sec.top);
     }
@@ -152,6 +153,7 @@ export function createLiquidTitle(section) {
     lctx.fillStyle = cs.color;
     const ascent = lctx.measureText('A').fontBoundingBoxAscent ?? fs * 0.95;
     for (const g of glyphs) lctx.fillText(g.ch, g.x - left, g.y - top + ascent);
+    centers = glyphs.map((g) => ({ x: g.x - left + g.w / 2, y: g.y - top + g.h * 0.55 }));
     // lo stesso alone scuro del CSS (text-shadow: 0 2px 34px)
     ctx.clearRect(0, 0, paint.width, paint.height);
     ctx.shadowColor = 'rgba(46, 18, 20, 0.45)';
@@ -201,6 +203,29 @@ export function createLiquidTitle(section) {
     if (!raf && (dirty || active)) raf = requestAnimationFrame(frame);
   }
 
+  // il primo gesto vero: niente più onde da sole né invito
+  function touch() {
+    if (touched) return;
+    touched = true;
+    clearTimeout(teaseTimer);
+    onTouch?.();
+  }
+  // onda da sola: una passata breve su due lettere a caso, ogni ~5 s finché nessuno lo tocca
+  let centers = [], touched = false, teaseTimer = 0;
+  function tease() {
+    if (!active || touched || !ready || !centers.length) return;
+    const c = centers[Math.floor(Math.random() * centers.length)];
+    const len = Math.max(fs, 78) * 1.1, steps = 6, dt = 0.035;
+    for (let i = 0; i <= steps; i++) {
+      setTimeout(() => {
+        if (!active || touched) return;
+        const x = c.x - len * 0.45 + (len * i) / steps;
+        add(x, c.y + Math.sin(i * 0.9) * fs * 0.06, len / (steps * dt), 0, 0.7);
+      }, i * dt * 1000);
+    }
+    teaseTimer = setTimeout(tease, 4800);
+  }
+
   function add(x, y, vx, vy, k) {
     const q = pts[head];
     head = (head + 1) % MAX_PTS;
@@ -233,6 +258,7 @@ export function createLiquidTitle(section) {
     last.vx += ((x - last.x) / dt - last.vx) * 0.6;
     last.vy += ((y - last.y) / dt - last.vy) * 0.6;
     add(x, y, last.vx, last.vy, Math.min(1, 0.35 + d / (sc * 0.25)));
+    touch();
     Object.assign(last, { x, y, t });
   }
   function onDown(cx, cy, ts) {
@@ -241,6 +267,7 @@ export function createLiquidTitle(section) {
     const x = cx - r.left, y = cy - r.top;
     if (x < 0 || y < 0 || x > r.width || y > r.height) return;
     add(x, y, 0, 0, 1); // un tocco: solo l'increspatura
+    touch();
     last = { x, y, t: ts / 1000, vx: 0, vy: 0 };
   }
   const opt = { passive: true };
@@ -278,9 +305,12 @@ export function createLiquidTitle(section) {
     setActive(on) {
       if (on === active) return;
       active = on;
+      clearTimeout(teaseTimer);
       if (!on) last = null;
+      else if (!touched) teaseTimer = setTimeout(tease, 1400);
       kick();
     },
     relayout,
+    enabled: true,
   };
 }

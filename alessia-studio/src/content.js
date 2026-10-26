@@ -96,6 +96,9 @@ const TEXT = {
     langLabel: 'Idioma',
     ui: {
       scroll: 'Scroll',
+      // invito a giocare con ALESSIA STUDIO liquido (mouse / dito)
+      liquidHover: "Pásale el cursor: es líquido",
+      liquidTouch: "Tócalo: es líquido",
       whatsapp: 'Escríbenos por WhatsApp',
       whatsappMsg: 'Hola Alessia Studio, quiero contarles sobre un proyecto.',
       open: 'Ver el proyecto',
@@ -152,6 +155,9 @@ const TEXT = {
     langLabel: 'Lingua',
     ui: {
       scroll: 'Scroll',
+      // invito a giocare con ALESSIA STUDIO liquido (mouse / dito)
+      liquidHover: "Passaci sopra: è liquido",
+      liquidTouch: "Toccalo: è liquido",
       whatsapp: 'Scrivici su WhatsApp',
       whatsappMsg: 'Ciao Alessia Studio, vorrei raccontarvi un progetto.',
       open: 'Apri il progetto',
@@ -208,6 +214,9 @@ const TEXT = {
     langLabel: 'Language',
     ui: {
       scroll: 'Scroll',
+      // invito a giocare con ALESSIA STUDIO liquido (mouse / dito)
+      liquidHover: "Hover over it: it's liquid",
+      liquidTouch: "Touch it: it's liquid",
       whatsapp: 'Message us on WhatsApp',
       whatsappMsg: "Hi Alessia Studio, I'd like to tell you about a project.",
       open: 'Open the project',
@@ -264,6 +273,9 @@ const TEXT = {
     langLabel: 'Idioma',
     ui: {
       scroll: 'Scroll',
+      // invito a giocare con ALESSIA STUDIO liquido (mouse / dito)
+      liquidHover: "Passe o cursor: é líquido",
+      liquidTouch: "Toque: é líquido",
       whatsapp: 'Fale conosco no WhatsApp',
       whatsappMsg: 'Olá Alessia Studio, quero contar sobre um projeto.',
       open: 'Ver o projeto',
