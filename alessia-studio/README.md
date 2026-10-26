@@ -20,7 +20,9 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
 3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
 4. Nello stesso gesto: fino al bordo della terrazza, una pausa davanti al sole, poi il tuffo, lento
 5. Sott'acqua, **i servizi**: due grandi testi che galleggiano nell'acqua, uno per sosta (Sitios 3D
-   inmersivos · Marca y contenido; dietro si intravede il successivo); un tocco li fa increspare
+   inmersivos · Marca y contenido; dietro si intravede il successivo); un tocco li fa increspare.
+   Dopo *Sitios 3D inmersivos* si scende sul fondale: una scultura 3D (anello di cemento rosa e nodo verde,
+   `src/sculpture.js`) che si gira trascinandola col dito o col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
 Sott'acqua: due squaletti nuotano attorno ai testi (toccati, scattano via); il puntatore scosta le
@@ -49,6 +51,7 @@ cambia da solo il percorso sott'acqua.
 - `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
 - `src/words.js`: i servizi sott'acqua, testi nella scena 3D che galleggiano nell'acqua
+- `src/sculpture.js`: il fondale di sabbia e la scultura da girare (inerzia, poi gira piano da sola)
 - `src/underwater.js`: testi dei servizi, bollicine (anche al tocco), pulviscolo
 - `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi

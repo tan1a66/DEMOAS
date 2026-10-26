@@ -52,6 +52,7 @@ const TEXT = {
         marca: { title: 'Marca y\ncontenido', lines: 'Branding · Dirección creativa · Renders y motion' },
       },
     },
+    art: { label: 'Escultura 3D en tiempo real', hintClick: 'Arrástrala para girarla', hintTouch: 'Gírala con el dedo' },
     contact: {
       label: 'Contáctanos',
       title: '¿Tienes un lugar que construir?',
@@ -94,6 +95,7 @@ const TEXT = {
         marca: { title: 'Brand e\ncontenuti', lines: 'Branding · Direzione creativa · Render e motion' },
       },
     },
+    art: { label: 'Scultura 3D in tempo reale', hintClick: 'Trascinala per ruotarla', hintTouch: 'Ruotala con il dito' },
     contact: {
       label: 'Contattaci',
       title: 'Hai un luogo da costruire?',
@@ -136,6 +138,7 @@ const TEXT = {
         marca: { title: 'Brand &\ncontent', lines: 'Branding · Creative direction · Renders and motion' },
       },
     },
+    art: { label: 'Real-time 3D sculpture', hintClick: 'Drag to turn it', hintTouch: 'Turn it with your finger' },
     contact: {
       label: 'Contact us',
       title: 'Got a place to build?',
@@ -178,6 +181,7 @@ const TEXT = {
         marca: { title: 'Marca e\nconteúdo', lines: 'Branding · Direção criativa · Renders e motion' },
       },
     },
+    art: { label: 'Escultura 3D em tempo real', hintClick: 'Arraste para girar', hintTouch: 'Gire com o dedo' },
     contact: {
       label: 'Fale conosco',
       title: 'Tem um lugar para construir?',

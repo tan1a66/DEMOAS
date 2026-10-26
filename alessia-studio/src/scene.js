@@ -24,7 +24,7 @@ const DECODERS = {
 
 const TILE = { formwork: 1.2, smooth: 2.0 };
 
-export async function buildScene({ renderer, lights, quality, loader, words = [], wordItems }) {
+export async function buildScene({ renderer, lights, quality, loader, words = [], wordItems, art = null }) {
   const { manager } = loader;
   manager.setURLModifier((url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url));
   for (const [name, url] of Object.entries(DECODERS)) loader.expect(url, manifest.files[`decoders/${name}`]);
@@ -108,7 +108,7 @@ export async function buildScene({ renderer, lights, quality, loader, words = []
   scene.add(dust);
 
   // sott'acqua: bolle dei progetti, bollicine, pulviscolo
-  const underwater = createUnderwater(lights, { positions: words, quality, items: wordItems });
+  const underwater = createUnderwater(lights, { positions: words, art, quality, items: wordItems });
   scene.add(underwater.group);
 
   // ombre in tempo reale solo per il pit, e solo se il dispositivo lo permette (calcolate una volta)

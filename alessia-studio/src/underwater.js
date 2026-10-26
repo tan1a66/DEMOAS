@@ -3,9 +3,11 @@ import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
 import { createSharks } from './sharks.js';
 import { createWords } from './words.js';
+import { createSculpture } from './sculpture.js';
 
-// Sott'acqua: i servizi come grandi testi che galleggiano nell'acqua (src/words.js), bollicine che
-// salgono verso la superficie, pulviscolo e due squaletti.
+// Sott'acqua: i servizi come grandi testi che galleggiano nell'acqua (src/words.js), il fondale con
+// la scultura da girare col dito (src/sculpture.js), bollicine che salgono verso la superficie,
+// pulviscolo e due squaletti.
 // Interazione: il puntatore (o il dito) scosta le bollicine; un tocco nell'acqua libera uno sbuffo
 // di bollicine e fa increspare il testo vicino, trascinare lascia una scia; toccare uno squalo lo
 // fa scattare via.
@@ -14,7 +16,7 @@ import { createWords } from './words.js';
 import { WATER } from './water-glsl.js';
 export { WATER };
 
-export function createUnderwater(lights, { positions, quality, items }) {
+export function createUnderwater(lights, { positions, art, quality, items }) {
   const L = lights.uniforms;
   const group = new THREE.Group();
   const shared = {
@@ -34,6 +36,9 @@ export function createUnderwater(lights, { positions, quality, items }) {
   // ---------------- i servizi: testi che galleggiano ----------------
   const words = createWords(shared, { positions, items, quality });
   group.add(words.group);
+  // ---------------- il fondale e la scultura ----------------
+  const sculpture = art ? createSculpture(shared, { base: art.base }) : null;
+  if (sculpture) group.add(sculpture.group);
 
   // ---------------- tratto sott'acqua ----------------
   // dal tuffo lungo la fila dei testi (e un po' oltre l'ultimo): bollicine e
@@ -298,23 +303,26 @@ export function createUnderwater(lights, { positions, quality, items }) {
     pushHold -= dt;
     if (pushHold <= 0 && !hoverActive) pushTarget = 0;
     shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 6));
-    // gli squali girano attorno al testo più vicino alla telecamera e al successivo
+    // gli squali girano attorno al testo (o alla scultura) più vicino alla telecamera e al successivo
+    const spots = sculpture ? [positions[0], sculpture.center, ...positions.slice(1)] : positions;
     let kNear = 0;
-    positions.forEach((b, i) => {
-      if (b.distanceToSquared(camera.position) < positions[kNear].distanceToSquared(camera.position)) kNear = i;
+    spots.forEach((b, i) => {
+      if (b.distanceToSquared(camera.position) < spots[kNear].distanceToSquared(camera.position)) kNear = i;
     });
-    sharks.update(dt, positions.slice(kNear, kNear + 2));
+    sharks.update(dt, spots.slice(kNear, kNear + 2));
     shared.uCamY.value = camera.position.y;
     dMat.uniforms.uPixelRatio.value = dpr;
     // visibile solo con la telecamera sott'acqua (da sopra l'acqua torbida non lascia vedere il fondo)
     group.visible = camera.position.y < 0.0 && camera.position.x < -20;
     words.update(time, focusIndex, dt, camera.position);
+    sculpture?.update(time, dt);
   }
 
   let hoverActive = false;
   return {
     group,
     words,
+    sculpture,
     update,
     shared,
     sharks,

@@ -59,6 +59,8 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const vision = add('ov-vision', sections.vision);
   const services = add('ov-services', sections.services);
   const contact = add('ov-contact', sections.contact);
+  // sul fondale: invito a girare la scultura
+  const art = add('ov-art', sections.art);
 
   // servizio sott'acqua davanti alla telecamera (-1 tra una sosta e l'altra)
   let current = -1;
@@ -113,6 +115,9 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       `<a class="cta primary" href="${esc(waHref(T.ui.whatsappMsg))}" target="_blank" rel="noopener">${WA_ICON}<span>${esc(T.contact.cta)}</span></a>`,
       CONTACT_LINKS.instagram && `<a class="cta" href="https://instagram.com/${esc(CONTACT_LINKS.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">Instagram</a>`,
     ].filter(Boolean).join('');
+    art.innerHTML = `
+      <p class="label">${esc(T.art.label)}</p>
+      <p class="hint-pill"><span class="drop"></span>${esc(canHover ? T.art.hintClick : T.art.hintTouch)}</p>`;
     contact.innerHTML = `
       <p class="label">${esc(T.contact.label)}</p>
       <h2 class="title">${esc(T.contact.title)}</h2>
@@ -170,5 +175,11 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     return !!r && x > r.left - m && x < r.right + m && y > r.top - m && y < r.bottom + m;
   }
 
-  return { update, setStop, setLang, onTitle, get lang() { return lang; }, get current() { return current; } };
+  return {
+    update, setStop, setLang, onTitle,
+    get lang() { return lang; },
+    get current() { return current; },
+    // la sosta della scultura è visibile (si può girare)
+    get artOn() { return art.classList.contains('on'); },
+  };
 }

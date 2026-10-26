@@ -35,15 +35,15 @@ const lights = createLights({ shadowInt: quality.shadowInt });
 const path = createCameraPath(camera, { reducedMotion, words: SERVICES.length });
 
 // scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, il bordo, i servizi sott'acqua, contatti)
-let overlay = null;
+let overlay = null, onSculpture = null;
 const guide = createGuide({
   stops: path.story.stops,
   units: path.story.total,
   setProgress: path.setProgress,
   reducedMotion,
   onChange: (i, moving, last) => overlay?.setStop(i, moving, last),
-  // giocando col titolo liquido (dito sopra ALESSIA STUDIO) lo scroll non si muove
-  ignoreTouch: (x, y) => !!overlay?.onTitle(x, y),
+  // giocando col titolo liquido (dito sopra ALESSIA STUDIO) o girando la scultura lo scroll non si muove
+  ignoreTouch: (x, y) => !!overlay?.onTitle(x, y) || !!onSculpture?.(x, y),
 });
 
 // testi e lingua; sott'acqua i servizi sono testi nella scena (src/words.js)
@@ -89,7 +89,7 @@ const stats = { frames: 0, time: 0, fps: 0, calls: 0, triangles: 0, dpr: adaptiv
 window.__stats = stats;
 
 async function start() {
-  const world = await buildScene({ renderer, lights, quality, loader, words: path.story.words, wordItems: wordTexts(lang) });
+  const world = await buildScene({ renderer, lights, quality, loader, words: path.story.words, art: path.story.art, wordItems: wordTexts(lang) });
   words = world.underwater.words;
   words.setLayout(wordLayout(camera.aspect));
   const { scene } = world;
@@ -132,9 +132,42 @@ async function start() {
     ly = y;
     uw.trail(aim(x, y));
   };
+  // la scultura sul fondale: trascinandola (dito o mouse) gira
+  const sc = uw.sculpture;
+  let spin = null, spun = false;
+  onSculpture = (x, y) => !!sc && overlay.artOn && sc.hit(aim(x, y));
+  const spinStart = (x, y, t) => {
+    if (!onSculpture(x, y)) return;
+    spin = { x, y, t, moved: 0 };
+    canvas.style.cursor = 'grabbing';
+  };
+  const spinMove = (x, y, t) => {
+    if (!spin) return false;
+    sc.rotateBy(x - spin.x, y - spin.y, Math.max((t - spin.t) / 1000, 1 / 240));
+    spin.moved += Math.hypot(x - spin.x, y - spin.y);
+    Object.assign(spin, { x, y, t });
+    return true;
+  };
+  const spinEnd = () => {
+    if (!spin) return;
+    spun = spin.moved > 6;
+    spin = null;
+    sc.release();
+    canvas.style.cursor = '';
+  };
+  window.addEventListener('pointerdown', (e) => e.pointerType !== 'touch' && spinStart(e.clientX, e.clientY, e.timeStamp));
+  window.addEventListener('pointerup', (e) => e.pointerType !== 'touch' && spinEnd());
+  window.addEventListener('pointercancel', (e) => e.pointerType !== 'touch' && spinEnd());
+  window.addEventListener('touchstart', (e) => e.touches.length === 1 && spinStart(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp), { passive: true });
+  window.addEventListener('touchmove', (e) => e.touches.length === 1 && spinMove(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp), { passive: true });
+  window.addEventListener('touchend', spinEnd, { passive: true });
+  window.addEventListener('touchcancel', spinEnd, { passive: true });
+
   window.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || spinMove(e.clientX, e.clientY, e.timeStamp)) return;
     if (e.pointerType !== 'mouse') return;
     const overUi = e.target.closest?.('.ui, a, button');
+    if (sc) canvas.style.cursor = !overUi && onSculpture(e.clientX, e.clientY) ? 'grab' : '';
     if (inWater() && !overUi) {
       uw.setPointer(aim(e.clientX, e.clientY), { hover: true });
       trailAt(e.clientX, e.clientY, e.timeStamp);
@@ -148,6 +181,8 @@ async function start() {
     trailAt(t.clientX, t.clientY, e.timeStamp);
   }, { passive: true });
   window.addEventListener('click', (e) => {
+    // dopo aver girato la scultura il clic non libera bollicine
+    if (spun) return void (spun = false);
     if (e.target.closest?.('a, button') || !inWater()) return;
     uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
     uw.burst(aim(e.clientX, e.clientY));
