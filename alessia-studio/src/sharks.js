@@ -179,7 +179,7 @@ export function createSharks(shared) {
 
   const C = new THREE.Vector3(), X = new THREE.Vector3(), Y = new THREE.Vector3(), Z = new THREE.Vector3();
   const UP = new THREE.Vector3(0, 1, 0), m = new THREE.Matrix4(), bank = new THREE.Quaternion(), AX = new THREE.Vector3(1, 0, 0);
-  let ez2 = 3, ey2 = 1;
+  let ez2 = 3, ey2 = 1, ex2 = 0;
 
   // centro ed estensione dei punti attorno a cui girare: cambiano passando da un testo all'altro,
   // e gli squali le seguono nuotando (centro smorzato, niente salti)
@@ -190,14 +190,16 @@ export function createSharks(shared) {
     Ct.set(0, 0, 0);
     points.forEach((b) => Ct.add(b));
     Ct.multiplyScalar(1 / points.length);
-    let ez = 0, ey = 0;
+    let ex = 0, ez = 0, ey = 0;
     points.forEach((b) => {
+      ex = Math.max(ex, Math.abs(b.x - Ct.x));
       ez = Math.max(ez, Math.abs(b.z - Ct.z));
       ey = Math.max(ey, Math.abs(b.y - Ct.y));
     });
     const k = placed ? 1 - Math.exp(-dt * 0.7) : 1;
     placed = true;
     C.lerp(Ct, k);
+    ex2 += (ex - ex2) * k;
     ez2 += (ez - ez2) * k;
     ey2 += (ey - ey2) * k;
   }
@@ -207,7 +209,7 @@ export function createSharks(shared) {
     for (const sh of sharks) {
       const boost = 1 + sh.kick;
       sh.kick *= Math.exp(-dt * 0.9);
-      const rz = ez2 + 2.1, rx = sh.rx;
+      const rz = ez2 + 2.1, rx = sh.rx + ex2;
       const r = Math.sqrt((rx * rx + rz * rz) / 2);
       sh.theta += (dt * sh.dir * sh.speed * boost) / r;
       sh.phase += dt * 5.2 * (0.8 + 0.7 * boost);

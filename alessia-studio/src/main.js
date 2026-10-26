@@ -3,12 +3,11 @@ import gsap from 'gsap';
 import { createLoader } from './loader.js';
 import { createLights } from './lights.js';
 import { buildScene } from './scene.js';
-import { createCameraPath, wordLayout } from './camera-path.js';
+import { createCameraPath } from './camera-path.js';
 import { createParallax } from './parallax.js';
 import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
 import { ROOM } from './layout.js';
-import { SERVICES, getText } from './content.js';
 import { createOverlay, pickLang } from './overlay.js';
 import { createGuide } from './guide.js';
 
@@ -32,28 +31,25 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 600);
 camera.layers.enable(1);
 const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
-const path = createCameraPath(camera, { reducedMotion, words: SERVICES.length });
+const path = createCameraPath(camera, { reducedMotion });
 
-// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, il bordo, i servizi sott'acqua, contatti)
-let overlay = null, onSculpture = null;
+// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, il bordo, il fondale, contatti)
+let overlay = null, onDemo = null;
 const guide = createGuide({
   stops: path.story.stops,
   units: path.story.total,
   setProgress: path.setProgress,
   reducedMotion,
   onChange: (i, moving, last) => overlay?.setStop(i, moving, last),
-  // giocando col titolo liquido (dito sopra ALESSIA STUDIO) o girando la scultura lo scroll non si muove
-  ignoreTouch: (x, y) => !!overlay?.onTitle(x, y) || !!onSculpture?.(x, y),
+  // giocando col titolo liquido (dito sopra ALESSIA STUDIO), girando la scultura o trascinando i pesci
+  // lo scroll non si muove
+  ignoreTouch: (x, y) => !!overlay?.onTitle(x, y) || !!onDemo?.(x, y),
 });
 
-// testi e lingua; sott'acqua i servizi sono testi nella scena (src/words.js)
+// testi e lingua
 const overlayRoot = document.getElementById('overlay');
-const lang = pickLang();
-let words = null;
-const wordTexts = (l) => SERVICES.map((s) => getText(l).deep.items[s.id]);
 overlay = createOverlay(overlayRoot, path.story.sections, {
-  lang,
-  onLang: (l) => words?.setTexts(wordTexts(l)),
+  lang: pickLang(),
   onNext: () => guide.next(),
 });
 // ?notext: scena senza testi (verifica automatica dei colori del 3D)
@@ -76,7 +72,6 @@ function resize() {
   camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(Math.max(THREE.MathUtils.degToRad(46), vFromH)), 46, 78);
   camera.updateProjectionMatrix();
   path.setFraming(camera.fov, camera.aspect, h);
-  words?.setLayout(wordLayout(camera.aspect));
 }
 new ResizeObserver(resize).observe(canvas);
 resize();
@@ -89,9 +84,7 @@ const stats = { frames: 0, time: 0, fps: 0, calls: 0, triangles: 0, dpr: adaptiv
 window.__stats = stats;
 
 async function start() {
-  const world = await buildScene({ renderer, lights, quality, loader, words: path.story.words, art: path.story.art, wordItems: wordTexts(lang) });
-  words = world.underwater.words;
-  words.setLayout(wordLayout(camera.aspect));
+  const world = await buildScene({ renderer, lights, quality, loader, art: path.story.art, artCam: path.story.artCam });
   const { scene } = world;
   let time = 0;
 
@@ -113,8 +106,8 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // sott'acqua il puntatore scosta le bollicine, un tocco libera uno sbuffo (e fa increspare il testo
-  // vicino), trascinare lascia una scia
+  // sott'acqua il puntatore scosta le bollicine e i pesci, un tocco libera uno sbuffo (e fa scappare i
+  // pesci vicini), trascinare lascia una scia
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const uw = world.underwater;
@@ -132,16 +125,20 @@ async function start() {
     ly = y;
     uw.trail(aim(x, y));
   };
-  // la scultura sul fondale: trascinandola (dito o mouse) gira
-  const sc = uw.sculpture;
-  let spin = null, spun = false;
-  onSculpture = (x, y) => !!sc && overlay.artOn && sc.hit(aim(x, y));
+  // la scultura sul fondale: trascinandola (dito o mouse) gira; trascinando altrove il banco di pesci
+  // segue il dito (o il mouse col tasto premuto)
+  const sc = uw.sculpture, school = uw.school;
+  let spin = null, spun = false, herd = false;
+  const onArt = (x, y) => overlay.artOn && sc.hit(aim(x, y));
+  onDemo = (x, y) => onArt(x, y) || (overlay.artOn && school.hit(aim(x, y)));
   const spinStart = (x, y, t) => {
-    if (!onSculpture(x, y)) return;
+    herd = overlay.artOn && !onArt(x, y);
+    if (!onArt(x, y)) return;
     spin = { x, y, t, moved: 0 };
     canvas.style.cursor = 'grabbing';
   };
   const spinMove = (x, y, t) => {
+    if (herd) school.point(aim(x, y), 1.0);
     if (!spin) return false;
     sc.rotateBy(x - spin.x, y - spin.y, Math.max((t - spin.t) / 1000, 1 / 240));
     spin.moved += Math.hypot(x - spin.x, y - spin.y);
@@ -149,6 +146,7 @@ async function start() {
     return true;
   };
   const spinEnd = () => {
+    herd = false;
     if (!spin) return;
     spun = spin.moved > 6;
     spin = null;
@@ -167,19 +165,28 @@ async function start() {
     if (e.pointerType === 'touch' || spinMove(e.clientX, e.clientY, e.timeStamp)) return;
     if (e.pointerType !== 'mouse') return;
     const overUi = e.target.closest?.('.ui, a, button');
-    if (sc) canvas.style.cursor = !overUi && onSculpture(e.clientX, e.clientY) ? 'grab' : '';
+    canvas.style.cursor = !overUi && onArt(e.clientX, e.clientY) ? 'grab' : '';
     if (inWater() && !overUi) {
       uw.setPointer(aim(e.clientX, e.clientY), { hover: true });
+      school.avoid(aim(e.clientX, e.clientY));
       trailAt(e.clientX, e.clientY, e.timeStamp);
-    } else uw.setPointer(null);
+    } else {
+      uw.setPointer(null);
+      school.avoid(null);
+    }
   });
-  document.documentElement.addEventListener('pointerleave', () => uw.setPointer(null));
+  document.documentElement.addEventListener('pointerleave', () => {
+    uw.setPointer(null);
+    school.avoid(null);
+  });
   window.addEventListener('touchmove', (e) => {
     if (!inWater() || e.touches.length !== 1) return;
     const t = e.touches[0];
     uw.setPointer(aim(t.clientX, t.clientY), { hold: 0.8 });
+    school.avoid(aim(t.clientX, t.clientY));
     trailAt(t.clientX, t.clientY, e.timeStamp);
   }, { passive: true });
+  window.addEventListener('touchend', () => school.avoid(null), { passive: true });
   window.addEventListener('click', (e) => {
     // dopo aver girato la scultura il clic non libera bollicine
     if (spun) return void (spun = false);
@@ -203,9 +210,7 @@ async function start() {
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
     overlay.update(p);
-    // il testo acceso: quello della sosta
-    const focus = overlay.current;
-    world.update(camera, adaptive.dpr, time, focus);
+    world.update(camera, adaptive.dpr, time);
     render();
     adaptive.sample(dt);
 
@@ -231,6 +236,7 @@ async function start() {
   };
   window.__stops = path.story.stops;
   window.__overlay = overlay;
+  window.__school = uw.school;
   // maschera dei cuscini (magenta, senza bloom e grana) per il controllo automatico dei colori
   window.__mask = (on) => {
     world.cushions.material.uniforms.uMask.value = on ? 1 : 0;

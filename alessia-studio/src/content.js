@@ -11,11 +11,6 @@ export const LANGS = [
 ];
 export const DEFAULT_LANG = 'es';
 
-// Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua, una sosta per
-// testo (testi in deep.items: titolo su due righe e una riga di dettaglio). Aggiungere o togliere un
-// servizio cambia da solo il percorso sott'acqua.
-export const SERVICES = [{ id: 'digital' }, { id: 'marca' }];
-
 // Contatti: solo WhatsApp (niente email sul sito). whatsapp: numero con prefisso internazionale; il
 // pulsante WhatsApp è sempre visibile e apre la chat con un messaggio pronto nella lingua scelta.
 // instagram: vuoto = non mostrato.
@@ -46,13 +41,12 @@ const TEXT = {
         { label: 'Contenido', items: ['Renders y animaciones 3D', 'Motion design y video', 'Contenido para redes sociales', 'Campañas y lanzamientos'] },
       ],
     },
-    deep: {
-      items: {
-        digital: { title: 'Sitios 3D\ninmersivos', lines: 'Diseño UX/UI · Configuradores 3D · Recorridos virtuales' },
-        marca: { title: 'Marca y\ncontenido', lines: 'Branding · Dirección creativa · Renders y motion' },
-      },
+    art: {
+      label: 'Escena 3D en tiempo real',
+      hintClick: 'Arrastra la escultura para girarla',
+      hintTouch: 'Gira la escultura con el dedo',
+      fish: { hintClick: 'Haz clic en los peces', hintTouch: 'Toca los peces' },
     },
-    art: { label: 'Escultura 3D en tiempo real', hintClick: 'Arrástrala para girarla', hintTouch: 'Gírala con el dedo' },
     contact: {
       label: 'Contáctanos',
       title: '¿Tienes un lugar que construir?',
@@ -89,13 +83,12 @@ const TEXT = {
         { label: 'Contenuti', items: ['Render e animazioni 3D', 'Motion design e video', 'Contenuti per i social', 'Campagne e lanci'] },
       ],
     },
-    deep: {
-      items: {
-        digital: { title: 'Siti 3D\nimmersivi', lines: 'Design UX/UI · Configuratori 3D · Tour virtuali' },
-        marca: { title: 'Brand e\ncontenuti', lines: 'Branding · Direzione creativa · Render e motion' },
-      },
+    art: {
+      label: 'Scena 3D in tempo reale',
+      hintClick: 'Trascina la scultura per ruotarla',
+      hintTouch: 'Ruota la scultura con il dito',
+      fish: { hintClick: 'Clicca sui pesci', hintTouch: 'Tocca i pesci' },
     },
-    art: { label: 'Scultura 3D in tempo reale', hintClick: 'Trascinala per ruotarla', hintTouch: 'Ruotala con il dito' },
     contact: {
       label: 'Contattaci',
       title: 'Hai un luogo da costruire?',
@@ -132,13 +125,12 @@ const TEXT = {
         { label: 'Content', items: ['3D renders and animation', 'Motion design and video', 'Social media content', 'Campaigns and launches'] },
       ],
     },
-    deep: {
-      items: {
-        digital: { title: 'Immersive\n3D websites', lines: 'UX/UI design · 3D configurators · Virtual tours' },
-        marca: { title: 'Brand &\ncontent', lines: 'Branding · Creative direction · Renders and motion' },
-      },
+    art: {
+      label: 'Real-time 3D scene',
+      hintClick: 'Drag the sculpture to turn it',
+      hintTouch: 'Turn the sculpture with your finger',
+      fish: { hintClick: 'Click the fish', hintTouch: 'Tap the fish' },
     },
-    art: { label: 'Real-time 3D sculpture', hintClick: 'Drag to turn it', hintTouch: 'Turn it with your finger' },
     contact: {
       label: 'Contact us',
       title: 'Got a place to build?',
@@ -175,13 +167,12 @@ const TEXT = {
         { label: 'Conteúdo', items: ['Renders e animações 3D', 'Motion design e vídeo', 'Conteúdo para redes sociais', 'Campanhas e lançamentos'] },
       ],
     },
-    deep: {
-      items: {
-        digital: { title: 'Sites 3D\nimersivos', lines: 'Design UX/UI · Configuradores 3D · Tours virtuais' },
-        marca: { title: 'Marca e\nconteúdo', lines: 'Branding · Direção criativa · Renders e motion' },
-      },
+    art: {
+      label: 'Cena 3D em tempo real',
+      hintClick: 'Arraste a escultura para girá-la',
+      hintTouch: 'Gire a escultura com o dedo',
+      fish: { hintClick: 'Clique nos peixes', hintTouch: 'Toque nos peixes' },
     },
-    art: { label: 'Escultura 3D em tempo real', hintClick: 'Arraste para girar', hintTouch: 'Gire com o dedo' },
     contact: {
       label: 'Fale conosco',
       title: 'Tem um lugar para construir?',

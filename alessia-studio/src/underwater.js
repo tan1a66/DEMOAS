@@ -2,21 +2,21 @@ import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
 import { createSharks } from './sharks.js';
-import { createWords } from './words.js';
 import { createSculpture } from './sculpture.js';
+import { createSchool } from './school.js';
 
-// Sott'acqua: i servizi come grandi testi che galleggiano nell'acqua (src/words.js), il fondale con
-// la scultura da girare col dito (src/sculpture.js), bollicine che salgono verso la superficie,
-// pulviscolo e due squaletti.
-// Interazione: il puntatore (o il dito) scosta le bollicine; un tocco nell'acqua libera uno sbuffo
-// di bollicine e fa increspare il testo vicino, trascinare lascia una scia; toccare uno squalo lo
+// Sott'acqua, sul fondale: la scultura da girare col dito (src/sculpture.js) e il banco di pesci di
+// vetro che le gira attorno (src/school.js); bollicine che salgono verso la superficie, pulviscolo e
+// due squaletti.
+// Interazione: il puntatore (o il dito) scosta le bollicine e i pesci; un tocco nell'acqua libera uno
+// sbuffo di bollicine e fa scappare i pesci vicini, trascinare lascia una scia; toccare uno squalo lo
 // fa scattare via.
 // Tutto sfuma nel colore dell'acqua con la distanza.
 
 import { WATER } from './water-glsl.js';
 export { WATER };
 
-export function createUnderwater(lights, { positions, art, quality, items }) {
+export function createUnderwater(lights, { art, artCam, quality }) {
   const L = lights.uniforms;
   const group = new THREE.Group();
   const shared = {
@@ -33,19 +33,17 @@ export function createUnderwater(lights, { positions, art, quality, items }) {
     uCamY: { value: 1 },
   };
 
-  // ---------------- i servizi: testi che galleggiano ----------------
-  const words = createWords(shared, { positions, items, quality });
-  group.add(words.group);
-  // ---------------- il fondale e la scultura ----------------
-  const sculpture = art ? createSculpture(shared, { base: art.base }) : null;
-  if (sculpture) group.add(sculpture.group);
+  // ---------------- il fondale, la scultura e il banco di pesci ----------------
+  const sculpture = createSculpture(shared, { base: art.base });
+  group.add(sculpture.group);
+  const school = createSchool(shared, { art: { center: sculpture.center, radius: 2.5 }, cam: artCam, quality });
+  group.add(school.group);
 
   // ---------------- tratto sott'acqua ----------------
-  // dal tuffo lungo la fila dei testi (e un po' oltre l'ultimo): bollicine e
-  // pulviscolo sono distribuiti lungo questo percorso, in proporzione alla sua lunghezza
-  const route = [new THREE.Vector3(-27, 0, -13.5), ...positions.map((b) => b.clone().setY(0))];
-  if (positions.length) route.push(route[route.length - 1].clone().add(new THREE.Vector3(-8, 0, -4)));
-  else route.push(new THREE.Vector3(-62, 0, -13.5));
+  // dal tuffo fino alla scultura (e un po' oltre): bollicine e pulviscolo sono distribuiti lungo
+  // questo percorso, in proporzione alla sua lunghezza
+  const route = [new THREE.Vector3(-27, 0, -13.5), art.base.clone().setY(0)];
+  route.push(route[1].clone().add(new THREE.Vector3(-8, 0, -4)));
   const seg = route.slice(1).map((b, i) => b.distanceTo(route[i]));
   const routeLen = seg.reduce((a, b) => a + b, 0);
   // punto a caso lungo il percorso, scostato di lato fino a ±spread/2 metri
@@ -65,7 +63,7 @@ export function createUnderwater(lights, { positions, art, quality, items }) {
   const aOffset = new Float32Array(count * 3);
   const aParams = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
-    // più fitte vicino al punto del tuffo, poi sparse lungo il percorso tra le bolle
+    // più fitte vicino al punto del tuffo, poi sparse lungo il percorso
     const nearDive = i < count * 0.3;
     if (nearDive) tmpP.set(-28.5 + (Math.random() - 0.5) * 5, 0, -13.5 + (Math.random() - 0.5) * 5);
     else along(14, tmpP);
@@ -263,15 +261,15 @@ export function createUnderwater(lights, { positions, art, quality, items }) {
     spawnAttr.needsUpdate = true;
     parAttr.needsUpdate = true;
   }
-  // punto nell'acqua sotto il dito: sul testo toccato, altrimenti a qualche metro
-  function pointOn(ray, fallback) {
-    const hit = new THREE.Raycaster(ray.origin, ray.direction).intersectObjects(words.meshes, false)[0];
-    return ray.at(hit ? hit.distance : fallback, pt);
-  }
+  // punto nell'acqua sotto il dito, a qualche metro
+  const pointOn = (ray, d) => ray.at(d, pt);
 
   // ---------------- due squaletti ----------------
   const sharks = createSharks(shared);
   group.add(sharks.group);
+  // girano larghi attorno alla scultura (senza toccarla), passando tra i pesci
+  const sharkSpots = [art.center.clone().add(new THREE.Vector3(-1.6, 0, -2.6)), art.center.clone().add(new THREE.Vector3(1.6, 0, 2.6))];
+  const predators = sharks.sharks.map((sh) => sh.mesh.position);
 
   // puntatore: raggio dall'occhio; per il dito resta attivo un attimo dopo il tocco
   let pushTarget = 0, pushHold = 0;
@@ -286,43 +284,36 @@ export function createUnderwater(lights, { positions, art, quality, items }) {
   function burst(ray) {
     const shark = sharks.poke(ray);
     if (shark) spawn(shark, 30, 0.4, 1.2);
-    const at = pointOn(ray, 4.2);
-    spawn(at, 34, 0.5);
-    // il testo vicino si increspa
-    words.poke(at);
+    spawn(pointOn(ray, 4.2), 34, 0.5);
+    // i pesci vicini scappano
+    school.scatter(ray);
   }
   function trail(ray) {
     spawn(pointOn(ray, 4.0), 1 + (Math.random() < 0.5 ? 1 : 0), 0.1, 0.9);
   }
 
   let lastTime = 0;
-  function update(camera, time, focusIndex, dpr) {
+  function update(camera, time, dpr) {
     const dt = Math.min(0.1, Math.max(0, time - lastTime));
     lastTime = time;
     now = time;
     pushHold -= dt;
     if (pushHold <= 0 && !hoverActive) pushTarget = 0;
     shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 6));
-    // gli squali girano attorno al testo (o alla scultura) più vicino alla telecamera e al successivo
-    const spots = sculpture ? [positions[0], sculpture.center, ...positions.slice(1)] : positions;
-    let kNear = 0;
-    spots.forEach((b, i) => {
-      if (b.distanceToSquared(camera.position) < spots[kNear].distanceToSquared(camera.position)) kNear = i;
-    });
-    sharks.update(dt, spots.slice(kNear, kNear + 2));
+    sharks.update(dt, sharkSpots);
     shared.uCamY.value = camera.position.y;
     dMat.uniforms.uPixelRatio.value = dpr;
     // visibile solo con la telecamera sott'acqua (da sopra l'acqua torbida non lascia vedere il fondo)
     group.visible = camera.position.y < 0.0 && camera.position.x < -20;
-    words.update(time, focusIndex, dt, camera.position);
-    sculpture?.update(time, dt);
+    sculpture.update(time, dt);
+    if (group.visible) school.update(dt, time, predators, camera.position);
   }
 
   let hoverActive = false;
   return {
     group,
-    words,
     sculpture,
+    school,
     update,
     shared,
     sharks,

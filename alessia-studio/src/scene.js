@@ -24,7 +24,7 @@ const DECODERS = {
 
 const TILE = { formwork: 1.2, smooth: 2.0 };
 
-export async function buildScene({ renderer, lights, quality, loader, words = [], wordItems, art = null }) {
+export async function buildScene({ renderer, lights, quality, loader, art, artCam }) {
   const { manager } = loader;
   manager.setURLModifier((url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url));
   for (const [name, url] of Object.entries(DECODERS)) loader.expect(url, manifest.files[`decoders/${name}`]);
@@ -107,8 +107,8 @@ export async function buildScene({ renderer, lights, quality, loader, words = []
   const dust = makeDust(lights, quality.tier === 'low' ? 220 : 420);
   scene.add(dust);
 
-  // sott'acqua: bolle dei progetti, bollicine, pulviscolo
-  const underwater = createUnderwater(lights, { positions: words, art, quality, items: wordItems });
+  // sott'acqua: la scultura, il banco di pesci, bollicine, pulviscolo, squaletti
+  const underwater = createUnderwater(lights, { art, artCam, quality });
   scene.add(underwater.group);
 
   // ombre in tempo reale solo per il pit, e solo se il dispositivo lo permette (calcolate una volta)
@@ -116,10 +116,10 @@ export async function buildScene({ renderer, lights, quality, loader, words = []
   loader.stepDone();
 
   const architecture = [...Object.values(meshes), cushions, beam, dust];
-  function update(camera, dpr, time = 0, focus = -1) {
+  function update(camera, dpr, time = 0) {
     sea.update(camera);
     dust.material.uniforms.uPixelRatio.value = dpr;
-    underwater.update(camera, time, focus, dpr);
+    underwater.update(camera, time, dpr);
     // sotto il pelo dell'acqua l'edificio non si vede (e non va disegnato)
     const above = camera.position.y > -0.05;
     for (const m of architecture) m.visible = above && m.userData.maskHidden !== true;

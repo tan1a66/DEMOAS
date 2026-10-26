@@ -4,8 +4,7 @@ import { createLiquidTitle } from './liquid-title.js';
 // Testi sopra il canvas (HTML vero: selezionabile, leggibile dagli screen reader).
 // Ogni sezione ha una finestra di avanzamento [da, a] calcolata dal percorso: appare quando la
 // telecamera arriva alla sosta e scompare quando riparte. Sempre visibili: lingua, WhatsApp e
-// l'invito a scorrere. Sott'acqua i servizi sono testi nella scena 3D (src/words.js); qui si tiene
-// solo conto di quale testo è davanti alla telecamera.
+// l'invito a scorrere. Sul fondale, sotto la scena 3D, l'invito a provarla.
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const isLang = (l) => LANGS.some((x) => x.code === l);
@@ -59,11 +58,8 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const vision = add('ov-vision', sections.vision);
   const services = add('ov-services', sections.services);
   const contact = add('ov-contact', sections.contact);
-  // sul fondale: invito a girare la scultura
-  const art = add('ov-art', sections.art);
-
-  // servizio sott'acqua davanti alla telecamera (-1 tra una sosta e l'altra)
-  let current = -1;
+  // sul fondale: invito a girare la scultura e a toccare i pesci
+  const art = add('ov-demo', sections.art);
 
   // sempre visibili: lingua (in alto a destra), WhatsApp (in basso a destra), invito a scorrere
   const langNav = document.createElement('nav');
@@ -115,9 +111,10 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       `<a class="cta primary" href="${esc(waHref(T.ui.whatsappMsg))}" target="_blank" rel="noopener">${WA_ICON}<span>${esc(T.contact.cta)}</span></a>`,
       CONTACT_LINKS.instagram && `<a class="cta" href="https://instagram.com/${esc(CONTACT_LINKS.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener">Instagram</a>`,
     ].filter(Boolean).join('');
+    const pill = (h) => `<p class="hint-pill"><span class="drop"></span>${esc(canHover ? h.hintClick : h.hintTouch)}</p>`;
     art.innerHTML = `
       <p class="label">${esc(T.art.label)}</p>
-      <p class="hint-pill"><span class="drop"></span>${esc(canHover ? T.art.hintClick : T.art.hintTouch)}</p>`;
+      <div class="pills">${pill(T.art)}${pill(T.art.fish)}</div>`;
     contact.innerHTML = `
       <p class="label">${esc(T.contact.label)}</p>
       <h2 class="title">${esc(T.contact.title)}</h2>
@@ -157,7 +154,6 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       }
     });
     liquid.setActive(brand.classList.contains('on'));
-    current = sections.words.findIndex((r) => p >= r[0] && p <= r[1]);
   }
 
   // invito a scorrere: nascosto durante il passaggio tra due soste e all'ultima
@@ -178,8 +174,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   return {
     update, setStop, setLang, onTitle,
     get lang() { return lang; },
-    get current() { return current; },
-    // la sosta della scultura è visibile (si può girare)
+    // la sosta del fondale è visibile (si gira la scultura, si toccano i pesci)
     get artOn() { return art.classList.contains('on'); },
   };
 }

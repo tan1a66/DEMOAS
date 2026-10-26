@@ -192,10 +192,11 @@ body { touch-action: manipulation; }
   color: var(--ink);
   transition: opacity 0.6s ease;
 }
-/* sul fondale: invito a girare la scultura, in basso al centro */
-.ov-art { left: var(--gutter); right: var(--gutter); bottom: calc(var(--bottom-ui) + 56px); text-align: center; }
-.ov-art .label { margin: 0 0 10px; }
-.ov-art .hint-pill {
+/* sul fondale: invito a girare la scultura e a toccare i pesci, in basso al centro */
+.ov-demo { left: var(--gutter); right: var(--gutter); bottom: calc(var(--bottom-ui) + 56px); text-align: center; }
+.ov-demo .label { margin: 0 0 10px; }
+.ov-demo .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ov-demo .hint-pill {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -208,7 +209,7 @@ body { touch-action: manipulation; }
   text-transform: uppercase;
   color: var(--ink);
 }
-.ov-art .hint-pill .drop { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.ov-demo .hint-pill .drop { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
 .ov-brand .liquid-hint .drop {
   position: relative;
   width: 8px;

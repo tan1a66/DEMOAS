@@ -20,54 +20,28 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-// Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua (src/words.js),
-// una sosta per testo. Ogni testo sta 7.5 m oltre il precedente, più a destra e un po' più su (verso
-// la luce): dalla sosta di uno si intravedono dietro, in alto a destra, i successivi, velati d'acqua.
-// Il piano del testo ha due formati: orizzontale per gli schermi larghi, verticale per i telefoni.
-export const WORD_SIZE = { land: [5.6, 3.15], port: [3.3, 4.12] };
-export const wordLayout = (aspect) => (aspect < 1 ? 'port' : 'land');
-export const WORD_STEP = 7.5;
-export function wordLine(n) {
-  return Array.from({ length: n }, (_, i) => V(-40 - i * WORD_STEP, -3.4 + 0.7 * i, -13.5 - i * 3.0));
-}
-
-// Il fondale e la scultura (src/sculpture.js): sotto il primo testo, sulla sabbia. ART_SIZE è
-// l'ingombro da inquadrare (larghezza, altezza); la sosta scende dal testo fino a lei.
+// Sott'acqua, sul fondale: una scultura 3D da girare col dito (src/sculpture.js) e un banco di pesci
+// di vetro che le passa da dietro e viene verso lo schermo (src/school.js). Poi lo sguardo sale verso
+// la superficie: il contatto. ART_SIZE è l'ingombro della scultura da inquadrare (larghezza, altezza).
 export const SEABED_Y = -10;
 export const ART_SIZE = [4.0, 4.8];
-export function artPlace(P0) {
-  const base = V(P0.x - 1.5, SEABED_Y, P0.z);
-  return { base, center: base.clone().add(V(0, ART_SIZE[1] / 2, 0)) };
-}
+const ART_BASE = V(-41.5, SEABED_Y, -13.5);
+export const ART = { base: ART_BASE, center: ART_BASE.clone().add(V(0, ART_SIZE[1] / 2, 0)) };
+
+// la scultura un po' dall'alto, come scendendo verso la sabbia; in verticale (telefono) l'opera sta
+// più in alto, sopra l'invito
 function artView(C, fovDeg, aspect, push = 0) {
   const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2), tanH = tanV * aspect;
-  const port = wordLayout(aspect) === 'port';
+  const port = aspect < 1;
   const [W, H] = ART_SIZE;
   const d = Math.max(W / 2 / ((port ? 0.86 : 0.5) * tanH), H / 2 / ((port ? 0.62 : 0.68) * tanV)) - push;
-  // un po' dall'alto, come scendendo verso la sabbia; in verticale l'opera sta più in alto (sopra l'invito)
   const f = V(-1, -0.16, 0.04).normalize();
   const target = C.clone().add(V(0, port ? -0.9 : -0.75, 0));
   return { pos: target.clone().addScaledVector(f, -d), target };
 }
 
-// posa della telecamera per la sosta davanti al testo in P: il testo, al centro, occupa una parte
-// fissa dello schermo (in verticale un po' più in alto, sopra i pulsanti)
-function wordView(P, fovDeg, aspect, push = 0) {
-  const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2), tanH = tanV * aspect;
-  const port = wordLayout(aspect) === 'port';
-  const [W, H] = WORD_SIZE[wordLayout(aspect)];
-  const d = Math.max(W / 2 / ((port ? 0.94 : 0.62) * tanH), H / 2 / (0.8 * tanV)) - push;
-  const sy = port ? 0.06 : 0;
-  const f = V(-1, -0.02, 0).normalize();
-  const r = new THREE.Vector3().crossVectors(f, V(0, 1, 0)).normalize();
-  const u = new THREE.Vector3().crossVectors(r, f);
-  const pos = P.clone().addScaledVector(f, -d).addScaledVector(u, -sy * d * tanV);
-  return { pos, target: pos.clone().addScaledVector(f, 14) };
-}
-
-// d = distanza iniziale dal muro; n = numero di servizi sott'acqua; fov verticale, aspect e altezza (px)
-// dello schermo
-export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
+// d = distanza iniziale dal muro; fov verticale, aspect e altezza (px) dello schermo
+export function buildStory(d, fovDeg = 46, aspect = 1.6, h = 900) {
   const zw = FW.zOut;
   const cy = WINDOW.cy;
   const keys = [];
@@ -126,22 +100,13 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   key(40, V(-28.9, 0.32, -13.45), V(-38.0, -1.7, -13.5), 1.02, 0.15);
   key(45, V(-30.3, -0.65, -13.5), V(-39.3, -2.5, -13.5), 1.05, 0.15, 'dive');
   key(40, V(-32.2, -2.3, -13.5), V(-41.0, -3.3, -13.4), 1.1, 0.3, 'underwater');
-  // 7 · sott'acqua, i servizi: ogni gesto porta al testo successivo; dopo il primo (Sitios 3D) si
-  //     scende sul fondale fino alla scultura, che si gira col dito
-  const P = wordLine(n);
-  const art = n ? artPlace(P[0]) : null;
-  P.forEach((w, i) => {
-    const a = wordView(w, fovDeg, aspect), c = wordView(w, fovDeg, aspect, 0.35);
-    key(i ? 45 : 50, a.pos, a.target, 1.1, 0.5, `w${i}In`);
-    key(50, c.pos, c.target, 1.1, 0.5, `w${i}Out`);
-    if (i === 0) {
-      const g = artView(art.center, fovDeg, aspect), h = artView(art.center, fovDeg, aspect, 0.3);
-      key(55, g.pos, g.target, 1.2, 0.35, 'artIn');
-      key(55, h.pos, h.target, 1.2, 0.35, 'artOut');
-    }
-  });
-  // 8 · contattaci: lo sguardo sale verso la luce della superficie, i testi restano sotto
-  const last = n ? keys[keys.length - 1].pos : V(-33, -3.2, -13.5);
+  // 7 · sott'acqua si scende sul fondale fino alla scultura, che si gira col dito
+  const g = artView(ART.center, fovDeg, aspect), gOut = artView(ART.center, fovDeg, aspect, 0.3);
+  key(45, V(-33.4, -4.5, -13.6), V(-41.5, -7.4, -13.5), 1.15, 0.3);
+  key(55, g.pos, g.target, 1.2, 0.35, 'artIn');
+  key(55, gOut.pos, gOut.target, 1.2, 0.35, 'artOut');
+  // 8 · contattaci: lo sguardo sale verso la luce della superficie
+  const last = gOut.pos;
   key(55, last.clone().add(V(-2.0, 0.5, -0.4)), last.clone().add(V(-7, 9.2, -0.6)), 1.1, 0.6, 'contactIn');
   key(50, last.clone().add(V(-2.6, 0.6, -0.5)), last.clone().add(V(-6.5, 10.8, -0.7)), 1.1, 0.6, 'end');
 
@@ -164,10 +129,7 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     brand: range('brandIn', 'brandOut'),
     vision: range('visionIn', 'visionOut', 0.35, 0.3),
     services: range('servicesIn', 'servicesOut', 0.6),
-    // tutto il tratto dei servizi sott'acqua, e la finestra di ogni testo
-    deep: n ? [range('w0In', 'w0Out')[0], range(`w${n - 1}In`, `w${n - 1}Out`)[1]] : [2, 2],
-    words: P.map((_, i) => range(`w${i}In`, `w${i}Out`, 0.3, 0.2)),
-    art: n ? range('artIn', 'artOut', 0.25, 0.2) : [2, 2],
+    art: range('artIn', 'artOut', 0.25, 0.2),
     contact: [at('contactIn') - (at('contactIn') - keys[marks.contactIn - 1].p) * 0.4, 1.01],
   };
   // soste dello scroll guidato: ogni gesto porta alla successiva (a metà della sosta, telecamera quasi ferma)
@@ -177,16 +139,13 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'brand', p: mid('brandIn', 'brandOut') },
     { id: 'vision', p: mid('visionIn', 'visionOut') },
     { id: 'services', p: mid('servicesIn', 'servicesOut') },
-    // dalla terrazza al primo testo in un solo gesto: si cammina fino al bordo, una pausa davanti al
-    // sole, poi il tuffo (più lento e con un'accelerazione più dolce)
-    ...P.map((_, i) => ({
-      id: `word-${i}`,
-      p: mid(`w${i}In`, `w${i}Out`),
-      ...(i ? {} : { via: { p: mid('edgeIn', 'edgeOut'), hold: 1.1 }, pace: 0.016, maxDur: 6, ease: 'sine.inOut' }),
-    })).flatMap((s, i) => (i === 0 ? [s, { id: 'art', p: mid('artIn', 'artOut') }] : [s])),
+    // dalla terrazza alla scultura in un solo gesto: si cammina fino al bordo, una pausa davanti al
+    // sole, poi il tuffo e la discesa sul fondale (più lenti e con un'accelerazione più dolce)
+    { id: 'art', p: mid('artIn', 'artOut'), via: { p: mid('edgeIn', 'edgeOut'), hold: 1.1 }, pace: 0.016, maxDur: 6.5, ease: 'sine.inOut' },
     { id: 'contact', p: 1 },
   ];
-  return { keys, sections, stops, words: P, art, total, dive: at('dive') };
+  // artCam: la telecamera alla sosta della scultura (il banco di pesci le passa vicino)
+  return { keys, sections, stops, art: ART, artCam: g.pos.clone(), total };
 }
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
@@ -222,8 +181,8 @@ function monotone(xs, ys) {
   };
 }
 
-export function createCameraPath(camera, { reducedMotion = false, words = 0 } = {}) {
-  const story = buildStory(startDistance(46, 1.6), words, 46, 1.6);
+export function createCameraPath(camera, { reducedMotion = false } = {}) {
+  const story = buildStory(startDistance(46, 1.6), 46, 1.6);
   const { keys } = story;
   const n = keys.length;
   const posCurve = new THREE.CatmullRomCurve3(keys.map((k) => k.pos), false, 'centripetal');
@@ -245,13 +204,14 @@ export function createCameraPath(camera, { reducedMotion = false, words = 0 } = 
   }
 
   // al resize: ricalcola le chiavi che dipendono dall'inquadratura (stesso numero di chiavi, stesse
-  // durate: cambiano solo i vettori, che le curve condividono); i testi sott'acqua restano dove sono
+  // durate: cambiano solo i vettori, che le curve condividono); scultura e banco restano dove sono
   function setFraming(fovDeg, aspect, h) {
-    const fresh = buildStory(startDistance(fovDeg, aspect), words, fovDeg, aspect, h);
+    const fresh = buildStory(startDistance(fovDeg, aspect), fovDeg, aspect, h);
     fresh.keys.forEach((k, i) => {
       keys[i].pos.copy(k.pos);
       keys[i].target.copy(k.target);
     });
+    story.artCam.copy(fresh.artCam);
   }
 
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale
