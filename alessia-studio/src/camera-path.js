@@ -230,7 +230,7 @@ export function createCameraPath(camera, { reducedMotion = false, projects = 0 }
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale
   function update(dt, parallax = { x: 0, y: 0 }, amp = 0.22) {
     if (reducedMotion) state.u = state.target;
-    else state.u += (state.target - state.u) * (1 - Math.exp(-dt * 3.2));
+    else state.u += (state.target - state.u) * (1 - Math.exp(-dt * 4.5));
     if (Math.abs(state.target - state.u) < 1e-6) state.u = state.target;
     const u = state.u;
     posCurve.getPoint(u, pos);

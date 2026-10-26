@@ -9,9 +9,10 @@ import gsap from 'gsap';
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 
-export function createGuide({ stops, units, setProgress, reducedMotion = false, onChange }) {
+// ignoreTouch(x, y): true se un tocco che parte lì non deve muovere lo scroll (il titolo liquido)
+export function createGuide({ stops, units, setProgress, reducedMotion = false, onChange, ignoreTouch }) {
   const state = { p: 0 };
-  let index = 0, dir = 0, tween = null, enabled = false;
+  let index = 0, dir = 0, tween = null, enabled = false, queued = 0;
   const last = stops.length - 1;
 
   function emit() {
@@ -26,7 +27,7 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
     const dist = Math.abs(to - state.p) * units;
     // più lungo il tratto, più tempo; il tratto prende il passo della sosta più avanti tra le due
     const seg = stops[Math.max(i, index)];
-    const duration = clamp(0.8 + dist * (seg.pace || 0.011), 1.2, seg.maxDur || 5.2) * (reducedMotion ? 0.6 : 1);
+    const duration = clamp(0.7 + dist * (seg.pace || 0.0095), 1.0, seg.maxDur || 4.6) * (reducedMotion ? 0.6 : 1);
     dir = Math.sign(i - index) || dir;
     index = i;
     tween?.kill();
@@ -39,17 +40,28 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
         tween = null;
         arrivedAt = performance.now();
         emit();
+        // un gesto arrivato verso la fine del tratto: si prosegue subito alla sosta dopo
+        if (queued) {
+          const q = queued;
+          queued = 0;
+          go(index + q);
+        }
       },
     });
     emit();
   }
 
-  // un gesto nella direzione d: fermi -> sosta successiva; in movimento, solo l'inversione conta
+  // un gesto nella direzione d: fermi -> sosta successiva; in movimento, l'inversione torna indietro
+  // e un gesto nella stessa direzione verso la fine del tratto vale la sosta dopo (scroll di fila)
   function intent(d) {
     if (!enabled || !d) return;
-    if (tween && d === dir) return;
+    if (tween && d === dir) {
+      if (tween.progress() > 0.55) queued = d;
+      return;
+    }
     // appena arrivati a una sosta, un attimo di respiro prima della successiva
-    if (!tween && performance.now() - arrivedAt < 450) return;
+    if (!tween && performance.now() - arrivedAt < 250) return;
+    queued = 0;
     go(index + d);
   }
 
@@ -79,23 +91,38 @@ export function createGuide({ stops, units, setProgress, reducedMotion = false, 
   }
 
   // ---- dito ----
-  let ty = null, tUsed = false;
+  // conta solo un gesto chiaramente verticale: abbastanza lungo, oppure uno swipe rapido alla fine;
+  // movimenti di lato o in diagonale e i tocchi che tremano un po' non spostano niente
+  const vertical = (dx, dy) => Math.abs(dy) > Math.abs(dx) * 1.6;
+  let t0 = null, tUsed = false, tIgnored = false;
   function onTouchStart(e) {
-    if (e.touches.length !== 1) return;
-    ty = e.touches[0].clientY;
+    if (e.touches.length !== 1) {
+      t0 = null;
+      return;
+    }
+    const t = e.touches[0];
+    t0 = { x: t.clientX, y: t.clientY, time: e.timeStamp || performance.now() };
     tUsed = false;
+    tIgnored = !!ignoreTouch?.(t.clientX, t.clientY);
   }
   function onTouchMove(e) {
-    if (ty === null || !enabled) return;
+    if (!t0 || !enabled) return;
     e.preventDefault(); // niente scroll nativo né "tira per aggiornare"
-    const dy = ty - e.touches[0].clientY;
-    if (!tUsed && Math.abs(dy) > 34) {
+    if (tUsed || tIgnored || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - t0.x, dy = t0.y - e.touches[0].clientY;
+    if (Math.abs(dy) > 44 && vertical(dx, dy)) {
       tUsed = true;
       intent(Math.sign(dy));
     }
   }
-  function onTouchEnd() {
-    ty = null;
+  function onTouchEnd(e) {
+    if (t0 && enabled && !tUsed && !tIgnored && e.changedTouches?.length) {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - t0.x, dy = t0.y - t.clientY;
+      const quick = (e.timeStamp || performance.now()) - t0.time < 300;
+      if (quick && Math.abs(dy) > 24 && vertical(dx, dy)) intent(Math.sign(dy));
+    }
+    t0 = null;
   }
 
   // ---- tastiera ----

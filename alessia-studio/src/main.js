@@ -43,6 +43,8 @@ const guide = createGuide({
   setProgress: path.setProgress,
   reducedMotion,
   onChange: (i, moving, last) => overlay?.setStop(i, moving, last),
+  // giocando col titolo liquido (dito sopra ALESSIA STUDIO) lo scroll non si muove
+  ignoreTouch: (x, y) => !!overlay?.onTitle(x, y),
 });
 
 // testi, lingua, galleria dei progetti

@@ -26,7 +26,8 @@ Sott'acqua: due squaletti nuotano attorno alle bolle (toccati, scattano via); il
 bollicine e bolle, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il dito (o muovere il
 mouse) lascia una scia.
 
-Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra; la scelta viene ricordata), WhatsApp (in
+Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
+se non è tra le quattro; la scelta viene ricordata), WhatsApp (in
 basso a destra) e l'invito a scorrere.
 
 ## Contenuti (`src/content.js`)
