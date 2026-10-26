@@ -98,7 +98,7 @@ pre { font: 400 5.4pt/1.35 ui-monospace, Menlo, monospace; white-space: pre-wrap
 <section class="page cover">
   <div class="logo">${svg('logo-verde-2-righe')}</div>
   <div class="sub">Brand kit · Instagram</div>
-  <div class="line">Desde Italia · Con base en México · Trabajamos en todo el mundo</div>
+  <div class="line">Italia · México · Colombia · Worldwide</div>
 </section>
 
 <section class="page">
@@ -114,11 +114,11 @@ pre { font: 400 5.4pt/1.35 ui-monospace, Menlo, monospace; white-space: pre-wrap
     </div>
     <div>
       <h2>Posizionamento</h2>
-      <p><b>ES</b> Desde Italia · Con base en México · Trabajamos en todo el mundo<br>
-      <b>IT</b> Dall'Italia · Base in Messico · Lavoriamo in tutto il mondo<br>
-      <b>EN</b> From Italy · Based in Mexico · Working worldwide<br>
-      <b>PT</b> Da Itália · Com base no México · Trabalhando no mundo todo</p>
-      <p>Nacimos en Italia, vivimos en México y trabajamos en remoto con marcas de todo el mundo.</p>
+      <p><b>ES</b> Italia · México · Colombia · Worldwide<br>
+      <b>IT</b> Italia · Messico · Colombia · Worldwide<br>
+      <b>EN</b> Italy · Mexico · Colombia · Worldwide<br>
+      <b>PT</b> Itália · México · Colômbia · Worldwide</p>
+      <p>Nacimos en Italia, trabajamos entre México y Colombia, con marcas de todo el mundo.</p>
       <h2>Tono di voce</h2>
       <p>Calmo, preciso, sensoriale. Frasi brevi. Parole di architettura e di luce: <i>lugar, luz, materia, recorrido, paso, detalle</i>. Niente gergo tecnico nei post. Il sito non si guarda: si visita, si attraversa.</p>
       <h2>Servizi</h2>
@@ -196,7 +196,7 @@ ${[0, 1].map((k) => `<section class="page">
     <li>Logo verde su rosa: ALESSIA STUDIO</li>
     <li>Manifesto, verde su rosa: <i>Un sitio web puede ser un lugar, no una página.</i></li>
     <li>Il sito: i divani verdi</li>
-    <li>Rosa su verde: <i>Desde Italia · Con base en México · Trabajamos en todo el mundo</i></li>
+    <li>Rosa su verde: <i>Italia · México · Colombia · Worldwide</i></li>
     <li>Carosello dei servizi: Marca / Digital / Contenido (una slide per gruppo)</li>
     <li>Il sito: il lucernario</li>
     <li>Un progetto (carosello con le immagini di progetti/): solo la categoria, nessun nome</li>

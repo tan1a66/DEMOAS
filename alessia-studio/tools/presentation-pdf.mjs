@@ -134,7 +134,7 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
   <div class="box" style="left:0;right:0;top:70px;text-align:center">
     <div style="width:940px;margin:0 auto">${svg('logo-verde').replace('<svg ', '<svg style="width:100%;height:auto;display:block" ')}</div>
     <p class="k" style="margin:26px 0 6px;font-size:13px">Branding · Dirección creativa · Sitios web 3D</p>
-    <p class="k" style="margin:0;font-size:11px;opacity:.92">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
+    <p class="k" style="margin:0;font-size:11px;opacity:.92">Italia · México · Colombia · Worldwide</p>
   </div>
   <div class="shade-b" style="background:linear-gradient(0deg, rgba(52,22,24,.8) 0%, rgba(52,22,24,.42) 26%, rgba(52,22,24,0) 46%)"></div>
   <div class="box" style="left:72px;bottom:66px;max-width:760px">
@@ -391,7 +391,7 @@ h3 { font: 800 21px/1.2 Syne; letter-spacing: -.02em; color: ${V}; padding-botto
     <div style="margin-top:32px">
       <div class="lab">Escríbenos por WhatsApp</div><div class="val hl" style="font-size:54px">+39 346 175 8562</div>
     </div>
-    <p class="k" style="margin:30px 0 0">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
+    <p class="k" style="margin:30px 0 0">Italia · México · Colombia · Worldwide</p>
   </div>
   ${foot('ink')}
 </section>

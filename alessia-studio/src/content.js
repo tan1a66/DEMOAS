@@ -52,12 +52,12 @@ export const BRAND_NAME = 'ALESSIA STUDIO';
 const TEXT = {
   es: {
     tagline: 'Branding · Dirección creativa · Sitios web 3D',
-    origin: ['Desde Italia', 'Con base en México', 'Trabajamos en todo el mundo'],
+    origin: ['Italia', 'México', 'Colombia', 'Worldwide'],
     vision: {
       label: 'Visión',
       title: 'Un sitio web puede ser un lugar, no una página.',
       text: 'Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y movimiento que cuentan una marca como una visita. Cada scroll es un paso; cada detalle está hecho para quedarse.',
-      world: 'Nacimos en Italia, vivimos en México y trabajamos en remoto con marcas de todo el mundo.',
+      world: 'Nacimos en Italia, trabajamos entre México y Colombia, con marcas de todo el mundo.',
     },
     services: {
       label: 'Qué hacemos',
@@ -112,12 +112,12 @@ const TEXT = {
 
   it: {
     tagline: 'Branding · Direzione creativa · Siti web 3D',
-    origin: ["Dall'Italia", 'Base in Messico', 'Lavoriamo in tutto il mondo'],
+    origin: ['Italia', 'Messico', 'Colombia', 'Worldwide'],
     vision: {
       label: 'Visione',
       title: 'Un sito può essere un luogo, non una pagina.',
       text: 'Progettiamo brand e spazi digitali da attraversare: architetture di luce, materia e movimento che raccontano un brand come una visita. Ogni scroll è un passo, ogni dettaglio è costruito per restare.',
-      world: 'Nati in Italia, di base in Messico, lavoriamo da remoto con brand di tutto il mondo.',
+      world: 'Nati in Italia, lavoriamo tra Messico e Colombia, con brand di tutto il mondo.',
     },
     services: {
       label: 'Cosa facciamo',
@@ -171,12 +171,12 @@ const TEXT = {
 
   en: {
     tagline: 'Branding · Creative direction · 3D websites',
-    origin: ['From Italy', 'Based in Mexico', 'Working worldwide'],
+    origin: ['Italy', 'Mexico', 'Colombia', 'Worldwide'],
     vision: {
       label: 'Vision',
       title: 'A website can be a place, not a page.',
       text: 'We design brands and digital spaces you walk through: architectures of light, matter and motion that tell a brand like a visit. Every scroll is a step; every detail is built to last.',
-      world: 'Born in Italy, based in Mexico, working remotely with brands all over the world.',
+      world: 'Born in Italy, working between Mexico and Colombia with brands all over the world.',
     },
     services: {
       label: 'What we do',
@@ -230,12 +230,12 @@ const TEXT = {
 
   pt: {
     tagline: 'Branding · Direção criativa · Sites 3D',
-    origin: ['Da Itália', 'Com base no México', 'Trabalhando no mundo todo'],
+    origin: ['Itália', 'México', 'Colômbia', 'Worldwide'],
     vision: {
       label: 'Visão',
       title: 'Um site pode ser um lugar, não uma página.',
       text: 'Projetamos marcas e espaços digitais para percorrer: arquiteturas de luz, matéria e movimento que contam uma marca como uma visita. Cada scroll é um passo; cada detalhe é feito para ficar.',
-      world: 'Nascemos na Itália, moramos no México e trabalhamos à distância com marcas do mundo todo.',
+      world: 'Nascemos na Itália, trabalhamos entre o México e a Colômbia, com marcas do mundo todo.',
     },
     services: {
       label: 'O que fazemos',

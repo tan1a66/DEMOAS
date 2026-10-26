@@ -133,7 +133,7 @@ body { touch-action: manipulation; }
 }
 .ov-scrim.on { opacity: 1; }
 
-/* "Desde Italia · Con base en México · Trabajamos en todo el mundo" */
+/* "Italia · México · Colombia · Worldwide" */
 .ov .origin {
   display: flex;
   flex-wrap: wrap;
@@ -573,8 +573,7 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
   .ov .title { font-size: clamp(26px, 7.4vw, 34px); margin-bottom: 14px; }
   .ov-brand { top: calc(max(16px, var(--safe-t)) + 64px); }
   .ov-brand .tagline { letter-spacing: 0.14em; font-size: 10.5px; }
-  .ov-brand .origin { flex-direction: column; gap: 4px; letter-spacing: 0.18em; font-size: 10.5px; }
-  .ov-brand .origin .dot { display: none; }
+  .ov-brand .origin { gap: 4px 8px; letter-spacing: 0.18em; font-size: 10.5px; }
   .ov-projects { top: auto; bottom: calc(var(--bottom-ui) + 18px); right: var(--gutter); max-width: none; transform: translateY(14px); }
   .ov-projects.on { transform: none; }
   .ov-projects .title { font-size: clamp(26px, 7.4vw, 34px); margin-bottom: 6px; }

@@ -6,9 +6,10 @@ Serve a chi prepara i post: tutto quello che c'è da sapere sta qui.
 ## Chi siamo
 - **Nome:** ALESSIA STUDIO (sempre in maiuscolo nel logo)
 - **Cosa fa:** branding, direzione creativa e siti web 3D immersivi
-- **Posizionamento:** *Desde Italia · Con base en México · Trabajamos en todo el mundo*
-  (IT: Dall'Italia · Base in Messico · Lavoriamo in tutto il mondo · EN: From Italy · Based in Mexico ·
-  Working worldwide · PT: Da Itália · Com base no México · Trabalhando no mundo todo)
+- **Posizionamento:** *Italia · México · Colombia · Worldwide* (lo studio è italiano: l'Italia sempre
+  per prima; "Worldwide" resta in inglese in tutte le lingue)
+  (IT: Italia · Messico · Colombia · Worldwide · EN: Italy · Mexico · Colombia · Worldwide ·
+  PT: Itália · México · Colômbia · Worldwide)
 - **Manifesto:** *Un sitio web puede ser un lugar, no una página.*
 - **In una frase:** Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y
   movimiento que cuentan una marca como una visita.
@@ -88,7 +89,7 @@ si parla solo della **categoria** e dell'idea, mai di chi è il progetto, e si u
 1. Logo verde su rosa: *ALESSIA STUDIO*
 2. Manifesto, verde su rosa: *Un sitio web puede ser un lugar, no una página.*
 3. Il sito: i divani verdi (immagine da `sito/`)
-4. Rosa su verde: *Desde Italia · Con base en México · Trabajamos en todo el mundo*
+4. Rosa su verde: *Italia · México · Colombia · Worldwide*
 5. Carosello dei servizi: Marca / Digital / Contenido (una slide per gruppo)
 6. Il sito: il lucernario
 7. Un progetto (carosello con le immagini di `progetti/`): solo la categoria, nessun nome

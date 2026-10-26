@@ -87,7 +87,7 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
   <div class="top" style="top:96px">
     <div class="logo">${svg('logo-verde-2-righe')}</div>
     <p class="k ink" style="margin:26px 0 6px;font-size:11px">Branding · Dirección creativa · Sitios web 3D</p>
-    <p class="k ink" style="margin:0;font-size:10px;opacity:.9">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
+    <p class="k ink" style="margin:0;font-size:10px;opacity:.9">Italia · México · Colombia · Worldwide</p>
   </div>
   <div class="scrim">
     <div class="big ink" style="font-size:38px;max-width:620px">Sitios que se exploran, no solo se miran.</div>
@@ -228,7 +228,7 @@ h3 { font: 800 15.5px/1.22 Syne; letter-spacing: -.015em; color: ${V}; padding-b
       <div class="rule"><h3>Tu zona horaria</h3><p>Las llamadas se agendan en tu horario, no en el nuestro.</p></div>
       <div class="rule"><h3>Base: Mérida, México</h3><p>Disponibles también para reuniones en persona.</p></div>
     </div>
-    <p class="k" style="margin:18px 0 0">Desde Italia · Con base en México · Trabajamos en todo el mundo</p>
+    <p class="k" style="margin:18px 0 0">Italia · México · Colombia · Worldwide</p>
   </div>
   ${foot(true)}
 </section>

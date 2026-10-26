@@ -15,8 +15,7 @@ Ogni gesto (rotella, trackpad, dito, frecce/PagGiù/spazio della tastiera, o il 
 alla sosta successiva; il passaggio tra due soste è un movimento continuo della telecamera.
 0. Il muro rosa a cassero riempie lo schermo (niente mare attorno): la linea del loader si dissolve
    nell'orizzonte visto attraverso la finestra circolare
-1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Desde Italia · Con base en
-   México · Trabajamos en todo el mundo*
+1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Italia · México · Colombia · Worldwide*
 2. Sotto il lucernario: **Visión**
 3. Sempre sotto il lucernario (lo sguardo ruota appena): **Qué hacemos**, i servizi in tre gruppi
 4. Passando per il fascio di sole, la terrazza e il tuffo nel mare: **le bolle dei progetti**, tutte
