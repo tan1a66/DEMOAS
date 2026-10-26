@@ -186,7 +186,7 @@ body { touch-action: manipulation; }
 }
 .ov-brand .origin { justify-content: center; margin-top: 12px; }
 
-/* 2 · VISIÓN e 3 · QUÉ HACEMOS, sotto il lucernario */
+/* 2 · VISIÓN, sotto il lucernario, e 3 · QUÉ HACEMOS, fuori sulla terrazza davanti al mare */
 .ov-vision, .ov-services {
   left: var(--gutter);
   top: 50%;
@@ -513,7 +513,7 @@ html.is-loading .ui, html.gallery-open .ui, html.gallery-open .ov-labels { opaci
   .gal-close { position: fixed; }
 }
 
-/* tablet in verticale: anche qui Visión e Qué hacemos in basso (il lucernario sta in alto) */
+/* tablet in verticale: anche qui Visión e Qué hacemos in basso (in alto il lucernario, il mare) */
 @media (max-aspect-ratio: 4/5) and (min-width: 721px) {
   .ov-vision, .ov-services {
     top: auto;

@@ -35,7 +35,7 @@ const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
 const path = createCameraPath(camera, { reducedMotion, projects: PROJECTS.length });
 
-// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, bolle, contatti)
+// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, bolle, contatti)
 let overlay = null;
 const guide = createGuide({
   stops: path.story.stops,

@@ -106,8 +106,7 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   key(45, V(-0.5, 4.35, 3.9), V(0.0, 2.5, -2.0), 3.1, 0.5);
   key(45, V(-1.05, 3.18, 0.45), V(0.35, 2.58, -2.6), 3.3, 0.45, 'brandIn');
   key(75, V(-1.12, 3.14, 0.32), V(0.38, 2.6, -2.6), 3.3, 0.45, 'brandOut');
-  // 3 · lo sguardo sale al lucernario e si ferma: VISIONE, poi COSA FACCIAMO (stessa sosta, lo
-  //     sguardo ruota appena)
+  // 3 · lo sguardo sale al lucernario e si ferma: VISIONE
   //     Il disco luminoso non deve stare dietro ai testi: su schermo orizzontale va a destra (testi a
   //     sinistra), in verticale in alto (testi in basso)
   const sky = (pos, tgt) => {
@@ -118,29 +117,32 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     const side = 1.75 + Math.max(0, aspect - 1.6) * 1.2; // schermi molto larghi: un po' di più
     return tgt.addScaledVector(r, -side * land).addScaledVector(u, -0.95 * (1 - land));
   };
-  const s1 = V(-1.15, 3.12, 0.15), s2 = V(-1.17, 3.12, 0.08), s3 = V(-1.2, 3.11, -0.02), s4 = V(-1.22, 3.1, -0.08);
+  const s1 = V(-1.15, 3.12, 0.15), s2 = V(-1.18, 3.11, 0.02);
   key(45, s1, sky(s1, V(-0.25, 9.6, 0.5)), 3.3, 0.4, 'visionIn');
-  key(60, s2, sky(s2, V(-0.3, 9.6, 0.45)), 3.3, 0.4, 'visionOut');
-  key(30, s3, sky(s3, V(-0.38, 9.6, 0.36)), 3.3, 0.4, 'servicesIn');
-  key(60, s4, sky(s4, V(-0.42, 9.6, 0.3)), 3.3, 0.4, 'servicesOut');
-  // 4 · ripartenza attraverso il fascio di sole, grande apertura, terrazza, il sole basso
+  key(75, s2, sky(s2, V(-0.36, 9.6, 0.4)), 3.3, 0.4, 'visionOut');
+  // 4 · ripartenza attraverso il fascio di sole e la grande apertura, fuori sulla terrazza: sosta
+  //     davanti al mare, COSA FACCIAMO. Lo sguardo va a sud-ovest, sul mare aperto oltre il bordo
+  //     della terrazza: il sole basso (a ovest) resta fuori dall'inquadratura, a sinistra, e non sta
+  //     dietro ai testi; l'edificio è alle spalle
   key(45, V(-0.3, 4.0, -1.6), V(0.0, 4.6, -9), 3.2, 0.5);
   key(40, V(0.0, 4.35, -4.2), V(0.0, 4.5, -14), 1.9, 0.3);
   key(30, V(0.0, 4.4, -7.4), V(-0.6, 4.55, -17), 1.25, 0.15);
-  key(30, V(-0.7, 4.55, -10.6), V(-7.5, 4.95, -19), 1.05, 0.6);
-  key(35, V(-4.0, 4.7, -13.0), V(-30, 6.4, -9.5), 1.0, 1, 'sun');
+  key(35, V(-1.2, 4.6, -11.2), V(-14.2, 4.85, -24.6), 1.05, 0.45, 'servicesIn');
+  key(75, V(-1.65, 4.6, -11.65), V(-14.9, 4.85, -24.9), 1.05, 0.45, 'servicesOut');
+  // 5 · lungo la terrazza, verso il sole basso
+  key(40, V(-4.0, 4.7, -13.0), V(-30, 6.4, -9.5), 1.0, 1, 'sun');
   key(30, V(-6.0, 4.6, -13.1), V(-31, 6.0, -10.0), 1.0, 1);
-  // 5 · in fondo alla terrazza e giù, nel mare (attraversamento continuo della superficie)
+  // 6 · in fondo alla terrazza e giù, nel mare (attraversamento continuo della superficie)
   key(45, V(-25.4, 3.95, -13.3), V(-31, 0.6, -13.4), 1.0, 0.4);
   key(30, V(-27.0, 0.95, -13.4), V(-30.5, -2.6, -13.6), 1.0, 0.15);
   key(25, V(-28.2, -0.9, -13.5), V(-32, -3.0, -13.6), 1.05, 0.15, 'dive');
   key(35, V(-30.5, -3.1, -13.5), V(-40, -3.5, -13.4), 1.1, 0.4, 'underwater');
-  // 6 · le bolle dei progetti, tutte insieme: una sola sosta (si tocca una bolla per aprire il progetto)
+  // 7 · le bolle dei progetti, tutte insieme: una sola sosta (si tocca una bolla per aprire il progetto)
   const stopPos = V(-33.0, -3.2, -13.5), stopTgt = V(-45, -3.45, -13.5);
   key(40, stopPos, stopTgt, 1.1, 0.55, 'projectsIn');
   key(60, V(-33.25, -3.2, -13.48), stopTgt.clone(), 1.1, 0.55, 'projectsOut');
   const B = bubbleWorld(n, fovDeg, aspect, h, stopPos, stopTgt);
-  // 7 · contattaci: lo sguardo sale verso la luce della superficie, le bolle restano sotto
+  // 8 · contattaci: lo sguardo sale verso la luce della superficie, le bolle restano sotto
   key(55, V(-35.0, -2.7, -13.5), V(-40, 6.0, -13.5), 1.1, 0.6, 'contactIn');
   key(50, V(-35.6, -2.6, -13.5), V(-39.5, 7.6, -13.5), 1.1, 0.6, 'end');
 
