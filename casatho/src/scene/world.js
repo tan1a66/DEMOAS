@@ -6,7 +6,7 @@ import { buildHouse } from './house.js';
 import { buildPlants } from './plants.js';
 import { buildFurniture } from './furniture.js';
 import { buildAO } from './ao.js';
-import { buildCurtain } from './foliage.js';
+import { buildCurtain, CURTAIN_LAYER } from './foliage.js';
 
 const SUN_DIR = new THREE.Vector3(0.45, 0.72, 0.53).normalize();
 
@@ -83,6 +83,7 @@ export class World {
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.035;
     this.scene.add(this.hemi, sun, sun.target, this.fill);
+    for (const l of [this.hemi, sun, this.fill]) l.layers.enable(CURTAIN_LAYER);
     this._lightRot = new THREE.Matrix4().lookAt(SUN_DIR, new THREE.Vector3(), new THREE.Vector3(0, 1, 0));
     this._lightRotInv = this._lightRot.clone().invert();
 
@@ -150,7 +151,7 @@ export class World {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     const portrait = w / h < 0.8;
-    this.camera.fov = portrait ? 64 : w / h < 1.25 ? 56 : 48;
+    this.baseFov = portrait ? 64 : w / h < 1.25 ? 56 : 48;
     if (shift) this.shift = shift;
     this._applyProjection();
   }
@@ -161,8 +162,15 @@ export class World {
     this._applyProjection();
   }
 
+  // la intro abre con la lente más cerrada (zoom) y vuelve a la normal
+  setFov(f) {
+    this.fovOverride = f;
+    this._applyProjection();
+  }
+
   _applyProjection() {
     const c = this.camera;
+    c.fov = this.fovOverride ?? this.baseFov;
     c.updateProjectionMatrix();
     c.projectionMatrix.elements[8] = -this.shift.x;
     c.projectionMatrix.elements[9] = -this.shift.y;
@@ -209,7 +217,100 @@ export class World {
     this.updateShadow();
   }
 
+  // Capa de hojas de la intro: se dibuja aparte, se desenfoca (gaussiano separable a media
+  // resolución) y se compone encima de la escena, como un primer plano fuera de foco.
+  _curtainPass() {
+    const r = this.renderer;
+    const size = r.getDrawingBufferSize(new THREE.Vector2());
+    const w = Math.max(1, Math.round(size.x / 2)), h = Math.max(1, Math.round(size.y / 2));
+    if (!this._cp) {
+      const rt = () => new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, samples: 4 });
+      const quad = (frag, uniforms, blending) => {
+        const m = new THREE.ShaderMaterial({
+          uniforms, depthTest: false, depthWrite: false, transparent: !!blending,
+          blending: blending || THREE.NoBlending, premultipliedAlpha: true,
+          vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+          fragmentShader: frag,
+        });
+        const s = new THREE.Scene();
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), m);
+        mesh.frustumCulled = false;
+        s.add(mesh);
+        return { s, m };
+      };
+      const blurFrag = /* glsl */`
+        uniform sampler2D tex; uniform vec2 dir; varying vec2 vUv;
+        void main() {
+          vec4 c = texture2D(tex, vUv) * 0.1964825501511404;
+          c += texture2D(tex, vUv + dir * 1.411764705882353) * 0.2969069646728344;
+          c += texture2D(tex, vUv - dir * 1.411764705882353) * 0.2969069646728344;
+          c += texture2D(tex, vUv + dir * 3.2941176470588234) * 0.09447039785044732;
+          c += texture2D(tex, vUv - dir * 3.2941176470588234) * 0.09447039785044732;
+          c += texture2D(tex, vUv + dir * 5.176470588235294) * 0.010381362401148057;
+          c += texture2D(tex, vUv - dir * 5.176470588235294) * 0.010381362401148057;
+          gl_FragColor = c;
+        }`;
+      this._cp = {
+        a: rt(), b: rt(),
+        blur: quad(blurFrag, { tex: { value: null }, dir: { value: new THREE.Vector2() } }),
+        comp: quad(/* glsl */`
+          uniform sampler2D tex; varying vec2 vUv;
+          void main() {
+            vec4 c = texture2D(tex, vUv);
+            if (c.a < 0.002) discard;
+            gl_FragColor = vec4(c.rgb / c.a, 1.0);
+            #include <tonemapping_fragment>
+            #include <colorspace_fragment>
+            gl_FragColor = vec4(gl_FragColor.rgb * c.a, c.a);
+          }`, { tex: { value: null } }, THREE.CustomBlending),
+      };
+      const cm = this._cp.comp.m;
+      cm.blendSrc = THREE.OneFactor; cm.blendDst = THREE.OneMinusSrcAlphaFactor;
+      cm.toneMapped = true;
+    }
+    const cp = this._cp;
+    if (cp.a.width !== w || cp.a.height !== h) { cp.a.setSize(w, h); cp.b.setSize(w, h); }
+    const bg = this.scene.background, fog = this.scene.fog;
+    const cam = this.camera;
+    const shadowAuto = r.shadowMap.autoUpdate;
+    this.scene.background = null; this.scene.fog = null;
+    r.shadowMap.autoUpdate = false;
+    cam.layers.set(CURTAIN_LAYER);
+    r.setRenderTarget(cp.a);
+    r.setClearColor(0x000000, 0);
+    r.clear();
+    r.render(this.scene, cam);
+    cam.layers.set(0);
+    this.scene.background = bg; this.scene.fog = fog;
+    r.shadowMap.autoUpdate = shadowAuto;
+    // dos pasadas H+V (ampliando el radio en la segunda) para un desenfoque redondo y suave
+    const rad = this.curtain.blur * (h / 420);
+    const passes = [[rad, 0], [0, rad], [rad * 1.8, 0], [0, rad * 1.8]];
+    let src = cp.a, dst = cp.b;
+    for (const [dx, dy] of passes) {
+      cp.blur.m.uniforms.tex.value = src.texture;
+      cp.blur.m.uniforms.dir.value.set(dx / w, dy / h);
+      r.setRenderTarget(dst);
+      r.render(cp.blur.s, cam);
+      [src, dst] = [dst, src];
+    }
+    r.setRenderTarget(null);
+    cp.comp.m.uniforms.tex.value = src.texture;
+    const ac = r.autoClear;
+    r.autoClear = false;
+    r.render(cp.comp.s, cam);
+    r.autoClear = ac;
+  }
+
   render() {
     this.renderer.render(this.scene, this.camera);
+    if (this.curtain.group.visible && this.curtain.group.parent) this._curtainPass();
+  }
+
+  disposeCurtainPass() {
+    if (!this._cp) return;
+    for (const k of ['a', 'b']) this._cp[k].dispose();
+    for (const k of ['blur', 'comp']) { this._cp[k].m.dispose(); this._cp[k].s.children[0].geometry.dispose(); }
+    this._cp = null;
   }
 }

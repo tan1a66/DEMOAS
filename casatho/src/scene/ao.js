@@ -41,7 +41,8 @@ export function buildAO(root, { pots = [], tables = [] } = {}) {
   strips.push([-zx, ze, -zx, W, FL, 1, 0], [zx, ze, zx, W, FL, -1, 0]);
   strips.push([L.leftWall, ze, -zx, ze, FL, 0, -1], [zx, ze, L.rightWall, ze, FL, 0, -1]);
   strips.push([L.leftWall, L.backWall, L.leftWall, ze, FL, 1, 0]);
-  strips.push([-13, L.facade, 13, L.facade, FL, 0, 1]);
+  // fachada, sin cruzar el vano del portón (si no, queda una franja oscura flotando sobre la puerta)
+  strips.push([-13, L.facade, -1.5, L.facade, FL, 0, 1], [1.5, L.facade, 13, L.facade, FL, 0, 1]);
   strips.push([L.arcadeLeftX + 0.36, L.backWall, L.rightWall, L.backWall, GR, 0, 1]);
   strips.push([L.rightWall, L.backWall, L.rightWall, L.arcadeFront - 0.36, GR, -1, 0]);
   strips.push([L.rightWall, L.arcadeFront, L.rightWall, ze, FL, -1, 0]);

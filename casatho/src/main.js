@@ -75,7 +75,18 @@ const captions = [
   ...[1, 2, 3, 4, 5].map((i) => [document.querySelector(`.stop[data-stop="${i}"] .card`), 2 * i - 0.3, 2 * i + 1.12]),
 ];
 
+// La Ō de Jost con letter-spacing se dibuja como O + macrón suelto (el macrón queda corrido a la
+// derecha). Con tracking 0 en la letra sale bien; el espacio que le tocaba va como margen.
+function fixMacron() {
+  for (const o of document.querySelectorAll('.o')) {
+    const ls = getComputedStyle(o.parentElement).letterSpacing;
+    o.style.letterSpacing = '0';
+    if (ls && ls !== 'normal') o.style.marginRight = ls;
+  }
+}
+
 async function boot() {
+  fixMacron();
   if (!hasWebGL() || params.has('nowebgl')) return staticFallback();
   let cine = phoneQuery.matches;
   html.classList.toggle('cine', cine);
@@ -84,7 +95,7 @@ async function boot() {
 
   progress(0.12);
   await Promise.race([
-    Promise.all([document.fonts.load('400 40px Jost'), document.fonts.load('500 40px "Cormorant Garamond"')]),
+    Promise.all([document.fonts.load('400 40px Jost', "CASA T'HŌ"), document.fonts.load('500 40px "Cormorant Garamond"')]),
     wait(1500),
   ]).catch(() => {});
   progress(0.35);
@@ -150,26 +161,29 @@ async function boot() {
   const cam = world.camera;
   const pos = new THREE.Vector3(), dir = new THREE.Vector3(), look = new THREE.Vector3();
   const smoothDir = new THREE.Vector3(0, 0, -1);
-  // Inicio de la intro: la cámara entra por el portón de la reja y gira hacia el jardín (curva).
-  const intro = { k: reduced || CAPTURE ? 1 : 0, open: 0, gate: 0 };
-  const introStart = new THREE.Vector3(), introCtrl = new THREE.Vector3();
-  function setIntroPath() {
-    rec.pose(0, pos, dir);
-    if (cine) { introStart.set(0, 2.2, 14.6); introCtrl.set(0, 2.0, 10.8); }
-    else { introStart.set(0, 2.2, 15.4); introCtrl.set(0, 2.0, 9.2); }
-  }
-  setIntroPath();
+  // Intro: la cámara empieza de frente al letrero, con la lente cerrada y el nombre del loader
+  // exactamente encima; se acerca (zoom sobre la fachada) y luego se aleja hasta el jardín.
+  // k: 0 = de frente al letrero → 1 = posición inicial del recorrido; zoom: acercamiento previo.
+  const intro = { k: reduced || CAPTURE ? 1 : 0, zoom: 0, open: 0, gate: 0 };
+  const introC0 = new THREE.Vector3(), introC1 = new THREE.Vector3(), introC = new THREE.Vector3(), introCtrl = new THREE.Vector3();
+  const FRONT = new THREE.Vector3(0, 0, -1);
+  let introFov = 0;
   Ts = rec.timelineFromScroll(window.scrollY, innerHeight);
   world.setShift(shiftAt(Ts));
   let lastStop = -1;
 
   function place(T, snap, dt = 0.016) {
     rec.pose(T, pos, dir);
-    if (intro.k < 1) {
+    const inIntro = intro.k < 1 && introFov > 0;
+    if (inIntro) {
+      introC.lerpVectors(introC0, introC1, intro.zoom);
       const k = intro.k, a = (1 - k) * (1 - k), b = 2 * (1 - k) * k, c = k * k;
-      pos.set(a * introStart.x + b * introCtrl.x + c * pos.x, a * introStart.y + b * introCtrl.y + c * pos.y, a * introStart.z + b * introCtrl.z + c * pos.z);
+      pos.set(a * introC.x + b * introCtrl.x + c * pos.x, a * introC.y + b * introCtrl.y + c * pos.y, a * introC.z + b * introCtrl.z + c * pos.z);
+      const kd = k * k * (3 - 2 * k);
+      dir.lerpVectors(FRONT, dir, kd).normalize();
+      world.setFov(introFov + (world.baseFov - introFov) * kd);
     }
-    if (snap || CAPTURE) smoothDir.copy(dir);
+    if (snap || CAPTURE || inIntro) smoothDir.copy(dir);
     else smoothDir.lerp(dir, 1 - Math.exp(-dt * 14)).normalize();
     cam.position.copy(pos);
     look.copy(pos).add(smoothDir);
@@ -315,60 +329,75 @@ async function boot() {
     html.classList.remove('loading', 'intro');
     loader.remove();
     world.curtain.dispose();
+    world.disposeCurtainPass();
   }
 
-  // ---- intro: ramas de almendro que se abren + logo que se posa en la fachada ----
+  // ---- intro: hojas de palma que se abren + zoom sobre la fachada ----
   function runIntro() {
     html.classList.add('intro');
     html.classList.remove('loading');
     world.M.letrero.opacity = 0;
 
-    // las ramas se colocan frente a la cámara inicial
-    setIntroPath();
-    rec.pose(Ts, pos, dir);
-    const startPos = introStart.clone();
-    const startCam = new THREE.Object3D();
-    startCam.position.copy(startPos);
-    startCam.lookAt(startPos.clone().sub(dir));
-    world.curtain.group.position.copy(startPos);
-    world.curtain.group.quaternion.copy(startCam.quaternion);
-    world.curtain.group.visible = true;
-
-    // dónde queda el letrero 3D al final del movimiento
-    const probe = cam.clone();
-    probe.position.copy(pos);
-    probe.lookAt(pos.clone().add(dir));
-    probe.updateMatrixWorld();
-    probe.projectionMatrix.copy(cam.projectionMatrix);
+    // Dónde poner la cámara para que el letrero 3D quede exactamente bajo el nombre del loader:
+    // de frente (sin inclinación), a distancia d, con la lente cerrada lo justo.
     const sign = world.house.sign;
     const tw = 4.7 * (world.M.letrero.map.userData.textFraction || 0.6);
-    const toScreen = (x, y, z) => {
-      const v = new THREE.Vector3(x, y, z).project(probe);
-      return { x: (v.x * 0.5 + 0.5) * innerWidth, y: (-v.y * 0.5 + 0.5) * canvas.clientHeight };
-    };
     const yc = sign.position.y - 0.053;
-    const a = toScreen(-tw / 2, yc, sign.position.z), b = toScreen(tw / 2, yc, sign.position.z);
+    const W = innerWidth, Hc = canvas.clientHeight;
     const r = mark.getBoundingClientRect();
     const fs = parseFloat(getComputedStyle(mark).fontSize);
     const markW = r.width - 0.18 * fs;
-    const scale = (b.x - a.x) / markW;
-    const dx = (a.x + b.x) / 2 - (r.left + markW / 2);
-    const dy = (a.y + b.y) / 2 - (r.top + r.height / 2);
+    const mx = ((r.left + markW / 2) / W) * 2 - 1;
+    const my = 1 - ((r.top + r.height / 2) / Hc) * 2;
+    const d0 = cine ? 12.2 : 13.0;
+    const P00 = (2 * markW * d0) / (tw * W);
+    const aspect = W / Hc;
+    introFov = THREE.MathUtils.radToDeg(2 * Math.atan(1 / (P00 * aspect)));
+    const P11 = P00 * aspect;
+    const sh = world.shift;
+    introC0.set(sign.position.x - ((mx - sh.x) * d0) / P00, yc - ((my - sh.y) * d0) / P11, sign.position.z + d0);
+    introC1.copy(introC0).addScaledVector(FRONT, d0 * 0.3);
+    // curva de regreso: baja hacia el jardín pasando por delante
+    rec.pose(0, pos, dir);
+    introCtrl.set((introC1.x + pos.x) / 2, pos.y + (introC1.y - pos.y) * 0.35, Math.max(introC1.z, pos.z) + 1.2);
+
+    world.curtain.group.position.copy(introC0);
+    world.curtain.group.quaternion.identity();
+    world.curtain.group.visible = true;
+    place(Ts, true);
+
+    // el nombre sigue al letrero mientras la cámara se acerca (de frente, solo escala)
+    const toScreen = (x, y, z) => {
+      const v = new THREE.Vector3(x, y, z).project(cam);
+      return { x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * Hc };
+    };
+    const follow = () => {
+      cam.updateMatrixWorld();
+      const a = toScreen(-tw / 2 + sign.position.x, yc, sign.position.z), b = toScreen(tw / 2 + sign.position.x, yc, sign.position.z);
+      gsap.set(mark, {
+        x: (a.x + b.x) / 2 - (r.left + markW / 2),
+        y: (a.y + b.y) / 2 - (r.top + r.height / 2),
+        scale: (b.x - a.x) / markW,
+      });
+    };
 
     const tl = gsap.timeline({
       onComplete: () => {
         loader.remove();
         world.curtain.dispose();
+        world.disposeCurtainPass();
+        introFov = 0;
+        world.setFov(null);
       },
     });
     tl.add(() => loader.classList.add('clear'), 0.1);
-    tl.to(intro, { k: 1, duration: 3.6, ease: 'power2.inOut' }, 0);
-    tl.to(intro, { open: 1, duration: 2.0, ease: 'power1.inOut' }, 0.45);
-    tl.to(intro, { gate: 1, duration: 1.7, ease: 'power2.inOut' }, 0.5);
-    tl.to(mark, { x: dx, y: dy, scale, duration: 3.4, ease: 'power2.inOut' }, 0.15);
-    tl.to(world.M.letrero, { opacity: 1, duration: 0.5, ease: 'none' }, 3.4);
-    tl.to(mark, { opacity: 0, duration: 0.5, ease: 'none' }, 3.45);
-    tl.add(() => html.classList.remove('intro'), 2.9);
+    tl.to(intro, { open: 1, duration: 2.1, ease: 'power1.inOut' }, 0.3);
+    tl.to(intro, { zoom: 1, duration: 2.2, ease: 'power2.inOut', onUpdate: () => { place(Ts, true); follow(); } }, 0);
+    // cambio invisible: el nombre y el letrero coinciden píxel por píxel, sin fundido
+    tl.add(() => { world.M.letrero.opacity = 1; gsap.set(mark, { opacity: 0 }); }, 2.2);
+    tl.to(intro, { k: 1, duration: 3.2, ease: 'power2.inOut' }, 2.2);
+    tl.to(intro, { gate: 1, duration: 1.6, ease: 'power2.inOut' }, 2.3);
+    tl.add(() => html.classList.remove('intro'), 4.4);
 
     if (params.has('introtest')) { tl.pause(); window.__introTL = tl; window.__ready = true; return; }
     const skip = () => { if (tl.isActive()) tl.timeScale(4); };
