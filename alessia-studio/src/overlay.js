@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { LANGS, DEFAULT_LANG, BRAND_NAME, PROJECTS, CONTACT_LINKS, getText } from './content.js';
 import { BUBBLE_R } from './camera-path.js';
+import { createLiquidTitle } from './liquid-title.js';
 
 // Testi sopra il canvas (HTML vero: selezionabile, leggibile dagli screen reader).
 // Ogni sezione ha una finestra di avanzamento [da, a] calcolata dal percorso: appare quando la
@@ -51,6 +52,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const scrimRanges = [sections.vision, sections.services, sections.contact];
 
   const brand = add('ov-brand', sections.brand);
+  const liquid = createLiquidTitle(brand);
   const vision = add('ov-vision', sections.vision);
   const services = add('ov-services', sections.services);
   const projects = add('ov-projects', sections.projects);
@@ -100,6 +102,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
       <h1 class="brand">${esc(BRAND_NAME)}</h1>
       <p class="tagline">${esc(T.tagline)}</p>
       ${origin}`;
+    liquid.attach(brand.querySelector('.brand'));
     vision.innerHTML = `
       <p class="label">${esc(T.vision.label)}</p>
       <h2 class="title">${esc(T.vision.title)}</h2>
@@ -164,6 +167,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
         el.setAttribute('aria-hidden', on ? 'false' : 'true');
       }
     });
+    liquid.setActive(brand.classList.contains('on'));
     const lo = p >= sections.projects[0] && p <= sections.projects[1];
     if (lo !== labelsOn) {
       labelsOn = lo;

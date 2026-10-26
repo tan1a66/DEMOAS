@@ -177,6 +177,9 @@ body { touch-action: manipulation; }
   color: var(--green);
   text-shadow: 0 2px 34px rgba(46, 18, 20, 0.45);
 }
+/* titolo liquido (src/liquid-title.js): il testo resta nel DOM ma lo disegna il canvas */
+.ov-brand .brand.is-liquid { -webkit-text-fill-color: transparent; text-shadow: none; }
+.ov-brand .liquid-title { position: absolute; pointer-events: none; }
 .ov-brand .tagline {
   margin-top: 18px;
   font-size: clamp(12px, 1.1vw, 15px);
