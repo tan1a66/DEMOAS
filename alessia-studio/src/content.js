@@ -65,7 +65,7 @@ const TEXT = {
       text: 'Del concepto a la publicación, con un solo equipo: cada proyecto cuidado como una obra de arquitectura, y rápido también en el celular.',
       groups: [
         { label: 'Marca', items: ['Estrategia y posicionamiento', 'Branding e identidad visual', 'Naming y tono de voz', 'Dirección creativa y de arte'] },
-        { label: 'Digital', items: ['Sitios web 3D inmersivos', 'Diseño UX/UI', 'Showrooms y configuradores 3D', 'Desarrollo, publicación y mantenimiento'] },
+        { label: 'Digital', items: ['Sitios web 3D inmersivos', 'Diseño UX/UI', 'Showrooms y configuradores 3D', 'Software de gestión y sistemas de reservas', 'Desarrollo, publicación y mantenimiento'] },
         { label: 'Contenido', items: ['Renders y animaciones 3D', 'Motion design y video', 'Contenido para redes sociales', 'Campañas y lanzamientos'] },
       ],
     },
@@ -126,7 +126,7 @@ const TEXT = {
       text: "Dal concept alla messa online, con un solo team: ogni progetto curato come un'opera di architettura, e veloce anche su telefono.",
       groups: [
         { label: 'Brand', items: ['Strategia e posizionamento', 'Branding e identità visiva', 'Naming e tono di voce', 'Direzione creativa e art direction'] },
-        { label: 'Digitale', items: ['Siti web 3D immersivi', 'Design UX/UI', 'Showroom e configuratori 3D', 'Sviluppo, messa online e manutenzione'] },
+        { label: 'Digitale', items: ['Siti web 3D immersivi', 'Design UX/UI', 'Showroom e configuratori 3D', 'Software gestionali e sistemi di prenotazione', 'Sviluppo, messa online e manutenzione'] },
         { label: 'Contenuti', items: ['Render e animazioni 3D', 'Motion design e video', 'Contenuti per i social', 'Campagne e lanci'] },
       ],
     },
@@ -186,7 +186,7 @@ const TEXT = {
       text: 'From concept to launch, with one team: every project crafted like a work of architecture, and fast on phones too.',
       groups: [
         { label: 'Brand', items: ['Strategy and positioning', 'Branding and visual identity', 'Naming and tone of voice', 'Creative and art direction'] },
-        { label: 'Digital', items: ['Immersive 3D websites', 'UX/UI design', '3D showrooms and configurators', 'Development, launch and maintenance'] },
+        { label: 'Digital', items: ['Immersive 3D websites', 'UX/UI design', '3D showrooms and configurators', 'Management software and booking systems', 'Development, launch and maintenance'] },
         { label: 'Content', items: ['3D renders and animation', 'Motion design and video', 'Social media content', 'Campaigns and launches'] },
       ],
     },
@@ -246,7 +246,7 @@ const TEXT = {
       text: 'Do conceito à publicação, com uma só equipe: cada projeto cuidado como uma obra de arquitetura, e rápido também no celular.',
       groups: [
         { label: 'Marca', items: ['Estratégia e posicionamento', 'Branding e identidade visual', 'Naming e tom de voz', 'Direção criativa e de arte'] },
-        { label: 'Digital', items: ['Sites 3D imersivos', 'Design UX/UI', 'Showrooms e configuradores 3D', 'Desenvolvimento, publicação e manutenção'] },
+        { label: 'Digital', items: ['Sites 3D imersivos', 'Design UX/UI', 'Showrooms e configuradores 3D', 'Software de gestão e sistemas de reservas', 'Desenvolvimento, publicação e manutenção'] },
         { label: 'Conteúdo', items: ['Renders e animações 3D', 'Motion design e vídeo', 'Conteúdo para redes sociais', 'Campanhas e lançamentos'] },
       ],
     },
