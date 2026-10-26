@@ -3,14 +3,13 @@ import gsap from 'gsap';
 import { createLoader } from './loader.js';
 import { createLights } from './lights.js';
 import { buildScene } from './scene.js';
-import { createCameraPath } from './camera-path.js';
+import { createCameraPath, wordLayout } from './camera-path.js';
 import { createParallax } from './parallax.js';
 import { createPost } from './post.js';
 import { detectTier, createAdaptiveResolution } from './quality.js';
 import { ROOM } from './layout.js';
-import { PROJECTS } from './content.js';
+import { SERVICES, getText, waLink } from './content.js';
 import { createOverlay, pickLang } from './overlay.js';
-import { createGallery } from './gallery.js';
 import { createGuide } from './guide.js';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -33,9 +32,9 @@ const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 600);
 camera.layers.enable(1);
 const loader = createLoader({ reducedMotion });
 const lights = createLights({ shadowInt: quality.shadowInt });
-const path = createCameraPath(camera, { reducedMotion, projects: PROJECTS.length });
+const path = createCameraPath(camera, { reducedMotion, words: SERVICES.length });
 
-// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, una bolla dopo l'altra, contatti)
+// scroll guidato: ogni gesto porta alla sosta successiva (divani, lucernario, terrazza sul mare, il bordo, i servizi sott'acqua, contatti)
 let overlay = null;
 const guide = createGuide({
   stops: path.story.stops,
@@ -47,19 +46,27 @@ const guide = createGuide({
   ignoreTouch: (x, y) => !!overlay?.onTitle(x, y),
 });
 
-// testi, lingua, galleria dei progetti
+// testi e lingua; sott'acqua i servizi (testi nella scena) aprono WhatsApp con il loro messaggio
 const overlayRoot = document.getElementById('overlay');
 const lang = pickLang();
-const gallery = createGallery(document.body, {
-  lang,
-  onOpen: () => guide.setEnabled(false),
-  onClose: () => guide.setEnabled(true),
-});
+let words = null;
+const wordTexts = (l) => {
+  const T = getText(l);
+  const hint = window.matchMedia('(hover: hover) and (pointer: fine)').matches ? T.deep.hintClick : T.deep.hintTouch;
+  return { texts: SERVICES.map((s) => T.deep.items[s.id]), hint };
+};
+const openWord = (i) => {
+  const it = getText(overlay.lang).deep.items[SERVICES[i]?.id];
+  if (it) window.open(waLink(it.msg), '_blank', 'noopener');
+};
 overlay = createOverlay(overlayRoot, path.story.sections, {
   lang,
-  onLang: (l) => gallery.setLang(l),
+  onLang: (l) => {
+    const w = wordTexts(l);
+    words?.setTexts(w.texts, w.hint);
+  },
   onNext: () => guide.next(),
-  onOpen: (i) => gallery.open(i),
+  onWord: openWord,
 });
 // ?notext: scena senza testi (verifica automatica dei colori del 3D)
 const noText = new URLSearchParams(location.search).has('notext');
@@ -81,6 +88,7 @@ function resize() {
   camera.fov = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(Math.max(THREE.MathUtils.degToRad(46), vFromH)), 46, 78);
   camera.updateProjectionMatrix();
   path.setFraming(camera.fov, camera.aspect, h);
+  words?.setLayout(wordLayout(camera.aspect));
 }
 new ResizeObserver(resize).observe(canvas);
 resize();
@@ -93,7 +101,9 @@ const stats = { frames: 0, time: 0, fps: 0, calls: 0, triangles: 0, dpr: adaptiv
 window.__stats = stats;
 
 async function start() {
-  const world = await buildScene({ renderer, lights, quality, loader, projects: PROJECTS, bubbles: path.story.bubbles });
+  const world = await buildScene({ renderer, lights, quality, loader, words: path.story.words, wordItems: wordTexts(lang) });
+  words = world.underwater.words;
+  words.setLayout(wordLayout(camera.aspect));
   const { scene } = world;
   let time = 0;
 
@@ -115,12 +125,12 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // bolle dei progetti: quella sotto il puntatore si accende; un clic (o un tocco) apre la galleria.
+  // servizi sott'acqua: il testo sotto il puntatore si accende; un clic (o un tocco) apre WhatsApp.
   // Nell'acqua libera il puntatore scosta le bollicine, un tocco libera uno sbuffo, trascinare una scia.
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const uw = world.underwater;
-  let bubblesOn = false, hover = -1;
+  let deepOn = false, hover = -1;
   const aim = (x, y) => {
     ndc.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1);
     ray.setFromCamera(ndc, camera);
@@ -128,10 +138,10 @@ async function start() {
   };
   const pick = (x, y) => {
     aim(x, y);
-    const hit = ray.intersectObjects(uw.bubbles, false)[0];
-    return hit ? uw.bubbles.indexOf(hit.object) : -1;
+    const hit = ray.intersectObjects(uw.words.meshes, false)[0];
+    return hit ? uw.words.meshes.indexOf(hit.object) : -1;
   };
-  const inWater = () => uw.group.visible && !gallery.isOpen;
+  const inWater = () => uw.group.visible;
   let lastTrail = 0, lx = 0, ly = 0;
   const trailAt = (x, y, t) => {
     if (t - lastTrail < 45 || Math.hypot(x - lx, y - ly) < 6) return;
@@ -143,13 +153,12 @@ async function start() {
   const setHover = (i) => {
     if (i === hover) return;
     hover = i;
-    overlay.setHover(i);
     canvas.style.cursor = i >= 0 ? 'pointer' : '';
   };
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
-    const overUi = e.target.closest?.('.ui, .gallery, a, button');
-    setHover(bubblesOn && !gallery.isOpen && !overUi ? pick(e.clientX, e.clientY) : -1);
+    const overUi = e.target.closest?.('.ui, a, button');
+    setHover(deepOn && !overUi ? pick(e.clientX, e.clientY) : -1);
     if (inWater() && !overUi) {
       uw.setPointer(aim(e.clientX, e.clientY), { hover: true });
       trailAt(e.clientX, e.clientY, e.timeStamp);
@@ -163,13 +172,13 @@ async function start() {
     trailAt(t.clientX, t.clientY, e.timeStamp);
   }, { passive: true });
   window.addEventListener('click', (e) => {
-    if (gallery.isOpen || e.target.closest?.('a, button, .gallery')) return;
-    const i = bubblesOn ? pick(e.clientX, e.clientY) : -1;
-    if (i >= 0) return gallery.open(i);
+    if (e.target.closest?.('a, button')) return;
+    const i = deepOn ? pick(e.clientX, e.clientY) : -1;
     if (inWater()) {
       uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
       uw.burst(aim(e.clientX, e.clientY));
     }
+    if (i >= 0) openWord(i);
   });
 
   renderer.info.autoReset = false;
@@ -186,10 +195,10 @@ async function start() {
     const { exposure, p } = path.update(dt, parallax.value);
     lights.uniforms.uExposure.value = exposure;
     lights.update(time);
-    bubblesOn = overlay.update(p);
-    if (!bubblesOn && hover >= 0) setHover(-1);
-    // la bolla accesa: quella del progetto aperto, quella sotto il puntatore o quella della sosta
-    const focus = gallery.isOpen ? gallery.project : hover >= 0 ? hover : overlay.current;
+    deepOn = overlay.update(p);
+    if (!deepOn && hover >= 0) setHover(-1);
+    // il testo acceso: quello sotto il puntatore o quello della sosta
+    const focus = hover >= 0 ? hover : overlay.current;
     world.update(camera, adaptive.dpr, time, focus);
     render();
     adaptive.sample(dt);
@@ -215,7 +224,6 @@ async function start() {
     path.state.u = path.state.target;
   };
   window.__stops = path.story.stops;
-  window.__gallery = gallery;
   window.__overlay = overlay;
   // maschera dei cuscini (magenta, senza bloom e grana) per il controllo automatico dei colori
   window.__mask = (on) => {

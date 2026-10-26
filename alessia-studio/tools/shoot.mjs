@@ -1,8 +1,7 @@
 // Screenshot e misure lungo il percorso (Playwright + Chromium headless).
 //   node tools/shoot.mjs <url> <outdir> [--device=desktop|phone|phone-land|ipad|ipad-land|ipad-pro|insta|story]
-//        [--stops] [--points=0,0.3,...] [--gallery] [--lang=es] [--fps] [--mask] [--scroll]
-//   --stops: uno scatto per ogni sosta dello scroll guidato; --gallery: apre la galleria del primo
-//   progetto; --scroll: gesti reali di rotella (una sosta per gesto)
+//        [--stops] [--points=0,0.3,...] [--lang=es] [--fps] [--mask] [--scroll]
+//   --stops: uno scatto per ogni sosta dello scroll guidato; --scroll: gesti reali di rotella (una sosta per gesto)
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -116,15 +115,6 @@ for (const p of points) {
     await page.evaluate(() => window.__mask(false));
   }
   console.log(`p=${p.toFixed(3)} fps=${s.fps} calls=${s.calls} tris=${s.triangles} dpr=${s.dpr}`);
-}
-if (flags.gallery) {
-  // la galleria del primo progetto (e la seconda immagine)
-  await page.evaluate(() => window.__gallery.open(0));
-  await page.waitForTimeout(2500);
-  await page.screenshot({ path: `${out}/gallery-0.png` });
-  await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: `${out}/gallery-1.png` });
 }
 if (logs.length) console.log(logs.slice(0, 30).join('\n'));
 await browser.close();

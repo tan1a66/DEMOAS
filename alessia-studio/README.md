@@ -17,14 +17,16 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    nell'orizzonte visto attraverso la finestra circolare
 1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Italia · México · Colombia · Worldwide*
 2. Sotto il lucernario: **Visión**
-3. Sempre sotto il lucernario (lo sguardo ruota appena): **Qué hacemos**, i servizi in tre gruppi
-4. Passando per il fascio di sole, la terrazza e il tuffo nel mare: **le bolle dei progetti**, tutte
-   insieme, ognuna con il suo nome; toccando una bolla si apre la galleria con gli screenshot del sito
-5. Lo sguardo sale verso la luce: **Contáctanos**
+3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
+4. Sul bordo della terrazza, davanti al sole (senza testi); poi il tuffo, lento, è un gesto a sé
+5. Sott'acqua, **i servizi**: tre grandi testi che galleggiano nell'acqua, uno per sosta (Sitios 3D
+   inmersivos · Reservas y gestión · Marca y contenido; dietro si intravedono i successivi). Toccando un
+   testo si apre WhatsApp con un messaggio pronto su quel servizio
+6. Lo sguardo sale verso la luce: **Contáctanos**
 
-Sott'acqua: due squaletti nuotano attorno alle bolle (toccati, scattano via); il puntatore scosta
-bollicine e bolle, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il dito (o muovere il
-mouse) lascia una scia.
+Sott'acqua: due squaletti nuotano attorno ai testi (toccati, scattano via); il puntatore scosta le
+bollicine, un tocco nell'acqua libera uno sbuffo di bollicine e fa increspare il testo, trascinare il dito
+(o muovere il mouse) lascia una scia.
 
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
 se non è tra le quattro; la scelta viene ricordata), WhatsApp (in
@@ -34,15 +36,9 @@ basso a destra) e l'invito a scorrere.
 Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
 prima bozza. Contatti in `CONTACT_LINKS`: solo WhatsApp `+39 346 175 8562`, niente email (il pulsante apre la chat
 con un messaggio pronto nella lingua scelta).
-I progetti sono le 8 demo fatte finora, **senza nomi di clienti, marchi o persone** (non c'è
-l'autorizzazione): ogni bolla ha come titolo la categoria (`projects.items` nelle quattro lingue:
-titolo, tipo, descrizione) e immagini ritagliate dalle scene 3D senza testi, loghi, indirizzi o volti.
-Per ogni progetto:
-- `image`: anteprima dentro la bolla, `src/assets/projects/<id>.jpg` (quadrata, ~768 px)
-- galleria: `public/gallery/<id>/<nn>-{1280,720,320}.webp`, generate dalle immagini con
-  `node tools/gallery.mjs <cartella-png> hotel=0,1 ...` (aggiorna `src/assets/gallery.json`)
-- `url`: link del pulsante "Abrir la demo" nella galleria (vuoto = nessun pulsante)
-Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
+Sott'acqua i servizi stanno in `SERVICES` e, per ogni lingua, in `deep.items` (titolo su due righe, una
+riga di dettaglio, messaggio WhatsApp pronto). Niente demo di clienti. Aggiungere o togliere un servizio
+cambia da solo il percorso sott'acqua.
 
 ## Struttura
 - `src/layout.js`: misure, soli, palette (condiviso tra runtime e pipeline)
@@ -50,11 +46,11 @@ Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
 - `src/scene.js`: carica GLB (Draco) e texture KTX2, assegna i materiali
 - `src/materials.js`: cemento (illuminazione fisica mappata sulla palette rosa), cuscini in velluto, fascio di luce, pulviscolo
 - `src/camera-path.js`: `CatmullRomCurve3` per posizione e target, chiavi con durata (soste), mappa monotona,
-  smorzamento; disposizione delle bolle adattata alla forma dello schermo
+  smorzamento; inquadratura dei testi sott'acqua adattata alla forma dello schermo
 - `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
-- `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere, nomi delle bolle
-- `src/gallery.js`: galleria di un progetto (frecce, miniature, tastiera, swipe)
-- `src/underwater.js`: bolle dei progetti, bollicine (anche al tocco), pulviscolo
+- `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
+- `src/words.js`: i servizi sott'acqua, testi nella scena 3D che galleggiano e aprono WhatsApp
+- `src/underwater.js`: testi dei servizi, bollicine (anche al tocco), pulviscolo
 - `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
@@ -77,8 +73,8 @@ Aggiungere o togliere un progetto cambia da solo la disposizione delle bolle.
 ## Test
 ```bash
 npm run build && npx vite preview --port 4173 &
-node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --stops --gallery            # desktop 1440x900
-node tools/shoot.mjs http://127.0.0.1:4173/ shots-m --device=phone --stops --gallery    # 390x844 @2x
+node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --stops            # desktop 1440x900
+node tools/shoot.mjs http://127.0.0.1:4173/ shots-m --device=phone --stops    # 390x844 @2x
 node tools/shoot.mjs http://127.0.0.1:4173/ shots-t --device=ipad --stops               # iPad 820x1180
 node tools/shoot.mjs http://127.0.0.1:4173/ shots --q=high --mask --fps && node tools/check-colors.mjs shots
 ```
@@ -91,11 +87,8 @@ reali di rotella), `--lang=it`, `--reduced` (prefers-reduced-motion), `--transit
 | desktop (alta) | 0,26 MB | 0,33 MB | 2,66 MB | ~3,3 MB |
 | mobile / bassa | 0,26 MB | 0,33 MB | 1,17 MB | ~1,75 MB |
 
-Le anteprime dei progetti (~0,5 MB in tutto) si scaricano solo arrivando sulla terrazza; le immagini della
-galleria (~150 KB l'una) solo aprendo la galleria di quel progetto.
-
-`npm run build:preview` produce `dist-preview/index.html` (tutto incorporato) e `dist-preview/gallery/`:
-per l'anteprima con doppio clic vanno tenuti insieme.
+`npm run build:preview` produce `dist-preview/index.html`, un solo file con tutto incorporato (si apre
+con doppio clic).
 
 ## Marchio, social e presentazione (`brand/`)
 ```bash

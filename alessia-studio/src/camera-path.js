@@ -20,36 +20,33 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-export const BUBBLE_R = 0.95;
-
-// Bolle dei progetti in fila sott'acqua: un viaggio da una bolla all'altra, una sosta per bolla.
-// Ogni bolla sta 5.2 m oltre la precedente e 3 m più a destra (e appena più su o più giù): dalla
-// sosta di una bolla, grande in primo piano, si vedono dietro le successive, sempre più piccole.
-// Le posizioni non dipendono dallo schermo; cambia solo da dove le guarda la telecamera.
-export const BUBBLE_STEP = 5.2;
-export function bubbleLine(n) {
-  return Array.from({ length: n }, (_, i) => V(-40 - i * BUBBLE_STEP, -3.45 + 0.38 * Math.sin(i * 2.1), -13.5 - i * 3.0));
+// Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua (src/words.js),
+// una sosta per testo. Ogni testo sta 7.5 m oltre il precedente, più a destra e un po' più su (verso
+// la luce): dalla sosta di uno si intravedono dietro, in alto a destra, i successivi, velati d'acqua.
+// Il piano del testo ha due formati: orizzontale per gli schermi larghi, verticale per i telefoni.
+export const WORD_SIZE = { land: [5.6, 3.15], port: [3.3, 4.12] };
+export const wordLayout = (aspect) => (aspect < 1 ? 'port' : 'land');
+export const WORD_STEP = 7.5;
+export function wordLine(n) {
+  return Array.from({ length: n }, (_, i) => V(-40 - i * WORD_STEP, -3.4 + 0.7 * i, -13.5 - i * 3.0));
 }
 
-// posa della telecamera per la sosta davanti alla bolla B: la bolla occupa una parte fissa dello
-// schermo, a destra su schermo orizzontale (testi a sinistra), in alto in verticale (testi in basso)
-function bubbleView(B, fovDeg, aspect, h, push = 0) {
+// posa della telecamera per la sosta davanti al testo in P: il testo, al centro, occupa una parte
+// fissa dello schermo (in verticale un po' più in alto, sopra i pulsanti)
+function wordView(P, fovDeg, aspect, push = 0) {
   const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2), tanH = tanV * aspect;
-  const land = THREE.MathUtils.smoothstep(aspect, 0.9, 1.25);
-  const low = h < 520 ? 1 : 0;
-  const sx = 0.36 * land, sy = 0.2 * (1 - land) + 0.02 * land;
-  // raggio sullo schermo, in metà del lato più corto
-  const k = THREE.MathUtils.lerp(0.6, 0.44 - 0.06 * low, land);
-  const d = BUBBLE_R / (k * Math.min(tanH, tanV)) - push;
-  // in verticale lo sguardo gira un po' verso la fila: le bolle successive restano nello schermo
-  const f = V(-1, -0.03, -0.2 * (1 - land)).normalize();
+  const port = wordLayout(aspect) === 'port';
+  const [W, H] = WORD_SIZE[wordLayout(aspect)];
+  const d = Math.max(W / 2 / ((port ? 0.94 : 0.62) * tanH), H / 2 / (0.8 * tanV)) - push;
+  const sy = port ? 0.06 : 0;
+  const f = V(-1, -0.02, 0).normalize();
   const r = new THREE.Vector3().crossVectors(f, V(0, 1, 0)).normalize();
   const u = new THREE.Vector3().crossVectors(r, f);
-  const pos = B.clone().addScaledVector(f, -d).addScaledVector(r, -sx * d * tanH).addScaledVector(u, -sy * d * tanV);
+  const pos = P.clone().addScaledVector(f, -d).addScaledVector(u, -sy * d * tanV);
   return { pos, target: pos.clone().addScaledVector(f, 14) };
 }
 
-// d = distanza iniziale dal muro; n = numero di progetti (bolle); fov verticale, aspect e altezza (px)
+// d = distanza iniziale dal muro; n = numero di servizi sott'acqua; fov verticale, aspect e altezza (px)
 // dello schermo
 export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   const zw = FW.zOut;
@@ -109,15 +106,14 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
   key(40, V(-28.9, 0.32, -13.45), V(-38.0, -1.7, -13.5), 1.02, 0.15);
   key(45, V(-30.3, -0.65, -13.5), V(-39.3, -2.5, -13.5), 1.05, 0.15, 'dive');
   key(40, V(-32.2, -2.3, -13.5), V(-41.0, -3.3, -13.4), 1.1, 0.3, 'underwater');
-  // 7 · il viaggio tra le bolle dei progetti: ogni gesto porta alla bolla successiva (si tocca la
-  //     bolla per aprire il progetto)
-  const B = bubbleLine(n);
-  B.forEach((b, i) => {
-    const a = bubbleView(b, fovDeg, aspect, h), c = bubbleView(b, fovDeg, aspect, h, 0.3);
-    key(i ? 40 : 45, a.pos, a.target, 1.1, 0.55, `b${i}In`);
-    key(50, c.pos, c.target, 1.1, 0.55, `b${i}Out`);
+  // 7 · sott'acqua, i servizi: ogni gesto porta al testo successivo (toccandolo si apre WhatsApp)
+  const P = wordLine(n);
+  P.forEach((w, i) => {
+    const a = wordView(w, fovDeg, aspect), c = wordView(w, fovDeg, aspect, 0.35);
+    key(i ? 45 : 50, a.pos, a.target, 1.1, 0.5, `w${i}In`);
+    key(50, c.pos, c.target, 1.1, 0.5, `w${i}Out`);
   });
-  // 8 · contattaci: lo sguardo sale verso la luce della superficie, le bolle restano sotto
+  // 8 · contattaci: lo sguardo sale verso la luce della superficie, i testi restano sotto
   const last = n ? keys[keys.length - 1].pos : V(-33, -3.2, -13.5);
   key(55, last.clone().add(V(-2.0, 0.5, -0.4)), last.clone().add(V(-7, 9.2, -0.6)), 1.1, 0.6, 'contactIn');
   key(50, last.clone().add(V(-2.6, 0.6, -0.5)), last.clone().add(V(-6.5, 10.8, -0.7)), 1.1, 0.6, 'end');
@@ -141,9 +137,9 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     brand: range('brandIn', 'brandOut'),
     vision: range('visionIn', 'visionOut', 0.35, 0.3),
     services: range('servicesIn', 'servicesOut', 0.6),
-    // tutto il viaggio tra le bolle, e la finestra di ogni bolla (didascalia)
-    projects: n ? [range('b0In', 'b0Out')[0], range(`b${n - 1}In`, `b${n - 1}Out`)[1]] : [2, 2],
-    bubbles: B.map((_, i) => range(`b${i}In`, `b${i}Out`, 0.3, 0.2)),
+    // tutto il tratto dei servizi sott'acqua, e la finestra di ogni testo
+    deep: n ? [range('w0In', 'w0Out')[0], range(`w${n - 1}In`, `w${n - 1}Out`)[1]] : [2, 2],
+    words: P.map((_, i) => range(`w${i}In`, `w${i}Out`, 0.3, 0.2)),
     contact: [at('contactIn') - (at('contactIn') - keys[marks.contactIn - 1].p) * 0.4, 1.01],
   };
   // soste dello scroll guidato: ogni gesto porta alla successiva (a metà della sosta, telecamera quasi ferma)
@@ -154,11 +150,11 @@ export function buildStory(d, n, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'vision', p: mid('visionIn', 'visionOut') },
     { id: 'services', p: mid('servicesIn', 'servicesOut') },
     { id: 'edge', p: mid('edgeIn', 'edgeOut') },
-    // il tuffo (dal bordo alla prima bolla): più lento e con un'accelerazione più dolce
-    ...B.map((_, i) => ({ id: `bubble-${i}`, p: mid(`b${i}In`, `b${i}Out`), ...(i ? {} : { pace: 0.019, maxDur: 7, ease: 'sine.inOut' }) })),
+    // il tuffo (dal bordo al primo testo): più lento e con un'accelerazione più dolce
+    ...P.map((_, i) => ({ id: `word-${i}`, p: mid(`w${i}In`, `w${i}Out`), ...(i ? {} : { pace: 0.019, maxDur: 7, ease: 'sine.inOut' }) })),
     { id: 'contact', p: 1 },
   ];
-  return { keys, sections, stops, bubbles: B, total, dive: at('dive') };
+  return { keys, sections, stops, words: P, total, dive: at('dive') };
 }
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
@@ -194,8 +190,8 @@ function monotone(xs, ys) {
   };
 }
 
-export function createCameraPath(camera, { reducedMotion = false, projects = 0 } = {}) {
-  const story = buildStory(startDistance(46, 1.6), projects, 46, 1.6);
+export function createCameraPath(camera, { reducedMotion = false, words = 0 } = {}) {
+  const story = buildStory(startDistance(46, 1.6), words, 46, 1.6);
   const { keys } = story;
   const n = keys.length;
   const posCurve = new THREE.CatmullRomCurve3(keys.map((k) => k.pos), false, 'centripetal');
@@ -216,15 +212,14 @@ export function createCameraPath(camera, { reducedMotion = false, projects = 0 }
     state.target = pToU(THREE.MathUtils.clamp(p, 0, 1));
   }
 
-  // al resize: ricalcola le chiavi e le bolle che dipendono dall'inquadratura (stesso numero di chiavi,
-  // stesse durate: cambiano solo i vettori, che curve e bolle condividono)
+  // al resize: ricalcola le chiavi che dipendono dall'inquadratura (stesso numero di chiavi, stesse
+  // durate: cambiano solo i vettori, che le curve condividono); i testi sott'acqua restano dove sono
   function setFraming(fovDeg, aspect, h) {
-    const fresh = buildStory(startDistance(fovDeg, aspect), projects, fovDeg, aspect, h);
+    const fresh = buildStory(startDistance(fovDeg, aspect), words, fovDeg, aspect, h);
     fresh.keys.forEach((k, i) => {
       keys[i].pos.copy(k.pos);
       keys[i].target.copy(k.target);
     });
-    fresh.bubbles.forEach((b, i) => story.bubbles[i].copy(b));
   }
 
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale

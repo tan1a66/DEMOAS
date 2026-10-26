@@ -250,23 +250,31 @@ body { touch-action: manipulation; }
 .ov-services .services li { display: inline; }
 .ov-services .services li:not(:last-child)::after { content: ' · '; color: var(--ink-soft); }
 
-/* 4 · le bolle dei progetti */
-/* 4 · il viaggio tra le bolle: didascalia della bolla davanti alla telecamera (a sinistra; la bolla
-   è a destra) */
-.ov-projects {
-  left: var(--gutter);
-  top: 50%;
-  transform: translateY(calc(-50% + 14px));
-  max-width: min(480px, 38vw);
+/* 4 · sott'acqua i servizi sono testi nella scena 3D: qui solo il pulsante per tastiera e screen reader */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
-.ov-projects.on { transform: translateY(-50%); }
-.ov-projects .count { margin-left: 10px; color: var(--ink); letter-spacing: 0.16em; }
-.ov-projects .intro { margin: 0 0 10px; font-size: clamp(15px, 1.25vw, 18px); color: var(--ink); }
-.ov-projects .title { font-size: clamp(30px, 3.8vw, 54px); margin-bottom: 10px; }
-.ov-projects .kind { font-size: 15px; color: var(--ink-soft); margin-bottom: 4px; }
-.ov-projects .cta { margin-top: 18px; background: none; font-family: inherit; cursor: pointer; }
-.ov-projects.hover .cta { background: var(--ink); color: #3d5f6c; border-color: var(--ink); }
-.ov-projects .hint { margin-top: 14px; font-size: 13px; color: var(--ink-soft); }
+.sr-only:focus-visible {
+  width: auto;
+  height: auto;
+  clip: auto;
+  left: var(--gutter);
+  bottom: calc(var(--bottom-ui) + 18px);
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #1f3300;
+  font: 500 14px var(--font-text);
+  pointer-events: auto;
+}
 
 .cta {
   display: inline-flex;
@@ -305,7 +313,7 @@ body { touch-action: manipulation; }
   transition: opacity 0.6s ease;
   -webkit-tap-highlight-color: transparent;
 }
-html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-events: none !important; }
+html.is-loading .ui { opacity: 0 !important; pointer-events: none !important; }
 
 .ui-lang {
   top: max(16px, var(--safe-t));
@@ -397,147 +405,6 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
   100% { transform: translateY(230%); }
 }
 
-/* ------------------------------------------------------------------------------------------
-   Galleria di un progetto
-   ------------------------------------------------------------------------------------------ */
-.gallery {
-  position: fixed;
-  inset: 0;
-  height: var(--vh);
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-text);
-  color: var(--ink);
-  opacity: 0;
-  transition: opacity 0.32s ease;
-  touch-action: pan-y pinch-zoom;
-}
-.gallery[hidden] { display: none; }
-.gallery.on { opacity: 1; }
-.gal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(12, 34, 42, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-.gal-panel {
-  position: relative;
-  width: min(1320px, calc(100vw - 2 * var(--gutter)));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px 40px;
-  align-items: start;
-  transform: translateY(12px);
-  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.gallery.on .gal-panel { transform: none; }
-.gal-stage { grid-column: 1; grid-row: 1; position: relative; width: min(100%, calc((var(--vh) - 190px) * 1.6)); justify-self: center; }
-.gal-frame {
-  aspect-ratio: 16 / 10;
-  border-radius: 12px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-}
-.gal-img { display: block; width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
-.gal-img.loading { opacity: 0.25; }
-.gal-arrow, .gal-close {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border: 1px solid rgba(255, 246, 242, 0.5);
-  border-radius: 50%;
-  background: rgba(16, 40, 48, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.25s, color 0.25s;
-}
-.gal-arrow:hover, .gal-close:hover, .gal-arrow:focus-visible, .gal-close:focus-visible { background: var(--ink); color: #163440; outline: none; }
-.gal-arrow svg, .gal-close svg { width: 22px; height: 22px; }
-.gal-arrow { position: absolute; top: 50%; margin-top: -24px; }
-.gal-arrow.prev { left: 14px; }
-.gal-arrow.next { right: 14px; }
-.gal-arrow[hidden] { display: none; }
-.gal-close { position: absolute; top: max(16px, var(--safe-t)); right: var(--gutter); z-index: 2; }
-.gal-count {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  margin: 0;
-  padding: 7px 11px;
-  border-radius: 999px;
-  background: rgba(16, 40, 48, 0.5);
-  font-size: 12px;
-  letter-spacing: 0.18em;
-}
-.gal-thumbs { grid-column: 1; grid-row: 2; display: flex; gap: 10px; justify-content: center; overflow-x: auto; scrollbar-width: none; }
-.gal-thumbs::-webkit-scrollbar { display: none; }
-.gal-thumbs[hidden] { display: none; }
-.gal-thumbs button {
-  flex: 0 0 auto;
-  width: 104px;
-  aspect-ratio: 16 / 10;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.06);
-  opacity: 0.5;
-  cursor: pointer;
-  transition: opacity 0.25s, border-color 0.25s;
-}
-.gal-thumbs button:hover { opacity: 0.85; }
-.gal-thumbs button[aria-current='true'] { opacity: 1; border-color: var(--ink); }
-.gal-thumbs img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.gal-info { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-.gal-info .label { margin: 0 0 12px; font-size: 12px; letter-spacing: 0.22em; color: var(--ink-soft); }
-.gal-title { margin: 0 0 10px; padding-bottom: 0.08em; font-family: var(--font-display); font-weight: 800; font-size: clamp(32px, 3.2vw, 50px); line-height: 1.12; letter-spacing: -0.03em; }
-.gal-kind { margin: 0 0 16px; font-size: 12.5px; line-height: 1.5; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
-.gal-text { margin: 0; font-size: 15px; line-height: 1.55; }
-.gal-actions .cta { margin-top: 22px; }
-.gal-projnav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.gal-projnav button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid rgba(255, 246, 242, 0.35);
-  border-radius: 999px;
-  background: none;
-  color: var(--ink);
-  font: 500 13px/1.2 var(--font-text);
-  cursor: pointer;
-  transition: background 0.25s, color 0.25s;
-}
-.gal-projnav button:hover, .gal-projnav button:focus-visible { background: var(--ink); color: #163440; outline: none; }
-.gal-projnav svg { width: 16px; height: 16px; }
-
-/* galleria su telefono e tablet in verticale: immagine, miniature, poi la scheda; si scorre col dito */
-@media (max-width: 980px), (max-aspect-ratio: 1/1) {
-  .gallery { place-items: start center; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-  .gal-panel {
-    width: 100%;
-    max-width: 860px;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding: calc(max(16px, var(--safe-t)) + 64px) var(--gutter) calc(max(24px, var(--safe-b)) + 16px);
-  }
-  .gal-stage { width: 100%; }
-  .gal-thumbs { justify-content: flex-start; }
-  .gal-thumbs button { width: 84px; }
-  .gal-info { grid-column: 1; grid-row: 3; align-self: start; padding-top: 8px; }
-  .gal-arrow { width: 42px; height: 42px; margin-top: -21px; }
-  .gal-arrow.prev { left: 8px; }
-  .gal-arrow.next { right: 8px; }
-  .gal-close { position: fixed; }
-}
-
 /* tablet in verticale: anche qui Visión e Qué hacemos in basso (in alto il lucernario, il mare) */
 @media (max-aspect-ratio: 4/5) and (min-width: 721px) {
   .ov-vision, .ov-services {
@@ -547,8 +414,6 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
     transform: translateY(14px);
   }
   .ov-vision.on, .ov-services.on { transform: none; }
-  .ov-projects { top: auto; bottom: calc(var(--bottom-ui) + 32px); max-width: min(560px, calc(100% - 2 * var(--gutter))); transform: translateY(14px); }
-  .ov-projects.on { transform: none; }
   .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.62) 0%, rgba(52, 22, 24, 0.36) 42%, rgba(52, 22, 24, 0) 68%); }
 }
 
@@ -574,13 +439,6 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
   .ov-brand { top: calc(max(16px, var(--safe-t)) + 64px); }
   .ov-brand .tagline { letter-spacing: 0.14em; font-size: 10.5px; }
   .ov-brand .origin { gap: 4px 8px; letter-spacing: 0.18em; font-size: 10.5px; }
-  .ov-projects { top: auto; bottom: calc(var(--bottom-ui) + 18px); right: var(--gutter); max-width: none; transform: translateY(14px); }
-  .ov-projects.on { transform: none; }
-  .ov-projects .title { font-size: clamp(26px, 7.4vw, 34px); margin-bottom: 6px; }
-  .ov-projects .intro { font-size: 14px; }
-  .ov-projects .kind { font-size: 14px; }
-  .ov-projects .cta { margin-top: 12px; }
-  .ov-projects .hint { margin-top: 10px; font-size: 12px; }
   .ov-contact { right: var(--gutter); bottom: calc(var(--bottom-ui) + 16px); }
   .ov-contact .lead { font-size: 14px; }
   .ov-contact .origin { letter-spacing: 0.16em; font-size: 10.5px; gap: 4px 10px; }
@@ -598,9 +456,6 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
   .ov-services .services { font-size: 12px; line-height: 1.4; }
   .ov-brand { top: 44px; }
   .ov-brand .brand { font-size: 56px; }
-  .ov-projects { max-width: min(420px, 40vw); }
-  .ov-projects .intro, .ov-projects .hint { display: none; }
-  .ov-projects .cta { margin-top: 10px; }
   .ov-contact { bottom: calc(var(--bottom-ui) + 4px); }
   .ov-contact .links { margin-bottom: 10px; }
   .ov-contact .origin { display: none; }
@@ -609,6 +464,5 @@ html.is-loading .ui, html.gallery-open .ui { opacity: 0 !important; pointer-even
 
 @media (prefers-reduced-motion: reduce) {
   .ov { transition: opacity 0.3s ease; transform: none !important; }
-  .gallery, .gal-panel { transition: none; }
   .ui-scroll-line::after { animation: none; height: 100%; }
 }

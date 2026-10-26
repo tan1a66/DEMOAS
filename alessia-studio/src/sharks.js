@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
 
-// Due squaletti che nuotano attorno alle bolle dei progetti. Geometria procedurale (corpo a sezioni
+// Due squaletti che nuotano attorno ai testi dei servizi sott'acqua. Geometria procedurale (corpo a sezioni
 // ellittiche, pinne piatte), nuoto nel vertex shader (onda laterale che cresce verso la coda),
 // controombreggiatura (dorso blu, ventre chiaro), caustiche sul dorso. Se li si tocca, scattano via.
 
@@ -181,17 +181,17 @@ export function createSharks(shared) {
   const UP = new THREE.Vector3(0, 1, 0), m = new THREE.Matrix4(), bank = new THREE.Quaternion(), AX = new THREE.Vector3(1, 0, 0);
   let ez2 = 3, ey2 = 1;
 
-  // centro ed estensione delle bolle attorno a cui girare: cambiano passando da una bolla all'altra,
+  // centro ed estensione dei punti attorno a cui girare: cambiano passando da un testo all'altro,
   // e gli squali le seguono nuotando (centro smorzato, niente salti)
   const Ct = new THREE.Vector3();
   let placed = false;
-  function fit(bubbles, dt) {
-    if (!bubbles.length) return;
+  function fit(points, dt) {
+    if (!points.length) return;
     Ct.set(0, 0, 0);
-    bubbles.forEach((b) => Ct.add(b));
-    Ct.multiplyScalar(1 / bubbles.length);
+    points.forEach((b) => Ct.add(b));
+    Ct.multiplyScalar(1 / points.length);
     let ez = 0, ey = 0;
-    bubbles.forEach((b) => {
+    points.forEach((b) => {
       ez = Math.max(ez, Math.abs(b.z - Ct.z));
       ey = Math.max(ey, Math.abs(b.y - Ct.y));
     });
@@ -202,8 +202,8 @@ export function createSharks(shared) {
     ey2 += (ey - ey2) * k;
   }
 
-  function update(dt, bubbles) {
-    fit(bubbles, dt);
+  function update(dt, points) {
+    fit(points, dt);
     for (const sh of sharks) {
       const boost = 1 + sh.kick;
       sh.kick *= Math.exp(-dt * 0.9);

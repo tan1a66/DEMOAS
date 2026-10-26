@@ -11,33 +11,11 @@ export const LANGS = [
 ];
 export const DEFAULT_LANG = 'es';
 
-// anteprime dei progetti: src/assets/projects/<id>.jpg (quadrate, ~768 px)
-const IMAGES = import.meta.glob('./assets/projects/*.{jpg,webp,png}', { eager: true, import: 'default', query: '?url' });
-const img = (id) => IMAGES[`./assets/projects/${id}.jpg`] || IMAGES[`./assets/projects/${id}.webp`] || IMAGES[`./assets/projects/${id}.png`] || null;
-
-// screenshot delle demo per la galleria: public/gallery/<id>/<nn>-{1280,720,320}.webp
-// (elenco generato da tools/gallery.mjs; si scaricano solo aprendo la galleria)
-import GALLERY from './assets/gallery.json';
-const shots = (id) => (GALLERY[id] || []).map((n) => {
-  const base = `${import.meta.env.BASE_URL}gallery/${id}/${n}`;
-  return { full: `${base}-1280.webp`, mid: `${base}-720.webp`, thumb: `${base}-320.webp` };
-});
-
-// Ogni progetto diventa una bolla sott'acqua (le demo fatte finora). Toccando la bolla si apre la
-// galleria con le immagini del sito. image: anteprima dentro la bolla; url: dove porta il pulsante
-// "Abrir la demo" nella galleria (vuoto = nessun pulsante: le demo non sono ancora pubblicate).
-// Niente nomi di clienti, marchi o persone (nessuna autorizzazione): il titolo di ogni bolla è la
-// categoria, tradotta in projects.items; le immagini sono ritagli delle scene 3D senza testi né loghi.
-export const PROJECTS = [
-  { id: 'inmobiliaria' },
-  { id: 'hotel' },
-  { id: 'restaurante' },
-  { id: 'abogados' },
-  { id: 'hacienda' },
-  { id: 'cocina-italiana' },
-  { id: 'carniceria' },
-  { id: 'pizzeria' },
-].map((p) => ({ url: '', image: img(p.id), gallery: shots(p.id), ...p }));
+// Sott'acqua, i servizi: ogni servizio è un testo grande che galleggia nell'acqua, una sosta per
+// testo (testi in deep.items: titolo su due righe, una riga di dettaglio, messaggio WhatsApp pronto).
+// Toccandolo si apre WhatsApp con quel messaggio. Aggiungere o togliere un servizio cambia da solo
+// il percorso sott'acqua.
+export const SERVICES = [{ id: 'digital' }, { id: 'software' }, { id: 'marca' }];
 
 // Contatti: solo WhatsApp (niente email sul sito). whatsapp: numero con prefisso internazionale; il
 // pulsante WhatsApp è sempre visibile e apre la chat con un messaggio pronto nella lingua scelta.
@@ -69,23 +47,13 @@ const TEXT = {
         { label: 'Contenido', items: ['Renders y animaciones 3D', 'Motion design y video', 'Contenido para redes sociales', 'Campañas y lanzamientos'] },
       ],
     },
-    projects: {
-      label: 'Proyectos',
-      title: 'Cada burbuja es un proyecto.',
-      hintClick: 'Haz clic en la burbuja para verlo · scroll para la siguiente.',
-      hintTouch: 'Toca la burbuja para verlo · desliza para la siguiente.',
-      open: 'Ver el proyecto',
-      cta: 'Abrir la demo',
-      // [titolo della bolla, tipo, descrizione]
+    deep: {
+      hintClick: 'Haz clic para escribirnos por WhatsApp',
+      hintTouch: 'Toca para escribirnos por WhatsApp',
       items: {
-        inmobiliaria: ['Bienes raíces', 'Mapa 3D interactivo', 'Una península en 3D: desarrollos inmobiliarios para explorar, búsqueda con filtros y rutas animadas.'],
-        hotel: ['Hotel boutique', 'Casona histórica', 'Del agua al patio: un recorrido inmersivo por la casona y sus habitaciones, en 3D con fotos reales como materia.'],
-        restaurante: ['Restaurante de autor', 'Cocina regional', 'La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas.'],
-        abogados: ['Despacho de abogados', 'Sitio profesional', 'Un monumento de mármol inspirado en el cosmos de Dante: cada cornisa cuenta un área de práctica.'],
-        hacienda: ['Hacienda', 'Restaurante y eventos', 'Una espina de henequén borda sobre el lino; después la historia de la casa, de ayer a hoy, se vuelve el recorrido 3D.'],
-        'cocina-italiana': ['Restaurante italiano', 'Cocina romana', 'Un avión despega del Coliseo y aterriza en tu ciudad; sobre el mantel, los platos son los botones del sitio.'],
-        carniceria: ['Carnicería boutique', 'Cortes selectos', 'Ocho escenas en una sola película con scroll: vitrinas, cortes, el privado y la reserva.'],
-        pizzeria: ['Pizzería', 'Cocina del sur de Italia', 'Del cielo del sur de Italia a la mesa familiar: menú, reservas y mapa son platos que se tocan.'],
+        digital: { title: 'Sitios 3D\ninmersivos', lines: 'Diseño UX/UI · Configuradores 3D · Recorridos virtuales', msg: 'Hola Alessia Studio, me interesa un sitio web 3D inmersivo.' },
+        software: { title: 'Reservas\ny gestión', lines: 'Sistemas de reservas · Software de gestión · Sitios inteligentes', msg: 'Hola Alessia Studio, me interesa un sistema de reservas o un software de gestión.' },
+        marca: { title: 'Marca y\ncontenido', lines: 'Branding · Dirección creativa · Renders y motion', msg: 'Hola Alessia Studio, me interesa trabajar la marca y el contenido.' },
       },
     },
     contact: {
@@ -102,12 +70,6 @@ const TEXT = {
       liquidTouch: "Tócalo: es líquido",
       whatsapp: 'Escríbenos por WhatsApp',
       whatsappMsg: 'Hola Alessia Studio, quiero contarles sobre un proyecto.',
-      open: 'Ver el proyecto',
-      close: 'Cerrar',
-      prev: 'Imagen anterior',
-      next: 'Imagen siguiente',
-      prevProject: 'Proyecto anterior',
-      nextProject: 'Proyecto siguiente',
     },
   },
 
@@ -130,22 +92,13 @@ const TEXT = {
         { label: 'Contenuti', items: ['Render e animazioni 3D', 'Motion design e video', 'Contenuti per i social', 'Campagne e lanci'] },
       ],
     },
-    projects: {
-      label: 'Progetti',
-      title: 'Ogni bolla è un progetto.',
-      hintClick: 'Clicca sulla bolla per vederlo · scroll per la successiva.',
-      hintTouch: 'Tocca la bolla per vederlo · scorri per la successiva.',
-      open: 'Vedi il progetto',
-      cta: 'Apri la demo',
+    deep: {
+      hintClick: 'Clicca per scriverci su WhatsApp',
+      hintTouch: 'Tocca per scriverci su WhatsApp',
       items: {
-        inmobiliaria: ['Immobiliare', 'Mappa 3D interattiva', 'Una penisola in 3D: progetti immobiliari esplorabili, ricerca con filtri e percorsi animati.'],
-        hotel: ['Hotel boutique', 'Casona storica', "Dall'acqua al patio: un percorso immersivo tra la casona e le sue stanze, in 3D con le foto vere come materia."],
-        restaurante: ["Ristorante d'autore", 'Cucina regionale', "La casa diventa il sito: dall'ingresso alla terrazza, con menù, autori e prenotazione."],
-        abogados: ['Studio legale', 'Sito professionale', "Un monumento in marmo ispirato al cosmo di Dante: ogni cornice racconta un'area di attività."],
-        hacienda: ['Hacienda', 'Ristorante ed eventi', 'Una spina di henequén ricama sul lino; poi la storia della casa, da ieri a oggi, diventa il percorso 3D.'],
-        'cocina-italiana': ['Ristorante italiano', 'Cucina romana', 'Un aereo parte dal Colosseo e atterra nella tua città; sulla tovaglia, i piatti sono i pulsanti del sito.'],
-        carniceria: ['Macelleria boutique', 'Tagli selezionati', "Otto scene in un'unica pellicola a scroll: vetrine, tagli, il privato e la prenotazione."],
-        pizzeria: ['Pizzeria', 'Cucina del Sud Italia', 'Dal cielo del Sud Italia alla tavola di famiglia: menù, prenotazione e mappa sono piatti da toccare.'],
+        digital: { title: 'Siti 3D\nimmersivi', lines: 'Design UX/UI · Configuratori 3D · Tour virtuali', msg: 'Ciao Alessia Studio, mi interessa un sito web 3D immersivo.' },
+        software: { title: 'Prenotazioni\ne gestionali', lines: 'Sistemi di prenotazione · Software gestionali · Siti intelligenti', msg: 'Ciao Alessia Studio, mi interessa un sistema di prenotazione o un gestionale.' },
+        marca: { title: 'Brand e\ncontenuti', lines: 'Branding · Direzione creativa · Render e motion', msg: 'Ciao Alessia Studio, mi interessa lavorare su brand e contenuti.' },
       },
     },
     contact: {
@@ -162,12 +115,6 @@ const TEXT = {
       liquidTouch: "Toccalo: è liquido",
       whatsapp: 'Scrivici su WhatsApp',
       whatsappMsg: 'Ciao Alessia Studio, vorrei raccontarvi un progetto.',
-      open: 'Apri il progetto',
-      close: 'Chiudi',
-      prev: 'Immagine precedente',
-      next: 'Immagine successiva',
-      prevProject: 'Progetto precedente',
-      nextProject: 'Progetto successivo',
     },
   },
 
@@ -190,22 +137,13 @@ const TEXT = {
         { label: 'Content', items: ['3D renders and animation', 'Motion design and video', 'Social media content', 'Campaigns and launches'] },
       ],
     },
-    projects: {
-      label: 'Projects',
-      title: 'Every bubble is a project.',
-      hintClick: 'Click the bubble to see it · scroll for the next one.',
-      hintTouch: 'Tap the bubble to see it · swipe for the next one.',
-      open: 'See the project',
-      cta: 'Open the demo',
+    deep: {
+      hintClick: 'Click to message us on WhatsApp',
+      hintTouch: 'Tap to message us on WhatsApp',
       items: {
-        inmobiliaria: ['Real estate', 'Interactive 3D map', 'A peninsula in 3D: explorable real-estate developments, filtered search and animated routes.'],
-        hotel: ['Boutique hotel', 'Historic townhouse', 'From the water to the patio: an immersive walk through the house and its rooms, in 3D with real photos as material.'],
-        restaurante: ['Signature restaurant', 'Regional cuisine', 'The house becomes the website: from the entrance to the terrace, with menu, chefs and bookings.'],
-        abogados: ['Law firm', 'Professional website', "A marble monument inspired by Dante's cosmos: each ledge tells a practice area."],
-        hacienda: ['Hacienda', 'Restaurant and events', "A henequen thorn embroiders on linen; then the house's story, from past to present, becomes the 3D journey."],
-        'cocina-italiana': ['Italian restaurant', 'Roman cuisine', "A plane takes off from the Colosseum and lands in your city; on the tablecloth, the plates are the site's buttons."],
-        carniceria: ['Boutique butcher', 'Select cuts', 'Eight scenes in a single scrolling film: display cases, cuts, the private room and booking.'],
-        pizzeria: ['Pizzeria', 'Southern Italian cuisine', 'From the southern Italian sky to the family table: menu, booking and map are plates you can touch.'],
+        digital: { title: 'Immersive\n3D websites', lines: 'UX/UI design · 3D configurators · Virtual tours', msg: "Hi Alessia Studio, I'm interested in an immersive 3D website." },
+        software: { title: 'Bookings &\nmanagement', lines: 'Booking systems · Management software · Smart websites', msg: "Hi Alessia Studio, I'm interested in a booking system or management software." },
+        marca: { title: 'Brand &\ncontent', lines: 'Branding · Creative direction · Renders and motion', msg: "Hi Alessia Studio, I'd like to work on my brand and content." },
       },
     },
     contact: {
@@ -222,12 +160,6 @@ const TEXT = {
       liquidTouch: "Touch it: it's liquid",
       whatsapp: 'Message us on WhatsApp',
       whatsappMsg: "Hi Alessia Studio, I'd like to tell you about a project.",
-      open: 'Open the project',
-      close: 'Close',
-      prev: 'Previous image',
-      next: 'Next image',
-      prevProject: 'Previous project',
-      nextProject: 'Next project',
     },
   },
 
@@ -250,22 +182,13 @@ const TEXT = {
         { label: 'Conteúdo', items: ['Renders e animações 3D', 'Motion design e vídeo', 'Conteúdo para redes sociais', 'Campanhas e lançamentos'] },
       ],
     },
-    projects: {
-      label: 'Projetos',
-      title: 'Cada bolha é um projeto.',
-      hintClick: 'Clique na bolha para ver · role para a próxima.',
-      hintTouch: 'Toque na bolha para ver · deslize para a próxima.',
-      open: 'Ver o projeto',
-      cta: 'Abrir a demo',
+    deep: {
+      hintClick: 'Clique para nos escrever no WhatsApp',
+      hintTouch: 'Toque para nos escrever no WhatsApp',
       items: {
-        inmobiliaria: ['Imobiliária', 'Mapa 3D interativo', 'Uma península em 3D: empreendimentos imobiliários para explorar, busca com filtros e rotas animadas.'],
-        hotel: ['Hotel boutique', 'Casarão histórico', 'Da água ao pátio: um percurso imersivo pelo casarão e seus quartos, em 3D com fotos reais como matéria.'],
-        restaurante: ['Restaurante autoral', 'Cozinha regional', 'A casa vira o site: da entrada ao terraço, com cardápio, chefs e reservas.'],
-        abogados: ['Escritório de advocacia', 'Site profissional', 'Um monumento de mármore inspirado no cosmos de Dante: cada cornija conta uma área de atuação.'],
-        hacienda: ['Hacienda', 'Restaurante e eventos', 'Um espinho de henequém borda no linho; depois a história da casa, de ontem a hoje, vira o percurso 3D.'],
-        'cocina-italiana': ['Restaurante italiano', 'Cozinha romana', 'Um avião decola do Coliseu e pousa na sua cidade; sobre a toalha, os pratos são os botões do site.'],
-        carniceria: ['Açougue boutique', 'Cortes selecionados', 'Oito cenas em um único filme com scroll: vitrines, cortes, o reservado e a reserva.'],
-        pizzeria: ['Pizzaria', 'Cozinha do sul da Itália', 'Do céu do sul da Itália à mesa da família: cardápio, reservas e mapa são pratos para tocar.'],
+        digital: { title: 'Sites 3D\nimersivos', lines: 'Design UX/UI · Configuradores 3D · Tours virtuais', msg: 'Olá Alessia Studio, tenho interesse em um site 3D imersivo.' },
+        software: { title: 'Reservas\ne gestão', lines: 'Sistemas de reservas · Software de gestão · Sites inteligentes', msg: 'Olá Alessia Studio, tenho interesse em um sistema de reservas ou um software de gestão.' },
+        marca: { title: 'Marca e\nconteúdo', lines: 'Branding · Direção criativa · Renders e motion', msg: 'Olá Alessia Studio, quero trabalhar a marca e o conteúdo.' },
       },
     },
     contact: {
@@ -282,12 +205,6 @@ const TEXT = {
       liquidTouch: "Toque: é líquido",
       whatsapp: 'Fale conosco no WhatsApp',
       whatsappMsg: 'Olá Alessia Studio, quero contar sobre um projeto.',
-      open: 'Ver o projeto',
-      close: 'Fechar',
-      prev: 'Imagem anterior',
-      next: 'Próxima imagem',
-      prevProject: 'Projeto anterior',
-      nextProject: 'Próximo projeto',
     },
   },
 };
@@ -296,5 +213,8 @@ export function getText(lang) {
   return TEXT[lang] || TEXT[DEFAULT_LANG];
 }
 
-// [titolo, tipo, descrizione] di un progetto nella lingua scelta
-export const projectText = (lang, id) => getText(lang).projects.items[id] || [id, '', ''];
+// link alla chat WhatsApp con un messaggio pronto
+export function waLink(msg) {
+  const n = String(CONTACT_LINKS.whatsapp || '').replace(/\D/g, '');
+  return `https://wa.me/${n}?text=${encodeURIComponent(msg)}`;
+}
