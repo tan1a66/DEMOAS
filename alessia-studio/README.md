@@ -19,8 +19,8 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
 2. Sotto il lucernario: **Visión**
 3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
 4. Nello stesso gesto: fino al bordo della terrazza, una pausa davanti al sole, poi il tuffo, lento
-5. Sul fondale, una **scena 3D da provare**: la scultura (`src/sculpture.js`), che si gira trascinandola col
-   dito o col mouse, e un banco di pesci di vetro bioluminescenti (`src/school.js`: corpo quasi trasparente,
+5. Sul fondale, una **scena 3D da provare**: la statua di bronzo con i due volti (`src/sculpture.js`), che si
+   gira trascinandola col dito o col mouse, e un banco di pesci di vetro bioluminescenti (`src/school.js`: corpo quasi trasparente,
    scheletro e organi verde neon) che le passa da dietro e viene verso lo schermo. Trascinando fuori dalla
    scultura i pesci seguono il dito, un tocco li fa scappare. Mentre si gioca lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
@@ -48,7 +48,8 @@ Sul fondale ci sono solo gli inviti a provare la scena (`art`). Niente demo di c
   smorzamento; inquadratura della scultura adattata alla forma dello schermo
 - `src/guide.js`: scroll guidato (un gesto = una sosta) con GSAP
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
-- `src/sculpture.js`: il fondale di sabbia e la scultura da girare (inerzia, poi gira piano da sola)
+- `src/sculpture.js`: il fondale di sabbia e la statua da girare (bronzo con patina e rilievo dalle texture, inerzia,
+  poi torna verso il davanti)
 - `src/school.js`: il banco di pesci di vetro (simulazione sulla CPU, instancing, scheletro "ai raggi X" nello shader)
 - `src/underwater.js`: scultura, banco, bollicine (anche al tocco), pulviscolo
 - `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
@@ -67,6 +68,10 @@ Sul fondale ci sono solo gli inviti a provare la scena (`art`). Niente demo di c
 - `tools/fetch-textures.mjs`: scarica un cemento reale CC0 (Poly Haven / ambientCG) in `tools/.cache/base/`;
   se presente, `tools/textures.mjs` lo fonde come micro-dettaglio. **In questo ambiente i due siti sono
   bloccati dalla rete**: le texture attuali vengono solo dal generatore procedurale.
+- `tools/statue.mjs`: la statua del fondale, dal GLB di Meshy (~18 MB, 370k triangoli, da mettere in
+  `tools/.cache/statue/source.glb`, fuori dal repo) a `assets/statue.glb` (60k triangoli, Draco, ~250 KB) e
+  `assets/tex/statue-{color,normal}-1024.ktx2`. Si scarica dopo l'apertura del sito (~1,7 MB). La statua
+  riproduce un'opera esistente: va usata solo con l'autorizzazione di chi ne detiene i diritti
 - `tools/shoot.mjs`: screenshot e fps lungo il percorso (Playwright)
 - `tools/check-colors.mjs`: controllo automatico dei colori sugli screenshot (con `--mask`)
 
@@ -86,6 +91,8 @@ reali di rotella), `--lang=it`, `--reduced` (prefers-reduced-motion), `--transit
 |---|---|---|---|---|
 | desktop (alta) | 0,26 MB | 0,33 MB | 2,66 MB | ~3,3 MB |
 | mobile / bassa | 0,26 MB | 0,33 MB | 1,17 MB | ~1,75 MB |
+
+Dopo l'apertura si scarica la statua del fondale (~1,7 MB).
 
 `npm run build:preview` produce `dist-preview/index.html`, un solo file con tutto incorporato (si apre
 con doppio clic).

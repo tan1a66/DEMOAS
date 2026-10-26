@@ -24,9 +24,11 @@ const DECODERS = {
 
 const TILE = { formwork: 1.2, smooth: 2.0 };
 
+const decoderURL = (url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url);
+
 export async function buildScene({ renderer, lights, quality, loader, art, artCam }) {
   const { manager } = loader;
-  manager.setURLModifier((url) => (url.startsWith('decoders/') ? DECODERS[url.slice(9)] || url : url));
+  manager.setURLModifier(decoderURL);
   for (const [name, url] of Object.entries(DECODERS)) loader.expect(url, manifest.files[`decoders/${name}`]);
 
   const texSize = quality.textureSize;
@@ -125,5 +127,27 @@ export async function buildScene({ renderer, lights, quality, loader, art, artCa
     for (const m of architecture) m.visible = above && m.userData.maskHidden !== true;
   }
 
-  return { scene, update, sea, meshes, cushions, beam, dust, underwater };
+  // la statua del fondale (~1,7 MB) si scarica dopo l'apertura: serve solo sott'acqua
+  async function loadStatue() {
+    const m = new THREE.LoadingManager();
+    m.setURLModifier(decoderURL);
+    const kx = new KTX2Loader(m).setTranscoderPath('decoders/').detectSupport(renderer);
+    const dr = new DRACOLoader(m).setDecoderPath('decoders/');
+    const [g, color, normal] = await Promise.all([
+      new GLTFLoader(m).setDRACOLoader(dr).loadAsync(asset('statue.glb')),
+      kx.loadAsync(asset('tex/statue-color-1024.ktx2')),
+      kx.loadAsync(asset('tex/statue-normal-1024.ktx2')),
+    ]);
+    dr.dispose();
+    kx.dispose();
+    let geometry = null;
+    g.scene.traverse((o) => { if (o.isMesh && !geometry) geometry = o.geometry; });
+    color.anisotropy = normal.anisotropy = aniso;
+    // caricate subito sulla GPU, così il tuffo non scatta
+    renderer.initTexture(color);
+    renderer.initTexture(normal);
+    underwater.sculpture.setStatue(geometry, color, normal);
+  }
+
+  return { scene, update, sea, meshes, cushions, beam, dust, underwater, loadStatue };
 }

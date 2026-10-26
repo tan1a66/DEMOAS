@@ -251,6 +251,7 @@ async function start() {
 
   await loader.finish();
   document.documentElement.classList.remove('is-loading');
+  world.loadStatue().then(() => (window.__statue = true)).catch((err) => console.error('statua non caricata', err));
   guide.setEnabled(true);
   parallax.enable(2.5);
   window.__ready = true;

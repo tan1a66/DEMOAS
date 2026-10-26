@@ -36,7 +36,7 @@ export function createUnderwater(lights, { art, artCam, quality }) {
   // ---------------- il fondale, la scultura e il banco di pesci ----------------
   const sculpture = createSculpture(shared, { base: art.base });
   group.add(sculpture.group);
-  const school = createSchool(shared, { art: { center: sculpture.center, radius: 2.5 }, cam: artCam, quality });
+  const school = createSchool(shared, { art: { center: sculpture.center, radius: 2.9 }, cam: artCam, quality });
   group.add(school.group);
 
   // ---------------- tratto sott'acqua ----------------

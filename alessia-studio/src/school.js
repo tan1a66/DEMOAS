@@ -58,10 +58,10 @@ export function createSchool(shared, { art, cam, quality }) {
     ax.multiplyScalar(1 / D);
     rt.crossVectors(ax, UP);
     const S = art.center;
-    way[0].copy(S).addScaledVector(ax, 3.4).addScaledVector(UP, 0.9);
-    way[1].copy(S).addScaledVector(rt, 3.9).addScaledVector(ax, 0.2).addScaledVector(UP, 0.3);
-    way[2].copy(S).addScaledVector(ax, -D * 0.55).addScaledVector(rt, 0.5).addScaledVector(UP, -0.2);
-    way[3].copy(S).addScaledVector(rt, -3.9).addScaledVector(ax, 0.4).addScaledVector(UP, 0.6);
+    way[0].copy(S).addScaledVector(ax, 4.0).addScaledVector(UP, 1.3);
+    way[1].copy(S).addScaledVector(rt, 4.4).addScaledVector(ax, 0.3).addScaledVector(UP, 0.9);
+    way[2].copy(S).addScaledVector(ax, -D * 0.55).addScaledVector(rt, 0.5).addScaledVector(UP, 0.1);
+    way[3].copy(S).addScaledVector(rt, -4.4).addScaledVector(ax, 0.4).addScaledVector(UP, 1.1);
   }
   // Catmull-Rom chiusa sui quattro punti, s in [0, 4)
   function loopAt(s, out) {

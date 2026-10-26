@@ -20,11 +20,13 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-// Sott'acqua, sul fondale: una scultura 3D da girare col dito (src/sculpture.js) e un banco di pesci
-// di vetro che le passa da dietro e viene verso lo schermo (src/school.js). Poi lo sguardo sale verso
-// la superficie: il contatto. ART_SIZE è l'ingombro della scultura da inquadrare (larghezza, altezza).
+// Sott'acqua, sul fondale: una statua di bronzo da girare col dito (src/sculpture.js) e un banco di
+// pesci di vetro che le passa da dietro e viene verso lo schermo (src/school.js). Poi lo sguardo sale
+// verso la superficie: il contatto. STATUE_H è l'altezza della statua; ART_SIZE l'ingombro da
+// inquadrare (larghezza, altezza), con un margine perché girandola si allarga.
 export const SEABED_Y = -10;
-export const ART_SIZE = [4.0, 4.8];
+export const STATUE_H = 3.0;
+export const ART_SIZE = [4.4, 3.2];
 const ART_BASE = V(-41.5, SEABED_Y, -13.5);
 export const ART = { base: ART_BASE, center: ART_BASE.clone().add(V(0, ART_SIZE[1] / 2, 0)) };
 
@@ -34,7 +36,7 @@ function artView(C, fovDeg, aspect, push = 0) {
   const tanV = Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2), tanH = tanV * aspect;
   const port = aspect < 1;
   const [W, H] = ART_SIZE;
-  const d = Math.max(W / 2 / ((port ? 0.86 : 0.5) * tanH), H / 2 / ((port ? 0.62 : 0.68) * tanV)) - push;
+  const d = Math.max(W / 2 / ((port ? 1.0 : 0.5) * tanH), H / 2 / ((port ? 0.62 : 0.68) * tanV)) - push;
   const f = V(-1, -0.16, 0.04).normalize();
   const target = C.clone().add(V(0, port ? -0.9 : -0.75, 0));
   return { pos: target.clone().addScaledVector(f, -d), target };

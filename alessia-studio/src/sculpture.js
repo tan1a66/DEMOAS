@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
-import { PALETTE } from './layout.js';
-import { SEABED_Y } from './camera-path.js';
+import { SEABED_Y, STATUE_H } from './camera-path.js';
 
-// Il fondale e la scultura: sotto il primo servizio (Sitios 3D inmersivos) si scende sulla sabbia e
-// si trova un'opera 3D nei materiali del sito. Un grande anello di cemento rosa (come la finestra
-// circolare dell'ingresso) su un basamento, e dentro un nodo verde acido lucido che gira piano.
-// Sopra scorrono le caustiche della superficie; tutto si vela d'acqua con la distanza.
-// Trascinandola col dito o col mouse la scultura gira, con un po' d'inerzia.
+// Il fondale e la statua: dopo il tuffo si scende sulla sabbia e si trova una statua di bronzo con la
+// patina verde (due grandi volti), posata sul fondo. Il modello (assets/statue.glb, solo geometria, e
+// le texture di colore e rilievo) si scarica dopo l'apertura del sito: finché non arriva la statua non
+// c'è (setStatue). Sopra scorrono le caustiche della superficie; tutto si vela d'acqua con la distanza.
+// Trascinandola col dito o col mouse la statua gira su se stessa, con un po' d'inerzia; lasciata
+// stare torna piano verso il davanti, oscillando appena.
 
 const lin = (hex) => new THREE.Color(hex);
 
@@ -60,31 +60,6 @@ const LIT_VERT = /* glsl */ `
   }
 `;
 
-function litMaterial(shared, { color, shine, gloss, grain }) {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      ...shared,
-      uColor: { value: lin(color) },
-      uShine: { value: shine },
-      uGloss: { value: gloss },
-      uGrain: { value: grain },
-    },
-    vertexShader: LIT_VERT,
-    fragmentShader: /* glsl */ `
-      precision highp float;
-      ${LIT_GLSL}
-      void main() {
-        vec3 N = normalize(vNormal);
-        // cemento: pori e macchie leggere (uGrain); il verde è liscio
-        float g = vnoise(vWorldPos.xy * 7.0 + vWorldPos.z * 5.0) * 0.6 + vnoise(vWorldPos.zy * 23.0 + vWorldPos.x * 17.0) * 0.4;
-        vec3 base = uColor * (1.0 + (g - 0.5) * uGrain);
-        gl_FragColor = vec4(softClip(shade(base, N) * uExposure), 1.0);
-        #include <colorspace_fragment>
-      }
-    `,
-  });
-}
-
 export function createSculpture(shared, { base }) {
   const group = new THREE.Group();
 
@@ -92,10 +67,11 @@ export function createSculpture(shared, { base }) {
   const sandGeo = new THREE.PlaneGeometry(170, 170, 1, 1);
   sandGeo.rotateX(-Math.PI / 2);
   const sand = new THREE.Mesh(sandGeo, new THREE.ShaderMaterial({
-    uniforms: { ...shared, uColor: { value: lin('#C9A296') }, uShine: { value: 8 }, uGloss: { value: 0 }, uGrain: { value: 0 } },
+    uniforms: { ...shared, uColor: { value: lin('#C9A296') }, uShine: { value: 8 }, uGloss: { value: 0 }, uGrain: { value: 0 }, uArt: { value: base.clone() } },
     vertexShader: LIT_VERT,
     fragmentShader: /* glsl */ `
       precision highp float;
+      uniform vec3 uArt;
       ${LIT_GLSL}
       void main() {
         // increspature della sabbia (onde lente e rumore), come rilievo della normale
@@ -103,7 +79,11 @@ export function createSculpture(shared, { base }) {
         float r = sin(p.x * 2.1 + vnoise(p * 0.35) * 5.0) * 0.5 + vnoise(p * 3.0) * 0.5;
         vec3 N = normalize(vec3(cos(p.x * 2.1 + vnoise(p * 0.35) * 5.0) * 0.12, 1.0, (vnoise(p * 1.7) - 0.5) * 0.2));
         vec3 base = uColor * (0.9 + r * 0.12) * (0.94 + 0.12 * vnoise(p * 0.4));
-        gl_FragColor = vec4(softClip(shade(base, N) * uExposure), 1.0);
+        vec3 col = shade(base, N);
+        // ombra di contatto sotto la statua (luce dall'alto, appena spostata come il sole)
+        vec2 o = (p - uArt.xz - vec2(0.15, -0.1)) / vec2(2.3, 2.5);
+        col *= 1.0 - 0.55 * smoothstep(1.0, 0.25, length(o));
+        gl_FragColor = vec4(softClip(col * uExposure), 1.0);
         #include <colorspace_fragment>
       }
     `,
@@ -112,41 +92,99 @@ export function createSculpture(shared, { base }) {
   sand.renderOrder = 1;
   group.add(sand);
 
-  // ---------------- la scultura ----------------
-  const concrete = litMaterial(shared, { color: PALETTE.concreteLight, shine: 24, gloss: 0.12, grain: 0.22 });
-  const green = litMaterial(shared, { color: PALETTE.cushion, shine: 90, gloss: 0.9, grain: 0 });
-
-  const art = new THREE.Group();
-  art.position.copy(base);
-  group.add(art);
-  // basamento basso, appena affondato nella sabbia
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.25, 0.7, 64), concrete);
-  plinth.position.y = 0.25;
-  art.add(plinth);
-  // la parte che gira: anello rosa e nodo verde
+  // ---------------- la statua ----------------
+  // bronzo: colore della patina e rilievo dalle texture del modello (normal map in spazio tangente,
+  // ricostruito dalle derivate), luce dall'alto con le caustiche, riflesso caldo del metallo
+  const blank = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1);
+  blank.needsUpdate = true;
+  const bronze = new THREE.ShaderMaterial({
+    uniforms: {
+      ...shared,
+      uColor: { value: new THREE.Color(1, 1, 1) },
+      uShine: { value: 34 },
+      uGloss: { value: 0.35 },
+      uGrain: { value: 0 },
+      uMap: { value: blank },
+      uNormalMap: { value: blank },
+      uNormalScale: { value: 1.0 },
+      uLift: { value: 1.35 },
+    },
+    side: THREE.DoubleSide,
+    vertexShader: /* glsl */ `
+      varying vec3 vWorldPos;
+      varying vec3 vNormal;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        vNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      precision highp float;
+      uniform sampler2D uMap;
+      uniform sampler2D uNormalMap;
+      uniform float uNormalScale;
+      uniform float uLift;
+      varying vec2 vUv;
+      ${LIT_GLSL}
+      vec3 perturb(vec3 N, vec3 p, vec2 uv, vec3 m) {
+        vec3 q0 = dFdx(p), q1 = dFdy(p);
+        vec2 st0 = dFdx(uv), st1 = dFdy(uv);
+        vec3 q1perp = cross(q1, N), q0perp = cross(N, q0);
+        vec3 T = q1perp * st0.x + q0perp * st1.x;
+        vec3 B = q1perp * st0.y + q0perp * st1.y;
+        float det = max(dot(T, T), dot(B, B));
+        float k = det == 0.0 ? 0.0 : inversesqrt(det);
+        return normalize(T * (m.x * k) + B * (m.y * k) + N * m.z);
+      }
+      void main() {
+        vec3 N = normalize(vNormal) * (gl_FrontFacing ? 1.0 : -1.0);
+        vec3 m = texture2D(uNormalMap, vUv).xyz * 2.0 - 1.0;
+        m.xy *= uNormalScale;
+        N = perturb(N, vWorldPos, vUv, m);
+        vec3 base = texture2D(uMap, vUv).rgb * uLift;
+        gl_FragColor = vec4(softClip(shade(base, N) * uExposure), 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+  // segnaposto finché non arriva il modello (lo shader si compila subito, con il resto)
+  const statue = new THREE.Mesh(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3))
+    .setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3))
+    .setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0], 2)), bronze);
+  statue.visible = false;
   const turn = new THREE.Group();
-  turn.position.y = 0.6 + 2.05;
-  art.add(turn);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.72, 0.3, 48, 160), concrete);
-  turn.add(ring);
-  // piede dell'anello sul basamento
-  const foot = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 0.5), concrete);
-  foot.position.y = -1.92;
-  turn.add(foot);
-  const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.82, 0.19, 260, 36, 2, 3), green);
-  turn.add(knot);
-  const pickables = [ring, knot, plinth, foot];
+  turn.position.copy(base).add(new THREE.Vector3(0, -0.08, 0)); // appena affondata nella sabbia
+  turn.add(statue);
+  group.add(turn);
+  // i volti (+z nel modello) guardano verso la telecamera, che arriva da +x
+  statue.rotation.y = Math.PI / 2;
+  statue.scale.setScalar(STATUE_H);
+  // per il dito: un cilindro invisibile attorno alla statua (più leggero del modello)
+  const proxy = new THREE.Mesh(new THREE.CylinderGeometry(1.85, 2.0, STATUE_H, 20));
+  proxy.position.copy(base).add(new THREE.Vector3(0, STATUE_H / 2, 0));
+  proxy.updateMatrixWorld(true);
 
-  // rotazione: trascinando si imprime una velocità che si smorza; senza mani gira piano da sola
-  const rot = { yaw: 0.4, pitch: 0, vy: 0, vp: 0, held: false, lastUser: -1e9 };
+  function setStatue(geometry, colorTex, normalTex) {
+    statue.geometry.dispose();
+    statue.geometry = geometry;
+    bronze.uniforms.uMap.value = colorTex;
+    bronze.uniforms.uNormalMap.value = normalTex;
+    statue.visible = true;
+  }
+
+  // rotazione: trascinando si imprime una velocità che si smorza; senza mani torna piano verso il
+  // davanti, oscillando appena
+  const rot = { yaw: 0, vy: 0, held: false, lastUser: -1e9 };
   function rotateBy(dx, dy, dt = 1 / 60) {
     rot.held = true;
     rot.lastUser = performance.now();
-    const ky = dx * 0.0085, kp = dy * 0.006;
+    const ky = dx * 0.0085;
     rot.yaw += ky;
-    rot.pitch = THREE.MathUtils.clamp(rot.pitch + kp, -0.4, 0.4);
     rot.vy = ky / Math.max(dt, 1 / 120);
-    rot.vp = kp / Math.max(dt, 1 / 120);
   }
   function release() {
     rot.held = false;
@@ -155,26 +193,21 @@ export function createSculpture(shared, { base }) {
   const ray = new THREE.Raycaster();
   function hit(r) {
     ray.ray.copy(r);
-    return ray.intersectObjects(pickables, false).length > 0;
+    return statue.visible && ray.intersectObject(proxy, false).length > 0;
   }
 
   function update(time, dt) {
     if (!rot.held) {
-      // inerzia, poi torna a girare piano da sola (e a raddrizzarsi)
       rot.yaw += rot.vy * dt;
-      rot.pitch = THREE.MathUtils.clamp(rot.pitch + rot.vp * dt, -0.4, 0.4);
       rot.vy *= Math.exp(-dt * 2.2);
-      rot.vp *= Math.exp(-dt * 3.0);
-      const idle = performance.now() - rot.lastUser > 2500;
-      if (idle) {
-        rot.yaw += dt * 0.18;
-        rot.pitch += (0 - rot.pitch) * (1 - Math.exp(-dt * 0.8));
+      if (performance.now() - rot.lastUser > 2500) {
+        // il giro più vicino al davanti, più un'oscillazione lenta
+        const front = Math.round(rot.yaw / (Math.PI * 2)) * Math.PI * 2 + Math.sin(time * 0.22) * 0.18;
+        rot.yaw += (front - rot.yaw) * (1 - Math.exp(-dt * 0.6));
       }
     }
-    turn.rotation.set(rot.pitch, rot.yaw, 0, 'YXZ');
-    // il nodo gira dentro l'anello, per conto suo
-    knot.rotation.set(time * 0.21, time * 0.33, time * 0.12);
+    turn.rotation.y = rot.yaw;
   }
 
-  return { group, hit, rotateBy, release, update, center: base.clone().add(new THREE.Vector3(0, 2.65, 0)) };
+  return { group, hit, rotateBy, release, update, setStatue, center: base.clone().add(new THREE.Vector3(0, STATUE_H / 2, 0)) };
 }
