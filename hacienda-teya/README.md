@@ -1,13 +1,19 @@
 # Hacienda Teya — demo 3D (proposta Alessia Studio)
 
 Demo di redesign del sito di Hacienda Teya come esperienza 3D (Vite + Three.js + GSAP + pmndrs/postprocessing).
-**Solo per uso locale/presentazione: non pubblicare e non fare deploy.**
+Demo di presentazione: se viene pubblicata (per esempio su Vercel) resta fuori dai motori di ricerca
+(`noindex` nell'HTML e header `X-Robots-Tag` in `vercel.json`), per non fare concorrenza al sito vero.
 
 ```bash
 npm install
 npm run dev            # http://localhost:5173
 npm run build:preview  # dist-preview/index.html: un solo file, si apre con doppio clic
 ```
+
+## Pubblicare su Vercel
+- **Da GitHub**: su vercel.com → Add New → Project → importa il repository, *Root Directory* = `hacienda-teya`
+  (Vercel riconosce Vite: build `npm run build`, output `dist`), scegli il branch con la demo.
+- **Dalla build**: `npm run build`, poi dentro `dist/` (con `vercel.json` accanto) `npx vercel deploy --prod`.
 
 ## Stato
 - [x] Fase 1: concept
