@@ -157,7 +157,9 @@ export function generateFormwork(n = 1024, { seed = 7, tileM = 1.2 } = {}) {
   function boardProps() { return {
     depth: (rnd() - 0.5) * 0.0009,
     tilt: (rnd() - 0.5) * 0.0006,
-    tone: (rnd() - 0.5) * 0.17,
+    // tinta della tavola appena accennata: il tile si ripete ogni 1.2 m e tavole più chiare o più
+    // scure diventano righe "copia e incolla" sulla facciata (le variazioni grandi sono nello shader)
+    tone: (rnd() - 0.5) * 0.03,
     grainShift: rnd() * 10,
     rough: (rnd() - 0.5) * 0.08,
   }; }
@@ -192,7 +194,7 @@ export function generateFormwork(n = 1024, { seed = 7, tileM = 1.2 } = {}) {
       H[i] = b.depth + b.tilt * (u - 0.5) + grain * 0.00022 + fin * 0.0005 - butt * 0.0005 + mottle * 0.0008;
       // linea scura dove la boiacca si è infilata tra le tavole
       const seamLine = Math.exp(-((ds / 0.0022) ** 2));
-      A[i] = 0.5 + mottle * 0.1 + blotch * 0.12 + b.tone + streak * 0.07 + speck * 0.09 - grain * 0.045 + fin * 0.05 - seamLine * 0.09 - butt * 0.09;
+      A[i] = 0.5 + mottle * 0.08 + blotch * 0.1 + b.tone + streak * 0.02 + speck * 0.09 - grain * 0.04 + fin * 0.05 - seamLine * 0.07 - butt * 0.09;
       R[i] = 0.8 + b.rough + blotch * 0.12 + speck * 0.06 - fin * 0.1;
     }
   }

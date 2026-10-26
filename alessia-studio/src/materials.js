@@ -197,13 +197,14 @@ const CONCRETE_FRAG = /* glsl */ `
     vec3 col = ramp(v) * albedo;
 
     // speculare GGX del sole (finitura cementizia, F0 = 0.04)
-    vec3 H = normalize(L + V);
+    vec3 H = normalize(L + V + vec3(0.0, 1e-4, 0.0));
     float a = rough * rough;
     float a2 = a * a;
     float nh = max(dot(N, H), 0.0);
     float d = nh * nh * (a2 - 1.0) + 1.0;
     float D = a2 / (3.14159 * d * d);
-    float F = 0.04 + 0.96 * pow(1.0 - max(dot(V, H), 0.0), 5.0);
+    // clamp: con dot appena sopra 1 la base di pow() è negativa -> NaN (pixel neri sulle GPU Apple)
+    float F = 0.04 + 0.96 * pow(clamp(1.0 - dot(V, H), 0.0, 1.0), 5.0);
     float spec = D * F * 0.25 / max(dot(N, V) * 0.5 + 0.5, 0.2);
     col += uSunColor * (spec * ndl * vis * sunI * uExposure * 0.32);
 
@@ -296,7 +297,8 @@ const CUSHION_FRAG = /* glsl */ `
     vec3 r1 = cross(dpdy, N), r2 = cross(N, dpdx);
     float det = dot(dpdx, r1);
     vec3 grad = sign(det) * (dFdx(hb) * r1 + dFdy(hb) * r2);
-    N = normalize(abs(det) * N - grad * 0.0035);
+    vec3 Nb = abs(det) * N - grad * 0.0035;
+    N = dot(Nb, Nb) > 1e-20 ? normalize(Nb) : N;
     vec3 L = uSunDir;
     // micro-trama del tessuto
     float fib = vnoise(vWorldPos.xz * 380.0 + vWorldPos.y * 210.0) - 0.5;
@@ -311,7 +313,7 @@ const CUSHION_FRAG = /* glsl */ `
     #endif
     float ndl = dot(N, L);
     float wrap = max((ndl + 0.35) / 1.35, 0.0);
-    float nv = max(dot(N, V), 0.0);
+    float nv = clamp(dot(N, V), 0.0, 1.0);
     float sheen = pow(1.0 - nv, 4.0);
     // ambiente: rimbalzo rosato del cemento; il velluto diffonde la luce anche dalle fibre
     vec3 amb = Eind * vec3(1.0, 0.92, 0.88) * 1.45;

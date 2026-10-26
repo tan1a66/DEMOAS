@@ -116,7 +116,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
           vec3 col = mix(img, waterColor(-V) * 1.15, smoothstep(0.55, 1.0, fres));
           col += irid * fres * 0.35;
           // riflesso della luce dall'alto (superficie)
-          vec3 H = normalize(vec3(0.0, 1.0, 0.0) + V);
+          vec3 H = normalize(vec3(0.0, 1.0, 0.0) + V + vec3(1e-4, 0.0, 0.0));
           col += vec3(1.0, 0.97, 0.93) * pow(max(dot(N, H), 0.0), 90.0) * 0.9;
           col += vec3(1.0) * pow(max(dot(N, normalize(vec3(-0.4, 0.8, 0.5) + V)), 0.0), 260.0) * 0.6;
           float dist = length(cameraPosition - vWorldPos);
@@ -207,7 +207,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
       ${FOG_GLSL}
       void main() {
         vec3 V = normalize(cameraPosition - vWorldPos);
-        float fres = pow(1.0 - abs(dot(normalize(vNormal), V)), 2.0);
+        float fres = pow(1.0 - min(abs(dot(normalize(vNormal), V)), 1.0), 2.0);
         float dist = length(cameraPosition - vWorldPos);
         float a = (0.12 + 0.75 * fres) * waterFog(dist, -vWorldPos.y);
         gl_FragColor = vec4(vec3(0.85, 0.95, 1.0) * a * uExposure, 1.0);
@@ -320,7 +320,7 @@ export function createUnderwater(lights, { projects, positions, quality }) {
       ${FOG_GLSL}
       void main() {
         vec3 V = normalize(cameraPosition - vWorldPos);
-        float fres = pow(1.0 - abs(dot(normalize(vNormal), V)), 2.0);
+        float fres = pow(1.0 - min(abs(dot(normalize(vNormal), V)), 1.0), 2.0);
         float dist = length(cameraPosition - vWorldPos);
         float a = (0.16 + 0.95 * fres) * vLife * waterFog(dist, -vWorldPos.y);
         gl_FragColor = vec4(vec3(0.88, 0.97, 1.0) * a * uExposure, 1.0);

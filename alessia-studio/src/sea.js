@@ -82,7 +82,9 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
         // gradiente base: rosato all'orizzonte, azzurro polveroso in alto
         vec3 c = mix(uSkyLow, uSkyHigh, pow(smoothstep(0.0, 0.7, h), 0.7));
         vec2 dh = normalize(d.xz + vec2(1e-5)), sh = normalize(uSunDir.xz);
-        float toward = dot(dh, sh) * 0.5 + 0.5; // 1 verso il sole, 0 dalla parte opposta
+        // 1 verso il sole, 0 dalla parte opposta (clamp: per arrotondamento può uscire da [0, 1] e
+        // pow() di un numero negativo è NaN sulle GPU Apple: pixel neri, quadrati nel bloom)
+        float toward = clamp(dot(dh, sh) * 0.5 + 0.5, 0.0, 1.0);
         float s = max(dot(d, uSunDir), 0.0);
         // velatura calda e chiara dal lato del sole
         vec3 warm = vec3(1.0, 0.86, 0.74);
@@ -204,7 +206,7 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
           float cz = pow(1.0 - abs(vnoise(p.xz * 1.3 + uTime * 0.3) - vnoise(p.xz * 2.1 - uTime * 0.25)), 6.0);
           base = mix(base, mix(uMid, uShallow, 0.25 + 0.35 * cz), down * 0.75);
           // poco cielo riflesso (fresnel), contenuto per non schiarire troppo il blu
-          float fr = 0.02 + 0.98 * pow(1.0 - max(dot(n, -d), 0.0), 5.0);
+          float fr = 0.02 + 0.98 * pow(clamp(1.0 - dot(n, -d), 0.0, 1.0), 5.0);
           vec3 r = reflect(d, n);
           r.y = abs(r.y);
           // in lontananza domina il blu indicato (#4E7F92): il riflesso del cielo non lo ingrigisce
@@ -229,7 +231,7 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
           float ch = max(dot(n, Hh), 1e-3);
           float tan2 = (1.0 - ch * ch) / (ch * ch);
           float Dm = exp(-tan2 / (m * m)) / (3.14159 * m * m * ch * ch * ch * ch);
-          float Fs = 0.02 + 0.98 * pow(1.0 - max(dot(Hh, -d), 0.0), 5.0);
+          float Fs = 0.02 + 0.98 * pow(clamp(1.0 - dot(Hh, -d), 0.0, 1.0), 5.0);
           float spec = Dm * Fs / (4.0 * max(dot(n, -d), 0.05));
           float spark = smoothstep(0.5, 0.95, vnoise(p.xz * vec2(1.4, 2.6) + uTime * vec2(0.5, -0.35)) * vnoise(p.xz * 3.1 - uTime * 0.6) * 1.6);
           base += uSunColor * spec * sh * (0.25 + 1.75 * spark) * 0.06;

@@ -3,6 +3,15 @@ import * as THREE from 'three';
 // Post-processing leggero: scena in un render target MSAA a mezza precisione, bloom a
 // catena di mip (soglia morbida, solo sulle zone vicine al bianco: sole, fascio, aperture
 // sovraesposte), vignettatura e grana fine (fa anche da dithering contro il banding).
+// Un solo pixel NaN/Inf nella scena, passando per la catena di mip, diventa un quadrato nero per un
+// frame (succedeva su iPhone): i campioni della scena vengono filtrati con finite().
+
+const FINITE_GLSL = /* glsl */ `
+  vec3 finite(vec3 c) {
+    float m = c.r + c.g + c.b;
+    return (any(isnan(c)) || any(isinf(c)) || !(m < 1e4)) ? vec3(0.0) : max(c, 0.0);
+  }
+`;
 
 const FS_VERT = /* glsl */ `
   varying vec2 vUv;
@@ -43,7 +52,8 @@ export function createPost(renderer, { samples = 4, bloom = true, reducedMotion 
       uniform float uThreshold;
       uniform float uFirst;
       varying vec2 vUv;
-      vec3 s(vec2 o) { return texture2D(tSrc, vUv + o * uTexel).rgb; }
+      ${FINITE_GLSL}
+      vec3 s(vec2 o) { return finite(texture2D(tSrc, vUv + o * uTexel).rgb); }
       void main() {
         // filtro a 13 campioni (riduzione senza scintillio)
         vec3 a = s(vec2(-2, 2)), b = s(vec2(0, 2)), c = s(vec2(2, 2));
@@ -111,15 +121,16 @@ export function createPost(renderer, { samples = 4, bloom = true, reducedMotion 
       uniform float uGrain;
       uniform float uVignette;
       varying vec2 vUv;
+      ${FINITE_GLSL}
       float h(vec2 p) {
         vec3 p3 = fract(vec3(p.xyx) * 0.1031);
         p3 += dot(p3, p3.yzx + 33.33);
         return fract((p3.x + p3.y) * p3.z);
       }
       void main() {
-        vec3 col = texture2D(tScene, vUv).rgb;
+        vec3 col = finite(texture2D(tScene, vUv).rgb);
         #ifdef USE_BLOOM
-          col += texture2D(tBloom, vUv).rgb * uBloom;
+          col += finite(texture2D(tBloom, vUv).rgb) * uBloom;
         #endif
         // vignettatura ottica, molto morbida
         vec2 q = (vUv - 0.5) * vec2(uAspect, 1.0);
