@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0f1714" />
+    <title>Xelha — Mérida</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Manrope:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body data-mode="loader">
+    <div id="app">
+      <canvas id="gl" aria-label="Xelha en 3D"></canvas>
+      <div id="labels"><div id="labels-map"></div></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <!-- Prólogo: Mérida -->
+      <section class="pre" id="pre" aria-live="polite">
+        <p class="pre-kicker" id="pre-kicker"></p>
+        <h2 class="pre-title" id="pre-title"></h2>
+        <p class="pre-sub" id="pre-sub"></p>
+        <div class="pre-stat" id="pre-stat"><b id="pre-num">0</b><span id="pre-unit">min</span></div>
+      </section>
+      <button class="skip" id="skip" type="button">Saltar intro</button>
+
+      <header class="topbar" id="topbar">
+        <a class="brand" href="#" id="brand" aria-label="Xelha — inicio">
+          <span class="brand-name">XELHA</span>
+          <span class="brand-demo">DEMO ALESSIA STUDIO</span>
+        </a>
+        <nav class="nav" aria-label="Secciones">
+          <button type="button" data-go="ubicacion">Ubicación</button>
+          <button type="button" data-go="explorar">Departamentos</button>
+          <button type="button" data-go="recorrido">Recorrido</button>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-btn" id="sound" type="button" aria-label="Sonido" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="s-on" d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/><path class="s-off" d="M4 9v6h4l5 4V5L8 9H4zm13.6 3 2.7-2.7-1.2-1.2-2.7 2.7-2.7-2.7-1.2 1.2 2.7 2.7-2.7 2.7 1.2 1.2 2.7-2.7 2.7 2.7 1.2-1.2z"/></svg>
+          </button>
+          <button class="cta" type="button" data-go="contacto">Agendar visita</button>
+        </div>
+      </header>
+
+      <!-- Inicio -->
+      <section class="hero" id="hero">
+        <p class="kicker">Mérida · Yucatán</p>
+        <h1 class="hero-title">Xelha</h1>
+        <p class="hero-sub">Hotel &amp; residencias entre jardines colgantes,<br />a 25 minutos del mar.</p>
+        <dl class="facts">
+          <div><dt id="fact-deptos">64</dt><dd>departamentos</dd></div>
+          <div><dt>3</dt><dd>tipologías</dd></div>
+          <div><dt>6</dt><dd>niveles + rooftop</dd></div>
+        </dl>
+        <div class="hero-actions">
+          <button class="btn primary" type="button" data-go="explorar">Explorar departamentos</button>
+          <button class="btn ghost" type="button" data-go="recorrido">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>Recorrido
+          </button>
+        </div>
+      </section>
+
+      <div class="tod" id="tod" role="group" aria-label="Hora del día">
+        <button type="button" data-tod="dia">Día</button>
+        <button type="button" data-tod="atardecer" class="active">Atardecer</button>
+        <button type="button" data-tod="noche">Noche</button>
+      </div>
+
+      <!-- Explorar: panel de ascensor -->
+      <aside class="elevator" id="elevator" aria-label="Elige un piso">
+        <div class="elev-display">
+          <span class="elev-arrow" id="elev-arrow"></span>
+          <b id="elev-num">—</b>
+        </div>
+        <div class="elev-buttons" id="elev-buttons"></div>
+      </aside>
+      <div class="floor-chip" id="floor-chip" aria-live="polite"></div>
+      <p class="explore-hint" id="explore-hint">Toca un departamento para encenderlo</p>
+      <button class="back" id="back" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg><span>Volver</span>
+      </button>
+
+      <!-- Departamento seleccionado (anclado al edificio) -->
+      <div class="unit-tag" id="unit-tag" role="dialog" aria-label="Departamento">
+        <div class="ut-head">
+          <span class="ut-id" id="ut-id"></span>
+          <span class="ut-status" id="ut-status"><i></i><span></span></span>
+        </div>
+        <div class="ut-info">
+          <div><b id="ut-m2"></b><span>m²</span></div>
+          <div><b id="ut-type"></b><span id="ut-type-sub"></span></div>
+        </div>
+        <button class="ut-enter" id="ut-enter" type="button">Entra<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" /></svg></button>
+        <span class="ut-stem" aria-hidden="true"></span>
+      </div>
+
+      <!-- Visita del departamento y recorrido aéreo -->
+      <section class="player" id="player" aria-live="polite">
+        <div class="pl-text">
+          <p class="pl-kicker" id="pl-kicker"></p>
+          <h3 class="pl-title" id="pl-title"></h3>
+          <p class="pl-sub" id="pl-sub"></p>
+        </div>
+        <div class="pl-controls">
+          <button class="pl-btn" id="pl-prev" type="button" aria-label="Anterior"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg></button>
+          <div class="pl-dots" id="pl-dots"></div>
+          <button class="pl-btn" id="pl-next" type="button" aria-label="Siguiente"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" /></svg></button>
+          <button class="pl-cta" id="pl-cta" type="button">Me interesa</button>
+        </div>
+        <p class="pl-hint" id="pl-hint">Arrastra para mirar alrededor</p>
+      </section>
+
+      <p class="credit">DEMO ALESSIA STUDIO</p>
+
+      <!-- Contacto (demo: no envía datos) -->
+      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <form class="modal-card" id="form">
+          <button class="modal-x" type="button" data-close aria-label="Cerrar">×</button>
+          <p class="kicker">Xelha · Mérida</p>
+          <h3 id="modal-title">Agenda tu visita</h3>
+          <p class="modal-sub" id="modal-sub">Un asesor te contactará para mostrarte el proyecto.</p>
+          <label>Nombre<input name="nombre" required autocomplete="name" /></label>
+          <label>WhatsApp<input name="tel" required inputmode="tel" autocomplete="tel" /></label>
+          <label>Interés
+            <select name="interes" id="form-interes">
+              <option>Estudio (Tipo A)</option>
+              <option>1 Recámara (Tipo B)</option>
+              <option>2 Recámaras (Tipo C)</option>
+            </select>
+          </label>
+          <button class="btn primary" type="submit">Enviar</button>
+          <p class="modal-ok" id="modal-ok">¡Gracias! Te contactaremos muy pronto.<small>Demo: el formulario no envía datos.</small></p>
+        </form>
+      </div>
+
+      <div class="mist" id="mist" aria-hidden="true"></div>
+
+      <div class="loader" id="loader">
+        <div class="loader-inner">
+          <div class="loader-logo">XELHA</div>
+          <div class="loader-demo">DEMO ALESSIA STUDIO</div>
+          <div class="bar"><span id="bar-fill"></span></div>
+          <p class="loader-step" id="loader-step">Cargando</p>
+          <button class="enter" id="enter" type="button">Entrar</button>
+          <p class="loader-note">Mejor con sonido</p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

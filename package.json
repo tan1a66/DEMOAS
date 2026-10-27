@@ -9,7 +9,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "geo": "node scripts/build-geo.mjs",
-    "build:preview": "vite build --config vite.preview.config.js"
+    "build:preview": "vite build --config vite.preview.config.js",
+    "dev:xelha": "vite xelha",
+    "build:xelha": "vite build xelha --config xelha/vite.preview.config.js"
   },
   "dependencies": {
     "gsap": "^3.12.5",
