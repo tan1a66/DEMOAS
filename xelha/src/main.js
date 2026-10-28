@@ -5,6 +5,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 import { buildMeridaScene } from './map/merida.js';
 import { buildHotelScene } from './hotel/scene.js';
@@ -57,6 +58,35 @@ if (gtao) {
   };
   composer.addPass(gtao);
 }
+// Antes del bloom: elimina píxeles NaN/infinitos (reflejos del sol en vidrio o agua que
+// desbordan el búfer de media precisión). Sin esto el bloom los convierte en cuadros negros.
+const sanitize = new ShaderPass({
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+    bool bad(vec4 c) { return any(isnan(c)) || any(isinf(c)); }
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      if (bad(c)) {
+        // Se sustituye por el promedio de los vecinos válidos.
+        vec2 px = 1.0 / vec2(textureSize(tDiffuse, 0));
+        vec4 acc = vec4(0.0);
+        float n = 0.0;
+        for (int i = 0; i < 4; i++) {
+          vec2 o = vec2(i == 0 ? 1.0 : i == 1 ? -1.0 : 0.0, i == 2 ? 1.0 : i == 3 ? -1.0 : 0.0) * px;
+          vec4 s = texture2D(tDiffuse, vUv + o);
+          if (!bad(s)) { acc += s; n += 1.0; }
+        }
+        c = n > 0.0 ? acc / n : vec4(0.0, 0.0, 0.0, 1.0);
+      }
+      gl_FragColor = vec4(clamp(c.rgb, 0.0, 24.0), 1.0);
+    }`,
+});
+composer.addPass(sanitize);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -182,7 +212,7 @@ function setInterior(on) {
     lvl.mats.glass.opacity = on ? 0.05 : 0.42;
     lvl.mats.rail.opacity = on ? 0.08 : 0.22;
   }
-  hotel.camera.near = on ? 0.05 : 0.5;
+  hotel.camera.near = on ? 0.1 : 0.5;
   hotel.camera.updateProjectionMatrix();
   aura.lightI = on ? 12 : mode === 'visit' ? 30 : 60;
   Object.assign(c, on
@@ -748,5 +778,5 @@ function frame() {
     return ray.intersectObjects(hotel.scene.children, true).filter((h) => h.object.material?.visible !== false).slice(0, 4)
       .map((h) => `${h.object.name || h.object.type}:${h.distance.toFixed(2)}:${h.point.toArray().map((v) => v.toFixed(2))}`);
   };
-  if (params.has('debug')) window.__x = { cap: CAP_COLOR, hotel, map, levels, enterExplore, rideTo, selectUnit, enterVisit, goStep, playTour, goHome };
+  if (params.has('debug')) window.__x = { sanitize, cap: CAP_COLOR, hotel, map, levels, enterExplore, rideTo, selectUnit, enterVisit, goStep, playTour, goHome };
 })();

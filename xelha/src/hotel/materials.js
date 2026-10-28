@@ -135,7 +135,7 @@ export function floorMaterials(envMap) {
     rug: solid({ color: 0xcdbfa7, roughness: 1, grain: true }),
     marble: solid({ color: 0xf0ede7, roughness: 0.18, marble: true }),
     brass: solid({ color: 0xd2ad6c, roughness: 0.28, metalness: 1 }),
-    mirror: solid({ color: 0xe3e8ea, roughness: 0.04, metalness: 1 }),
+    mirror: solid({ color: 0xe3e8ea, roughness: 0.1, metalness: 1 }),
     porcelain: solid({ color: 0xfbfaf7, roughness: 0.12 }),
     art: solid({ color: 0xffffff, roughness: 0.9, map: artTexture() }),
     terracotta: solid({ color: 0xc9774f, roughness: 0.9 }),
@@ -144,7 +144,7 @@ export function floorMaterials(envMap) {
     leaf: Object.assign(vegetationMaterial({ clippingPlanes: [cutPlane] }), { userData: { base: new THREE.Color(0xffffff), noAO: true } }),
     glass: new THREE.MeshStandardMaterial({
       color: 0x24413f,
-      roughness: 0.05,
+      roughness: 0.1,
       metalness: 0.85,
       envMap,
       envMapIntensity: 1.1,

@@ -9,7 +9,7 @@ import { cutPlane, CUT_OFF, setCutY } from './materials.js';
 export function buildHotelScene({ renderer, canvas, resolution, quality }) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0xe8bb9a, 130, 820);
-  const camera = new THREE.PerspectiveCamera(34, 1, 0.5, 6000);
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.5, 2500);
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 1);
   const sun = new THREE.DirectionalLight(0xffffff, 2);
