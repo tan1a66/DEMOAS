@@ -279,13 +279,19 @@ export function buildBuilding({ envMap, water, resolution, lite = false }) {
     const mats = floorMaterials(envMap);
     mats.water = water;
     const b = new Buckets();
-    const lvl = { piso, nivel: n, y0, mats, units: [] };
+    // El mobiliario va aparte: se oculta de lejos y solo proyecta sombra en la visita.
+    const lvl = { piso, nivel: n, y0, mats, units: [], fb: new Buckets() };
 
     if (n >= 1 && n <= 6) buildRooms(b, lvl, layouts[n], halfOf(n + 1), rand);
     else if (n === 0) buildGround(b, lvl, halfOf(1), rand);
     else buildRooftop(b, lvl, halfOf(6), rand);
 
     lvl.group = b.build(mats);
+    if (lvl.fb.map.size) {
+      lvl.furniture = lvl.fb.build(mats, { castShadow: false });
+      lvl.group.add(lvl.furniture);
+    }
+    delete lvl.fb;
     lvl.group.name = piso.id;
     group.add(lvl.group);
     buildShell(lvl, resolution);
@@ -364,7 +370,7 @@ function buildRooms(b, lvl, { units, half }, halfAbove, rand) {
     u.frame = frame;
     u.y0 = y0;
     u.center = polar(RF + ROOM * 0.45, u.am, y0 + 1.2);
-    furnish(b, u, frame, rand);
+    furnish(lvl.fb, u, frame, rand);
     const { P } = kit(b, frame, u.lado, rand);
     // Montantes y celosía de madera corrediza.
     P('dark', -0.04, 0.04, 0, hh - 0.03, -0.06, 0.06);

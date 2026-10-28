@@ -13,7 +13,7 @@ import { Aura } from './hotel/aura.js';
 import { RF, ROOM, H, SLAB, TOP } from './hotel/building.js';
 import { polar } from './hotel/geo.js';
 import { CUT_OFF, CAP_COLOR, setCaps, cutPlane } from './hotel/materials.js';
-import { PISOS, TIPOS, ESTADOS, resumen, TOTAL_DEPARTAMENTOS } from './data/hotel.js';
+import { PISOS, TIPOS, ESTADOS, CONTACTO, resumen, TOTAL_DEPARTAMENTOS } from './data/hotel.js';
 import { Ambience } from './audio.js';
 
 const $ = (id) => document.getElementById(id);
@@ -22,7 +22,7 @@ const params = new URLSearchParams(location.search);
 const IS_MOBILE = matchMedia('(pointer: coarse)').matches || innerWidth < 760;
 const QUALITY = IS_MOBILE
   ? { maxPixelRatio: 1.5, shadowMap: 1024, clouds: 0, samples: 2, mobile: true }
-  : { maxPixelRatio: 1.75, shadowMap: 2048, clouds: 34, samples: 4, mobile: false };
+  : { maxPixelRatio: 1.5, shadowMap: 2048, clouds: 34, samples: 4, mobile: false };
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
 if (params.has('debug')) gsap.ticker.lagSmoothing(0);
 const wait = (s) => new Promise((r) => gsap.delayedCall(s, r));
@@ -35,6 +35,8 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = QUALITY.mobile ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
 renderer.localClippingEnabled = true;
+// Escena estática: el mapa de sombras se recalcula solo cuando cambia algo (ver Atmosphere/setCut).
+renderer.shadowMap.autoUpdate = false;
 const resolution = new THREE.Vector2(1, 1);
 
 const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: QUALITY.samples }));
@@ -47,6 +49,9 @@ if (gtao) {
   gtao.updateGtaoMaterial({ radius: 1.1, distanceExponent: 2, thickness: 1.5, scale: 1.15 });
   gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 5, rings: 2, samples: 16 });
   gtao.normalMaterial.clippingPlanes = [cutPlane];
+  // A media resolución: la oclusión es suave y así cuesta la cuarta parte.
+  const gtaoSetSize = gtao.setSize.bind(gtao);
+  gtao.setSize = (w, h) => gtaoSetSize(Math.max(1, Math.round(w / 2)), Math.max(1, Math.round(h / 2)));
   // En el pase de normales se ocultan vidrio, follaje, brillos y volúmenes invisibles.
   gtao.overrideVisibility = function () {
     const cache = this._visibilityCache;
@@ -156,6 +161,7 @@ async function build() {
   // Precompilar sombreadores (evita tirones en la primera transición).
   renderer.compile(map.scene, map.camera);
   renderer.compile(hotel.scene, hotel.camera);
+  renderer.shadowMap.needsUpdate = true;
   loader.set(1, 'Listo');
   await nextFrame();
 }
@@ -173,7 +179,6 @@ function setActive(name) {
     if (gtao) gtao.enabled = false;
   } else {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    if (gtao) gtao.enabled = true;
     hotel.atmo.apply();
     map.stop();
   }
@@ -185,7 +190,7 @@ function setActive(name) {
 const boost = () => Math.min(2.2, Math.pow(Math.max(1, 1.3 / hotel.camera.aspect), 0.8));
 const V = {
   sky: () => ({ target: new THREE.Vector3(0, 10, -30), distance: 560, polar: 0.42, azimuth: -0.9 }),
-  hero: () => ({ target: new THREE.Vector3(IS_MOBILE ? 0 : -8, 12, -28), distance: 150 * boost(), polar: 1.2, azimuth: 0.42 }),
+  hero: () => ({ target: new THREE.Vector3(IS_MOBILE ? 0 : -8, hotel.camera.aspect < 1 ? -6 : 12, -28), distance: 150 * boost(), polar: 1.2, azimuth: 0.42 }),
   explore: (y = 13, az = 0.12) => ({ target: new THREE.Vector3(0, y, -40), distance: 118 * boost(), polar: 1.4, azimuth: az }),
 };
 
@@ -196,9 +201,15 @@ let sel = null; // departamento elegido
 let todChoice = 'atardecer';
 let run = 0; // invalida secuencias en curso (visita, recorrido)
 
+// La oclusión ambiental solo se nota de cerca: se activa en la visita del departamento.
+function syncAO() {
+  if (gtao) gtao.enabled = active === 'hotel' && mode === 'visit' && perf.ratio >= 0.9;
+}
+
 function setMode(m) {
   mode = m;
   body.dataset.mode = m;
+  syncAO();
   const c = hotel.rig.controls;
   c.autoRotate = m === 'home';
   c.autoRotateSpeed = 0.35;
@@ -313,6 +324,7 @@ function unitPoint(u, x, y, v) {
 
 function selectUnit(u, { fly = true } = {}) {
   sel = u;
+  body.classList.toggle('has-sel', !!u);
   const tag = $('unit-tag');
   if (!u) {
     aura.hide();
@@ -441,6 +453,8 @@ function enterVisit(u) {
   hotel.building.setFocus(u.nivel, 1);
   levels[u.nivel].focus = 0;
   levels[u.nivel].lampBoost = 0.8;
+  levels[u.nivel].furniture?.children.forEach((m) => (m.castShadow = true));
+  renderer.shadowMap.needsUpdate = true;
   hotel.atmo.bloomScale = 0.55;
   hotel.atmo.apply();
   gsap.to(levels[u.nivel].tiles.material, { opacity: 0.55, duration: 1 });
@@ -458,6 +472,7 @@ function exitVisit({ fly = true } = {}) {
   lens(34, 1.2);
   for (const l of levels) {
     l.lampBoost = 0;
+    l.furniture?.children.forEach((m) => (m.castShadow = false));
     if (l.tiles) gsap.to(l.tiles.material, { opacity: 0, duration: 0.5 });
   }
   if (cut.y < CUT_OFF) cutTo(null);
@@ -565,7 +580,7 @@ function playPrologue() {
   setMode('pre');
   mist(0, 1.6);
   map.play({
-    onDive: () => mist(1, 2.2),
+    onDive: () => mist(1, 1.6),
     onDone: () => arriveHotel(),
   });
 }
@@ -578,7 +593,7 @@ function arriveHotel() {
   hotel.rig.set(V.sky());
   setMode('arrive');
   mist(0, 1.8);
-  hotel.rig.flyTo(V.hero(), { duration: 5.2, ease: 'power2.inOut', arc: false }).then(() => {
+  hotel.rig.flyTo(V.hero(), { duration: 3.8, ease: 'power2.inOut', arc: false }).then(() => {
     if (mode === 'arrive') setMode('home');
   });
 }
@@ -682,7 +697,11 @@ document.querySelectorAll('#tod button').forEach((b) =>
   })
 );
 
+let modalUnit = null;
+const phoneDigits = CONTACTO.telefono.replace(/[^\d]/g, '');
+
 function openModal(u) {
+  modalUnit = u ?? null;
   const m = $('modal');
   m.classList.add('open');
   $('modal-ok').classList.remove('show');
@@ -696,9 +715,22 @@ $('modal').addEventListener('click', (e) => {
 });
 $('form').addEventListener('submit', (e) => {
   e.preventDefault();
+  if (phoneDigits && CONTACTO.whatsapp) {
+    // Abre WhatsApp con el mensaje ya escrito para el asesor.
+    const f = new FormData($('form'));
+    const depto = modalUnit ? ` (Depto ${modalUnit.id})` : '';
+    const msg = `Hola, soy ${f.get('nombre')}. Me interesa Xelha: ${f.get('interes')}${depto}. Mi WhatsApp: ${f.get('tel')}`;
+    window.open(`https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+  }
   $('modal-ok').classList.add('show');
   gsap.delayedCall(2.6, () => $('modal').classList.remove('open'));
 });
+if (phoneDigits) {
+  $('modal-ok').innerHTML = CONTACTO.whatsapp ? '¡Gracias! Te abrimos WhatsApp para enviar tu mensaje.' : '¡Gracias! Te contactaremos muy pronto.';
+  const direct = $('modal-direct');
+  direct.hidden = false;
+  direct.innerHTML = `o directo: ${CONTACTO.whatsapp ? `<a href="https://wa.me/${phoneDigits}" target="_blank" rel="noopener">WhatsApp</a> · ` : ''}<a href="tel:+${phoneDigits}">${CONTACTO.telefono}</a>`;
+}
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if ($('modal').classList.contains('open')) $('modal').classList.remove('open');
@@ -737,9 +769,39 @@ function updateElevator() {
 }
 
 const clock = new THREE.Clock();
+// Resolución adaptativa: baja si el equipo no llega a ~45 fps y sube si va sobrado.
+const perf = { acc: 0, n: 0, ratio: renderer.getPixelRatio() };
+function adapt(dt) {
+  perf.acc += dt;
+  if (++perf.n < 45) return;
+  const avg = perf.acc / perf.n;
+  perf.acc = perf.n = 0;
+  const max = Math.min(devicePixelRatio, QUALITY.maxPixelRatio);
+  let r = perf.ratio;
+  if (avg > 1 / 44) r = Math.max(0.65, r - 0.15);
+  else if (avg < 1 / 56) r = Math.min(max, r + 0.1);
+  if (Math.abs(r - perf.ratio) < 0.01) return;
+  perf.ratio = r;
+  renderer.setPixelRatio(r);
+  resize();
+  syncAO();
+}
+
+// Mobiliario: solo cerca del edificio o en el piso del departamento elegido.
+const BCENTER = new THREE.Vector3(0, 13, -48);
+function furnitureLOD() {
+  const near = hotel.camera.position.distanceTo(BCENTER) < 95;
+  for (const l of levels) {
+    if (!l.furniture) continue;
+    const on = near || sel?.nivel === l.nivel;
+    if (l.furniture.visible !== on) l.furniture.visible = on;
+  }
+}
+
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
+  if (mode !== 'loader') adapt(dt);
   if (active === 'map') {
     map.update(t, dt);
     map.labels.update(map.camera, innerWidth, innerHeight);
@@ -748,6 +810,7 @@ function frame() {
     aura.update(t);
     hover.update(t);
     if (!hotel.rig.flying) hotel.rig.controls.update();
+    furnitureLOD();
     updateUnitTag();
     updateElevator();
   }

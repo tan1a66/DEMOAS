@@ -371,6 +371,8 @@ body[data-mode='tour'] .pl-btn, body[data-mode='tour'] .pl-hint { display: none;
 .modal-ok { display: none; margin: 0; padding: 12px 14px; border-radius: 12px; background: #e3efe8; color: #1d5a45; font-size: 14px; font-weight: 600; }
 .modal-ok small { display: block; margin-top: 3px; font-weight: 500; font-size: 11px; color: rgba(29, 90, 69, 0.7); }
 .modal-ok.show { display: block; }
+.modal-direct { margin: 0; font-size: 13px; color: rgba(15, 23, 20, 0.62); text-align: center; }
+.modal-direct a { color: #1d5a45; font-weight: 700; text-decoration: none; }
 
 /* ---------- Móvil ---------- */
 @media (max-width: 760px) {
@@ -407,6 +409,7 @@ body[data-mode='tour'] .pl-btn, body[data-mode='tour'] .pl-hint { display: none;
   .back { top: auto; bottom: calc(30px + var(--bottom)); }
   body[data-mode='explore'] .explore-hint { bottom: calc(86px + var(--bottom)); }
   .unit-tag { width: 200px; }
+  body.has-sel .floor-chip { opacity: 0; pointer-events: none; }
   .player { bottom: calc(26px + var(--bottom)); padding: 14px 16px 12px; }
   body[data-mode='visit'] .back, body[data-mode='tour'] .back { top: calc(108px + var(--top)); bottom: auto; }
   .pl-title { font-size: 24px; }

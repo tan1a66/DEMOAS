@@ -143,7 +143,7 @@ function scatter(geo, mat, list, { shadow = true } = {}) {
   return mesh;
 }
 
-export function buildSite({ water, envMap }) {
+export function buildSite({ water, envMap, lite = false }) {
   const group = new THREE.Group();
   const rand = rng(21);
   const mats = {
@@ -245,18 +245,18 @@ export function buildSite({ water, envMap }) {
   }
   group.add(scatter(treeGeometry(), vegMat, trees));
 
-  group.add(buildCity(rand));
+  group.add(buildCity(rand, lite));
   return { group };
 }
 
 // Contexto urbano: casas de una y dos plantas con colores de Mérida, árboles y alumbrado.
-function buildCity(rand) {
+function buildCity(rand, lite) {
   const group = new THREE.Group();
   const COLORS = [0xf3ebe0, 0xeccbb8, 0xeedab0, 0xc4d6df, 0xf0e3cf, 0xe3b9a0, 0xcfdcc2, 0xf5f1ea, 0xeac2bf, 0xf3ebe0, 0xf5f1ea];
   const houses = [];
   const trees = [];
   const lamps = [];
-  const R = 720;
+  const R = lite ? 480 : 720;
   const half = GRID / 2;
   for (let gx = -9; gx <= 9; gx++) {
     for (let gz = -9; gz <= 9; gz++) {

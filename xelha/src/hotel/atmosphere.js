@@ -214,6 +214,8 @@ export class Atmosphere {
     this.scene.fog.color.copy(s.fog);
     if (this.bloom) this.bloom.strength = s.bloom * (this.bloomScale ?? 1);
     this.renderer.toneMappingExposure = s.exposure;
+    // Las sombras solo se recalculan cuando algo cambia (sol, corte, mobiliario).
+    this.renderer.shadowMap.needsUpdate = true;
     this.windows = s.windows;
   }
 

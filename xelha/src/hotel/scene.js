@@ -39,7 +39,7 @@ export function buildHotelScene({ renderer, canvas, resolution, quality }) {
   const water = waterMaterial();
   const building = buildBuilding({ envMap: env, water, resolution, lite: quality.mobile });
   scene.add(building.group);
-  const site = buildSite({ water, envMap: env });
+  const site = buildSite({ water, envMap: env, lite: quality.mobile });
   scene.add(site.group);
 
   const all = [...building.levels.map((l) => l.mats), building.core.mats];
@@ -75,6 +75,7 @@ export function buildHotelScene({ renderer, canvas, resolution, quality }) {
     scene, camera, rig, building, site, atmo, sky, inner, sun, update,
     setCut(y) {
       setCutY(y ?? CUT_OFF);
+      renderer.shadowMap.needsUpdate = true;
     },
     get cut() {
       return cutPlane.constant;

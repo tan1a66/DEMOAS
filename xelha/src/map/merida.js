@@ -67,12 +67,13 @@ export function buildMeridaScene({ canvas, resolution, quality, labelsEl, captio
   const rig = new CameraRig(camera, canvas);
   rig.controls.enabled = false;
   const mid = hotelPos.clone().lerp(toVec3(MERIDA.mar), 0.5);
+  // En pantallas verticales el encuadre se desplaza al sur: el mapa sube y deja sitio a los textos.
+  const lift = (v, km) => (quality.mobile || innerWidth < innerHeight ? v.clone().add(new THREE.Vector3(0, 0, km)) : v);
   const VIEWS = {
     space: { target: toVec3({ lat: 20.6, lng: -88.9 }, 0), distance: 2900, polar: 0.02, azimuth: -0.35 },
-    peninsula: { target: toVec3({ lat: 20.55, lng: -88.6 }, 0), distance: 720, polar: 0.82, azimuth: -0.1 },
-    merida: { target: hotelPos, distance: 58, polar: 0.92, azimuth: 0.35 },
-    coast: { target: mid, distance: 66, polar: 0.86, azimuth: 0.22 },
-    pois: { target: hotelPos.clone().add(new THREE.Vector3(0, 0, 2)), distance: 52, polar: 0.78, azimuth: -0.15 },
+    merida: { target: lift(hotelPos, 9), distance: 58, polar: 0.92, azimuth: 0.35 },
+    coast: { target: lift(mid, 11), distance: 66, polar: 0.86, azimuth: 0.22 },
+    pois: { target: lift(hotelPos.clone().add(new THREE.Vector3(0, 0, 2)), 9), distance: 52, polar: 0.78, azimuth: -0.15 },
     dive: { target: hotelPos, distance: 1.5, polar: 0.25, azimuth: 0.1 },
   };
 
@@ -93,30 +94,29 @@ export function buildMeridaScene({ canvas, resolution, quality, labelsEl, captio
     reset();
     tl = gsap.timeline();
     const fly = (view, opts) => () => rig.flyTo(view, opts);
-    tl.add(() => captions.show('Península de Yucatán', 'México', 'El sureste que más crece del país.'), 0.6)
-      .add(fly(VIEWS.peninsula, { duration: 3.6, ease: 'power2.inOut' }), 0)
-      .add(fly(VIEWS.merida, { duration: 3.4 }), 3.8)
-      .add(() => captions.show('Mérida', 'Yucatán', 'Capital cultural del sureste, entre cenotes, haciendas y la costa.'), 4.4)
-      .to(marker, { appear: 1, duration: 1 }, 5.6)
-      .add(() => (hotelTag.visible = true), 6.6)
-      .to(state, { focus: 1, duration: 2 }, 4.5)
-      .add(() => captions.show('A 25 minutos del mar', 'Distancia', `≈ ${MERIDA.mar.km} km por la carretera a Progreso.`, { stat: MERIDA.mar.min, unit: 'min' }), 8.0)
-      .add(fly(VIEWS.coast, { duration: 3.4 }), 7.8)
-      .to(state, { routeK: 1, duration: 3.2, ease: 'power1.inOut' }, 8.2)
-      .add(() => (seaTag.visible = true), 10.8)
-      .add(() => (seaTag.visible = false), 13.2)
-      .add(fly(VIEWS.pois, { duration: 3 }), 13.0)
-      .add(() => captions.show('Todo a la mano', 'Conectividad', 'Centro, aeropuerto y Tren Maya en minutos.'), 13.4)
-      .to(state, { spokeK: 1, duration: 1.6, ease: 'power2.out' }, 14.2)
-      .add(() => poiTags.forEach((t, i) => gsap.delayedCall(i * 0.25, () => (t.visible = true))), 14.6)
+    // Unos 12 s: Mérida, distancia al mar, puntos clave y caída hacia el hotel.
+    tl.add(fly(VIEWS.merida, { duration: 3.6, ease: 'power2.inOut' }), 0)
+      .add(() => captions.show('Mérida', 'Yucatán · México', 'Capital cultural del sureste, entre cenotes y haciendas.'), 0.5)
+      .to(state, { focus: 1, duration: 1.6 }, 2.2)
+      .to(marker, { appear: 1, duration: 0.8 }, 3.0)
+      .add(() => (hotelTag.visible = true), 3.4)
+      .add(fly(VIEWS.coast, { duration: 2.6 }), 4.2)
+      .add(() => captions.show('A 25 minutos del mar', 'Distancia aprox.', `≈ ${MERIDA.mar.km} km por la carretera a Progreso.`, { stat: MERIDA.mar.min, unit: 'min' }), 4.4)
+      .to(state, { routeK: 1, duration: 2.4, ease: 'power1.inOut' }, 4.4)
+      .add(() => (seaTag.visible = true), 6.4)
+      .add(() => (seaTag.visible = false), 7.6)
+      .add(fly(VIEWS.pois, { duration: 2.2 }), 7.4)
+      .add(() => captions.show('Todo a la mano', 'Conectividad', 'Centro, aeropuerto y Tren Maya en minutos (aprox.).'), 7.6)
+      .to(state, { spokeK: 1, duration: 1.2, ease: 'power2.out' }, 8.0)
+      .add(() => poiTags.forEach((t, i) => gsap.delayedCall(i * 0.18, () => (t.visible = true))), 8.3)
       .add(() => {
         poiTags.forEach((t) => (t.visible = false));
         hotelTag.visible = false;
         captions.show('Xelha', 'Bienvenido', HOTEL.lema);
         onDive?.();
-      }, 18.6)
-      .add(fly(VIEWS.dive, { duration: 2.6, ease: 'power3.in' }), 18.6)
-      .add(() => onDone?.(), 21.0);
+      }, 10.6)
+      .add(fly(VIEWS.dive, { duration: 2.0, ease: 'power3.in' }), 10.6)
+      .add(() => onDone?.(), 12.4);
   }
 
   const update = (t, dt) => {
