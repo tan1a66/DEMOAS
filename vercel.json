@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npm run build:xelha",
+  "outputDirectory": "xelha/dist-preview"
+}
