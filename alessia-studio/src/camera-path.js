@@ -20,9 +20,8 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-// Sott'acqua, sul fondale: una statua di bronzo da girare col dito (src/sculpture.js) e un banco di
-// pesci di vetro che le passa da dietro e viene verso lo schermo (src/school.js). Poi lo sguardo sale
-// verso la superficie: il contatto. STATUE_H è l'altezza della statua; ART_SIZE l'ingombro da
+// Sott'acqua, sul fondale: una statua di bronzo da girare col dito (src/sculpture.js). Poi lo sguardo
+// sale verso la superficie: il contatto. STATUE_H è l'altezza della statua; ART_SIZE l'ingombro da
 // inquadrare (larghezza, altezza), con un margine perché girandola si allarga.
 export const SEABED_Y = -10;
 export const STATUE_H = 3.0;
@@ -146,8 +145,7 @@ export function buildStory(d, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'art', p: mid('artIn', 'artOut'), via: { p: mid('edgeIn', 'edgeOut'), hold: 1.1 }, pace: 0.016, maxDur: 6.5, ease: 'sine.inOut' },
     { id: 'contact', p: 1 },
   ];
-  // artCam: la telecamera alla sosta della scultura (il banco di pesci le passa vicino)
-  return { keys, sections, stops, art: ART, artCam: g.pos.clone(), total };
+  return { keys, sections, stops, art: ART, total };
 }
 
 // Interpolazione cubica monotona (Fritsch–Carlson)
@@ -213,7 +211,6 @@ export function createCameraPath(camera, { reducedMotion = false } = {}) {
       keys[i].pos.copy(k.pos);
       keys[i].target.copy(k.target);
     });
-    story.artCam.copy(fresh.artCam);
   }
 
   // parallax: vettore [-1,1]^2 già smorzato; amp = metri di spostamento laterale

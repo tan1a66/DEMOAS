@@ -3,20 +3,17 @@ import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
 import { createSharks } from './sharks.js';
 import { createSculpture } from './sculpture.js';
-import { createSchool } from './school.js';
 
-// Sott'acqua, sul fondale: la scultura da girare col dito (src/sculpture.js) e il banco di pesci di
-// vetro che le gira attorno (src/school.js); bollicine che salgono verso la superficie, pulviscolo e
-// due squaletti.
-// Interazione: il puntatore (o il dito) scosta le bollicine e i pesci; un tocco nell'acqua libera uno
-// sbuffo di bollicine e fa scappare i pesci vicini, trascinare lascia una scia; toccare uno squalo lo
-// fa scattare via.
+// Sott'acqua, sul fondale: la statua da girare col dito (src/sculpture.js); bollicine che salgono verso
+// la superficie, pulviscolo e due squaletti.
+// Interazione: il puntatore (o il dito) scosta le bollicine; un tocco nell'acqua libera uno sbuffo di
+// bollicine, trascinare lascia una scia; toccare uno squalo lo fa scattare via.
 // Tutto sfuma nel colore dell'acqua con la distanza.
 
 import { WATER } from './water-glsl.js';
 export { WATER };
 
-export function createUnderwater(lights, { art, artCam, quality }) {
+export function createUnderwater(lights, { art, quality }) {
   const L = lights.uniforms;
   const group = new THREE.Group();
   const shared = {
@@ -33,11 +30,9 @@ export function createUnderwater(lights, { art, artCam, quality }) {
     uCamY: { value: 1 },
   };
 
-  // ---------------- il fondale, la scultura e il banco di pesci ----------------
+  // ---------------- il fondale e la statua ----------------
   const sculpture = createSculpture(shared, { base: art.base });
   group.add(sculpture.group);
-  const school = createSchool(shared, { art: { center: sculpture.center, radius: 2.9 }, cam: artCam, quality });
-  group.add(school.group);
 
   // ---------------- tratto sott'acqua ----------------
   // dal tuffo fino alla scultura (e un po' oltre): bollicine e pulviscolo sono distribuiti lungo
@@ -267,9 +262,8 @@ export function createUnderwater(lights, { art, artCam, quality }) {
   // ---------------- due squaletti ----------------
   const sharks = createSharks(shared);
   group.add(sharks.group);
-  // girano larghi attorno alla scultura (senza toccarla), passando tra i pesci
+  // girano larghi attorno alla statua (senza toccarla)
   const sharkSpots = [art.center.clone().add(new THREE.Vector3(-1.6, 0, -2.6)), art.center.clone().add(new THREE.Vector3(1.6, 0, 2.6))];
-  const predators = sharks.sharks.map((sh) => sh.mesh.position);
 
   // puntatore: raggio dall'occhio; per il dito resta attivo un attimo dopo il tocco
   let pushTarget = 0, pushHold = 0;
@@ -285,8 +279,6 @@ export function createUnderwater(lights, { art, artCam, quality }) {
     const shark = sharks.poke(ray);
     if (shark) spawn(shark, 30, 0.4, 1.2);
     spawn(pointOn(ray, 4.2), 34, 0.5);
-    // i pesci vicini scappano
-    school.scatter(ray);
   }
   function trail(ray) {
     spawn(pointOn(ray, 4.0), 1 + (Math.random() < 0.5 ? 1 : 0), 0.1, 0.9);
@@ -306,14 +298,12 @@ export function createUnderwater(lights, { art, artCam, quality }) {
     // visibile solo con la telecamera sott'acqua (da sopra l'acqua torbida non lascia vedere il fondo)
     group.visible = camera.position.y < 0.0 && camera.position.x < -20;
     sculpture.update(time, dt);
-    if (group.visible) school.update(dt, time, predators, camera.position);
   }
 
   let hoverActive = false;
   return {
     group,
     sculpture,
-    school,
     update,
     shared,
     sharks,

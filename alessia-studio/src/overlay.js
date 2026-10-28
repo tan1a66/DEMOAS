@@ -58,7 +58,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   const vision = add('ov-vision', sections.vision);
   const services = add('ov-services', sections.services);
   const contact = add('ov-contact', sections.contact);
-  // sul fondale: invito a girare la scultura e a toccare i pesci
+  // sul fondale: invito a girare la statua
   const art = add('ov-demo', sections.art);
 
   // sempre visibili: lingua (in alto a destra), WhatsApp (in basso a destra), invito a scorrere
@@ -114,7 +114,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     const pill = (h) => `<p class="hint-pill"><span class="drop"></span>${esc(canHover ? h.hintClick : h.hintTouch)}</p>`;
     art.innerHTML = `
       <p class="label">${esc(T.art.label)}</p>
-      <div class="pills">${pill(T.art)}${pill(T.art.fish)}</div>`;
+      <div class="pills">${pill(T.art)}</div>`;
     contact.innerHTML = `
       <p class="label">${esc(T.contact.label)}</p>
       <h2 class="title">${esc(T.contact.title)}</h2>
@@ -174,7 +174,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
   return {
     update, setStop, setLang, onTitle,
     get lang() { return lang; },
-    // la sosta del fondale è visibile (si gira la scultura, si toccano i pesci)
+    // la sosta del fondale è visibile (si gira la statua)
     get artOn() { return art.classList.contains('on'); },
   };
 }

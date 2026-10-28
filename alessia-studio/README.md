@@ -19,15 +19,13 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
 2. Sotto il lucernario: **Visión**
 3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
 4. Nello stesso gesto: fino al bordo della terrazza, una pausa davanti al sole, poi il tuffo, lento
-5. Sul fondale, una **scena 3D da provare**: la statua di bronzo con i due volti (`src/sculpture.js`), che si
-   gira trascinandola col dito o col mouse, e un banco di pesci di vetro bioluminescenti (`src/school.js`: corpo quasi trasparente,
-   scheletro e organi verde neon) che le passa da dietro e viene verso lo schermo. Trascinando fuori dalla
-   scultura i pesci seguono il dito, un tocco li fa scappare. Mentre si gioca lo scroll resta fermo
+5. Sul fondale, la **statua di bronzo** con i due volti (`src/sculpture.js`), da girare trascinandola col dito o
+   col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
-Sott'acqua: due squaletti girano attorno alla scultura e aprono un varco nel banco (toccati, scattano via);
-il puntatore scosta le bollicine e i pesci, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il
-dito (o muovere il mouse) lascia una scia.
+Sott'acqua: due squaletti girano attorno alla statua (toccati, scattano via); il puntatore scosta le
+bollicine, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il dito (o muovere il mouse) lascia
+una scia.
 
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
 se non è tra le quattro; la scelta viene ricordata), WhatsApp (in
@@ -37,7 +35,7 @@ basso a destra) e l'invito a scorrere.
 Tutti i testi stanno in un solo file, in quattro lingue (spagnolo predefinito). Visione e servizi sono una
 prima bozza. Contatti in `CONTACT_LINKS`: solo WhatsApp `+39 346 175 8562`, niente email (il pulsante apre la chat
 con un messaggio pronto nella lingua scelta).
-Sul fondale ci sono solo gli inviti a provare la scena (`art`). Niente demo di clienti.
+Sul fondale c'è solo l'invito a girare la statua (`art`). Niente demo di clienti.
 
 ## Struttura
 - `src/layout.js`: misure, soli, palette (condiviso tra runtime e pipeline)
@@ -50,8 +48,7 @@ Sul fondale ci sono solo gli inviti a provare la scena (`art`). Niente demo di c
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
 - `src/sculpture.js`: il fondale di sabbia e la statua da girare (bronzo con patina e rilievo dalle texture, inerzia,
   poi torna verso il davanti)
-- `src/school.js`: il banco di pesci di vetro (simulazione sulla CPU, instancing, scheletro "ai raggi X" nello shader)
-- `src/underwater.js`: scultura, banco, bollicine (anche al tocco), pulviscolo
+- `src/underwater.js`: statua, bollicine (anche al tocco), pulviscolo
 - `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)

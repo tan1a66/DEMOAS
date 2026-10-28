@@ -42,10 +42,9 @@ const TEXT = {
       ],
     },
     art: {
-      label: 'Escena 3D en tiempo real',
+      label: 'Escultura 3D en tiempo real',
       hintClick: 'Arrastra la escultura para girarla',
       hintTouch: 'Gira la escultura con el dedo',
-      fish: { hintClick: 'Haz clic en los peces', hintTouch: 'Toca los peces' },
     },
     contact: {
       label: 'Contáctanos',
@@ -84,10 +83,9 @@ const TEXT = {
       ],
     },
     art: {
-      label: 'Scena 3D in tempo reale',
+      label: 'Scultura 3D in tempo reale',
       hintClick: 'Trascina la scultura per ruotarla',
       hintTouch: 'Ruota la scultura con il dito',
-      fish: { hintClick: 'Clicca sui pesci', hintTouch: 'Tocca i pesci' },
     },
     contact: {
       label: 'Contattaci',
@@ -126,10 +124,9 @@ const TEXT = {
       ],
     },
     art: {
-      label: 'Real-time 3D scene',
+      label: 'Real-time 3D sculpture',
       hintClick: 'Drag the sculpture to turn it',
       hintTouch: 'Turn the sculpture with your finger',
-      fish: { hintClick: 'Click the fish', hintTouch: 'Tap the fish' },
     },
     contact: {
       label: 'Contact us',
@@ -168,10 +165,9 @@ const TEXT = {
       ],
     },
     art: {
-      label: 'Cena 3D em tempo real',
+      label: 'Escultura 3D em tempo real',
       hintClick: 'Arraste a escultura para girá-la',
       hintTouch: 'Gire a escultura com o dedo',
-      fish: { hintClick: 'Clique nos peixes', hintTouch: 'Toque nos peixes' },
     },
     contact: {
       label: 'Fale conosco',
