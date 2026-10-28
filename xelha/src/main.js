@@ -698,7 +698,7 @@ document.querySelectorAll('#tod button').forEach((b) =>
 );
 
 let modalUnit = null;
-const phoneDigits = CONTACTO.telefono.replace(/[^\d]/g, '');
+const phoneDigits = CONTACTO.whatsapp.replace(/[^\d]/g, '');
 
 function openModal(u) {
   modalUnit = u ?? null;
@@ -715,7 +715,7 @@ $('modal').addEventListener('click', (e) => {
 });
 $('form').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (phoneDigits && CONTACTO.whatsapp) {
+  if (phoneDigits) {
     // Abre WhatsApp con el mensaje ya escrito para el asesor.
     const f = new FormData($('form'));
     const depto = modalUnit ? ` (Depto ${modalUnit.id})` : '';
@@ -726,10 +726,11 @@ $('form').addEventListener('submit', (e) => {
   gsap.delayedCall(2.6, () => $('modal').classList.remove('open'));
 });
 if (phoneDigits) {
-  $('modal-ok').innerHTML = CONTACTO.whatsapp ? '¡Gracias! Te abrimos WhatsApp para enviar tu mensaje.' : '¡Gracias! Te contactaremos muy pronto.';
+  $('modal-ok').innerHTML = '¡Gracias! Te abrimos WhatsApp para enviar tu mensaje.';
+  $('form').querySelector('button[type="submit"]').textContent = 'Enviar por WhatsApp';
   const direct = $('modal-direct');
   direct.hidden = false;
-  direct.innerHTML = `o directo: ${CONTACTO.whatsapp ? `<a href="https://wa.me/${phoneDigits}" target="_blank" rel="noopener">WhatsApp</a> · ` : ''}<a href="tel:+${phoneDigits}">${CONTACTO.telefono}</a>`;
+  direct.innerHTML = `o escríbenos directo por <a href="https://wa.me/${phoneDigits}" target="_blank" rel="noopener">WhatsApp</a>`;
 }
 addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {

@@ -10,11 +10,10 @@ export const HOTEL = {
 };
 
 // Tres tipologías de departamento que se repiten en todos los niveles.
-// Contacto de Alessia Studio. Con `telefono` vacío el formulario queda en modo demo
-// (no envía nada); con número, abre WhatsApp con el mensaje ya escrito.
+// WhatsApp de Alessia Studio: el formulario abre WhatsApp con el mensaje ya escrito.
+// Vacío = modo demo (el formulario no envía nada).
 export const CONTACTO = {
-  telefono: '', // formato internacional, p. ej. '+52 999 123 4567'
-  whatsapp: true,
+  whatsapp: '+39 346 175 8562',
 };
 
 export const TIPOS = {
