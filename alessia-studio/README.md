@@ -23,9 +23,10 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
-Sott'acqua: due squaletti girano attorno alla statua (toccati, scattano via); il puntatore scosta le
-bollicine, un tocco nell'acqua libera uno sbuffo di bollicine, trascinare il dito (o muovere il mouse) lascia
-una scia.
+Sott'acqua: due squali (1,5 e 1,15 m) girano attorno alla statua, con l'ombra sulla sabbia (toccati,
+scattano via). Le bolle sono come quelle vere: bordo argentato, centro trasparente, le grandi schiacciate
+e tremolanti; salgono piano a zigzag, in colonne dal fondo e sparse. Il puntatore scosta le bollicine, un
+tocco nell'acqua libera uno sbuffo di bolle, trascinare il dito (o muovere il mouse) lascia una scia.
 
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
 se non è tra le quattro; la scelta viene ricordata), WhatsApp (in
@@ -48,8 +49,9 @@ Sul fondale c'è solo l'invito a girare la statua (`art`). Niente demo di client
 - `src/overlay.js`: testi sopra il canvas, lingua, WhatsApp, invito a scorrere
 - `src/sculpture.js`: il fondale di sabbia e la statua da girare (bronzo con patina e rilievo dalle texture, inerzia,
   poi torna verso il davanti)
-- `src/underwater.js`: statua, bollicine (anche al tocco), pulviscolo
-- `src/sharks.js`: i due squaletti (geometria procedurale, nuoto nel vertex shader)
+- `src/underwater.js`: statua, bolle (colonne dal fondo, sbuffi al tocco), pulviscolo
+- `src/sharks.js`: i due squali (geometria procedurale con pinne a falce e coda asimmetrica, nuoto nel
+  vertex shader, controombreggiatura, branchie, caustiche)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
 - `src/lights.js`: soli, esposizione, mappa d'ombra opzionale del pit
