@@ -22,7 +22,7 @@ const W = 1080, H = 1350, M = 96; // margine: oltre i 72 px del brief, la grigli
 const C = { verde: '#B8F03A', rosa: '#D4A39C' };
 const T = getText('es');
 const font = (f) => opentype.loadSync(`${root}brand/fonts/${f}.ttf`);
-const SYNE = font('Syne-800'), INTER = font('Inter-600');
+const SYNE = font('Syne-800'), INTER = font('Inter-600'), INTER_M = font('Inter-500');
 
 // una riga di testo -> tracciato (con spaziatura e crenatura), larghezza e riquadro
 function line(f, text, size, tracking) {
@@ -108,11 +108,18 @@ posts.push(['05-el-fondo.jpg', await sharp(`${shots}/p0880.png`).resize(W, H).pn
 }
 // 7 · i cuscini verdi da vicino, al confine tra sole e ombra (ritaglio del render a doppia densità)
 posts.push(['07-verde.jpg', await sharp(`${shots}/2x/p0200.png`).extract({ left: 100, top: 820, width: W, height: H }).png().toBuffer()]);
-// 8 · i servizi, rosa su verde
+// 8 · i servizi, rosa su verde: una frase d'apertura e l'elenco, una riga per servizio (le voci di
+//     "Qué hacemos" del sito, accorciate; la frase lunga va nella didascalia, come vuole il brief)
 {
   const l = logo('logo-rosa', M, H - M - 30, 360);
+  const hook = ['MÁS QUE', 'SITIOS WEB.'];
+  const items = ['Estrategia de marca.', 'Identidad visual.', 'Naming y tono de voz.', 'Dirección creativa.', 'Sitios web 3D.',
+    'Diseño UX/UI y desarrollo.', 'Configuradores 3D.', 'Renders y motion.', 'Contenido para redes.'];
+  const hs = fit(SYNE, hook, W - 2 * M, 150), hy = M + 125 + capH(SYNE, hs);
+  const is = 56, iy = hy + hs + 85 + capH(INTER_M, is);
   posts.push(['08-que-hacemos.jpg', page(C.verde, label(T.services.label, C.rosa, M, M + 30) +
-    big(T.services.groups.map((g) => g.label.toUpperCase()), C.rosa, M + 80, H - M - 80) + l.svg)]);
+    `<path fill="${C.rosa}" d="${lines(SYNE, hook, hs, { x: M, y: hy, lead: 1.0 })}"/>` +
+    `<path fill="${C.rosa}" d="${lines(INTER_M, items, is, { x: M, y: iy, lead: 1.36, tracking: -0.01 })}"/>` + l.svg)]);
 }
 // 9 · entrando dalla finestra: giù i divani verdi e la luce del lucernario
 posts.push(['09-la-casa.jpg', await sharp(`${shots}/p0100.png`).resize(W, H).png().toBuffer()]);
