@@ -24,6 +24,8 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
+// le bolle mostrano rifratta la scena dietro di loro: basta una texture a metà risoluzione
+renderer.transmissionResolutionScale = 0.5;
 renderer.setClearColor(0xd9a5a0, 1);
 quality.gpu = quality.gpu || 'n/d';
 
@@ -105,7 +107,8 @@ async function start() {
   world.update(camera, adaptive.dpr);
   render();
 
-  // sott'acqua il puntatore scosta le bollicine, un tocco libera uno sbuffo, trascinare lascia una scia
+  // sott'acqua il puntatore scosta le bollicine, tenendo premuto cresce una bolla (un tocco breve libera
+  // qualche bollicina), trascinare lascia una scia
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const uw = world.underwater;
@@ -117,7 +120,7 @@ async function start() {
   const inWater = () => uw.group.visible;
   let lastTrail = 0, lx = 0, ly = 0;
   const trailAt = (x, y, t) => {
-    if (t - lastTrail < 28 || Math.hypot(x - lx, y - ly) < 4) return;
+    if (t - lastTrail < 60 || Math.hypot(x - lx, y - ly) < 10) return;
     lastTrail = t;
     lx = x;
     ly = y;
@@ -125,7 +128,7 @@ async function start() {
   };
   // la statua sul fondale: trascinandola (dito o mouse) gira
   const sc = uw.sculpture;
-  let spin = null, spun = false;
+  let spin = null;
   const onArt = (x, y) => overlay.artOn && sc.hit(aim(x, y));
   onDemo = onArt;
   const spinStart = (x, y, t) => {
@@ -142,21 +145,73 @@ async function start() {
   };
   const spinEnd = () => {
     if (!spin) return;
-    spun = spin.moved > 6;
     spin = null;
     sc.release();
     canvas.style.cursor = '';
   };
-  window.addEventListener('pointerdown', (e) => e.pointerType !== 'touch' && spinStart(e.clientX, e.clientY, e.timeStamp));
-  window.addEventListener('pointerup', (e) => e.pointerType !== 'touch' && spinEnd());
-  window.addEventListener('pointercancel', (e) => e.pointerType !== 'touch' && spinEnd());
-  window.addEventListener('touchstart', (e) => e.touches.length === 1 && spinStart(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp), { passive: true });
-  window.addEventListener('touchmove', (e) => e.touches.length === 1 && spinMove(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp), { passive: true });
-  window.addEventListener('touchend', spinEnd, { passive: true });
-  window.addEventListener('touchcancel', spinEnd, { passive: true });
+  // premuto nell'acqua (non sulla statua né sui pulsanti): sotto il dito cresce una bolla; se il dito
+  // si sposta è uno swipe e la bolla non nasce
+  let press = null;
+  const pressStart = (x, y, target) => {
+    if (!inWater() || onArt(x, y) || target?.closest?.('.ui, a, button')) return;
+    press = { x, y };
+    uw.holdStart(aim(x, y));
+    uw.setPointer(aim(x, y), { hold: 0.9 });
+  };
+  const pressMove = (x, y) => {
+    if (!press) return;
+    if (Math.hypot(x - press.x, y - press.y) > 28) {
+      uw.holdCancel();
+      press = null;
+    } else uw.holdMove(aim(x, y));
+  };
+  const pressEnd = (x, y) => {
+    if (!press) return;
+    uw.holdEnd(aim(x, y));
+    press = null;
+  };
+  window.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return;
+    spinStart(e.clientX, e.clientY, e.timeStamp);
+    pressStart(e.clientX, e.clientY, e.target);
+  });
+  window.addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'touch') return;
+    spinEnd();
+    pressEnd(e.clientX, e.clientY);
+  });
+  window.addEventListener('pointercancel', (e) => {
+    if (e.pointerType === 'touch') return;
+    spinEnd();
+    uw.holdCancel();
+    press = null;
+  });
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    spinStart(t.clientX, t.clientY, e.timeStamp);
+    pressStart(t.clientX, t.clientY, e.target);
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    spinMove(t.clientX, t.clientY, e.timeStamp);
+    pressMove(t.clientX, t.clientY);
+  }, { passive: true });
+  window.addEventListener('touchend', (e) => {
+    spinEnd();
+    const t = e.changedTouches[0];
+    if (t) pressEnd(t.clientX, t.clientY);
+  }, { passive: true });
+  window.addEventListener('touchcancel', () => {
+    spinEnd();
+    uw.holdCancel();
+    press = null;
+  }, { passive: true });
 
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch' || spinMove(e.clientX, e.clientY, e.timeStamp)) return;
+    pressMove(e.clientX, e.clientY);
     if (e.pointerType !== 'mouse') return;
     const overUi = e.target.closest?.('.ui, a, button');
     canvas.style.cursor = !overUi && onArt(e.clientX, e.clientY) ? 'grab' : '';
@@ -172,13 +227,6 @@ async function start() {
     uw.setPointer(aim(t.clientX, t.clientY), { hold: 0.8 });
     trailAt(t.clientX, t.clientY, e.timeStamp);
   }, { passive: true });
-  window.addEventListener('click', (e) => {
-    // dopo aver girato la statua il clic non libera bollicine
-    if (spun) return void (spun = false);
-    if (e.target.closest?.('a, button') || !inWater()) return;
-    uw.setPointer(aim(e.clientX, e.clientY), { hold: 0.9 });
-    uw.burst(aim(e.clientX, e.clientY));
-  });
 
   renderer.info.autoReset = false;
   let last = performance.now() / 1000;

@@ -8,7 +8,8 @@ import { FOG_GLSL } from './water-glsl.js';
 // pettorali, pelviche, anale) e coda asimmetrica col lobo superiore lungo.
 // Nuoto nel vertex shader: un'onda laterale che cresce verso la coda (la testa oscilla appena).
 // Pelle: controombreggiatura (dorso grigio-blu, fianchi argentei, ventre bianco), bordi scuri delle
-// pinne, cinque fessure branchiali, bocca, grana fine, caustiche e un riflesso satinato.
+// pinne, cinque fessure branchiali, bocca, grana fine e caustiche; pelle opaca, velata dall'acqua
+// come nei video subacquei (contrasto basso a qualche metro), nuoto lento.
 // Il giro non è un'ellisse perfetta: raggio e quota cambiano piano. Se li si tocca, scattano via.
 
 // profilo del corpo: s = 0 muso … 1 attacco della coda -> mezza larghezza, mezza altezza
@@ -163,16 +164,16 @@ export function createSharks(shared) {
   const lin = (hex) => new THREE.Color(hex);
 
   const sharks = [
-    { len: 1.5, dir: 1, theta: 0.6, speed: 1.1, rx: 2.9, yK: 0.45, yAdd: 0.55, phase: 0, kick: 0, seed: 0.3 },
-    { len: 1.15, dir: -1, theta: 3.4, speed: 0.95, rx: 2.3, yK: -0.5, yAdd: -0.75, phase: 2, kick: 0, seed: 2.1 },
+    { len: 1.5, dir: 1, theta: 0.6, speed: 0.75, rx: 2.9, yK: 0.45, yAdd: 0.55, phase: 0, kick: 0, seed: 0.3 },
+    { len: 1.15, dir: -1, theta: 3.4, speed: 0.65, rx: 2.3, yK: -0.5, yAdd: -0.75, phase: 2, kick: 0, seed: 2.1 },
   ].map((sh) => {
     const uniforms = {
       ...shared,
       uPhase: { value: 0 },
       uAmp: { value: 0.065 },
-      uBack: { value: lin('#33505B') },
-      uFlank: { value: lin('#A3B4B7') },
-      uBelly: { value: lin('#EEF2EE') },
+      uBack: { value: lin('#46545A') },
+      uFlank: { value: lin('#98A2A3') },
+      uBelly: { value: lin('#D9DEDB') },
       uEye: { value: new THREE.Vector3(xOf(0.09), ey, ez) },
     };
     const mat = new THREE.ShaderMaterial({
@@ -251,14 +252,11 @@ export function createSharks(shared) {
           vec3 L = normalize(vec3(-0.3, 1.0, 0.2));
           float ndl = max(dot(N, L), 0.0);
           float c = caustics(vWorld) * smoothstep(0.1, 0.8, N.y);
-          vec3 light = mix(uDeep * 2.0, uShallow * 1.05, N.y * 0.5 + 0.5) + vec3(0.92, 1.0, 1.0) * ndl * (0.3 + 1.7 * c);
+          vec3 light = mix(uDeep * 2.3, uShallow * 1.1, N.y * 0.5 + 0.5) + vec3(0.92, 1.0, 1.0) * ndl * (0.22 + 1.3 * c);
           vec3 col = base * light;
-          // riflesso satinato
-          vec3 Hh = normalize(L + V);
-          col += vec3(0.85, 0.95, 1.0) * pow(max(dot(N, Hh), 0.0), 26.0) * 0.1 * (1.0 + c);
           // bordo che si confonde con l'acqua
           float fres = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
-          col = mix(col, waterColor(-V) * 1.1, fres * 0.4);
+          col = mix(col, waterColor(-V), fres * 0.5);
           // occhi: scuri, con un punto di luce
           vec3 e = vec3(vLocal.x - uEye.x, vLocal.y - uEye.y, abs(vLocal.z) - uEye.z);
           float eye = (1.0 - smoothstep(0.008, 0.0115, length(e))) * (1.0 - fin);
@@ -266,7 +264,7 @@ export function createSharks(shared) {
           col = mix(col, vec3(0.01, 0.016, 0.02), eye);
           col += vec3(0.9) * glint * eye;
           float dist = length(cameraPosition - vWorld);
-          col = mix(waterColor(-V), col, waterFog(dist, -vWorld.y));
+          col = mix(waterColor(-V), col, waterFog(dist, -vWorld.y) * (0.88 * exp(-dist * 0.06)));
           col *= uExposure;
           gl_FragColor = vec4(softClip(col), 1.0);
           #include <colorspace_fragment>
@@ -324,7 +322,7 @@ export function createSharks(shared) {
       sh.kick *= Math.exp(-dt * 0.9);
       const r = Math.sqrt(((sh.rx + ex2) ** 2 + (ez2 + 2.1) ** 2) / 2);
       sh.theta += (dt * sh.dir * sh.speed * boost) / r;
-      sh.phase += dt * 5.4 * (0.8 + 0.7 * boost);
+      sh.phase += dt * 4.4 * (0.8 + 0.7 * boost);
       sh.uniforms.uPhase.value = sh.phase;
       sh.uniforms.uAmp.value = 0.065 + 0.025 * Math.min(1, sh.kick);
       pathAt(sh, sh.theta, sh.mesh.position);
@@ -335,7 +333,7 @@ export function createSharks(shared) {
       m.makeBasis(X, Y, Z);
       sh.mesh.quaternion.setFromRotationMatrix(m);
       // si inclina appena verso l'interno della curva
-      bank.setFromAxisAngle(AX, -0.18 * sh.dir);
+      bank.setFromAxisAngle(AX, -0.12 * sh.dir);
       sh.mesh.quaternion.multiply(bank);
     }
   }

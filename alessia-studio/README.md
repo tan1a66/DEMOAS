@@ -24,10 +24,12 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
-Sott'acqua: due squali (1,5 e 1,15 m) girano attorno alla statua, con l'ombra sulla sabbia (toccati,
-scattano via). Le bolle sono come quelle vere, grandi e piccole: bordo argentato, centro trasparente, le grandi
-schiacciate e tremolanti; salgono piano a zigzag, in colonne dal fondo e sparse. Il puntatore scosta le bollicine, un
-tocco nell'acqua libera uno sbuffo di bolle, trascinare il dito (o muovere il mouse) lascia una scia.
+Sott'acqua: due squali (1,5 e 1,15 m) girano piano attorno alla statua, velati dall'acqua, con l'ombra sulla
+sabbia (toccati, scattano via). Poche bolle, come quelle vere: sempre tonde (sfere calcolate pixel per pixel),
+le grandi appena schiacciate; al centro mostrano rifratta la scena dietro di loro (lente d'aria), il bordo è a
+specchio; salgono piano, in colonne dal fondo e sparse. Il puntatore scosta le bollicine; tenendo premuto
+nell'acqua sotto il dito cresce una bolla che, lasciata, sale fino alla superficie; un tocco breve libera
+qualche bollicina; trascinare lascia una scia.
 
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
 se non è tra le quattro; la scelta viene ricordata), WhatsApp (in
