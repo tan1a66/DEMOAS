@@ -113,7 +113,7 @@ posts.push(['07-verde.jpg', await sharp(`${shots}/2x/p0200.png`).extract({ left:
 {
   const l = logo('logo-rosa', M, H - M - 30, 360);
   const hook = ['MÁS QUE', 'SITIOS WEB.'];
-  const items = ['Estrategia e identidad de marca.', 'Naming y tono de voz.', 'Dirección creativa.', 'Sitios web 3D.',
+  const items = ['Estrategia e identidad de marca.', 'Dirección creativa.', 'Sitios web 3D.',
     'Diseño UX/UI y desarrollo.', 'Ecommerce.', 'Apps y plataformas digitales.', 'Configuradores 3D.', 'SEO y GEO.',
     'Renders y motion.', 'Contenido para redes.'];
   const hs = fit(SYNE, hook, W - 2 * M, 150), hy = M + 95 + capH(SYNE, hs);
