@@ -127,27 +127,29 @@ export async function buildScene({ renderer, lights, quality, loader, art }) {
     for (const m of architecture) m.visible = above && m.userData.maskHidden !== true;
   }
 
-  // la statua del fondale (~1,7 MB) si scarica dopo l'apertura: serve solo sott'acqua
-  async function loadStatue() {
+  // la statua (~1,7 MB) e il pesce (~2,2 MB) del fondale si scaricano dopo l'apertura: servono solo
+  // sott'acqua. Geometria Draco, colore e rilievo KTX2, caricati subito sulla GPU (il tuffo non scatta)
+  async function loadModel(name) {
     const m = new THREE.LoadingManager();
     m.setURLModifier(decoderURL);
     const kx = new KTX2Loader(m).setTranscoderPath('decoders/').detectSupport(renderer);
     const dr = new DRACOLoader(m).setDecoderPath('decoders/');
     const [g, color, normal] = await Promise.all([
-      new GLTFLoader(m).setDRACOLoader(dr).loadAsync(asset('statue.glb')),
-      kx.loadAsync(asset('tex/statue-color-1024.ktx2')),
-      kx.loadAsync(asset('tex/statue-normal-1024.ktx2')),
+      new GLTFLoader(m).setDRACOLoader(dr).loadAsync(asset(`${name}.glb`)),
+      kx.loadAsync(asset(`tex/${name}-color-1024.ktx2`)),
+      kx.loadAsync(asset(`tex/${name}-normal-1024.ktx2`)),
     ]);
     dr.dispose();
     kx.dispose();
     let geometry = null;
     g.scene.traverse((o) => { if (o.isMesh && !geometry) geometry = o.geometry; });
     color.anisotropy = normal.anisotropy = aniso;
-    // caricate subito sulla GPU, così il tuffo non scatta
     renderer.initTexture(color);
     renderer.initTexture(normal);
-    underwater.sculpture.setStatue(geometry, color, normal);
+    return [geometry, color, normal];
   }
+  const loadStatue = async () => underwater.sculpture.setStatue(...(await loadModel('statue')));
+  const loadFish = async () => underwater.school.setModel(...(await loadModel('fish')));
 
-  return { scene, update, sea, meshes, cushions, beam, dust, underwater, loadStatue };
+  return { scene, update, sea, meshes, cushions, beam, dust, underwater, loadStatue, loadFish };
 }

@@ -1,9 +1,12 @@
 {
   "files": {
+    "fish.glb": 194424,
     "lightmap-1024.ktx2": 285120,
     "lightmap-2048.ktx2": 788796,
     "scene.glb": 414584,
     "statue.glb": 249312,
+    "tex/fish-color-1024.ktx2": 1279045,
+    "tex/fish-normal-1024.ktx2": 811105,
     "tex/formwork-1024.ktx2": 805800,
     "tex/formwork-512.ktx2": 258248,
     "tex/smooth-1024.ktx2": 627871,

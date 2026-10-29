@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { GLSL_COMMON } from './materials.js';
 import { FOG_GLSL } from './water-glsl.js';
-import { createBettas } from './bettas.js';
+import { createFish } from './fish.js';
 import { createSculpture } from './sculpture.js';
 
 // Sott'acqua, sul fondale: la statua da girare col dito (src/sculpture.js); bollicine che salgono verso
-// la superficie, pulviscolo e tre pesci combattenti dalle pinne lunghe (src/bettas.js).
+// la superficie, pulviscolo e tre pesci combattenti dalle pinne lunghe (src/fish.js).
 // Interazione: il puntatore (o il dito) scosta le bollicine; tenendo premuto nell'acqua sotto il dito
 // cresce una bolla che, lasciata, sale fino alla superficie; un tocco breve libera qualche bollicina,
 // trascinare lascia una scia; toccare un pesce lo fa scattare via.
@@ -360,8 +360,8 @@ export function createUnderwater(lights, { art, quality }) {
   const pointOn = (ray, d) => ray.at(d, pt);
 
   // ---------------- tre pesci combattenti ----------------
-  const bettas = createBettas(shared, { art });
-  group.add(bettas.group);
+  const school = createFish(shared, { art });
+  group.add(school.group);
 
   // puntatore: raggio dall'occhio; per il dito resta attivo un attimo dopo il tocco
   let pushTarget = 0, pushHold = 0;
@@ -414,7 +414,7 @@ export function createUnderwater(lights, { art, quality }) {
     const at = heldU.uHeldPos.value, r = heldU.uHeldR.value;
     held.visible = false;
     if (now - hold.t0 < 0.25) {
-      const fish = ray && bettas.poke(ray);
+      const fish = ray && school.poke(ray);
       if (fish) spawn(fish, 14, 0.3, 1.0);
       spawn(at, 8, 0.25, 0.6);
     } else {
@@ -438,8 +438,8 @@ export function createUnderwater(lights, { art, quality }) {
     pushHold -= dt;
     if (pushHold <= 0 && !hoverActive) pushTarget = 0;
     shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 7));
-    bettas.update(dt);
-    bettas.fish.forEach((f, i) => shared.uFish.value[i].set(f.mesh.position.x, f.mesh.position.y, f.mesh.position.z, f.len));
+    school.update(dt);
+    school.fish.forEach((f, i) => shared.uFish.value[i].set(f.mesh.position.x, f.mesh.position.y, f.mesh.visible ? f.mesh.position.z : 999, f.len));
     shared.uCamY.value = camera.position.y;
     shared.uViewH.value = window.innerHeight * dpr;
     dMat.uniforms.uPixelRatio.value = dpr;
@@ -456,7 +456,7 @@ export function createUnderwater(lights, { art, quality }) {
     sculpture,
     update,
     shared,
-    bettas,
+    school,
     holdStart,
     holdMove,
     holdEnd,

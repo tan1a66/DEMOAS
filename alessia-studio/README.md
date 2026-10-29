@@ -22,11 +22,11 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    (5 secondi al massimo)
 5. Sul fondale, la **statua di bronzo** con i due volti (`src/sculpture.js`), da girare trascinandola col dito o
    col mouse; mentre la si gira lo scroll resta fermo
-6. Lo sguardo sale verso la luce: **Contáctanos**
+6. Zoom sul volto della statua, poi la salita fino a sotto la superficie, verso la luce: **Contáctanos**
 
-Sott'acqua: tre pesci combattenti (betta: magenta, blu con le pinne rosse, corallo; 1-1,3 m con la coda)
-passano dietro la statua, escono ai lati e vengono avanti verso lo schermo; le pinne lunghe ondeggiano come
-seta e nelle curve la coda resta indietro; l'ombra sulla sabbia (toccati, scattano via). Poche bolle, come quelle vere: sempre tonde (sfere calcolate pixel per pixel),
+Sott'acqua: tre pesci combattenti verdi e rosa (modello di Meshy; 1-1,3 m con la coda) passano dietro la
+statua, escono ai lati e vengono avanti verso lo schermo; le pinne lunghe ondeggiano come veli e nelle curve
+la coda resta indietro; l'ombra sulla sabbia (toccati, scattano via). Poche bolle, come quelle vere: sempre tonde (sfere calcolate pixel per pixel),
 le grandi appena schiacciate; al centro mostrano rifratta la scena dietro di loro (lente d'aria), il bordo è a
 specchio; salgono piano, in colonne dal fondo e sparse. Il puntatore scosta le bollicine; tenendo premuto
 nell'acqua sotto il dito cresce una bolla che, lasciata, sale fino alla superficie; un tocco breve libera
@@ -64,9 +64,8 @@ Immagine e icone: `node tools/seo-assets.mjs <schermata>` (vedi in cima al file)
 - `src/sculpture.js`: il fondale di sabbia e la statua da girare (bronzo con patina e rilievo dalle texture, inerzia,
   poi torna verso il davanti)
 - `src/underwater.js`: statua, bolle (colonne dal fondo, sbuffi al tocco), pulviscolo
-- `src/bettas.js`: i tre pesci (geometria procedurale: corpo a sezioni con scaglie iridescenti, pinne come
-  griglie di raggi curvi con pieghe a ventaglio; nuoto, velo delle pinne e piega nelle curve nel vertex
-  shader; giro attorno alla statua)
+- `src/fish.js`: i tre pesci (il modello di Meshy; le pinne riconosciute dallo spessore del modello; nuoto,
+  velo delle pinne e piega nelle curve nel vertex shader; giro attorno alla statua)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
 - `src/lights.js`: soli, esposizione, mappa d'ombra opzionale del pit
@@ -86,6 +85,9 @@ Immagine e icone: `node tools/seo-assets.mjs <schermata>` (vedi in cima al file)
   `tools/.cache/statue/source.glb`, fuori dal repo) a `assets/statue.glb` (60k triangoli, Draco, ~250 KB) e
   `assets/tex/statue-{color,normal}-1024.ktx2`. Si scarica dopo l'apertura del sito (~1,7 MB). La statua
   riproduce un'opera esistente: va usata solo con l'autorizzazione di chi ne detiene i diritti
+- `tools/fish.mjs`: il pesce, dal GLB di Meshy (~84 MB, 1,8 milioni di triangoli, da mettere in
+  `tools/.cache/fish/source.glb`) a `assets/fish.glb` (40k triangoli, Draco, ~190 KB, muso verso +x) e
+  `assets/tex/fish-{color,normal}-1024.ktx2`. Si scarica dopo l'apertura del sito (~2,2 MB)
 - `tools/shoot.mjs`: screenshot e fps lungo il percorso (Playwright)
 - `tools/check-colors.mjs`: controllo automatico dei colori sugli screenshot (con `--mask`)
 
