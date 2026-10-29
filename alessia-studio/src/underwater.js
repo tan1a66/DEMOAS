@@ -107,7 +107,8 @@ export function createUnderwater(lights, { art, quality }) {
     const p = k < NEAR.length
       ? art.base.clone().add(new THREE.Vector3(NEAR[k][0] + (Math.random() - 0.5) * 0.3, 0, NEAR[k][1] + (Math.random() - 0.5) * 0.3))
       : along(16, new THREE.Vector3());
-    const r = k < NEAR.length ? 0.011 + Math.random() * 0.008 : 0.007 + Math.random() ** 2 * 0.014;
+    // grandi e piccole: una colonna di bolle grandi accanto alla statua, le altre di misure diverse
+    const r = k === 0 ? 0.026 + Math.random() * 0.01 : k < NEAR.length ? 0.009 + Math.random() * 0.006 : 0.006 + Math.random() ** 1.5 * 0.026;
     return { x: p.x, z: p.z, r, speed: 0.22 + Math.random() * 0.08, seed: Math.random() * 100, n: 0 };
   });
   const nDive = Math.round(count * 0.25), nStream = Math.round(count * 0.5);
@@ -119,7 +120,7 @@ export function createUnderwater(lights, { art, quality }) {
       x = -28.5 + (Math.random() - 0.5) * 5;
       z = -13.5 + (Math.random() - 0.5) * 5;
       y = -Math.random() * H;
-      r = 0.006 + Math.random() ** 2.5 * 0.03;
+      r = 0.006 + Math.random() ** 2 * 0.05;
       speed = 0.3 + Math.random() * 0.25;
       seed = Math.random() * 100;
     } else if (i < nDive + nStream) {
@@ -137,7 +138,7 @@ export function createUnderwater(lights, { art, quality }) {
       x = tmpP.x;
       z = tmpP.z;
       y = -Math.random() * H;
-      r = 0.007 + Math.random() ** 3 * 0.035;
+      r = 0.006 + Math.random() ** 2 * 0.055;
       speed = 0.2 + r * 3.0 + Math.random() * 0.05;
       seed = Math.random() * 100;
     }
@@ -175,7 +176,7 @@ export function createUnderwater(lights, { art, quality }) {
         vec3 rel = o - uRayO;
         vec3 off = rel - uRayD * max(dot(rel, uRayD), 0.0);
         float dd = length(off);
-        o += off / max(dd, 1e-3) * uPush * 0.55 * smoothstep(1.0, 0.0, dd);
+        o += off / max(dd, 1e-3) * uPush * 0.95 * smoothstep(1.5, 0.0, dd);
         vec3 n;
         vec4 wp = vec4(o + bubbleShape(position, r, uTime, aParams.z, n), 1.0);
         vWorldPos = wp.xyz;
@@ -255,7 +256,7 @@ export function createUnderwater(lights, { art, quality }) {
   group.add(dust);
 
   // ---------------- sbuffi di bollicine (al tocco, scia del dito) ----------------
-  const MAXP = 360;
+  const MAXP = 600;
   const puffGeo = new THREE.InstancedBufferGeometry().copy(new THREE.IcosahedronGeometry(1, 2));
   const pSpawn = new Float32Array(MAXP * 4);
   const pPar = new Float32Array(MAXP * 4);
@@ -285,7 +286,7 @@ export function createUnderwater(lights, { art, quality }) {
         float ph = aPar.z * 6.2831;
         // escono dal punto toccato, poi salgono a zigzag
         vec3 dir = normalize(vec3(cos(ph), sin(ph * 2.3) * 0.7, sin(ph)));
-        vec3 o = aSpawn.xyz + dir * aPar.w * (1.0 - exp(-age * 4.5));
+        vec3 o = aSpawn.xyz + dir * aPar.w * (1.0 - exp(-age * 7.0));
         o.y += aPar.y * age + 0.04 * age * age;
         float r = max(aPar.x * (0.6 + 0.4 * smoothstep(0.0, 0.3, age)) * on, 1e-5);
         float amp = 0.004 + r * 1.4;
@@ -329,7 +330,7 @@ export function createUnderwater(lights, { art, quality }) {
       pSpawn[i * 4 + 1] = Math.min(at.y, -0.35) + (Math.random() - 0.5) * 0.08;
       pSpawn[i * 4 + 2] = at.z + (Math.random() - 0.5) * 0.08;
       pSpawn[i * 4 + 3] = now + Math.random() * 0.08 * (count > 3 ? 1 : 0);
-      pPar[i * 4] = (0.01 + Math.random() ** 1.8 * 0.04) * size;
+      pPar[i * 4] = (0.008 + Math.random() ** 1.6 * 0.055) * size;
       pPar[i * 4 + 1] = 0.25 + Math.random() * 0.25;
       pPar[i * 4 + 2] = Math.random();
       pPar[i * 4 + 3] = spread * (0.3 + Math.random() * 0.7);
@@ -358,11 +359,11 @@ export function createUnderwater(lights, { art, quality }) {
   }
   function burst(ray) {
     const shark = sharks.poke(ray);
-    if (shark) spawn(shark, 30, 0.4, 1.2);
-    spawn(pointOn(ray, 4.2), 34, 0.5);
+    if (shark) spawn(shark, 40, 0.5, 1.2);
+    spawn(pointOn(ray, 4.2), 50, 0.7);
   }
   function trail(ray) {
-    spawn(pointOn(ray, 4.0), 1 + (Math.random() < 0.5 ? 1 : 0), 0.1, 0.9);
+    spawn(pointOn(ray, 4.0), 2 + (Math.random() < 0.5 ? 1 : 0), 0.15, 1.1);
   }
 
   let lastTime = 0;
@@ -372,7 +373,7 @@ export function createUnderwater(lights, { art, quality }) {
     now = time;
     pushHold -= dt;
     if (pushHold <= 0 && !hoverActive) pushTarget = 0;
-    shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 6));
+    shared.uPush.value += (pushTarget - shared.uPush.value) * (1 - Math.exp(-dt * 14));
     sharks.update(dt, sharkSpots);
     sharks.sharks.forEach((sh, i) => shared.uSharks.value[i].set(sh.mesh.position.x, sh.mesh.position.y, sh.mesh.position.z, sh.len));
     shared.uCamY.value = camera.position.y;

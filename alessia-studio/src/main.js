@@ -117,7 +117,7 @@ async function start() {
   const inWater = () => uw.group.visible;
   let lastTrail = 0, lx = 0, ly = 0;
   const trailAt = (x, y, t) => {
-    if (t - lastTrail < 45 || Math.hypot(x - lx, y - ly) < 6) return;
+    if (t - lastTrail < 28 || Math.hypot(x - lx, y - ly) < 4) return;
     lastTrail = t;
     lx = x;
     ly = y;

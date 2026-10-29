@@ -18,14 +18,15 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
 1. Accanto al divano verde: **ALESSIA STUDIO**, cosa facciamo in una riga, *Italia · México · Colombia · Worldwide*
 2. Sotto il lucernario: **Visión**
 3. Fuori sulla terrazza, davanti al mare: **Qué hacemos**, i servizi in tre gruppi
-4. Nello stesso gesto: fino al bordo della terrazza, una pausa davanti al sole, poi il tuffo, lento
+4. Nello stesso gesto, senza fermarsi: lungo la terrazza verso il sole, oltre il bordo e giù nell'acqua
+   (5 secondi al massimo)
 5. Sul fondale, la **statua di bronzo** con i due volti (`src/sculpture.js`), da girare trascinandola col dito o
    col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
 Sott'acqua: due squali (1,5 e 1,15 m) girano attorno alla statua, con l'ombra sulla sabbia (toccati,
-scattano via). Le bolle sono come quelle vere: bordo argentato, centro trasparente, le grandi schiacciate
-e tremolanti; salgono piano a zigzag, in colonne dal fondo e sparse. Il puntatore scosta le bollicine, un
+scattano via). Le bolle sono come quelle vere, grandi e piccole: bordo argentato, centro trasparente, le grandi
+schiacciate e tremolanti; salgono piano a zigzag, in colonne dal fondo e sparse. Il puntatore scosta le bollicine, un
 tocco nell'acqua libera uno sbuffo di bolle, trascinare il dito (o muovere il mouse) lascia una scia.
 
 Sempre visibili: lingua (ES · IT · EN · PT, in alto a destra: si apre nella lingua del telefono o del computer, inglese
