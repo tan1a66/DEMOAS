@@ -90,10 +90,10 @@ const posts = [];
 }
 // 3 · il sito: i divani verdi
 posts.push(['03-el-sitio.jpg', await sharp(`${shots}/p0238.png`).resize(W, H).png().toBuffer()]);
-// 4 · da dove, rosa su verde
+// 4 · da dove, rosa su verde (sul profilo senza Colombia: Italia, México, Worldwide)
 {
   const l = logo('logo-rosa', M, H - M - 30, 360);
-  posts.push(['04-worldwide.jpg', page(C.verde, big(T.origin.map((s) => s.toUpperCase()), C.rosa, M, H - M - 80) + l.svg)]);
+  posts.push(['04-worldwide.jpg', page(C.verde, big(['ITALIA', 'MÉXICO', 'WORLDWIDE'], C.rosa, M, H - M - 80) + l.svg)]);
 }
 // 5 · sott'acqua: la statua
 posts.push(['05-el-fondo.jpg', await sharp(`${shots}/p0880.png`).resize(W, H).png().toBuffer()]);

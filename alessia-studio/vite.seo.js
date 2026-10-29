@@ -10,7 +10,9 @@ import { getText, BRAND_NAME, CONTACT_LINKS, LANGS, DEFAULT_LANG, waLink } from 
 // Indirizzo pubblico del sito, con la barra finale (es. 'https://www.dominio.com/'). Serve per
 // l'immagine di anteprima, il link canonico e le lingue alternative, che devono essere assoluti:
 // finché è vuoto l'immagine resta relativa (Google la trova; WhatsApp e Facebook vogliono il dominio).
-export const SITE_URL = '';
+export const SITE_URL = 'https://www.alessia.studio/';
+// profili social dello studio (per Google, nei dati strutturati; sul sito resta solo WhatsApp)
+const PROFILES = ['https://www.instagram.com/aless1astudio/'];
 
 const LOCALE = { es: 'es_MX', it: 'it_IT', en: 'en_US', pt: 'pt_BR' };
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -26,6 +28,7 @@ function head() {
     '@type': 'Organization',
     name: 'Alessia Studio',
     ...(SITE_URL ? { url: SITE_URL, logo: abs('icon-192.png') } : {}),
+    sameAs: PROFILES,
     image,
     description,
     slogan: T.vision.title,
