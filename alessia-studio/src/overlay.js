@@ -149,6 +149,7 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
 
   function update(p) {
     scrim.classList.toggle('on', scrimRanges.some((r) => p >= r[0] && p <= r[1]));
+    scrim.classList.toggle('deep', p >= sections.contact[0]);
     items.forEach(({ el, range }) => {
       const on = p >= range[0] && p <= range[1];
       if (on !== el.classList.contains('on')) {

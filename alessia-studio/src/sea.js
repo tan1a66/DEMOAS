@@ -165,17 +165,31 @@ export function createSea(lights, { quality = 'high', reflection = true } = {}) 
         if (d.y > 0.001) {
           float t = max(-ro.y, 0.0) / d.y;
           vec3 p = ro + d * t;
+          // da sotto: le onde lunghe più piatte (la finestra non si spezza in grandi macchie) e tante
+          // increspature fini che la frastagliano, come nelle foto subacquee
           vec3 n = waveNormal(p.xz, t);
-          // dall'acqua all'aria: oltre ~48.6° dalla verticale c'è riflessione totale
-          vec3 rd = refract(d, -n, 1.33);
-          vec3 surf;
-          if (dot(rd, rd) > 0.0) {
-            rd = normalize(rd);
-            surf = sky(rd, false) * 1.15 + uSunColor * pow(max(dot(rd, uSunDir), 0.0), 300.0) * 2.5;
-            // bordo della finestra: anello più luminoso
-            surf += uShallow * smoothstep(0.35, 0.05, rd.y) * 0.35;
-          } else {
-            surf = mix(uMid, uShallow, 0.35) * (0.9 + 0.2 * vnoise(p.xz * 0.8 + uTime * 0.2));
+          vec2 q2 = p.xz * 3.2 + vec2(uTime * 0.55, uTime * 0.38);
+          float r0 = vnoise(q2), rx = vnoise(q2 + vec2(0.06, 0.0)), rz = vnoise(q2 + vec2(0.0, 0.06));
+          vec2 rg = vec2(rx - r0, rz - r0) / 0.06 * 0.07 * exp(-t / 9.0);
+          n = normalize(vec3(n.x * 0.45 - rg.x, n.y, n.z * 0.45 - rg.y));
+          // fuori dalla finestra di Snell la superficie è uno specchio increspato dell'acqua sotto:
+          // argentata dove le increspature guardano la luce, scura dove guardano il fondo
+          float rip = clamp(0.5 + (n.x * 0.7 + n.z * 0.5) * 3.0, 0.0, 1.0);
+          vec3 surf = mix(uDeep * 1.3, mix(uMid, uShallow, 0.6), 0.35 + 0.5 * rip);
+          // dall'acqua all'aria: oltre ~48.6° dalla verticale c'è riflessione totale; avvicinandosi al
+          // limite la luce che passa cala piano (Fresnel), così il bordo della finestra è morbido
+          float ci = dot(d, n);
+          float k = 1.0 - 1.7689 * (1.0 - ci * ci);
+          if (k > 0.0) {
+            vec3 rd = normalize(refract(d, -n, 1.33));
+            float T = 1.0 - (0.02 + 0.98 * pow(1.0 - sqrt(k), 5.0));
+            // il cielo nella finestra: chiaro e appena azzurrato dall'acqua, col sole
+            vec3 sk = sky(rd, false);
+            sk = mix(vec3(dot(sk, vec3(0.3, 0.5, 0.2))), sk, 0.6) * 1.1 * mix(vec3(1.0), uShallow * 1.25, 0.45);
+            // la luce che passa si concentra dove le increspature fanno da lente
+            sk *= 0.82 + 0.4 * smoothstep(0.35, 0.75, rip);
+            sk += uSunColor * pow(max(dot(rd, uSunDir), 0.0), 300.0) * 2.5;
+            surf = mix(surf, sk, T);
           }
           c = mix(c, surf, exp(-t * 0.05) * 0.92);
         }

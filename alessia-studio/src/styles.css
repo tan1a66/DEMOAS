@@ -129,9 +129,12 @@ body { touch-action: manipulation; }
   inset: 0;
   opacity: 0;
   transition: opacity 0.9s ease;
-  background: linear-gradient(90deg, rgba(52, 22, 24, 0.56) 0%, rgba(52, 22, 24, 0.34) 36%, rgba(52, 22, 24, 0) 66%);
+  --scrim: 52, 22, 24;
+  background: linear-gradient(90deg, rgba(var(--scrim), 0.56) 0%, rgba(var(--scrim), 0.34) 36%, rgba(var(--scrim), 0) 66%);
 }
 .ov-scrim.on { opacity: 1; }
+/* sott'acqua l'ombra dietro i testi è blu mare, non bruna */
+.ov-scrim.deep { --scrim: 10, 40, 54; }
 
 /* "Italia · México · Colombia · Worldwide" */
 .ov .origin {
@@ -407,7 +410,7 @@ html.is-loading .ui { opacity: 0 !important; pointer-events: none !important; }
     transform: translateY(14px);
   }
   .ov-vision.on, .ov-services.on { transform: none; }
-  .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.62) 0%, rgba(52, 22, 24, 0.36) 42%, rgba(52, 22, 24, 0) 68%); }
+  .ov-scrim { background: linear-gradient(0deg, rgba(var(--scrim), 0.62) 0%, rgba(var(--scrim), 0.36) 42%, rgba(var(--scrim), 0) 68%); }
 }
 
 /* ------------------------------------------------------------------------------------------
@@ -435,7 +438,7 @@ html.is-loading .ui { opacity: 0 !important; pointer-events: none !important; }
   .ov-contact { right: var(--gutter); bottom: calc(var(--bottom-ui) + 16px); }
   .ov-contact .lead { font-size: 14px; }
   .ov-contact .origin { letter-spacing: 0.16em; font-size: 10.5px; gap: 4px 10px; }
-  .ov-scrim { background: linear-gradient(0deg, rgba(52, 22, 24, 0.66) 0%, rgba(52, 22, 24, 0.4) 40%, rgba(52, 22, 24, 0) 66%); }
+  .ov-scrim { background: linear-gradient(0deg, rgba(var(--scrim), 0.66) 0%, rgba(var(--scrim), 0.4) 40%, rgba(var(--scrim), 0) 66%); }
   .ui-wa { width: 54px; height: 54px; padding: 0; justify-content: center; }
   .ui-wa span { display: none; }
 }

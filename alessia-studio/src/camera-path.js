@@ -20,8 +20,8 @@ export function startDistance(fovDeg, aspect) {
   return THREE.MathUtils.clamp(Math.min(vert / tanV, horiz / tanH), 4.5, 14);
 }
 
-// Sott'acqua, sul fondale: una statua di bronzo da girare col dito (src/sculpture.js). Poi lo sguardo
-// sale verso la superficie: il contatto. STATUE_H è l'altezza della statua; ART_SIZE l'ingombro da
+// Sott'acqua, sul fondale: una statua di bronzo da girare col dito (src/sculpture.js). Poi uno zoom
+// sul volto e la salita fino a sotto la superficie: il contatto. STATUE_H è l'altezza della statua; ART_SIZE l'ingombro da
 // inquadrare (larghezza, altezza), con un margine perché girandola si allarga.
 export const SEABED_Y = -10;
 export const STATUE_H = 3.0;
@@ -105,10 +105,15 @@ export function buildStory(d, fovDeg = 46, aspect = 1.6, h = 900) {
   key(26, V(-33.4, -4.5, -13.6), V(-41.5, -7.4, -13.5), 1.15, 0.3);
   key(36, g.pos, g.target, 1.2, 0.35, 'artIn');
   key(55, gOut.pos, gOut.target, 1.2, 0.35, 'artOut');
-  // 8 · contattaci: lo sguardo sale verso la luce della superficie
-  const last = gOut.pos;
-  key(55, last.clone().add(V(-2.0, 0.5, -0.4)), last.clone().add(V(-7, 9.2, -0.6)), 1.1, 0.6, 'contactIn');
-  key(50, last.clone().add(V(-2.6, 0.6, -0.5)), last.clone().add(V(-6.5, 10.8, -0.7)), 1.1, 0.6, 'end');
+  // 8 · contattaci, in un solo gesto: zoom sul volto della testa in piedi, poi la telecamera sale
+  //     lungo il volto, oltre la testa e su fino a sotto la superficie, con lo sguardo verso la luce
+  const face = ART.center.clone().add(V(0, 0.3, -0.75));
+  const zd = aspect < 1 ? 3.3 : 2.5;
+  key(40, face.clone().add(V(zd, 0.1, -0.05)), face.clone(), 1.2, 0.2, 'zoom');
+  key(30, face.clone().add(V(zd - 0.2, 1.5, 0)), face.clone().add(V(-2.5, 2.4, 0)), 1.2, 0.2);
+  key(32, face.clone().add(V(zd - 0.7, 3.6, 0)), face.clone().add(V(-3.6, 9.0, -0.1)), 1.15, 0.3);
+  key(32, face.clone().add(V(zd - 1.1, 5.5, 0)), face.clone().add(V(-5.6, 12.0, -0.3)), 1.1, 0.5, 'contactIn');
+  key(36, face.clone().add(V(zd - 1.3, 6.3, 0)), face.clone().add(V(-6.0, 13.0, -0.4)), 1.1, 0.6, 'end');
 
   // durate cumulate -> avanzamento dello scroll (0..1)
   const total = keys.reduce((s, k) => s + k.dur, 0);
@@ -141,7 +146,8 @@ export function buildStory(d, fovDeg = 46, aspect = 1.6, h = 900) {
     { id: 'services', p: mid('servicesIn', 'servicesOut') },
     // dal testo sulla terrazza alla statua in un solo gesto, continuo e senza soste (5 s al massimo)
     { id: 'art', p: mid('artIn', 'artOut'), pace: 0.012, maxDur: 5, ease: 'sine.inOut' },
-    { id: 'contact', p: 1 },
+    // dalla statua alla superficie: zoom e salita nello stesso movimento, senza fretta
+    { id: 'contact', p: 1, pace: 0.03, maxDur: 5.5, ease: 'sine.inOut' },
   ];
   return { keys, sections, stops, art: ART, total };
 }
