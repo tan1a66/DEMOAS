@@ -24,8 +24,9 @@ alla sosta successiva; il passaggio tra due soste è un movimento continuo della
    col mouse; mentre la si gira lo scroll resta fermo
 6. Lo sguardo sale verso la luce: **Contáctanos**
 
-Sott'acqua: due squali (1,5 e 1,15 m) girano piano attorno alla statua, velati dall'acqua, con l'ombra sulla
-sabbia (toccati, scattano via). Poche bolle, come quelle vere: sempre tonde (sfere calcolate pixel per pixel),
+Sott'acqua: tre pesci combattenti (betta: magenta, blu con le pinne rosse, corallo; 1-1,3 m con la coda)
+passano dietro la statua, escono ai lati e vengono avanti verso lo schermo; le pinne lunghe ondeggiano come
+seta e nelle curve la coda resta indietro; l'ombra sulla sabbia (toccati, scattano via). Poche bolle, come quelle vere: sempre tonde (sfere calcolate pixel per pixel),
 le grandi appena schiacciate; al centro mostrano rifratta la scena dietro di loro (lente d'aria), il bordo è a
 specchio; salgono piano, in colonne dal fondo e sparse. Il puntatore scosta le bollicine; tenendo premuto
 nell'acqua sotto il dito cresce una bolla che, lasciata, sale fino alla superficie; un tocco breve libera
@@ -63,8 +64,9 @@ Immagine e icone: `node tools/seo-assets.mjs <schermata>` (vedi in cima al file)
 - `src/sculpture.js`: il fondale di sabbia e la statua da girare (bronzo con patina e rilievo dalle texture, inerzia,
   poi torna verso il davanti)
 - `src/underwater.js`: statua, bolle (colonne dal fondo, sbuffi al tocco), pulviscolo
-- `src/sharks.js`: i due squali (geometria procedurale con pinne a falce e coda asimmetrica, nuoto nel
-  vertex shader, controombreggiatura, branchie, caustiche)
+- `src/bettas.js`: i tre pesci (geometria procedurale: corpo a sezioni con scaglie iridescenti, pinne come
+  griglie di raggi curvi con pieghe a ventaglio; nuoto, velo delle pinne e piega nelle curve nel vertex
+  shader; giro attorno alla statua)
 - `src/water-glsl.js`: colori e nebbia dell'acqua condivisi
 - `src/sea.js`: cielo + mare infinito in un unico shader (onde, scia del sole, ombra e riflesso dell'edificio, schiuma)
 - `src/lights.js`: soli, esposizione, mappa d'ombra opzionale del pit

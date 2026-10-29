@@ -109,7 +109,7 @@ export async function buildScene({ renderer, lights, quality, loader, art }) {
   const dust = makeDust(lights, quality.tier === 'low' ? 220 : 420);
   scene.add(dust);
 
-  // sott'acqua: la statua, bollicine, pulviscolo, squaletti
+  // sott'acqua: la statua, bollicine, pulviscolo, pesci
   const underwater = createUnderwater(lights, { art, quality });
   scene.add(underwater.group);
 

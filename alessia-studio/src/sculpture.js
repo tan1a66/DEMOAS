@@ -72,7 +72,7 @@ export function createSculpture(shared, { base }) {
     fragmentShader: /* glsl */ `
       precision highp float;
       uniform vec3 uArt;
-      uniform vec4 uSharks[2]; // posizione e lunghezza degli squali, per le loro ombre
+      uniform vec4 uFish[3]; // posizione e lunghezza dei pesci, per le loro ombre
       ${LIT_GLSL}
       void main() {
         // increspature della sabbia (onde lente e rumore), come rilievo della normale
@@ -84,9 +84,9 @@ export function createSculpture(shared, { base }) {
         // ombra di contatto sotto la statua (luce dall'alto, appena spostata come il sole)
         vec2 o = (p - uArt.xz - vec2(0.15, -0.1)) / vec2(2.3, 2.5);
         col *= 1.0 - 0.55 * smoothstep(1.0, 0.25, length(o));
-        // l'ombra morbida degli squali (più sfocata e chiara quanto più nuotano in alto)
-        for (int i = 0; i < 2; i++) {
-          vec4 sh = uSharks[i];
+        // l'ombra morbida dei pesci (più sfocata e chiara quanto più nuotano in alto)
+        for (int i = 0; i < 3; i++) {
+          vec4 sh = uFish[i];
           float hgt = max(sh.y - vWorldPos.y, 0.1);
           vec2 c = sh.xz + vec2(0.3, -0.2) * hgt;
           float r = sh.w * 0.32 + hgt * 0.22;

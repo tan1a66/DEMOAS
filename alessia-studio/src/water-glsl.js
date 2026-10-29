@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PALETTE } from './layout.js';
 
-// Colori e nebbia dell'acqua, condivisi da mare, bolle, bollicine e squali.
+// Colori e nebbia dell'acqua, condivisi da mare, bolle, bollicine e pesci.
 
 const lin = (hex) => new THREE.Color(hex);
 
