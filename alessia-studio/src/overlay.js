@@ -128,6 +128,9 @@ export function createOverlay(root, sections, { lang = DEFAULT_LANG, onLang, onN
     wa.innerHTML = `${WA_ICON}<span>WhatsApp</span>`;
     hint.innerHTML = `<span class="ui-scroll-line" aria-hidden="true"></span><span class="ui-scroll-text">${esc(T.ui.scroll)}</span>`;
     document.documentElement.lang = lang;
+    // titolo e descrizione nella lingua scelta (nell'HTML ci sono quelli in spagnolo, vedi vite.seo.js)
+    document.title = T.seo.title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', `${T.seo.description} ${T.origin.join(' · ')}.`);
   }
 
   function setLang(l, user = false) {

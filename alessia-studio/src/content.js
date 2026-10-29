@@ -25,6 +25,12 @@ const TEXT = {
   es: {
     tagline: 'Branding · Dirección creativa · Sitios web 3D',
     origin: ['Italia', 'México', 'Colombia', 'Worldwide'],
+    // titolo e descrizione per Google e per l'anteprima nei social (alla descrizione si aggiunge origin)
+    seo: {
+      title: 'Alessia Studio · Branding, dirección creativa y sitios web 3D',
+      description: 'Estudio creativo de branding, dirección creativa y sitios web 3D inmersivos: diseñamos marcas y espacios digitales para recorrer.',
+      imageAlt: 'Alessia Studio: un muro de hormigón rosa con una ventana circular que deja ver el mar y un sofá verde',
+    },
     vision: {
       label: 'Visión',
       title: 'Un sitio web puede ser un lugar, no una página.',
@@ -66,6 +72,11 @@ const TEXT = {
   it: {
     tagline: 'Branding · Direzione creativa · Siti web 3D',
     origin: ['Italia', 'Messico', 'Colombia', 'Worldwide'],
+    seo: {
+      title: 'Alessia Studio · Branding, direzione creativa e siti web 3D',
+      description: 'Studio creativo di branding, direzione creativa e siti web 3D immersivi: progettiamo brand e spazi digitali da attraversare.',
+      imageAlt: 'Alessia Studio: un muro di cemento rosa con una finestra circolare da cui si vedono il mare e un divano verde',
+    },
     vision: {
       label: 'Visione',
       title: 'Un sito può essere un luogo, non una pagina.',
@@ -107,6 +118,11 @@ const TEXT = {
   en: {
     tagline: 'Branding · Creative direction · 3D websites',
     origin: ['Italy', 'Mexico', 'Colombia', 'Worldwide'],
+    seo: {
+      title: 'Alessia Studio · Branding, creative direction and 3D websites',
+      description: 'Creative studio for branding, creative direction and immersive 3D websites: we design brands and digital spaces you can walk through.',
+      imageAlt: 'Alessia Studio: a pink concrete wall with a round window showing the sea and a green sofa',
+    },
     vision: {
       label: 'Vision',
       title: 'A website can be a place, not a page.',
@@ -148,6 +164,11 @@ const TEXT = {
   pt: {
     tagline: 'Branding · Direção criativa · Sites 3D',
     origin: ['Itália', 'México', 'Colômbia', 'Worldwide'],
+    seo: {
+      title: 'Alessia Studio · Branding, direção criativa e sites 3D',
+      description: 'Estúdio criativo de branding, direção criativa e sites 3D imersivos: criamos marcas e espaços digitais para percorrer.',
+      imageAlt: 'Alessia Studio: um muro de concreto rosa com uma janela redonda que mostra o mar e um sofá verde',
+    },
     vision: {
       label: 'Visão',
       title: 'Um site pode ser um lugar, não uma página.',

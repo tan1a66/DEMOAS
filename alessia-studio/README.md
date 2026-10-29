@@ -39,6 +39,15 @@ prima bozza. Contatti in `CONTACT_LINKS`: solo WhatsApp `+39 346 175 8562`, nien
 con un messaggio pronto nella lingua scelta).
 Sul fondale c'è solo l'invito a girare la statua (`art`). Niente demo di clienti.
 
+## Google e anteprime nei social
+`vite.seo.js` scrive nell'HTML, al build, dai testi di `src/content.js` (`seo`, in spagnolo): titolo,
+descrizione, icone, Open Graph e X con l'immagine `public/og-image.jpg` (1200x630), dati strutturati
+schema.org e, per chi non esegue JavaScript, i testi del sito in una pagina semplice (`<noscript>`).
+Nel sito titolo e descrizione seguono la lingua scelta. **Quando il sito ha un dominio** va scritto in
+`SITE_URL` (in `vite.seo.js`): l'immagine di anteprima diventa un indirizzo completo (WhatsApp e Facebook lo
+richiedono) e si aggiungono link canonico e lingue alternative (`?lang=es|it|en|pt`).
+Immagine e icone: `node tools/seo-assets.mjs <schermata>` (vedi in cima al file).
+
 ## Struttura
 - `src/layout.js`: misure, soli, palette (condiviso tra runtime e pipeline)
 - `src/loader.js`: loader (avanzamento in byte reali via `THREE.LoadingManager`)
