@@ -1,9 +1,11 @@
-// I primi 6 post Instagram (1080x1350, 4:5) -> brand/instagram/post/
-//   node tools/shoot.mjs "<url>?still" <cartella> --device=insta --notext --q=high --points=0,0.238,0.88
+// I primi 9 post Instagram (1080x1350, 4:5) -> brand/instagram/post/
+//   node tools/shoot.mjs "<url>?still" <cartella> --device=insta --notext --q=high --points=0,0.1,0.238,0.88
+//   node tools/shoot.mjs "<url>?still" <cartella>/2x --device=insta --dpr=2 --notext --q=high --points=0.2
 //   node tools/ig-posts.mjs <cartella>
-// Tre immagini del sito senza testi (la prima con il logo) e tre grafiche col testo grande, verde su
-// rosa e rosa su verde, come nel brief (brand/BRIEF-instagram.md). Nella griglia del profilo l'ultimo
-// post sta in alto a sinistra: in quest'ordine immagini e grafiche si alternano a scacchiera.
+// Immagini del sito senza testi (la prima con il logo) e grafiche col testo grande, verde su rosa e rosa
+// su verde, come nel brief (brand/BRIEF-instagram.md); i post 7-9 sono più sul verde. Nella griglia del
+// profilo l'ultimo post sta in alto a sinistra: in quest'ordine immagini e grafiche si alternano a
+// scacchiera.
 // Anche griglia.jpg: come appare la griglia del profilo (ritaglio 3:4).
 import { mkdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -104,6 +106,16 @@ posts.push(['05-el-fondo.jpg', await sharp(`${shots}/p0880.png`).resize(W, H).pn
   posts.push(['06-contacto.jpg', page(C.rosa, label(T.contact.label, C.verde, M, M + 30) +
     big(['¿TIENES', 'UN LUGAR', 'QUE', 'CONSTRUIR?'], C.verde, M + 80, H - M - 160) + foot)]);
 }
+// 7 · i cuscini verdi da vicino, al confine tra sole e ombra (ritaglio del render a doppia densità)
+posts.push(['07-verde.jpg', await sharp(`${shots}/2x/p0200.png`).extract({ left: 100, top: 820, width: W, height: H }).png().toBuffer()]);
+// 8 · i servizi, rosa su verde
+{
+  const l = logo('logo-rosa', M, H - M - 30, 360);
+  posts.push(['08-que-hacemos.jpg', page(C.verde, label(T.services.label, C.rosa, M, M + 30) +
+    big(T.services.groups.map((g) => g.label.toUpperCase()), C.rosa, M + 80, H - M - 80) + l.svg)]);
+}
+// 9 · entrando dalla finestra: giù i divani verdi e la luce del lucernario
+posts.push(['09-la-casa.jpg', await sharp(`${shots}/p0100.png`).resize(W, H).png().toBuffer()]);
 for (const [file, img] of posts) {
   await jpg(img, file);
   console.log(`instagram/post/${file}`);
@@ -112,7 +124,8 @@ for (const [file, img] of posts) {
 // la griglia del profilo: 3 colonne, l'ultimo post in alto a sinistra, riquadri 3:4
 const tw = 360, th = 480;
 const tiles = await Promise.all([...posts].reverse().map(([, img]) => sharp(img).resize(tw, th, { fit: 'cover' }).toBuffer()));
-await sharp({ create: { width: tw * 3 + 8, height: th * 2 + 4, channels: 3, background: '#ffffff' } })
+const rows = Math.ceil(tiles.length / 3);
+await sharp({ create: { width: tw * 3 + 8, height: th * rows + 4 * (rows - 1), channels: 3, background: '#ffffff' } })
   .composite(tiles.map((b, i) => ({ input: b, left: (i % 3) * (tw + 4), top: Math.floor(i / 3) * (th + 4) })))
   .jpeg({ quality: 86 })
   .toFile(`${out}/griglia.jpg`);

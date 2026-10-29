@@ -72,7 +72,7 @@ si gira col dito, con due squali attorno e le bolle che salgono; infine lo sguar
   (nelle storie lasciare liberi 250 px in alto e 340 in basso)
 - Margini interni: 72 px
 
-## I primi 6 post (in `instagram/post/`, 1080 × 1350)
+## I primi 9 post (in `instagram/post/`, 1080 × 1350)
 Si pubblicano in quest'ordine; nella griglia del profilo l'ultimo sta in alto a sinistra, così immagini e
 grafiche si alternano a scacchiera (anteprima: `instagram/post/griglia.jpg`).
 | | File | Didascalia |
@@ -83,6 +83,9 @@ grafiche si alternano a scacchiera (anteprima: `instagram/post/griglia.jpg`).
 | 4 | `04-worldwide.jpg` | Nacimos en Italia, trabajamos entre México y Colombia, con marcas de todo el mundo. |
 | 5 | `05-el-fondo.jpg` | Al final del recorrido, un salto al mar: en el fondo, una escultura en 3D que se gira con el dedo, en tiempo real. |
 | 6 | `06-contacto.jpg` | ¿Tienes un lugar que construir? Escríbenos por WhatsApp: +39 346 175 8562. Trabajamos en remoto en español, italiano, inglés y portugués. |
+| 7 | `07-verde.jpg` | El verde de la casa: los sofás donde empieza el recorrido de nuestro sitio. |
+| 8 | `08-que-hacemos.jpg` | Marca, digital y contenido, del concepto a la publicación, con un solo equipo: cada proyecto cuidado como una obra de arquitectura. |
+| 9 | `09-la-casa.jpg` | Se entra por la ventana circular: abajo, los sofás verdes y la luz del lucernario. |
 
 Si rifanno con `node tools/ig-posts.mjs <cartella>` (vedi in cima al file).
 

@@ -2,6 +2,7 @@
 //   node tools/shoot.mjs <url> <outdir> [--device=desktop|phone|phone-land|ipad|ipad-land|ipad-pro|insta|story]
 //        [--stops] [--points=0,0.3,...] [--lang=es] [--fps] [--mask] [--scroll]
 //   --stops: uno scatto per ogni sosta dello scroll guidato; --scroll: gesti reali di rotella (una sosta per gesto)
+//   --dpr=2: densità dei pixel (immagini da ritagliare: 1080x1350 a --dpr=2 dà 2160x2700)
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -45,6 +46,7 @@ const size = flags.size ? flags.size.split('x').map(Number) : null;
 const ctx = await browser.newContext({
   ...DEVICES[device],
   ...(size ? { viewport: { width: size[0], height: size[1] }, deviceScaleFactor: 1 } : {}),
+  ...(flags.dpr ? { deviceScaleFactor: Number(flags.dpr) } : {}),
   reducedMotion: flags.reduced ? 'reduce' : 'no-preference',
 });
 const page = await ctx.newPage();
