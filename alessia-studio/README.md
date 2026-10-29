@@ -43,7 +43,7 @@ Sul fondale c'è solo l'invito a girare la statua (`art`). Niente demo di client
 `vite.seo.js` scrive nell'HTML, al build, dai testi di `src/content.js` (`seo`, in spagnolo): titolo,
 descrizione, icone, Open Graph e X con l'immagine `public/og-image.jpg` (1200x630), dati strutturati
 schema.org e, per chi non esegue JavaScript, i testi del sito in una pagina semplice (`<noscript>`).
-Nel sito titolo e descrizione seguono la lingua scelta. Il dominio (`https://www.alessia.studio/`) è in
+Nel sito titolo e descrizione seguono la lingua scelta. Il dominio (`https://alessia.studio/`, senza www) è in
 `SITE_URL` (in `vite.seo.js`): l'immagine di anteprima è un indirizzo completo (WhatsApp e Facebook lo
 richiedono) e ci sono link canonico e lingue alternative (`?lang=es|it|en|pt`). Il profilo Instagram è nei dati
 strutturati (`sameAs`), non sul sito, dove come contatto resta solo WhatsApp.

@@ -10,7 +10,7 @@ import { getText, BRAND_NAME, CONTACT_LINKS, LANGS, DEFAULT_LANG, waLink } from 
 // Indirizzo pubblico del sito, con la barra finale (es. 'https://www.dominio.com/'). Serve per
 // l'immagine di anteprima, il link canonico e le lingue alternative, che devono essere assoluti:
 // finché è vuoto l'immagine resta relativa (Google la trova; WhatsApp e Facebook vogliono il dominio).
-export const SITE_URL = 'https://www.alessia.studio/';
+export const SITE_URL = 'https://alessia.studio/';
 // profili social dello studio (per Google, nei dati strutturati; sul sito resta solo WhatsApp)
 const PROFILES = ['https://www.instagram.com/aless1astudio/'];
 
