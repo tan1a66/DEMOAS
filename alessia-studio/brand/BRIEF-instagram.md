@@ -1,6 +1,6 @@
 # Alessia Studio · brief per i post Instagram
 
-Questo file accompagna il kit del marchio (logo, colori, font, immagini del sito e dei progetti).
+Questo file accompagna il kit del marchio (logo, colori, font, immagini del sito, i primi post).
 Serve a chi prepara i post: tutto quello che c'è da sapere sta qui.
 
 ## Chi siamo
@@ -25,7 +25,7 @@ Serve a chi prepara i post: tutto quello che c'è da sapere sta qui.
 
 **Regole**
 - Nessun altro colore nella grafica: niente nero, grigi, blu, altri verdi o altri rosa.
-  Le immagini (screenshot del sito e dei progetti) restano come sono.
+  Le immagini (screenshot del sito) restano come sono.
 - Le due combinazioni: **verde su rosa** (la principale) e **rosa su verde**.
 - Il verde e il rosa hanno chiarezza simile (contrasto 1,6:1): i testi sulla grafica vanno **grandi e
   corti** (titoli, 3–8 parole, almeno 60 px su un post largo 1080 px). Il testo lungo va nella
@@ -59,42 +59,31 @@ designer). Il sito non si "guarda": si visita, si attraversa.
 - **Contenido:** renders y animaciones 3D · motion design y video · contenido para redes sociales ·
   campañas y lanzamientos
 
-## Il sito (immagini in `sito/`)
+## Il sito
 Un percorso in 3D guidato dallo scroll, in un edificio di cemento rosa sul mare: si entra dalla finestra
 circolare, ci si ferma accanto ai divani verdi (ALESSIA STUDIO), sotto il lucernario (Visión), fuori
-sulla terrazza davanti al mare (Qué hacemos), poi ci si tuffa: sott'acqua ogni scroll porta alla bolla
-successiva, ogni bolla è un progetto (con due squaletti attorno).
-
-## Progetti (immagini in `progetti/`)
-Sono **demo e proposte**. Non c'è l'autorizzazione a mostrare nomi, marchi o dati dei clienti: nei post
-si parla solo della **categoria** e dell'idea, mai di chi è il progetto, e si usano solo le immagini di
-`progetti/` (ritagli delle scene 3D senza testi, loghi, indirizzi, numeri o volti).
-| Progetto | Tipo | In una frase |
-|---|---|---|
-| Bienes raíces | Mapa 3D interactivo | Una península en 3D: desarrollos para explorar, búsqueda con filtros y rutas animadas. |
-| Hotel boutique | Casona histórica | Del agua al patio: un recorrido inmersivo por la casona y sus habitaciones. |
-| Restaurante de autor | Cocina regional | La casa se vuelve el sitio: de la entrada a la terraza, con menú, autores y reservas. |
-| Despacho de abogados | Sitio profesional | Un monumento de mármol inspirado en el cosmos de Dante. |
-| Hacienda | Restaurante y eventos | Una espina de henequén borda sobre el lino; la historia de la casa se vuelve recorrido. |
-| Restaurante italiano | Cocina romana | Un avión despega del Coliseo y aterriza en tu ciudad. |
-| Carnicería boutique | Cortes selectos | Ocho escenas en una sola película con scroll. |
-| Pizzería | Cocina del sur de Italia | Del cielo del sur de Italia a la mesa familiar: menú, reservas y mapa son platos que se tocan. |
+sulla terrazza davanti al mare (Qué hacemos), poi ci si tuffa: sul fondale c'è una statua di bronzo che
+si gira col dito, con due squali attorno e le bolle che salgono; infine lo sguardo sale verso la luce
+(Contáctanos). Niente progetti di clienti: non c'è l'autorizzazione a mostrarli.
 
 ## Formati
 - Post: **1080 × 1350** (4:5) · quadrato 1080 × 1080 · storie e reel 1080 × 1920
   (nelle storie lasciare liberi 250 px in alto e 340 in basso)
 - Margini interni: 72 px
 
-## Idee per i primi 9 post (la griglia 3×3 del profilo)
-1. Logo verde su rosa: *ALESSIA STUDIO*
-2. Manifesto, verde su rosa: *Un sitio web puede ser un lugar, no una página.*
-3. Il sito: i divani verdi (immagine da `sito/`)
-4. Rosa su verde: *Italia · México · Colombia · Worldwide*
-5. Carosello dei servizi: Marca / Digital / Contenido (una slide per gruppo)
-6. Il sito: il lucernario
-7. Un progetto (carosello con le immagini di `progetti/`): solo la categoria, nessun nome
-8. Il sito: le bolle dei progetti sott'acqua
-9. Verde su rosa: *¿Tienes un lugar que construir?* + contatto
+## I primi 6 post (in `instagram/post/`, 1080 × 1350)
+Si pubblicano in quest'ordine; nella griglia del profilo l'ultimo sta in alto a sinistra, così immagini e
+grafiche si alternano a scacchiera (anteprima: `instagram/post/griglia.jpg`).
+| | File | Didascalia |
+|---|---|---|
+| 1 | `01-logo.jpg` | ALESSIA STUDIO. Branding, dirección creativa y sitios web 3D. Italia · México · Colombia · Worldwide. |
+| 2 | `02-manifiesto.jpg` | Un sitio web puede ser un lugar, no una página. Diseñamos marcas y espacios digitales para recorrer: arquitecturas de luz, materia y movimiento que cuentan una marca como una visita. |
+| 3 | `03-el-sitio.jpg` | Nuestro sitio es un recorrido en 3D: un edificio de hormigón rosa sobre el mar. Cada scroll es un paso. |
+| 4 | `04-worldwide.jpg` | Nacimos en Italia, trabajamos entre México y Colombia, con marcas de todo el mundo. |
+| 5 | `05-el-fondo.jpg` | Al final del recorrido, un salto al mar: en el fondo, una escultura en 3D que se gira con el dedo, en tiempo real. |
+| 6 | `06-contacto.jpg` | ¿Tienes un lugar que construir? Escríbenos por WhatsApp: +39 346 175 8562. Trabajamos en remoto en español, italiano, inglés y portugués. |
+
+Si rifanno con `node tools/ig-posts.mjs <cartella>` (vedi in cima al file).
 
 Hashtag possibili: #diseñoweb #webdesign #sitiosweb3d #branding #direccióncreativa #diseño3d
 #mérida #yucatán #méxico #italia

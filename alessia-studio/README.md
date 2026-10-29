@@ -111,6 +111,7 @@ con doppio clic).
 node tools/brand-kit.mjs                    # logo (SVG/PNG, verde e rosa), immagini del profilo, tavola dei colori
 node tools/brand-pdf.mjs                    # brand/alessia-studio-brand-kit.pdf: il kit per chi prepara i post
 node tools/presentation-pdf.mjs <cartella>           # brand/alessia-studio-presentacion.pdf: 16:9, 16 pagine, senza progetti né prezzi
+node tools/ig-posts.mjs <cartella>                   # brand/instagram/post/: i primi 6 post (1080x1350) e la griglia
 node tools/presentation-pdf-vertical.mjs <cartella>  # brand/alessia-studio-presentacion-vertical.pdf: A4, 6 pagine, senza progetti né prezzi
 # immagini senza testi, nelle proporzioni della pagina (niente ritagli):
 #   orizzontale: shoot.mjs "<url>?still" <cartella> --size=1600x900 --notext --points=0,0.1,0.251,0.359,0.445,0.555,0.612,0.675

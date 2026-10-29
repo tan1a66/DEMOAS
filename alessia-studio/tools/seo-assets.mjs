@@ -2,7 +2,7 @@
 //   node tools/shoot.mjs "<url>?still" <cartella> --size=1200x630 --notext --q=high --points=0
 //   node tools/seo-assets.mjs <cartella>/p0000.png
 // - og-image.jpg (1200x630): la prima schermata del sito (muro rosa, finestra tonda sul mare e sul
-//   divano verde) con il logo verde in basso
+//   divano verde) con il logo verde in basso, senza ombre
 // - favicon.svg, icon-192.png, apple-touch-icon.png: il monogramma verde su fondo rosa
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -27,14 +27,9 @@ function logo(name) {
 {
   const { vb, inner } = logo('logo-verde');
   const w = 780, h = Math.round((w * vb[3]) / vb[2]), x = (1200 - w) / 2, y = 525;
-  // in basso il muro si scurisce appena e il logo ha un'ombra morbida: resta leggibile anche in piccolo
+  // verde sul rosa del muro, senza ombre (come vuole il brief del marchio)
   const over = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0.55" stop-color="#3a1f1c" stop-opacity="0"/><stop offset="1" stop-color="#3a1f1c" stop-opacity="0.28"/></linearGradient>
-      <filter id="s" x="-10%" y="-60%" width="120%" height="220%"><feGaussianBlur in="SourceAlpha" stdDeviation="7"/><feOffset dy="3"/><feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    </defs>
-    <rect width="1200" height="630" fill="url(#g)"/>
-    <svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${vb.join(' ')}" overflow="visible"><g filter="url(#s)">${inner}</g></svg>
+    <svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${vb.join(' ')}">${inner}</svg>
   </svg>`;
   await sharp(bg).resize(1200, 630).composite([{ input: Buffer.from(over), left: 0, top: 0 }]).jpeg({ quality: 86, mozjpeg: true }).toFile(`${out}/og-image.jpg`);
   console.log('og-image.jpg');
