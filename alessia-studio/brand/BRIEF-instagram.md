@@ -56,7 +56,8 @@ designer). Il sito non si "guarda": si visita, si attraversa.
 - **Marca:** estrategia y posicionamiento · branding e identidad visual · naming y tono de voz ·
   dirección creativa y de arte
 - **Digital:** sitios web 3D inmersivos · diseño UX/UI · showrooms y configuradores 3D · desarrollo,
-  publicación y mantenimiento
+  publicación y mantenimiento · ecommerce · apps y plataformas digitales · SEO y GEO (questi ultimi tre
+  per ora solo su Instagram, non sul sito)
 - **Contenido:** renders y animaciones 3D · motion design y video · contenido para redes sociales ·
   campañas y lanzamientos
 

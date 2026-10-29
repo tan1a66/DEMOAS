@@ -113,13 +113,17 @@ posts.push(['07-verde.jpg', await sharp(`${shots}/2x/p0200.png`).extract({ left:
 {
   const l = logo('logo-rosa', M, H - M - 30, 360);
   const hook = ['MÁS QUE', 'SITIOS WEB.'];
-  const items = ['Estrategia de marca.', 'Identidad visual.', 'Naming y tono de voz.', 'Dirección creativa.', 'Sitios web 3D.',
-    'Diseño UX/UI y desarrollo.', 'Configuradores 3D.', 'Renders y motion.', 'Contenido para redes.'];
-  const hs = fit(SYNE, hook, W - 2 * M, 150), hy = M + 125 + capH(SYNE, hs);
-  const is = 56, iy = hy + hs + 85 + capH(INTER_M, is);
+  const items = ['Estrategia e identidad de marca.', 'Naming y tono de voz.', 'Dirección creativa.', 'Sitios web 3D.',
+    'Diseño UX/UI y desarrollo.', 'Ecommerce.', 'Apps y plataformas digitales.', 'Configuradores 3D.', 'SEO y GEO.',
+    'Renders y motion.', 'Contenido para redes.'];
+  const hs = fit(SYNE, hook, W - 2 * M, 150), hy = M + 95 + capH(SYNE, hs);
+  // l'elenco più grande possibile che stia in larghezza e finisca sopra il logo
+  const lead = 1.3, top = hy + hs + 70, end = H - M - 30 - 70;
+  const is = Math.min(56, fit(INTER_M, items, W - 2 * M, 56, -0.01), (end - top) / ((items.length - 1) * lead + 0.73));
+  const iy = top + capH(INTER_M, is);
   posts.push(['08-que-hacemos.jpg', page(C.verde, label(T.services.label, C.rosa, M, M + 30) +
     `<path fill="${C.rosa}" d="${lines(SYNE, hook, hs, { x: M, y: hy, lead: 1.0 })}"/>` +
-    `<path fill="${C.rosa}" d="${lines(INTER_M, items, is, { x: M, y: iy, lead: 1.36, tracking: -0.01 })}"/>` + l.svg)]);
+    `<path fill="${C.rosa}" d="${lines(INTER_M, items, is, { x: M, y: iy, lead, tracking: -0.01 })}"/>` + l.svg)]);
 }
 // 9 · entrando dalla finestra: giù i divani verdi e la luce del lucernario
 posts.push(['09-la-casa.jpg', await sharp(`${shots}/p0100.png`).resize(W, H).png().toBuffer()]);
