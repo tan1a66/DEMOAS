@@ -75,9 +75,9 @@ export function buildTerrain(site) {
   const col = [];
   const top = new Color();
   const side = new Color();
-  const cTop = new Color('#c9bca7');
-  const cHigh = new Color('#d8cdbb');
-  const cSide = new Color('#9f8f79');
+  const cTop = new Color('#e8dcc6');
+  const cHigh = new Color('#efe5d3');
+  const cSide = new Color('#c7ab83');
 
   const pushV = (x, y, z, nxv, nyv, nzv, c) => {
     pos.push(x, y, z); nor.push(nxv, nyv, nzv); col.push(c.r, c.g, c.b);
@@ -93,8 +93,8 @@ export function buildTerrain(site) {
 
   for (const L of levels) {
     const f = Math.min(1, Math.max(0, (L - t.base) / (maxH - t.base)));
-    top.copy(cTop).lerp(cHigh, f * 0.8);
-    side.copy(cSide).lerp(cTop, f * 0.3);
+    top.copy(cTop).lerp(cHigh, f * 0.6);
+    side.copy(cSide);
     const yb = L - layer;
     for (let j = 0; j < D - 1; j++) {
       for (let i = 0; i < W - 1; i++) {

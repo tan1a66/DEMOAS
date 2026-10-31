@@ -1,5 +1,5 @@
 import {
-  BoxGeometry, CylinderGeometry, ExtrudeGeometry, Group, IcosahedronGeometry, InstancedMesh, Matrix4, Mesh,
+  BoxGeometry, CylinderGeometry, ExtrudeGeometry, Group, InstancedMesh, Matrix4, Mesh, SphereGeometry,
   PlaneGeometry, Quaternion, Shape, Vector3, Euler,
 } from 'three';
 import { buildTerrain, heightFn } from './terrain.js';
@@ -247,15 +247,16 @@ export function buildPlastico(data, M) {
 
   // Alberi astratti (chioma sfaccettata + tronco), come nei plastici
   const h = heightFn(site);
-  const canopy = new InstancedMesh(new IcosahedronGeometry(1, 1), M.tree, site.trees.length);
-  const trunk = new InstancedMesh(new CylinderGeometry(0.08, 0.12, 1, 6), M.trunk, site.trees.length);
+  const canopy = new InstancedMesh(new SphereGeometry(1, 24, 16), M.tree, site.trees.length);
+  const trunk = new InstancedMesh(new CylinderGeometry(0.06, 0.06, 1, 8), M.trunk, site.trees.length);
   const q = new Quaternion();
   site.trees.forEach(([x, z, s], i) => {
     const y = h(x, z);
     q.setFromEuler(new Euler(0, i * 1.7, 0));
-    mtx.compose(new Vector3(x, y + s * 0.45 + s * 0.42, z), q, new Vector3(s * 0.5, s * 0.42, s * 0.5));
+    const rad = s * 0.36;
+    mtx.compose(new Vector3(x, y + s * 0.62 + rad, z), q, new Vector3(rad, rad, rad));
     canopy.setMatrixAt(i, mtx);
-    mtx.compose(new Vector3(x, y + s * 0.25, z), q, new Vector3(1, s * 0.5, 1));
+    mtx.compose(new Vector3(x, y + s * 0.36, z), q, new Vector3(1, s * 0.72, 1));
     trunk.setMatrixAt(i, mtx);
   });
   canopy.castShadow = trunk.castShadow = true;
