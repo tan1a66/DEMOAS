@@ -24,8 +24,18 @@ TEXTURES = {
     "velour_velvet": "velluto delle poltrone",
 }
 MAPS = ["Diffuse", "Rough", "nor_gl", "Displacement"]
-HDRIS = {"white_cliff_top": "4k"}  # cielo e mare dalle vetrate, luce di fine pomeriggio
+HDRIS = {
+    "white_cliff_top": "4k",                 # prova del soggiorno (cielo e mare)
+    "qwantani_mid_morning_puresky": "4k",    # MATTINA (solo cielo: terreno, mare e costa sono modellati)
+    "qwantani_sunset_puresky": "4k",         # TRAMONTO
+    "qwantani_dusk_2_puresky": "4k",         # NOTTE (attenuato, luci della casa accese)
+}
 MODELS = {
+    "shrub_01": "macchia mediterranea",
+    "shrub_02": "macchia mediterranea",
+    "shrub_04": "macchia mediterranea",
+    "namaqualand_boulder_02": "massi di granito",
+    "namaqualand_boulder_04": "massi di granito",
     "potted_plant_04": "pianta grassa in vaso bianco",
     "ceramic_vase_01": "vaso in ceramica",
     "decorative_book_set_01": "libri sul tavolino",
