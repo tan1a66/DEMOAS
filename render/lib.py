@@ -22,6 +22,15 @@ def B(x, y, z):
     return Vector((x, -z, y))
 
 
+def sock(sockets, name, kind="Color"):
+    """Socket per identificatore: il nodo Mix ha più ingressi "A"/"B"/"Result" (Float, Vector, Color)
+    e la ricerca per nome restituisce il primo (Float), che con data_type RGBA è disattivato."""
+    for s in sockets:
+        if s.identifier == f"{name}_{kind}":
+            return s
+    return sockets[name]
+
+
 # ---------------------------------------------------------------- scena
 
 def use_gpu():
@@ -200,9 +209,9 @@ def mat_pbr(name, tex_id, size=1.0, tint=None, rough_add=0.0, rough_mul=1.0, bum
         mx.data_type = "RGBA"
         mx.blend_type = "MULTIPLY"
         mx.inputs["Factor"].default_value = 1.0
-        mx.inputs["B"].default_value = (*tint, 1)
-        nt.links.new(c_out, mx.inputs["A"])
-        c_out = mx.outputs["Result"]
+        sock(mx.inputs, "B").default_value = (*tint, 1)
+        nt.links.new(c_out, sock(mx.inputs, "A"))
+        c_out = sock(mx.outputs, "Result")
     nt.links.new(c_out, b.inputs["Base Color"])
     rp = d / "rough.jpg"
     if rp.exists():
@@ -614,30 +623,17 @@ def post(glare=0.04, dispersion=0.012, vignette=0.28):
     bl = ng.nodes.new("CompositorNodeBlur")
     bl.inputs["Size"].default_value = (300, 300)
     ng.links.new(el.outputs["Mask"], bl.inputs["Image"])
-    mx = ng.nodes.new("ShaderNodeMix")
-    mx.data_type = "RGBA"
-    mx.blend_type = "MULTIPLY"
-    mx.inputs["Factor"].default_value = vignette
-    ng.links.new(lens.outputs["Image"], mx.inputs["A"])
-    inv = ng.nodes.new("ShaderNodeMix")
-    inv.data_type = "RGBA"
-    inv.inputs["Factor"].default_value = 1.0
-    inv.inputs["A"].default_value = (0, 0, 0, 1)
-    ng.links.new(bl.outputs["Image"], inv.inputs["B"])
-    ng.links.new(inv.outputs["Result"], mx.inputs["B"])
-    # dove la maschera vale 1 il fattore di moltiplicazione deve lasciare l'immagine invariata
-    mx2 = ng.nodes.new("ShaderNodeMix")
-    mx2.data_type = "RGBA"
-    mx2.inputs["Factor"].default_value = vignette
-    ng.links.new(lens.outputs["Image"], mx2.inputs["A"])
+    # vignettatura: immagine * (1 - vignette * (1 - maschera sfumata))
     mul = ng.nodes.new("ShaderNodeMix")
     mul.data_type = "RGBA"
     mul.blend_type = "MULTIPLY"
-    mul.inputs["Factor"].default_value = 1.0
-    ng.links.new(lens.outputs["Image"], mul.inputs["A"])
-    ng.links.new(bl.outputs["Image"], mul.inputs["B"])
-    ng.links.new(mul.outputs["Result"], mx2.inputs["B"])
-    ng.links.new(mx2.outputs["Result"], out.inputs["Image"])
-    for n in (mx, inv):
-        ng.nodes.remove(n)
+    sock(mul.inputs, "Factor", "Float").default_value = 1.0
+    ng.links.new(lens.outputs["Image"], sock(mul.inputs, "A"))
+    ng.links.new(bl.outputs["Image"], sock(mul.inputs, "B"))
+    mx2 = ng.nodes.new("ShaderNodeMix")
+    mx2.data_type = "RGBA"
+    sock(mx2.inputs, "Factor", "Float").default_value = vignette
+    ng.links.new(lens.outputs["Image"], sock(mx2.inputs, "A"))
+    ng.links.new(sock(mul.outputs, "Result"), sock(mx2.inputs, "B"))
+    ng.links.new(sock(mx2.outputs, "Result"), out.inputs["Image"])
     return ng
