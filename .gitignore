@@ -6,3 +6,5 @@ dist
 __pycache__
 .venv
 dist-preview
+render/assets/
+render/out/
