@@ -38,22 +38,22 @@ def materials():
     M["smoked"] = lib.mat_color("VetroFume", (0.05, 0.05, 0.05), rough=0.02, metal=0.0, spec=1.0)
     M["marble"] = lib.mat_black_marble()
     M["bench"] = lib.mat_pbr("PietraNera", "granite_tile", size=3.0, tint=(0.25, 0.25, 0.26), rough_add=0.05, normal_strength=0.3)
-    M["slate"] = lib.mat_pbr("Lastre", "granite_tile", size=2.4, tint=(0.8, 0.8, 0.82), normal_strength=0.8)
+    M["slate"] = lib.mat_pbr("Lastre", "granite_tile", size=2.4, tint=(0.38, 0.38, 0.4), normal_strength=0.8)
     M["deck"] = lib.mat_pbr("Deck", "wood_floor_deck", size=2.0, rot_deg=90, hsv=(0.5, 0.75, 0.9))
     M["stone"] = lib.mat_pbr("Pietra", "rustic_stone_wall_02", size=2.6, hsv=(0.5, 0.7, 1.1))
     M["ground"] = lib.mat_pbr("Terreno", "dry_ground_rocks", size=6.0, hsv=(0.5, 0.85, 0.9))
     M["scrub"] = lib.mat_pbr("Macchia", "dry_ground_rocks", size=14.0, tint=(0.42, 0.48, 0.3), hsv=(0.5, 0.9, 0.75))
     M["sea"] = lib.mat_sea()
     M["water"] = lib.mat_water()
-    M["sofa"] = lib.mat_fabric("TessutoDivano", (0.42, 0.405, 0.385), bump=0.12, bump_scale=650)
+    M["sofa"] = lib.mat_fabric("TessutoDivano", (0.3, 0.29, 0.275), bump=0.12, bump_scale=650)
     M["sofa_dark"] = lib.mat_fabric("TessutoScuro", (0.34, 0.32, 0.3))
-    M["velvet"] = lib.mat_pbr("VellutoPoltrone", "velour_velvet", size=0.8, tint=(0.33, 0.26, 0.21), hsv=(0.08, 0.15, 1.0), normal_strength=0.4)
+    M["velvet"] = lib.mat_pbr("VellutoPoltrone", "velour_velvet", size=0.8, tint=(0.22, 0.17, 0.14), hsv=(0.08, 0.15, 1.0), normal_strength=0.4)
     for k in ("velvet",):
         bsdf = M[k].node_tree.nodes["Principled BSDF"]
         bsdf.inputs["Sheen Weight"].default_value = 0.9
         bsdf.inputs["Sheen Roughness"].default_value = 0.35
     M["mustard"] = lib.mat_fabric("VellutoSenape", (0.62, 0.42, 0.05), sheen=0.9, rough=0.7)
-    M["rug"] = lib.mat_fabric("Tappeto", (0.62, 0.6, 0.56), rough=0.95, sheen=0.4, bump=0.25, bump_scale=420)
+    M["rug"] = lib.mat_rug("Tappeto", (0.5, 0.48, 0.44))
     M["outdoor"] = lib.mat_fabric("TessutoEsterno", (0.32, 0.32, 0.31), rough=0.95, sheen=0.2)
     M["led"] = lib.mat_emission("LED", (1.0, 0.78, 0.55), 6)
     M["flame"] = lib.mat_emission("Fiamma", (1.0, 0.36, 0.08), 18)
@@ -170,57 +170,77 @@ def living(M):
         box(f"TavGamba{x}{z}", x - 0.012, x + 0.012, 0.0, 0.36, z - 0.012, z + 0.012, M["steel"], bevel=0.001)
     for z in (2.98, 3.72):
         box(f"TavTraversa{z}", 2.18, 3.42, 0.34, 0.36, z - 0.012, z + 0.012, M["steel"], bevel=0.001)
-    box("Vaso", 2.5, 2.62, 0.38, 0.52, 3.2, 3.32, M["smoked"], bevel=0.02)
+    # oggetti sul tavolino e sulla panca (Poly Haven, CC0)
+    lib.append_model("decorative_book_set_01", (3.05, 0.38, 3.5), rot_deg=8, scale=0.3)
+    lib.append_model("ceramic_vase_01", (2.45, 0.38, 3.2), rot_deg=0, scale=0.8)
+    lib.append_model("potted_plant_04", (3.85, 0.42, 0.65), rot_deg=30, scale=1.0)
 
     # Divano componibile basso (schienale a sud, guarda il camino)
     sofa(M, "DivanoA", x0=1.15, x1=4.25, z_back=5.55, depth=1.0, facing="north")
     # Poltrone in velluto vicino alla vetrata, rivolte verso il soggiorno
-    armchair(M, "PoltronaN", 1.15, 2.25)
-    armchair(M, "PoltronaS", 1.15, 3.6)
+    armchair(M, "PoltronaN", 1.2, 2.3, facing_deg=-10)
+    armchair(M, "PoltronaS", 1.2, 3.65, facing_deg=10)
 
 
 def sofa(M, name, x0, x1, z_back, depth, facing, xw=None):
-    seat_h, base_h, back_h = 0.42, 0.22, 0.78
-    if facing == "north":
-        za, zb = z_back - depth, z_back
-        rounded_block(f"{name}_Base", x0, x1, 0.04, base_h, za + 0.02, zb, M["sofa_dark"], radius=0.03)
-        n = 3
-        w = (x1 - x0) / n
-        for i in range(n):
-            cushion(f"{name}_Seduta{i}", x0 + i * w + 0.01, x0 + (i + 1) * w - 0.01, base_h, seat_h, za, zb - 0.22, M["sofa"], puff=0.04)
-            cushion(f"{name}_Schienale{i}", x0 + i * w + 0.02, x0 + (i + 1) * w - 0.02, seat_h - 0.02, back_h, zb - 0.26, zb - 0.02, M["sofa"], puff=0.05, radius=0.08)
-        cushion(f"{name}_Cuscino", x0 + 0.25, x0 + 0.7, seat_h, seat_h + 0.42, zb - 0.38, zb - 0.24, M["sofa_dark"], puff=0.1, radius=0.09)
-    else:  # verso ovest, schienale a est in xw
-        xa, xb = xw - depth, xw
-        za, zb = x0, x1  # qui x0/x1 sono le z
-        rounded_block(f"{name}_Base", xa + 0.02, xb, 0.04, base_h, za, zb, M["sofa_dark"], radius=0.03)
-        n = 3
-        w = (zb - za) / n
-        for i in range(n):
-            cushion(f"{name}_Seduta{i}", xa, xb - 0.22, base_h, seat_h, za + i * w + 0.01, za + (i + 1) * w - 0.01, M["sofa"], puff=0.04)
-            cushion(f"{name}_Schienale{i}", xb - 0.26, xb - 0.02, seat_h - 0.02, back_h, za + i * w + 0.02, za + (i + 1) * w - 0.02, M["sofa"], puff=0.05, radius=0.08)
-        cushion(f"{name}_Cuscino", xb - 0.38, xb - 0.24, seat_h, seat_h + 0.42, za + 0.3, za + 0.75, M["sofa_dark"], puff=0.1, radius=0.09)
+    """Divano componibile basso come nelle foto: base, sedute morbide con piping, schienali inclinati."""
+    seat_h, base_h, back_top = 0.43, 0.2, 0.8
+    za, zb = z_back - depth, z_back
+    base = lib.rounded_block(f"{name}_Base", x0, x1, 0.02, base_h, za + 0.03, zb, M["sofa_dark"], radius=0.03, segments=3)
+    n = 3
+    w = (x1 - x0) / n
+    import random
+    rnd = random.Random(hash(name) & 0xFFFF)
+    for i in range(n):
+        a, b = x0 + i * w + 0.008, x0 + (i + 1) * w - 0.008
+        seat = cushion(f"{name}_Seduta{i}", a, b, base_h - 0.01, seat_h, za + 0.01, zb - 0.2, M["sofa"], puff=0.06, radius=0.07)
+        lib.wrinkles(seat, 0.008, 0.18)
+        back = cushion(f"{name}_Schienale{i}", a + 0.01, b - 0.01, seat_h - 0.03, back_top, zb - 0.27, zb - 0.03, M["sofa"], puff=0.09, radius=0.1)
+        lib.wrinkles(back, 0.012, 0.2)
+        # schienale appena inclinato all'indietro e non perfettamente allineato
+        pivot = B((a + b) / 2, seat_h, zb - 0.15)
+        back.rotation_euler = (math.radians(-9 + rnd.uniform(-2, 2)), 0, math.radians(rnd.uniform(-1.5, 1.5)))
+        back.location = pivot - back.rotation_euler.to_matrix() @ pivot + back.location
+    # cuscini decorativi appoggiati allo schienale
+    lib.pillow(f"{name}_Cuscino1", x0 + 0.42, seat_h + 0.24, zb - 0.38, 0.5, 0.48, 0.2, M["sofa_dark"], rot=(math.radians(-12), math.radians(8), math.radians(4)))
+    lib.pillow(f"{name}_Cuscino2", x0 + 0.85, seat_h + 0.22, zb - 0.4, 0.46, 0.44, 0.18, M["sofa"], rot=(math.radians(-14), math.radians(-6), math.radians(-5)))
+    lib.pillow(f"{name}_Cuscino3", x1 - 0.5, seat_h + 0.23, zb - 0.38, 0.5, 0.46, 0.2, M["sofa_dark"], rot=(math.radians(-10), math.radians(-10), math.radians(6)))
+    return base
 
 
-def armchair(M, name, cx, cz):
-    """Poltrona a pozzetto in velluto (forma a botte), seduta morbida."""
-    shell = cylinder(f"{name}_Guscio", cx, cz, 0.04, 0.72, 0.42, M["velvet"], segments=48, bevel=0.06)
-    shell.modifiers["Bevel"].limit_method = "NONE"
-    shell.modifiers["Bevel"].segments = 5
-    sol = shell.modifiers.new("Spessore", "SOLIDIFY")
-    sol.thickness = 0.1
-    # apertura verso est (davanti), con taglio dello schienale
-    cutter = box(f"{name}_Taglio", cx, cx + 0.6, 0.38, 1.0, cz - 0.6, cz + 0.6, None, bevel=0)
-    boolean = shell.modifiers.new("Taglio", "BOOLEAN")
-    boolean.object = cutter
-    boolean.operation = "DIFFERENCE"
-    cutter.hide_render = True
-    cutter.hide_viewport = True
+def armchair(M, name, cx, cz, facing_deg=0.0):
+    """Poltrona a pozzetto in velluto: guscio continuo aperto davanti (più alto dietro), seduta morbida.
+    facing_deg = direzione dell'apertura (0 = verso est, +x)."""
+    import bmesh
+    from mathutils import Vector
+    bm = bmesh.new()
+    r_out, thick = 0.43, 0.12
+    open_half = math.radians(52)
+    n = 40
+    rings = []
+    for i in range(n + 1):
+        a = open_half + (2 * math.pi - 2 * open_half) * i / n  # da un lato dell'apertura all'altro
+        back = 0.5 - 0.5 * math.cos(a)  # 0 davanti, 1 dietro
+        top = 0.56 + 0.16 * back
+        prof = [(r_out - thick, 0.24), (r_out, 0.06), (r_out, top - 0.06), (r_out - 0.03, top), (r_out - thick + 0.02, top - 0.02)]
+        ang = a + math.radians(facing_deg)
+        ring = [bm.verts.new(B(cx + math.cos(ang) * r, y, cz - math.sin(ang) * r)) for r, y in prof]
+        rings.append(ring)
+    for i in range(n):
+        for j in range(len(rings[i])):
+            k = (j + 1) % len(rings[i])
+            bm.faces.new([rings[i][j], rings[i][k], rings[i + 1][k], rings[i + 1][j]])
+    bm.faces.new(list(reversed(rings[0])))
+    bm.faces.new(rings[-1])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    shell = lib.mesh_obj(f"{name}_Guscio", bm, M["velvet"], smooth=True)
     sub = shell.modifiers.new("Sub", "SUBSURF")
-    sub.levels = sub.render_levels = 1
-    seat = cylinder(f"{name}_Seduta", cx + 0.02, cz, 0.04, 0.44, 0.36, M["velvet"], segments=48, bevel=0.05)
+    sub.levels = sub.render_levels = 2
+    lib.wrinkles(shell, 0.005, 0.1)
+    seat = cylinder(f"{name}_Seduta", cx, cz, 0.06, 0.45, 0.35, M["velvet"], segments=48, bevel=0.07)
     seat.modifiers["Bevel"].limit_method = "NONE"
-    seat.modifiers["Bevel"].segments = 5
+    seat.modifiers["Bevel"].segments = 6
+    base = cylinder(f"{name}_Base", cx, cz, 0.0, 0.07, 0.3, M["black"], segments=48, bevel=0.01)
 
 
 def dining_kitchen(M):
@@ -340,7 +360,7 @@ def build(preview=False):
     lib.reset(samples=48 if preview else 640, res=(960, 640) if preview else (1800, 1200))
     hdri = lib.ASSETS / "hdri" / "white_cliff_top_4k.hdr"
     # Il sole dell'HDRI è a NO: ruotando di 67° finisce a ovest-sudovest, sopra il mare.
-    lib.world_hdri(hdri, rotation_deg=67, strength=1.0, background_strength=0.55)
+    lib.world_hdri(hdri, rotation_deg=67, strength=1.0, background_strength=0.85)
     el = math.radians(23.2)
     az = math.radians(135 + 67)
     sun_dir = (math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el))
@@ -353,10 +373,12 @@ def build(preview=False):
     ceiling(M)
     exterior(M)
     portals()
+    lib.post()
     # Camera come nella foto 08: dal fondo del soggiorno verso la vetrata, obiettivo grandangolare
     lib.camera(pos=(4.35, 1.28, 1.75), target=(0.0, 1.28, 3.7), lens=15.0, shift=(0.0, 0.1))
     # luce di riempimento morbida alle spalle della camera (come il flash di rimbalzo del fotografo)
-    lib.area_light("Riempimento", (8.5, 2.2, 6.5), 3.0, 110, color=(1.0, 0.93, 0.85), direction=(-1, -0.15, -0.4), size_y=2.0)
+    fill = lib.area_light("Riempimento", (8.5, 2.0, 4.0), 3.0, 70, color=(1.0, 0.93, 0.85), direction=(-1, -0.35, 0.0), size_y=1.6)
+    fill.data.spread = math.radians(50)  # non deve raggiungere lo sbalzo esterno attraverso il vetro
     return M
 
 

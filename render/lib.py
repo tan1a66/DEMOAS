@@ -50,7 +50,7 @@ def reset(samples=256, res=(1600, 1067)):
     sc.render.film_transparent = False
     sc.view_settings.view_transform = "AgX"
     sc.view_settings.look = "AgX - Medium High Contrast"
-    sc.view_settings.exposure = 1.0
+    sc.view_settings.exposure = 1.15
     sc.render.image_settings.file_format = "JPEG"
     sc.render.image_settings.quality = 92
     return sc
@@ -233,7 +233,17 @@ def mat_glass(name="Vetro", tint=(0.92, 0.95, 0.95)):
     fres.inputs["IOR"].default_value = 1.5
     gl = nt.nodes.new("ShaderNodeBsdfGlossy")
     gl.inputs["Roughness"].default_value = 0.0
-    nt.links.new(fres.outputs["Fac"], mx2.inputs["Fac"])
+    # riflesso solo sulla faccia esterna della lastra: niente riflessione totale interna
+    geo = nt.nodes.new("ShaderNodeNewGeometry")
+    front = nt.nodes.new("ShaderNodeMath")
+    front.operation = "SUBTRACT"
+    front.inputs[0].default_value = 1.0
+    nt.links.new(geo.outputs["Backfacing"], front.inputs[1])
+    fac = nt.nodes.new("ShaderNodeMath")
+    fac.operation = "MULTIPLY"
+    nt.links.new(fres.outputs["Fac"], fac.inputs[0])
+    nt.links.new(front.outputs["Value"], fac.inputs[1])
+    nt.links.new(fac.outputs["Value"], mx2.inputs["Fac"])
     nt.links.new(tr.outputs["BSDF"], mx2.inputs[1])
     nt.links.new(gl.outputs["BSDF"], mx2.inputs[2])
     final = nt.nodes.new("ShaderNodeMixShader")
@@ -257,13 +267,14 @@ def mat_emission(name, color, strength):
     return m
 
 
-def mat_fabric(name, color, rough=0.85, sheen=0.6, bump_scale=900.0, bump=0.08):
+def mat_fabric(name, color, rough=0.85, sheen=0.25, bump_scale=900.0, bump=0.08):
     """Tessuto: base opaca, sheen per la peluria, micro-trama con rumore."""
     m, nt, b = _nodes(name)
     b.inputs["Base Color"].default_value = (*color, 1)
     b.inputs["Roughness"].default_value = rough
     b.inputs["Sheen Weight"].default_value = sheen
     b.inputs["Sheen Roughness"].default_value = 0.5
+    b.inputs["Sheen Tint"].default_value = (*[min(1.0, c * 1.6) for c in color], 1)
     b.inputs["Specular IOR Level"].default_value = 0.3
     tc = nt.nodes.new("ShaderNodeTexCoord")
     noise = nt.nodes.new("ShaderNodeTexNoise")
@@ -274,6 +285,34 @@ def mat_fabric(name, color, rough=0.85, sheen=0.6, bump_scale=900.0, bump=0.08):
     bp.inputs["Strength"].default_value = bump
     nt.links.new(noise.outputs["Fac"], bp.inputs["Height"])
     nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
+    return m
+
+
+def mat_rug(name, color):
+    """Tappeto a pelo corto: variazione di colore a chiazze, fibre fini, bordo leggermente più scuro."""
+    m, nt, b = _nodes(name)
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    big = nt.nodes.new("ShaderNodeTexNoise")
+    big.inputs["Scale"].default_value = 3.0
+    big.inputs["Detail"].default_value = 3
+    nt.links.new(tc.outputs["Object"], big.inputs["Vector"])
+    ramp = nt.nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.elements[0].color = (color[0] * 0.85, color[1] * 0.85, color[2] * 0.85, 1)
+    ramp.color_ramp.elements[1].color = (color[0] * 1.1, color[1] * 1.1, color[2] * 1.08, 1)
+    nt.links.new(big.outputs["Fac"], ramp.inputs["Fac"])
+    nt.links.new(ramp.outputs["Color"], b.inputs["Base Color"])
+    fib = nt.nodes.new("ShaderNodeTexNoise")
+    fib.inputs["Scale"].default_value = 1400
+    fib.inputs["Detail"].default_value = 1
+    nt.links.new(tc.outputs["Object"], fib.inputs["Vector"])
+    bp = nt.nodes.new("ShaderNodeBump")
+    bp.inputs["Strength"].default_value = 0.35
+    nt.links.new(fib.outputs["Fac"], bp.inputs["Height"])
+    nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
+    b.inputs["Roughness"].default_value = 1.0
+    b.inputs["Sheen Weight"].default_value = 0.8
+    b.inputs["Sheen Roughness"].default_value = 0.6
+    b.inputs["Specular IOR Level"].default_value = 0.2
     return m
 
 
@@ -466,6 +505,8 @@ def area_light(name, pos, size, strength, color=(1.0, 0.82, 0.62), direction=(0,
     ob.location = B(*pos)
     d = B(*direction) - B(0, 0, 0)
     ob.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
+    ob.visible_glossy = False  # la sorgente non si vede nei riflessi (vetri, marmo)
+    ob.visible_camera = False
     return ob
 
 
@@ -473,3 +514,108 @@ def render(path):
     sc = bpy.context.scene
     sc.render.filepath = str(path)
     bpy.ops.render.render(write_still=True)
+
+
+# ---------------------------------------------------------------- dettagli e post-produzione
+
+def pillow(name, cx, cy, cz, w, h, t, material, rot=(0, 0, 0), collection=None):
+    """Cuscino decorativo con angoli pizzicati (cubo suddiviso e gonfiato). cx, cy, cz = centro."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=6, use_grid_fill=True)
+    for v in bm.verts:
+        x, y, z = v.co
+        # gonfio al centro, sottile ai bordi
+        k = (1 - (2 * x) ** 2) * (1 - (2 * z) ** 2)
+        v.co = Vector((x * w, y * t * (0.25 + 0.75 * max(0.0, k)), z * h))
+    ob = mesh_obj(name, bm, material, smooth=True, collection=collection)
+    sub = ob.modifiers.new("Sub", "SUBSURF")
+    sub.levels = sub.render_levels = 2
+    ob.location = B(cx, cy, cz)
+    ob.rotation_euler = rot
+    return ob
+
+
+def wrinkles(ob, strength=0.006, scale=0.12):
+    """Grinze leggere del tessuto: Displace con rumore."""
+    tex = bpy.data.textures.new(f"{ob.name}_grinze", "CLOUDS")
+    tex.noise_scale = scale
+    tex.noise_depth = 2
+    d = ob.modifiers.new("Grinze", "DISPLACE")
+    d.texture = tex
+    d.strength = strength
+    d.mid_level = 0.5
+    return d
+
+
+def append_model(asset_id, pos, rot_deg=0.0, scale=1.0, collection=None):
+    """Importa un modello Poly Haven scaricato con fetch_assets.py e lo posiziona (coordinate villa)."""
+    d = ASSETS / "models" / asset_id
+    blend = next(d.glob("*.blend"))
+    with bpy.data.libraries.load(str(blend), link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    root = bpy.data.objects.new(f"{asset_id}_root", None)
+    _link(root, collection)
+    for ob in dst.objects:
+        if ob is None:
+            continue
+        _link(ob, collection)
+        if ob.parent is None:
+            ob.parent = root
+    root.location = B(*pos)
+    root.rotation_euler = (0, 0, math.radians(rot_deg))
+    root.scale = (scale, scale, scale)
+    return root
+
+
+def post(glare=0.04, dispersion=0.012, vignette=0.28):
+    """Resa fotografica: bagliore delle luci forti, leggera dispersione dell'obiettivo, vignettatura."""
+    sc = bpy.context.scene
+    sc.render.compositor_device = "CPU"  # nessuna GPU/OpenGL necessaria
+    ng = bpy.data.node_groups.new("Post", "CompositorNodeTree")
+    sc.compositing_node_group = ng
+    ng.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    out = ng.nodes.new("NodeGroupOutput")
+    rl = ng.nodes.new("CompositorNodeRLayers")
+    g = ng.nodes.new("CompositorNodeGlare")
+    g.inputs["Type"].default_value = "Fog Glow"
+    g.inputs["Threshold"].default_value = 1.2
+    g.inputs["Strength"].default_value = glare
+    g.inputs["Size"].default_value = 0.6
+    ng.links.new(rl.outputs["Image"], g.inputs["Image"])
+    lens = ng.nodes.new("CompositorNodeLensdist")
+    lens.inputs["Dispersion"].default_value = dispersion
+    lens.inputs["Distortion"].default_value = 0.0
+    ng.links.new(g.outputs["Image"], lens.inputs["Image"])
+    el = ng.nodes.new("CompositorNodeEllipseMask")
+    el.inputs["Size"].default_value = (0.95, 0.95)
+    bl = ng.nodes.new("CompositorNodeBlur")
+    bl.inputs["Size"].default_value = (300, 300)
+    ng.links.new(el.outputs["Mask"], bl.inputs["Image"])
+    mx = ng.nodes.new("ShaderNodeMix")
+    mx.data_type = "RGBA"
+    mx.blend_type = "MULTIPLY"
+    mx.inputs["Factor"].default_value = vignette
+    ng.links.new(lens.outputs["Image"], mx.inputs["A"])
+    inv = ng.nodes.new("ShaderNodeMix")
+    inv.data_type = "RGBA"
+    inv.inputs["Factor"].default_value = 1.0
+    inv.inputs["A"].default_value = (0, 0, 0, 1)
+    ng.links.new(bl.outputs["Image"], inv.inputs["B"])
+    ng.links.new(inv.outputs["Result"], mx.inputs["B"])
+    # dove la maschera vale 1 il fattore di moltiplicazione deve lasciare l'immagine invariata
+    mx2 = ng.nodes.new("ShaderNodeMix")
+    mx2.data_type = "RGBA"
+    mx2.inputs["Factor"].default_value = vignette
+    ng.links.new(lens.outputs["Image"], mx2.inputs["A"])
+    mul = ng.nodes.new("ShaderNodeMix")
+    mul.data_type = "RGBA"
+    mul.blend_type = "MULTIPLY"
+    mul.inputs["Factor"].default_value = 1.0
+    ng.links.new(lens.outputs["Image"], mul.inputs["A"])
+    ng.links.new(bl.outputs["Image"], mul.inputs["B"])
+    ng.links.new(mul.outputs["Result"], mx2.inputs["B"])
+    ng.links.new(mx2.outputs["Result"], out.inputs["Image"])
+    for n in (mx, inv):
+        ng.nodes.remove(n)
+    return ng

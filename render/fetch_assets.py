@@ -25,7 +25,11 @@ TEXTURES = {
 }
 MAPS = ["Diffuse", "Rough", "nor_gl", "Displacement"]
 HDRIS = {"white_cliff_top": "4k"}  # cielo e mare dalle vetrate, luce di fine pomeriggio
-MODELS = {}
+MODELS = {
+    "potted_plant_04": "pianta grassa in vaso bianco",
+    "ceramic_vase_01": "vaso in ceramica",
+    "decorative_book_set_01": "libri sul tavolino",
+}
 
 
 def get(url):
