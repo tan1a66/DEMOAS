@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { t, ui } from '../i18n.js';
+import { asset } from '../asset.js';
 
 /*
   Pannello della finitura: ritaglio ravvicinato ad alta risoluzione, nome del materiale
@@ -37,7 +38,7 @@ export class Panel {
     const hs = scene.hotspots[index];
     if (!hs) return;
     this.current = { scene, index };
-    this.img.src = `/crops/${scene.id}-${index + 1}.jpg`;
+    this.img.src = asset(`/crops/${scene.id}-${index + 1}.jpg`);
     this.refreshLang();
     this.el.setAttribute('aria-hidden', 'false');
     this.el.classList.add('is-open');

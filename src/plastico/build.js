@@ -1,13 +1,14 @@
 import {
-  BoxGeometry, CylinderGeometry, ExtrudeGeometry, Group, InstancedMesh, Matrix4, Mesh, SphereGeometry,
+  BoxGeometry, Color, CylinderGeometry, ExtrudeGeometry, Group, InstancedMesh, Matrix4, Mesh, SphereGeometry,
   PlaneGeometry, Quaternion, Shape, Vector3, Euler,
 } from 'three';
 import { buildTerrain, heightFn } from './terrain.js';
 
 /*
-  Costruisce il plastico da villa.json: livelli (contorno, pareti, vuoti), parti (solai, sbalzi,
-  torre in pietra…), scala, parapetti, frangisole, luci lineari, terreno, terrazza, deck, piscina,
-  arredi e alberi astratti. Unità: metri. Ogni mesh porta userData.level per la vista in sezione.
+  Costruisce il modello esterno da villa.json: livelli (contorno, pareti, vuoti), parti (solai, sbalzi,
+  torre in pietra…), scale, parapetti, frangisole, luci lineari, terreno, terrazza, deck, piscina,
+  arredi, macchia mediterranea e luci del giardino. Unità: metri.
+  Ogni mesh porta userData.level per la vista in sezione.
 */
 
 const THICK = { stone: 0.35, solid: 0.35, glass: 0.06, door: 0.08, louvers: 0.05, parapet: 0.15 };
@@ -20,13 +21,14 @@ function shapeOf(poly) {
   return s;
 }
 
-export function prism(poly, y0, y1, material, holes = []) {
+export function prism(poly, y0, y1, material, holes = [], sideMaterial = null) {
   const shape = shapeOf(poly);
   holes.forEach((h) => shape.holes.push(shapeOf(h)));
   const g = new ExtrudeGeometry(shape, { depth: y1 - y0, bevelEnabled: false });
   g.rotateX(-Math.PI / 2);
   g.translate(0, y0, 0);
-  const m = new Mesh(g, material);
+  // gruppi di ExtrudeGeometry: 0 = facce sopra/sotto, 1 = lati
+  const m = new Mesh(g, sideMaterial ? [material, sideMaterial] : material);
   m.castShadow = true;
   m.receiveShadow = true;
   return m;
@@ -165,7 +167,7 @@ export function buildPlastico(data, M) {
     g.name = lv.id;
     const y0 = lv.elevation;
     const y1 = lv.elevation + lv.wallHeight;
-    if (lv.elevation === 0) g.add(prism(lv.outline, -0.3, 0.0, M.anthracite, lv.voids || []));
+    if (lv.elevation === 0) g.add(prism(lv.outline, -0.3, 0.0, M.interior, lv.voids || [], M.anthracite));
     for (const w of lv.walls) wall(w, y0, y1, M, g);
     root.add(tag(g, lv.id));
   }
@@ -173,7 +175,7 @@ export function buildPlastico(data, M) {
   // Parti: solai, sbalzi, torre in pietra, cucina esterna, interni illuminati…
   for (const p of data.parts) {
     let obj;
-    if (p.prism) obj = prism(p.prism, p.y[0], p.y[1], M[p.mat], p.holes || []);
+    if (p.prism) obj = prism(p.prism, p.y[0], p.y[1], M[p.mat], p.holes || [], p.matSide ? M[p.matSide] : null);
     if (p.glow) {
       const [[ax, az], [bx, bz]] = p.glow;
       const len = Math.hypot(bx - ax, bz - az);
@@ -219,18 +221,12 @@ export function buildPlastico(data, M) {
   });
   root.add(tag(lights, 'luces'));
 
-  // Sito
+  // Sito: terreno continuo, terrazza, deck, piscina, passi, arredi
   const site = data.site;
   const terrain = new Mesh(buildTerrain(site), M.terrain);
   terrain.receiveShadow = true;
-  terrain.castShadow = true;
   terrain.name = 'terreno';
   root.add(tag(terrain, 'sitio'));
-
-  const [xmin, zmin, xmax, zmax] = site.bounds;
-  const base = site.terrain.base;
-  const board = prism([[xmin - 1.2, zmin - 1.2], [xmax + 1.2, zmin - 1.2], [xmax + 1.2, zmax + 1.2], [xmin - 1.2, zmax + 1.2]], base - 0.6, base, M.board);
-  root.add(tag(board, 'sitio'));
 
   const ext = new Group();
   ext.add(prism(site.terrace, 0, 0.04, M.slate));
@@ -245,23 +241,61 @@ export function buildPlastico(data, M) {
   site.furniture.forEach(({ box: [cx, cz, w, d, h] }) => ext.add(prism([[cx - w / 2, cz - d / 2], [cx + w / 2, cz - d / 2], [cx + w / 2, cz + d / 2], [cx - w / 2, cz + d / 2]], 0.07, 0.07 + h, M.furniture)));
   root.add(tag(ext, 'sitio'));
 
-  // Alberi astratti (chioma sfaccettata + tronco), come nei plastici
+  // Scala esterna in legno lungo il muro in pietra sul lato strada (video del drone, prospetto A)
+  if (data.stairsExt) {
+    const se = data.stairsExt;
+    const g = new Group();
+    const dz = (se.z[1] - se.z[0]) / se.steps;
+    const dy = (se.y[1] - se.y[0]) / se.steps;
+    for (let i = 0; i < se.steps; i++) {
+      const za = se.z[0] + dz * i;
+      const y = se.y[0] + dy * (i + 1);
+      g.add(prism([[se.x[0], za], [se.x[1], za], [se.x[1], za + dz], [se.x[0], za + dz]], y - 0.06, y, M[se.mat] || M.wood));
+    }
+    root.add(tag(g, 'sitio'));
+  }
+
+  // Macchia mediterranea: cespugli scuri dalla forma irregolare (sfere deformate), sparsi sul versante
   const h = heightFn(site);
-  const canopy = new InstancedMesh(new SphereGeometry(1, 24, 16), M.tree, site.trees.length);
-  const trunk = new InstancedMesh(new CylinderGeometry(0.06, 0.06, 1, 8), M.trunk, site.trees.length);
+  const bush = new SphereGeometry(1, 18, 12);
+  const bp = bush.attributes.position;
+  for (let i = 0; i < bp.count; i++) {
+    const x = bp.getX(i); const y = bp.getY(i); const z = bp.getZ(i);
+    const n = 1 + 0.18 * Math.sin(x * 5.1 + y * 3.3) * Math.cos(z * 4.7 - y * 2.1) + 0.1 * Math.sin(z * 9.3 + x * 7.7);
+    bp.setXYZ(i, x * n, Math.max(-0.35, y) * n * 0.72, z * n);
+  }
+  bush.computeVertexNormals();
+  const shrubs = new InstancedMesh(bush, M.shrub, site.shrubs.length);
   const q = new Quaternion();
-  site.trees.forEach(([x, z, s], i) => {
-    const y = h(x, z);
-    q.setFromEuler(new Euler(0, i * 1.7, 0));
-    const rad = s * 0.36;
-    mtx.compose(new Vector3(x, y + s * 0.62 + rad, z), q, new Vector3(rad, rad, rad));
-    canopy.setMatrixAt(i, mtx);
-    mtx.compose(new Vector3(x, y + s * 0.36, z), q, new Vector3(1, s * 0.72, 1));
-    trunk.setMatrixAt(i, mtx);
+  site.shrubs.forEach(([x, z, sz], i) => {
+    q.setFromEuler(new Euler(0, i * 2.39, 0));
+    mtx.compose(new Vector3(x, h(x, z) + sz * 0.22, z), q, new Vector3(sz * (0.9 + (i % 3) * 0.12), sz, sz * (1.1 - (i % 4) * 0.07)));
+    shrubs.setMatrixAt(i, mtx);
   });
-  canopy.castShadow = trunk.castShadow = true;
-  canopy.receiveShadow = true;
-  root.add(tag(canopy, 'sitio'), tag(trunk, 'sitio'));
+  shrubs.castShadow = true;
+  shrubs.receiveShadow = true;
+  root.add(tag(shrubs, 'sitio'));
+
+  // Luci del giardino: uniform per lo shader dei materiali + teste luminose visibili (bagliore)
+  const lampsU = M.lamps;
+  const heads = [];
+  data.lamps.slice(0, lampsU.uLampPos.value.length).forEach((l, i) => {
+    let [x, y, z] = l.p;
+    if (l.head === 'spike' || l.head === 'up') y += h(x, z) > y && Math.abs(h(x, z) - y) < 4 ? h(x, z) - y : 0;
+    const c = new Color(l.c);
+    lampsU.uLampPos.value[i].set(x, y + (l.head === 'up' ? 0.25 : 0.15), z, l.r);
+    lampsU.uLampCol.value[i].set(c.r * l.i, c.g * l.i, c.b * l.i, l.s || 1);
+    if (l.head) heads.push([x, y, z, l.head]);
+  });
+  lampsU.uLampCount.value = Math.min(data.lamps.length, lampsU.uLampPos.value.length);
+  const headGeo = new SphereGeometry(0.055, 10, 6);
+  const headMesh = new InstancedMesh(headGeo, M.lampHead, heads.length);
+  heads.forEach(([x, y, z, type], i) => {
+    const sy = type === 'roof' ? 0.5 : 1;
+    mtx.compose(new Vector3(x, y + (type === 'roof' ? 0.0 : 0.08), z), new Quaternion(), new Vector3(1, sy, 1));
+    headMesh.setMatrixAt(i, mtx);
+  });
+  root.add(tag(headMesh, 'luces'));
 
   return root;
 }

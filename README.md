@@ -9,11 +9,16 @@ npm install
 npm run dev            # http://localhost:5173
 ```
 
+Demo in un unico file (si apre con doppio clic, senza server, da inviare in privato):
+
+```bash
+npm run build:preview  # → dist-preview/index.html (~6 MB, foto in versione mobile incorporate)
+```
+
 Parametri utili nell'indirizzo:
 - `?scene=cocina` apre direttamente una scena (id in `src/data/villa.json`)
 - `?lang=it` lingua iniziale
 - `?debug=1` modalità debug: clic sulla foto = passo copiato negli appunti, Maiusc+clic = finitura copiata, tasto D = mappa di profondità; sul plastico clic = coordinate in metri `[x, y, z]`
-- `?ao=0` plastico senza occlusione ambientale (per GPU lente)
 
 ## Dati
 `src/data/villa.json` è l'unica fonte: livelli, scene, passi, scala, finiture, percorso suggerito, testi, contatti.
@@ -28,6 +33,7 @@ Parametri utili nell'indirizzo:
 
 ## Immagini
 - `public/source/`: originali e disegni (non vengono pubblicati: la build li esclude). Inventario: `src/data/inventory.md`
+- `npm run textures` → `public/textures/`: pietra, cemento, legno del deck e terreno del modello esterno, ritagliati dalle foto reali
 - `npm run images` → `public/scenes/` e `public/crops/` dalle sorgenti indicate nel JSON
 - `npm run depth` → `public/depth/<id>.png` con Depth Anything V2 Small (Apache 2.0). Richiede l'ambiente Python:
   ```bash
@@ -39,7 +45,7 @@ Parametri utili nell'indirizzo:
 ## Stato
 - [x] Fase 1: immagini, inventario, lettura dei disegni, scene e navigazione
 - [x] Fase 2: mappe di profondità, visore con parallasse, passi, finiture, debug
-- [x] Fase 3: plastico 3D dai disegni, orbita, punti delle stanze, sequenza "Entrar" → BOOM, pulsante "Maqueta"
+- [x] Fase 3: modello 3D esterno notturno (dai disegni e dal video del drone, texture dalle foto reali), orbita, punti delle stanze, sequenza "Entrar" → BOOM, pulsante "Maqueta"
 - [ ] Fase 4: sequenza della scala nel plastico in sezione
 - [ ] Fase 5: intro, finale, CTA, loader
 - [ ] Fase 6: rifinitura, prestazioni, deploy su Vercel

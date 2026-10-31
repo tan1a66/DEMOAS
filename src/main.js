@@ -126,7 +126,6 @@ async function enterScene(id) {
   mapMarkers.setVisible(false);
   const ready = viewer.preload(id);
 
-  viewer.setActive(true);
   if (boom) {
     // Volo verso la vetrata, lampo caldo, dissolvenza nella foto.
     await new Promise((resolve) => {
@@ -135,6 +134,7 @@ async function enterScene(id) {
         gsap.timeline()
           .to(flash, { autoAlpha: 1, duration: 0.18, ease: 'power2.in' })
           .call(() => {
+            viewer.setActive(true);
             viewer.show(id, { arrive: 'boom' });
             gsap.set(stagePhoto, { autoAlpha: 1 });
             gsap.set(stageModel, { autoAlpha: 0 });
@@ -146,6 +146,7 @@ async function enterScene(id) {
   } else {
     await plastico.approach(scene.map);
     await ready;
+    viewer.setActive(true);
     await viewer.show(id, { arrive: true });
     gsap.to(stageModel, { autoAlpha: 0, duration: 0.7, ease: 'power2.inOut' });
     await gsap.to(stagePhoto, { autoAlpha: 1, duration: 0.7, ease: 'power2.inOut' }).then();

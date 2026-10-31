@@ -1,46 +1,28 @@
 import {
-  ACESFilmicToneMapping, BackSide, CanvasTexture, Color, DirectionalLight, HemisphereLight, Mesh, PCFShadowMap,
-  PerspectiveCamera, PMREMGenerator, PointLight, Raycaster, Scene, ShaderMaterial, SphereGeometry, SRGBColorSpace,
+  ACESFilmicToneMapping, BackSide, Color, DirectionalLight, FogExp2, HemisphereLight, Mesh, PCFShadowMap,
+  PerspectiveCamera, PMREMGenerator, Raycaster, Scene, ShaderMaterial, SphereGeometry, SRGBColorSpace,
   Vector2, Vector3, WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import gsap from 'gsap';
 import { createMaterials } from './materials.js';
 import { buildPlastico } from './build.js';
 
 /*
-  Il plastico 3D della villa.
-  - Luce del crepuscolo: ambiente (HDRI) generato da un cielo a gradiente, luce radente calda da ovest
-    con ombre morbide (calcolate una volta: la scena è statica), occlusione ambientale (GTAO).
+  Il modello 3D esterno della villa, di notte, come nel video del drone di Gatti/Piu.
+  - Luna fredda con ombre morbide (calcolate una volta: la scena è statica), cielo notturno,
+    nebbia che fa sparire il terreno nel buio, luci del giardino (vedi materials.js), bagliore (bloom).
   - Orbita con limiti (mai sotto il terreno, distanza min/max), inerzia, rotazione automatica
     lentissima quando nessuno tocca, trascinamento con un dito su mobile.
   - boom(): la camera vola verso la grande vetrata della zona giorno con accelerazione finale.
 */
 
-const HOME = { pos: new Vector3(-44, 29, 41), target: new Vector3(3.5, 0.8, 5.5) };
+const HOME = { pos: new Vector3(-23, 25, 37), target: new Vector3(3, 1.2, 5.5) };
 const IDLE_ROTATE_MS = 4000;
-
-function skyTexture() {
-  const c = document.createElement('canvas');
-  c.width = 4;
-  c.height = 512;
-  const g = c.getContext('2d').createLinearGradient(0, 0, 0, 512);
-  g.addColorStop(0, '#171a2c');
-  g.addColorStop(0.42, '#3a3a57');
-  g.addColorStop(0.72, '#7a6474');
-  g.addColorStop(0.9, '#c48e78');
-  g.addColorStop(1, '#d9a487');
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 4, 512);
-  const t = new CanvasTexture(c);
-  t.colorSpace = SRGBColorSpace;
-  return t;
-}
 
 /** Ambiente per i riflessi: cupola con gradiente del crepuscolo (orizzonte caldo a ovest). */
 function environment(renderer) {
@@ -54,13 +36,14 @@ function environment(renderer) {
       varying vec3 vDir;
       void main(){
         float y = vDir.y;
-        vec3 zenith = vec3(0.05, 0.06, 0.13);
-        vec3 mid = vec3(0.25, 0.22, 0.36);
-        vec3 horizon = vec3(1.25, 0.72, 0.5);
-        vec3 ground = vec3(0.12, 0.1, 0.09);
-        float west = pow(max(0.0, -vDir.x * 0.5 + 0.5), 2.0); // orizzonte più caldo verso il mare (ovest)
-        vec3 c = y > 0.0 ? mix(mix(horizon * (0.55 + 0.9 * west), mid, smoothstep(0.0, 0.35, y)), zenith, smoothstep(0.35, 1.0, y))
-                         : mix(horizon * 0.35, ground, smoothstep(0.0, 0.25, -y));
+        vec3 zenith = vec3(0.012, 0.018, 0.04);
+        vec3 horizon = vec3(0.06, 0.08, 0.14);
+        vec3 ground = vec3(0.01, 0.01, 0.012);
+        float west = pow(max(0.0, -vDir.x * 0.5 + 0.5), 3.0); // ultimo chiarore sul mare (ovest)
+        vec3 c = y > 0.0 ? mix(horizon + vec3(0.05, 0.035, 0.05) * west, zenith, smoothstep(0.0, 0.6, y))
+                         : mix(horizon * 0.5, ground, smoothstep(0.0, 0.2, -y));
+        // finestre accese lontane: un po' di calore nei riflessi dei vetri
+        c += vec3(0.25, 0.16, 0.08) * smoothstep(0.985, 1.0, sin(vDir.x * 40.0) * sin(vDir.z * 37.0)) * step(-0.05, y) * step(y, 0.05);
         gl_FragColor = vec4(c, 1.0);
       }`,
   });
@@ -80,17 +63,18 @@ export class Plastico {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.75 : 2));
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.1;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
     this.renderer.shadowMap.autoUpdate = false;
 
     this.scene = new Scene();
-    this.scene.background = skyTexture();
+    this.scene.background = new Color('#05070d');
+    this.scene.fog = new FogExp2('#05070d', 0.021);
     this.scene.environment = environment(this.renderer);
-    this.scene.environmentIntensity = 0.6;
+    this.scene.environmentIntensity = 1.0;
 
-    this.camera = new PerspectiveCamera(30, 1, 0.3, 600);
+    this.camera = new PerspectiveCamera(34, 1, 0.3, 600);
     this.camera.position.copy(HOME.pos);
 
     this.materials = createMaterials(this.renderer);
@@ -105,10 +89,10 @@ export class Plastico {
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.06;
     this.controls.enablePan = false;
-    this.controls.minDistance = 22;
-    this.controls.maxDistance = 120;
-    this.controls.minPolarAngle = 0.35;
-    this.controls.maxPolarAngle = 1.32; // mai sotto il terreno
+    this.controls.minDistance = 16;
+    this.controls.maxDistance = 70;
+    this.controls.minPolarAngle = 0.3;
+    this.controls.maxPolarAngle = 1.25; // mai sotto il terreno
     this.controls.rotateSpeed = 0.55;
     this.controls.zoomSpeed = 0.7;
     this.controls.autoRotate = true;
@@ -120,13 +104,9 @@ export class Plastico {
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.gtao = new GTAOPass(this.scene, this.camera, 512, 512);
-    this.gtao.updateGtaoMaterial({ radius: 1.4, distanceExponent: 1.6, thickness: 1.2, scale: 1.1, samples: coarse ? 8 : 16, distanceFallOff: 1 });
-    this.gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 8 });
-    this.gtao.blendIntensity = 0.9;
-    // ?ao=0 disattiva l'occlusione ambientale (prove su GPU lente).
-    this.gtao.enabled = new URLSearchParams(location.search).get('ao') !== '0';
-    this.composer.addPass(this.gtao);
+    // Bagliore delle luci (come le stelle di luce dei faretti nel video del drone)
+    this.bloom = new UnrealBloomPass(new Vector2(512, 512), 0.75, 0.55, 0.92);
+    this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
 
     this.raycaster = new Raycaster();
@@ -140,36 +120,21 @@ export class Plastico {
   }
 
   #lights() {
-    const hemi = new HemisphereLight('#c3c2cf', '#5c5048', 0.55);
-    this.scene.add(hemi);
+    // Cielo notturno e riflesso del terreno
+    this.scene.add(new HemisphereLight('#3a4c78', '#0b0a09', 0.55));
 
-    // Ultima luce del tramonto, radente da ovest-nordovest.
-    const sun = new DirectionalLight('#ffd0ac', 1.6);
-    sun.position.set(-48, 20, -14);
-    sun.target.position.set(4, 0, 6);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    const sc = sun.shadow.camera;
-    sc.left = -46; sc.right = 46; sc.top = 40; sc.bottom = -40; sc.near = 1; sc.far = 140;
-    sun.shadow.bias = -0.0004;
-    sun.shadow.normalBias = 0.03;
-    sun.shadow.radius = 5;
-    this.scene.add(sun, sun.target);
-
-    // Controluce fredda dal cielo a est, per staccare i volumi scuri.
-    const rim = new DirectionalLight('#7f8fd0', 0.45);
-    rim.position.set(30, 25, 20);
-    this.scene.add(rim);
-
-    // Luce calda delle strisce LED sotto gli sbalzi e luce della piscina.
-    [[-1.6, 2.2, 3.5], [-1.4, 2.2, 10.5], [-1.4, 5.9, 4.5]].forEach(([x, y, z]) => {
-      const l = new PointLight('#ffb879', 9, 9, 2);
-      l.position.set(x, y, z);
-      this.scene.add(l);
-    });
-    const pool = new PointLight('#5fd3e0', 3, 7, 2);
-    pool.position.set(-6.5, 0.3, 5);
-    this.scene.add(pool);
+    // Luna: fredda, alta da sud-est, ombre morbide
+    const moon = new DirectionalLight('#9db2e0', 0.55);
+    moon.position.set(30, 46, 38);
+    moon.target.position.set(2, 0, 6);
+    moon.castShadow = true;
+    moon.shadow.mapSize.set(2048, 2048);
+    const sc = moon.shadow.camera;
+    sc.left = -40; sc.right = 40; sc.top = 40; sc.bottom = -40; sc.near = 1; sc.far = 160;
+    moon.shadow.bias = -0.0005;
+    moon.shadow.normalBias = 0.04;
+    moon.shadow.radius = 6;
+    this.scene.add(moon, moon.target);
   }
 
   #resize() {
@@ -181,7 +146,7 @@ export class Plastico {
     this.composer.setSize(w, h);
     this.camera.aspect = w / h;
     // Su schermi verticali il plastico deve restare intero: campo visivo più ampio.
-    this.camera.fov = w / h < 0.8 ? 44 : 30;
+    this.camera.fov = w / h < 0.8 ? 48 : 34;
     this.camera.updateProjectionMatrix();
   }
 
@@ -279,7 +244,7 @@ export class Plastico {
       this.controls.target.copy(p);
       this.camera.lookAt(p);
     }
-    this.camera.fov = this.size.w / this.size.h < 0.8 ? 44 : 30;
+    this.camera.fov = this.size.w / this.size.h < 0.8 ? 48 : 34;
     this.camera.updateProjectionMatrix();
     return this.flyTo(HOME.pos, HOME.target, { duration, ease: 'power3.out' });
   }
@@ -295,7 +260,7 @@ export class Plastico {
   resetView() {
     this.camera.position.copy(HOME.pos);
     this.controls.target.copy(HOME.target);
-    this.camera.fov = this.size.w / this.size.h < 0.8 ? 44 : 30;
+    this.camera.fov = this.size.w / this.size.h < 0.8 ? 48 : 34;
     this.camera.updateProjectionMatrix();
     this.controls.update();
   }

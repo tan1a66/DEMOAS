@@ -1,6 +1,7 @@
 import {
   DataTexture, LinearFilter, LinearMipmapLinearFilter, NoColorSpace, RedFormat, SRGBColorSpace, Texture,
 } from 'three';
+import { asset, hasAsset } from '../asset.js';
 
 /*
   Carica foto e mappe di profondità delle scene, le tiene in cache e le libera (dispose)
@@ -53,9 +54,11 @@ export class AssetCache {
   }
 
   async #create(scene) {
+    const full = `${scene.image}_full.jpg`;
+    const src = this.variant === 'full' && hasAsset(full) ? full : `${scene.image}_mobile.jpg`;
     const [img, depthImg] = await Promise.all([
-      loadImage(`${scene.image}_${this.variant}.jpg`),
-      loadImage(scene.depth).catch(() => null),
+      loadImage(asset(src)),
+      loadImage(asset(scene.depth)).catch(() => null),
     ]);
 
     const image = new Texture(img);
