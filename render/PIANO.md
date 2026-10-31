@@ -62,6 +62,9 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
   runpod.py ora manda un User-Agent proprio.
   **Spegnere il Pod quando non si renderizza.** Tenere traccia delle ore (budget 10–15 €).
 - In questo ambiente cloud (4 CPU) un'anteprima 960×640 del soggiorno richiede ~1 min; un finale ~1 h.
+- **Tempi misurati sulla 4090 (OptiX), 31/10:** setup del Pod ~1 min, asset ~1 min, soggiorno anteprima
+  960×640/48 campioni **10 s**, finale 1800×1200/640 campioni **25 s** (+ ~10 s di caricamento scena).
+  Stima: panorama 6000×3000 ~3–4 min; 21 panorami ~75 min; giro esterno 3×48 fotogrammi ~1 h → ~2–3 $ in tutto.
 
 ## Cieli e asset scelti (render/fetch_assets.py)
 - MATTINA `qwantani_mid_morning_puresky`, TRAMONTO `qwantani_sunset_puresky`, NOTTE `qwantani_dusk_2_puresky`
