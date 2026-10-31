@@ -2,13 +2,15 @@ import { defineConfig } from 'vite';
 import { rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-// public/source contiene le immagini originali e i disegni: servono agli script,
-// non al sito. Vengono tolte dalla build per non pubblicarle.
+// public/source contiene le foto originali e i disegni; scenes, depth, crops e textures servivano al
+// vecchio visore di foto. Il sito ora mostra solo render (public/renders): il resto non va pubblicato.
 const dropSources = () => ({
   name: 'drop-sources',
   apply: 'build',
   async closeBundle() {
-    await rm(resolve('dist/source'), { recursive: true, force: true });
+    for (const dir of ['source', 'scenes', 'depth', 'crops', 'textures']) {
+      await rm(resolve('dist', dir), { recursive: true, force: true });
+    }
   },
 });
 

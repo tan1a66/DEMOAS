@@ -8,196 +8,243 @@ import './styles.css';
 import gsap from 'gsap';
 import data from './data/villa.json';
 import { onLang, t, ui } from './i18n.js';
-import { Viewer } from './viewer/Viewer.js';
-import { Plastico } from './plastico/Plastico.js';
-import { Markers } from './ui/markers.js';
-import { MapMarkers } from './ui/mapMarkers.js';
+import { asset } from './asset.js';
+import { OrbitView } from './render/OrbitView.js';
+import { PanoView } from './render/PanoView.js';
+import { Hud } from './render/Hud.js';
 import { Panel } from './ui/panel.js';
 import { Chrome } from './ui/chrome.js';
-import { setupDebug } from './ui/debug.js';
 
 /*
-  Regia: due palcoscenici sovrapposti.
-  - "model": il plastico 3D (orbita, punti delle stanze, Entrar → BOOM);
-  - "photo": le foto immersive (passi, finiture, scala).
-  Si passa dall'uno all'altro con voli di camera e dissolvenze; solo il palcoscenico visibile
-  viene disegnato.
+  Villa Pedramar: solo render (Blender/Cycles), niente foto.
+  Due palcoscenici sovrapposti:
+  - "orbit": giro intorno alla villa a fotogrammi, con gli ingressi alle stanze;
+  - "pano": panorami 360° collegati da passi, con le finiture.
+  L'ora del giorno (mattina, tramonto, notte) vale per entrambi.
 */
 
-const params = new URLSearchParams(location.search);
-const debug = params.get('debug') === '1';
-const startScene = data.scenes.some((s) => s.id === params.get('scene')) ? params.get('scene') : null;
+const R = data.renders;
+const panos = new Map(R.panos.map((p) => [p.id, p]));
+const route = ['soggiorno', 'cucina', 'ballatoio', 'camera', 'bagno', 'terrazza', 'passaggio'];
 
-const app = document.getElementById('app');
-const stagePhoto = document.getElementById('photo');
-const stageModel = document.getElementById('model');
+const params = new URLSearchParams(location.search);
+const state = {
+  mode: null,
+  busy: false,
+  time: R.times.includes(params.get('time')) ? params.get('time') : R.defaultTime,
+  visited: new Set(),
+  hintShown: { orbit: false, pano: false },
+};
+
+const stageOrbit = document.getElementById('orbit');
+const stagePano = document.getElementById('pano');
 const flash = document.getElementById('flash');
 const uiRoot = document.getElementById('ui');
 const chrome = new Chrome(uiRoot);
 const panel = new Panel(uiRoot);
 
-const state = { mode: null, busy: false, visited: new Set() };
-
-// Pulsanti principali
 uiRoot.insertAdjacentHTML('beforeend', `
-  <button type="button" class="cta-enter" hidden><span></span></button>
-  <button type="button" class="btn-map" hidden><span class="btn-map__icon" aria-hidden="true"></span><span class="btn-map__label"></span></button>
+  <nav class="times" aria-label=""></nav>
+  <button type="button" class="btn-map btn-exterior" hidden><span class="btn-exterior__icon" aria-hidden="true"></span><span class="btn-map__label"></span></button>
+  <a class="cta-visit" target="_blank" rel="noopener"><span></span></a>
+  <p class="hint" aria-live="polite"></p>
 `);
-const btnEnter = uiRoot.querySelector('.cta-enter');
-const btnMap = uiRoot.querySelector('.btn-map');
-
-const viewer = new Viewer({
-  canvas: document.getElementById('gl'),
-  data,
-  onSceneChange: (scene) => {
-    state.visited.add(scene.id);
-    markers.setScene(scene);
-    chrome.setScene(scene);
-  },
-  onTransition: (busy) => {
-    markers.setVisible(!busy);
-    if (busy) panel.close();
-  },
-  onLoading: (on) => chrome.loading(on),
+const timesNav = uiRoot.querySelector('.times');
+const btnExterior = uiRoot.querySelector('.btn-exterior');
+const ctaVisit = uiRoot.querySelector('.cta-visit');
+const hint = uiRoot.querySelector('.hint');
+R.times.forEach((id) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.dataset.time = id;
+  b.innerHTML = `<i class="times__icon times__icon--${id}" aria-hidden="true"></i><span></span>`;
+  b.addEventListener('click', () => setTime(id));
+  timesNav.appendChild(b);
 });
 
-const markers = new Markers(document.getElementById('markers'), viewer, {
-  route: data.route,
-  onStep: (step) => viewer.goTo(step.to, { from: step, kind: 'step' }),
-  onStairs: (st) => viewer.goTo(st.to, { from: st, kind: 'stairs', dir: st.dir }),
-  onHotspot: (scene, i) => panel.open(scene, i),
-});
-viewer.onFrame(() => markers.update());
+const orbit = new OrbitView({ canvas: document.getElementById('orbit-canvas'), orbit: R.orbit, onFrame: () => hudOrbit.update() });
+const pano = new PanoView({ canvas: document.getElementById('pano-canvas'), panos: R.panos, onFrame: () => hudPano.update() });
+const hudOrbit = new Hud(document.getElementById('orbit-markers'));
+const hudPano = new Hud(document.getElementById('pano-markers'));
+orbit.onInteract = () => hideHint();
+pano.onInteract = () => hideHint();
 
-const plastico = new Plastico({ canvas: document.getElementById('plastico'), data });
-const mapMarkers = new MapMarkers(document.getElementById('map-markers'), plastico, {
-  scenes: data.scenes,
-  onPick: (scene) => enterScene(scene.id),
-});
-plastico.onFrame(() => mapMarkers.update());
+const nextSuggested = () => route.find((id) => !state.visited.has(id)) || null;
 
-function nextSuggested() {
-  return data.route.find((id) => !state.visited.has(id)) || data.route[0];
+function nextFrom(id) {
+  const p = panos.get(id);
+  const links = (p.links || []).map((l) => l.to);
+  const n = route.find((r) => !state.visited.has(r) && links.includes(r));
+  return n || null;
 }
+
+function showHint(kind) {
+  if (state.hintShown[kind]) return;
+  state.hintShown[kind] = true;
+  hint.textContent = ui(kind === 'orbit' ? 'dragOrbit' : 'dragPano');
+  gsap.fromTo(hint, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.8, delay: 1.2, ease: 'power3.out' });
+  gsap.to(hint, { autoAlpha: 0, duration: 0.6, delay: 6 });
+}
+function hideHint() { gsap.to(hint, { autoAlpha: 0, duration: 0.4, overwrite: true }); }
 
 function refreshTexts() {
-  btnEnter.querySelector('span').textContent = ui('enter');
-  btnMap.querySelector('.btn-map__label').textContent = ui('maqueta');
-  btnMap.setAttribute('aria-label', ui('maqueta'));
-  if (state.mode === 'model') chrome.setPlace(ui('exterior'), ui('maqueta'));
+  timesNav.setAttribute('aria-label', ui('timeLabel'));
+  timesNav.querySelectorAll('button').forEach((b) => {
+    b.querySelector('span').textContent = ui(b.dataset.time);
+    b.classList.toggle('is-active', b.dataset.time === state.time);
+    b.setAttribute('aria-pressed', String(b.dataset.time === state.time));
+  });
+  btnExterior.querySelector('.btn-map__label').textContent = ui('exterior');
+  btnExterior.setAttribute('aria-label', ui('exterior'));
+  const msg = encodeURIComponent(`${data.villa.name} — ${t(data.contact.cta)}`);
+  ctaVisit.href = `https://wa.me/${data.contact.whatsapp}?text=${msg}`;
+  ctaVisit.querySelector('span').textContent = t(data.contact.cta);
+  if (state.mode === 'orbit') chrome.setPlace(ui('exterior'), ui(state.time));
+  if (state.mode === 'pano') setWhere(pano.current.pano);
 }
 
-function showStage(which) {
-  stageModel.classList.toggle('is-active', which === 'model');
-  stagePhoto.classList.toggle('is-active', which === 'photo');
+function setWhere(p) {
+  const level = data.levels.find((l) => l.id === p.level);
+  chrome.setPlace(level ? t(level.name) : '', t(p.name));
 }
 
-/** Mostra il plastico (all'avvio o tornando da una scena). */
-async function toModel({ fromScene } = {}) {
+async function setTime(time) {
+  if (time === state.time || state.busy) return;
+  state.time = time;
+  refreshTexts();
+  chrome.loading(true);
+  try {
+    if (state.mode === 'pano') await pano.setTime(time);
+    else await orbit.setTime(time);
+  } catch (e) {
+    chrome.toast(String(e.message || e), 5000);
+  }
+  chrome.loading(false);
+}
+
+function setOrbitHud() {
+  hudOrbit.setOrbit(orbit, R.orbit.entries, panos, { onEnter: (en) => enterPano(en.to, en.at), next: nextSuggested() });
+}
+
+function setPanoHud(p) {
+  hudPano.setPano(pano, p, panos, {
+    next: nextFrom(p.id),
+    onStep: (ln) => step(ln),
+    onHotspot: (pp, i) => panel.open(pp.hotspots[i], asset(`/renders/crops/${pp.id}-${i + 1}.jpg`)),
+  });
+}
+
+function arrived(p) {
+  state.visited.add(p.id);
+  setWhere(p);
+  setPanoHud(p);
+  ctaVisit.classList.toggle('is-final', !!p.final);
+  (p.links || []).forEach((l) => pano.preload(l.to, state.time));
+}
+
+/** Dall'esterno a una stanza: avvicinamento sul giro, lampo caldo, panorama. */
+async function enterPano(id, at) {
   if (state.busy) return;
   state.busy = true;
   panel.close();
-  markers.setVisible(false);
-  btnMap.hidden = true;
-  plastico.start();
-  mapMarkers.setNext(nextSuggested());
-  mapMarkers.setVisible(false);
-  if (fromScene?.map) plastico.home({ from: fromScene.map, duration: 1.8 });
-  gsap.to(stageModel, { autoAlpha: 1, duration: fromScene ? 0.9 : 1.2, ease: 'power2.out' });
-  await gsap.to(stagePhoto, { autoAlpha: 0, duration: 0.9, ease: 'power2.inOut' }).then();
-  viewer.setActive(false);
-  showStage('model');
-  state.mode = 'model';
-  refreshTexts();
-  btnEnter.hidden = false;
-  gsap.fromTo(btnEnter, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' });
-  mapMarkers.setVisible(true);
+  hudOrbit.setVisible(false);
+  chrome.loading(true);
+  const ready = pano.texture(id, state.time);
+  const sp = at ? orbit.project(at) : null;
+  if (sp) stageOrbit.style.transformOrigin = `${sp.x}px ${sp.y}px`;
+  gsap.to(stageOrbit, { scale: 1.6, duration: 1.1, ease: 'power2.in' });
+  try {
+    await ready;
+  } catch (e) {
+    chrome.toast(String(e.message || e), 6000);
+  }
+  chrome.loading(false);
+  await gsap.timeline()
+    .to(flash, { autoAlpha: 0.85, duration: 0.25, ease: 'power2.in' })
+    .call(async () => {
+      const p = await pano.show(id, state.time);
+      pano.setActive(true);
+      gsap.set(stagePano, { autoAlpha: 1 });
+      gsap.set(stageOrbit, { autoAlpha: 0, scale: 1 });
+      orbit.setActive(false);
+      state.mode = 'pano';
+      arrived(p);
+    })
+    .to(flash, { autoAlpha: 0, duration: 0.9, ease: 'power2.out' })
+    .then();
+  btnExterior.hidden = false;
+  gsap.fromTo(btnExterior, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 });
+  hudPano.setVisible(true);
+  showHint('pano');
   state.busy = false;
-  viewer.preload(data.boom.scene).catch(() => {});
 }
 
-/** Dal plastico a una scena: BOOM per il soggiorno, avvicinamento per le altre. */
-async function enterScene(id) {
+async function step(ln) {
   if (state.busy) return;
   state.busy = true;
-  const scene = data.scenes.find((s) => s.id === id);
-  const boom = id === data.boom.scene;
-  gsap.to(btnEnter, { autoAlpha: 0, duration: 0.3 });
-  mapMarkers.setVisible(false);
-  const ready = viewer.preload(id);
-
-  if (boom) {
-    // Volo verso la vetrata, lampo caldo, dissolvenza nella foto.
-    await new Promise((resolve) => {
-      plastico.boom(async () => {
-        await ready;
-        gsap.timeline()
-          .to(flash, { autoAlpha: 1, duration: 0.18, ease: 'power2.in' })
-          .call(() => {
-            viewer.setActive(true);
-            viewer.show(id, { arrive: 'boom' });
-            gsap.set(stagePhoto, { autoAlpha: 1 });
-            gsap.set(stageModel, { autoAlpha: 0 });
-          })
-          .to(flash, { autoAlpha: 0, duration: 1.1, ease: 'power2.out' })
-          .call(resolve);
-      });
-    });
-  } else {
-    await plastico.approach(scene.map);
-    await ready;
-    viewer.setActive(true);
-    await viewer.show(id, { arrive: true });
-    gsap.to(stageModel, { autoAlpha: 0, duration: 0.7, ease: 'power2.inOut' });
-    await gsap.to(stagePhoto, { autoAlpha: 1, duration: 0.7, ease: 'power2.inOut' }).then();
+  panel.close();
+  hudPano.setVisible(false);
+  chrome.loading(true);
+  try {
+    const p = await pano.goTo(ln.to, { via: ln.at });
+    if (p) arrived(p);
+  } catch (e) {
+    chrome.toast(String(e.message || e), 6000);
   }
-  plastico.stop();
-  btnEnter.hidden = true;
-  showStage('photo');
-  state.mode = 'photo';
-  markers.setVisible(true);
-  btnMap.hidden = false;
-  gsap.fromTo(btnMap, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, delay: 0.4 });
+  chrome.loading(false);
+  hudPano.setVisible(true);
   state.busy = false;
 }
 
-btnEnter.addEventListener('click', () => enterScene(data.boom.scene));
-btnMap.addEventListener('click', () => toModel({ fromScene: viewer.currentScene }));
+/** Torna al giro esterno (all'avvio o dal pulsante Exterior). */
+async function toOrbit() {
+  if (state.busy) return;
+  state.busy = true;
+  panel.close();
+  hudPano.setVisible(false);
+  chrome.loading(true);
+  await orbit.setTime(state.time);
+  chrome.loading(false);
+  orbit.setActive(true);
+  setOrbitHud();
+  state.mode = 'orbit';
+  refreshTexts();
+  gsap.set(stageOrbit, { scale: 1.08, transformOrigin: '50% 50%' });
+  gsap.to(stageOrbit, { autoAlpha: 1, scale: 1, duration: 1.2, ease: 'power3.out' });
+  await gsap.to(stagePano, { autoAlpha: 0, duration: 0.8, ease: 'power2.inOut' }).then();
+  pano.setActive(false);
+  btnExterior.hidden = true;
+  ctaVisit.classList.remove('is-final');
+  hudOrbit.setVisible(true);
+  showHint('orbit');
+  state.busy = false;
+}
+
+btnExterior.addEventListener('click', () => toOrbit());
 
 onLang(() => {
   chrome.refreshLang();
-  markers.refreshLang();
-  mapMarkers.refreshLang();
+  hudOrbit.refreshLang();
+  hudPano.refreshLang();
   panel.refreshLang();
   refreshTexts();
 });
 
-// Giroscopio: su iOS il permesso si chiede dentro un gesto dell'utente (il primo tocco).
-const askGyro = async () => {
-  removeEventListener('click', askGyro);
-  removeEventListener('touchend', askGyro);
-  if (await viewer.motion.enableGyro()) chrome.toast(ui('motion'), 2600);
-};
-if (viewer.motion.gyroAvailable) {
-  addEventListener('click', askGyro);
-  addEventListener('touchend', askGyro);
-}
-
-if (debug) setupDebug({ app, viewer, plastico, chrome, getMode: () => state.mode });
-
 refreshTexts();
-gsap.set([stagePhoto, stageModel], { autoAlpha: 0 });
-if (startScene) {
-  viewer.show(startScene).then(() => {
-    gsap.set(stagePhoto, { autoAlpha: 1 });
-    showStage('photo');
-    state.mode = 'photo';
-    btnMap.hidden = false;
+gsap.set([stageOrbit, stagePano, hint], { autoAlpha: 0 });
+const startPano = panos.has(params.get('pano')) ? params.get('pano') : null;
+if (startPano) {
+  pano.show(startPano, state.time).then((p) => {
+    pano.setActive(true);
+    gsap.set(stagePano, { autoAlpha: 1 });
+    state.mode = 'pano';
+    arrived(p);
+    refreshTexts();
+    btnExterior.hidden = false;
   }).catch((err) => chrome.toast(String(err.message || err), 6000));
 } else {
-  viewer.setActive(false);
-  toModel();
+  toOrbit();
 }
 
-// Per prove e debug dalla console.
-window.__pedramar = { viewer, plastico, markers, mapMarkers, panel, data, state, t };
+// Per prove dalla console.
+window.__pedramar = { orbit, pano, hudOrbit, hudPano, panel, data, state, enterPano, toOrbit, setTime };

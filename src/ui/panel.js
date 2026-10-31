@@ -1,9 +1,8 @@
 import gsap from 'gsap';
 import { t, ui } from '../i18n.js';
-import { asset } from '../asset.js';
 
 /*
-  Pannello della finitura: ritaglio ravvicinato ad alta risoluzione, nome del materiale
+  Pannello della finitura: dettaglio ravvicinato del render ad alta risoluzione, nome del materiale
   e una riga di testo. Dal basso su mobile, laterale su desktop.
 */
 
@@ -34,11 +33,12 @@ export class Panel {
     this.isOpen = false;
   }
 
-  open(scene, index) {
-    const hs = scene.hotspots[index];
+  /** Apre la scheda di una finitura: { title, text } e l'immagine ravvicinata (ritaglio del render). */
+  open(hs, imgSrc) {
     if (!hs) return;
-    this.current = { scene, index };
-    this.img.src = asset(`/crops/${scene.id}-${index + 1}.jpg`);
+    this.current = hs;
+    this.img.src = imgSrc;
+    this.el.querySelector('.panel__media').hidden = !imgSrc;
     this.refreshLang();
     this.el.setAttribute('aria-hidden', 'false');
     this.el.classList.add('is-open');
@@ -69,7 +69,7 @@ export class Panel {
   refreshLang() {
     this.el.querySelector('.panel__close').setAttribute('aria-label', ui('close'));
     if (!this.current) return;
-    const hs = this.current.scene.hotspots[this.current.index];
+    const hs = this.current;
     this.el.querySelector('.panel__kicker').textContent = ui('finish');
     this.el.querySelector('.panel__title').textContent = t(hs.title);
     this.el.querySelector('.panel__text').textContent = t(hs.text);

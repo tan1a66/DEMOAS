@@ -20,6 +20,7 @@ import bpy  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Vector, noise  # noqa: E402
 
+import interni  # noqa: E402
 import lib  # noqa: E402
 import salon  # noqa: E402
 from lib import B, box, beam, prism, cushion, rounded_block, cylinder  # noqa: E402
@@ -287,10 +288,12 @@ def materials(t):
     sea.inputs["Specular IOR Level"].default_value = 0.35
     M["sea"].node_tree.nodes["Bump"].inputs["Strength"].default_value = 0.5
     sea.inputs["Base Color"].default_value = (0.006, 0.03, 0.05, 1)
+    M["rug"] = lib.mat_rug("TappetoSogg", (0.36, 0.34, 0.31))
     M["deck"] = lib.mat_pbr("DeckEsterno", "wood_floor_deck", size=2.0, rot_deg=90, hsv=(0.5, 0.5, 0.75))
     M["coping"] = lib.mat_pbr("Bordo", "granite_tile", size=2.0, tint=(0.55, 0.55, 0.55), normal_strength=0.4)
     M["water"] = mat_pool_water()
     M["basin"] = lib.mat_pbr("Vasca", "granite_tile", size=1.6, tint=(0.42, 0.47, 0.48), normal_strength=0.3)
+    interni.materials(M)
     M["olive"] = lib.mat_color("VerdeOliva", (0.16, 0.17, 0.09), rough=0.9)
     M["bedding"] = lib.mat_fabric("Lenzuola", (0.78, 0.76, 0.72))
     M["velvet_green"] = lib.mat_fabric("VellutoVerde", (0.12, 0.16, 0.08), sheen=0.9, rough=0.7)
@@ -311,7 +314,8 @@ PLATFORMS = [  # x0, z0, x1, z1, altezza (o rampa in x), margine di raccordo (a 
     (14.7, -6.5, 24.0, 12.3, 3.6, 4.0),
     (4.2, 10.9, 14.7, 12.3, ("ramp", 4.2, 0.0, 14.7, 3.5), 2.5),
 ]
-HOLES = [(-9.8, -3.4, 0.0, 14.6), (0.0, -1.0, 14.7, 10.9), (0.0, 10.9, 4.2, 14.4), (0.0, -2.85, 4.0, -1.0)]  # niente terreno sotto casa, piscina e deck
+HOLES = [(-9.8, -3.4, 0.0, 14.6), (0.0, -1.0, 14.7, 10.9), (0.0, 10.9, 4.2, 14.4), (0.0, -2.85, 4.0, -1.0),
+         (4.2, 10.9, 15.15, 12.6)]  # niente terreno sotto casa, piscina e deck
 
 
 def _interp(pts, x):
@@ -392,8 +396,8 @@ def _axis(lo, hi, fine_lo, fine_hi, step, breaks):
 
 
 def terrain(M):
-    xs = _axis(-700, 2500, -70, 70, 0.5, [-24, -9.8, -2.4, 0.0, 4.0, 4.2, 14.7])
-    zs = _axis(-2200, 2200, -60, 75, 0.5, [-9, -6.5, -3.4, -2.85, -1.0, 0.0, 10.9, 12.3, 14.4, 14.6, 19, 21])
+    xs = _axis(-700, 2500, -70, 70, 0.5, [-24, -9.8, -2.4, 0.0, 4.0, 4.2, 14.7, 15.15])
+    zs = _axis(-2200, 2200, -60, 75, 0.5, [-9, -6.5, -3.4, -2.85, -1.0, 0.0, 10.9, 12.3, 12.6, 14.4, 14.6, 19, 21])
     bm = bmesh.new()
     grid = [[bm.verts.new(B(x, ground(x, z), z)) for z in zs] for x in xs]
     for i in range(len(xs) - 1):
@@ -752,7 +756,7 @@ def house(M):
     box("ContenimentoN", 0.0, 14.7, -0.4, SLAB[1], -1.45, -1.0, M["concrete"], bevel=0.005)
     box("ContenimentoE", 14.7, 15.15, -0.4, SLAB[1], -1.45, 10.9, M["concrete"], bevel=0.005)
     box("ContenimentoS", 4.2, 15.15, -0.4, SLAB[1], 10.92, 11.35, M["stone"], bevel=0.01)
-    box("PorticoFondo", 4.2, 4.65, -0.4, SLAB[0], 10.9, 14.4, M["stone"], bevel=0.01)
+    box("PorticoFondo", 4.2, 4.65, -0.4, SLAB[0], 12.75, 14.4, M["stone"], bevel=0.01)  # aperto sul passaggio
 
     # --- vetrate
     glass("VetrataMare", (0.0, 0.0), (0.0, 8.9), 0.0, SLAB[0] - 0.08, M, mullions=5)
@@ -956,11 +960,8 @@ def lights(M, t):
         bpy.context.collection.objects.link(ob)
         ob.location = B(x, y - 0.03, z)
         ob.rotation_euler = (0, 0, 0)
-    # interni accesi: luci d'area sotto i soffitti
-    for nm, pos, sx, sy, e in (("IntSogg", (2.5, SLAB[0] - 0.05, 3.0), 3.0, 3.0, 220), ("IntCucina", (8.0, SLAB[0] - 0.05, 6.5), 4.0, 3.0, 260),
-                               ("IntPranzo", (2.0, SLAB[0] - 0.05, 7.5), 2.0, 2.0, 140), ("IntCamera", (3.0, H2 - 0.05, 7.4), 2.5, 2.0, 160),
-                               ("IntCorr", (5.4, H2 - 0.05, 3.0), 1.0, 4.0, 90), ("IntDoppia", (2.3, H2 - 0.05, 3.0), 3.0, 3.0, 160)):
-        down_light(nm, pos, sx, sy, e * k, (1.0, 0.76, 0.52))
+    # interni accesi (faretti sui binari, anello LED, lampade, camini)
+    interni.lights(M, k)
     # luci della piscina
     for i, (x, z, dx) in enumerate(((-4.5, 2.2, -1), (-4.5, 4.6, -1), (-8.5, 3.0, 1), (-8.5, 7.0, 1))):
         p = bpy.data.lights.new(f"Piscina{i}", "SPOT")
@@ -1034,7 +1035,9 @@ def build(t, preview):
     sea_and_coast(M)
     house(M)
     interior_lower(M)
-    interior_upper(M)
+    interni.lower_details(M)
+    interni.upper(M)
+    interni.passage(M)
     pool_and_deck(M)
     outdoor_furniture(M)
     vegetation()
@@ -1065,6 +1068,7 @@ def main():
     ap.add_argument("--samples", type=int, default=0)
     ap.add_argument("--res", default="", help="es. 1920x1080")
     ap.add_argument("--save-blend", action="store_true")
+    ap.add_argument("--skip-existing", action="store_true", help="salta i fotogrammi/panorami già renderizzati")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     a = ap.parse_args(argv)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -1077,10 +1081,28 @@ def main():
     if a.save_blend:
         bpy.ops.wm.save_as_mainfile(filepath=str(OUT / f"villa_{a.time}.blend"))
     suffix = "_preview" if a.preview else ""
-    if a.view == "orbit":
+    if a.view.startswith("pano:"):
+        names = a.view.split(":", 1)[1].split(",")
+        if not a.res:
+            sc.render.resolution_x, sc.render.resolution_y = (2000, 1000) if a.preview else (6000, 3000)
+        if any(n not in ("terrazza", "passaggio") for n in names):
+            interni.portals()
+        base_exp = TIMES[a.time]["exposure"]
+        ti = list(TIMES).index(a.time)
+        for name in names:
+            if a.skip_existing and (OUT / f"pano_{name}_{a.time}{suffix}.jpg").exists():
+                continue
+            cam = interni.pano_camera(name)
+            sc.view_settings.exposure = base_exp + interni.PANOS[name]["exp"][ti]
+            lib.render(OUT / f"pano_{name}_{a.time}{suffix}.jpg")
+            bpy.data.objects.remove(cam, do_unlink=True)
+            print(f"panorama {name} fatto", flush=True)
+    elif a.view == "orbit":
         d = OUT / f"orbit_{a.time}{suffix}"
         d.mkdir(parents=True, exist_ok=True)
         for i in parse_frames(a.frames):
+            if a.skip_existing and (d / f"f{i:02d}.jpg").exists():
+                continue
             cam = orbit_camera(i)
             lib.render(d / f"f{i:02d}.jpg")
             bpy.data.objects.remove(cam, do_unlink=True)

@@ -573,3 +573,121 @@ button { font: inherit; color: inherit; }
   border-radius: 2px;
   transform: perspective(40px) rotateX(35deg) rotateZ(45deg);
 }
+
+
+/* ---------- Render: giro esterno e panorami ---------- */
+
+.stage--orbit { z-index: 1; touch-action: none; cursor: grab; will-change: transform; }
+.stage--orbit:active { cursor: grabbing; }
+.stage--pano { z-index: 2; touch-action: none; cursor: grab; }
+.stage--pano:active { cursor: grabbing; }
+
+/* Ingresso dal giro esterno: il nome resta sempre leggibile */
+.mk--entry .mk__label { opacity: 0.95; }
+
+/* Ora del giorno: tre voci in basso al centro */
+.times {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--safe-b) + 22px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-line);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.times button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--white-70);
+  font: 500 10px/1 var(--sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.35s var(--ease), color 0.35s var(--ease);
+}
+.times button:hover { color: var(--white); }
+.times button.is-active { background: rgba(244, 239, 231, 0.12); color: var(--white); }
+.times__icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.times__icon--morning { background: #f3e2b0; box-shadow: 0 0 8px rgba(243, 226, 176, 0.6); }
+.times__icon--sunset { background: linear-gradient(180deg, #f2a65a 50%, rgba(242, 166, 90, 0.25) 50%); }
+.times__icon--night { background: transparent; box-shadow: inset -3px -1px 0 0 #cfd6ea; }
+
+/* Exterior: torna al giro intorno alla villa */
+.btn-exterior__icon {
+  width: 14px;
+  height: 14px;
+  border: 1.2px solid var(--white);
+  border-radius: 50%;
+  position: relative;
+}
+.btn-exterior__icon::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 6px;
+  height: 6px;
+  background: var(--white);
+  border-radius: 1px;
+}
+
+/* Agenda una visita (WhatsApp) */
+.cta-visit {
+  position: absolute;
+  right: calc(var(--safe-r) + 20px);
+  bottom: calc(var(--safe-b) + 22px);
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 180, 108, 0.55);
+  background: rgba(18, 18, 18, 0.42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--white);
+  font: 400 17px/1 var(--serif);
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+.cta-visit:hover { background: rgba(227, 180, 108, 0.18); border-color: var(--gold); }
+.cta-visit.is-final { border-color: var(--gold); animation: breathe 2.8s ease-in-out infinite; }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--safe-b) + 78px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font: 400 12px/1.2 var(--sans);
+  letter-spacing: 0.04em;
+  color: var(--white-70);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .times { bottom: calc(var(--safe-b) + 76px); }
+  .times button { padding: 8px 10px; letter-spacing: 0.12em; }
+  .hint { bottom: calc(var(--safe-b) + 128px); }
+  .cta-visit { font-size: 15px; padding: 11px 16px; }
+}

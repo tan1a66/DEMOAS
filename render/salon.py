@@ -353,7 +353,7 @@ def portals():
     for name, pos, sx, sy in (("PortaleBasso", (0.05, 1.33, 3.95), 9.9, 2.65), ("PortaleAlto", (0.05, 4.9, 3.05), 5.7, 2.7)):
         ob = lib.area_light(name, pos, sx, 1.0, direction=(1, 0, 0), size_y=sy)
         ob.data.cycles.is_portal = True
-        ob.rotation_euler = (B(1, 0, 0) - B(0, 0, 0)).to_track_quat("-Z", "X").to_euler()
+        ob.rotation_euler = (B(1, 0, 0) - B(0, 0, 0)).to_track_quat("-Z", "Y").to_euler()  # X orizzontale
 
 
 def build(preview=False):
