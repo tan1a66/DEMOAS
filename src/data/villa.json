@@ -1,0 +1,726 @@
+{
+  "i18n": {
+    "default": "es",
+    "langs": [
+      "es",
+      "it"
+    ]
+  },
+  "villa": {
+    "name": "Villa Pedramar",
+    "brandline": "DEMO ALESSIA STUDIO",
+    "location": {
+      "es": "Terra Mala, Cerdeña",
+      "it": "Terra Mala, Sardegna"
+    },
+    "tagline": {
+      "es": "Donde la piedra se encuentra con el mar",
+      "it": "Dove la pietra incontra il mare"
+    },
+    "credits": {
+      "es": "Arquitectura: Gatti/Piu · Experiencia: Alessia Studio",
+      "it": "Architettura: Gatti/Piu · Esperienza: Alessia Studio"
+    }
+  },
+  "ui": {
+    "close": {
+      "es": "Cerrar",
+      "it": "Chiudi"
+    },
+    "next": {
+      "es": "Siguiente",
+      "it": "Avanti"
+    },
+    "finish": {
+      "es": "Acabado",
+      "it": "Finitura"
+    },
+    "loading": {
+      "es": "Cargando",
+      "it": "Caricamento"
+    },
+    "motion": {
+      "es": "Mueve el teléfono para mirar",
+      "it": "Muovi il telefono per guardare"
+    },
+    "debugStep": {
+      "es": "Paso copiado",
+      "it": "Passo copiato"
+    },
+    "debugHotspot": {
+      "es": "Acabado copiado",
+      "it": "Finitura copiata"
+    }
+  },
+  "levels": [
+    {
+      "id": "nivel-mar",
+      "name": {
+        "es": "Nivel mar",
+        "it": "Livello mare"
+      },
+      "elevation": 0,
+      "height": 3.3,
+      "outline": [],
+      "walls": [],
+      "voids": []
+    },
+    {
+      "id": "nivel-calle",
+      "name": {
+        "es": "Nivel calle",
+        "it": "Livello strada"
+      },
+      "elevation": 3.3,
+      "height": 3.2,
+      "outline": [],
+      "walls": []
+    }
+  ],
+  "site": {
+    "terrain": [],
+    "pool": [],
+    "deck": []
+  },
+  "route": [
+    "salon",
+    "cocina",
+    "escalera",
+    "dormitorio",
+    "dormitorio-cama",
+    "porche",
+    "pasaje",
+    "piscina"
+  ],
+  "scenes": [
+    {
+      "id": "fachada",
+      "level": "nivel-mar",
+      "intro": true,
+      "name": {
+        "es": "Fachada al mar",
+        "it": "Facciata sul mare"
+      },
+      "source": "19-facciata-crepuscolo-piscina.jpg",
+      "image": "/scenes/fachada",
+      "depth": "/depth/fachada.png",
+      "center": [
+        55,
+        50
+      ],
+      "steps": [],
+      "hotspots": []
+    },
+    {
+      "id": "salon",
+      "level": "nivel-mar",
+      "name": {
+        "es": "Salón",
+        "it": "Soggiorno"
+      },
+      "source": "08-soggiorno-doppia-altezza-vista-mare.jpg",
+      "image": "/scenes/salon",
+      "depth": "/depth/salon.png",
+      "center": [
+        62,
+        50
+      ],
+      "steps": [
+        {
+          "to": "cocina",
+          "x": 27,
+          "y": 56
+        },
+        {
+          "to": "escalera",
+          "x": 90,
+          "y": 60
+        },
+        {
+          "to": "porche",
+          "x": 60,
+          "y": 52
+        }
+      ],
+      "hotspots": [
+        {
+          "x": 72,
+          "y": 40,
+          "title": {
+            "es": "Ventanales de suelo a techo",
+            "it": "Vetrate a tutta altezza"
+          },
+          "text": {
+            "es": "Perfil negro mínimo: el golfo entra en el salón.",
+            "it": "Profilo nero minimo: il golfo entra in soggiorno."
+          },
+          "crop": [
+            0.5,
+            0.12,
+            0.36,
+            0.48
+          ]
+        },
+        {
+          "x": 82,
+          "y": 79,
+          "title": {
+            "es": "Chimenea lineal",
+            "it": "Camino lineare"
+          },
+          "text": {
+            "es": "La llama, encastrada en un bloque negro macizo.",
+            "it": "La fiamma, incassata in un blocco nero pieno."
+          },
+          "crop": [
+            0.7,
+            0.62,
+            0.24,
+            0.3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cocina",
+      "level": "nivel-mar",
+      "name": {
+        "es": "Cocina",
+        "it": "Cucina"
+      },
+      "source": "14-soggiorno-da-cucina.jpg",
+      "image": "/scenes/cocina",
+      "depth": "/depth/cocina.png",
+      "center": [
+        50,
+        50
+      ],
+      "steps": [
+        {
+          "to": "salon",
+          "x": 46,
+          "y": 66
+        },
+        {
+          "to": "escalera",
+          "x": 40,
+          "y": 46
+        }
+      ],
+      "hotspots": [
+        {
+          "x": 86,
+          "y": 73,
+          "title": {
+            "es": "Isla negra veteada",
+            "it": "Isola nera venata"
+          },
+          "text": {
+            "es": "Superficie negra con vetas blancas y frentes de madera.",
+            "it": "Superficie nera con venature bianche e frontali in legno."
+          },
+          "crop": [
+            0.68,
+            0.66,
+            0.32,
+            0.34
+          ]
+        },
+        {
+          "x": 50,
+          "y": 86,
+          "title": {
+            "es": "Roble en lamas anchas",
+            "it": "Rovere a doghe larghe"
+          },
+          "text": {
+            "es": "Roble natural mate: la luz dibuja cada lama.",
+            "it": "Rovere naturale opaco: la luce disegna ogni doga."
+          },
+          "crop": [
+            0.3,
+            0.72,
+            0.38,
+            0.28
+          ]
+        },
+        {
+          "x": 60,
+          "y": 47,
+          "title": {
+            "es": "Boiserie de madera",
+            "it": "Boiserie in legno"
+          },
+          "text": {
+            "es": "Paneles de suelo a techo que dan calidez a la doble altura.",
+            "it": "Pannelli a tutta altezza che scaldano la doppia altezza."
+          },
+          "crop": [
+            0.48,
+            0.4,
+            0.24,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "escalera",
+      "level": "nivel-mar",
+      "name": {
+        "es": "Escalera",
+        "it": "Scala"
+      },
+      "source": "24-scala-camino-verticale.jpg",
+      "image": "/scenes/escalera",
+      "depth": "/depth/escalera.png",
+      "center": [
+        55,
+        45
+      ],
+      "steps": [
+        {
+          "to": "salon",
+          "x": 12,
+          "y": 64
+        }
+      ],
+      "stairs": {
+        "to": "dormitorio",
+        "dir": "up",
+        "x": 70,
+        "y": 12,
+        "label": {
+          "es": "Subir",
+          "it": "Sali"
+        }
+      },
+      "hotspots": [
+        {
+          "x": 52,
+          "y": 38,
+          "title": {
+            "es": "Escalera de acero negro",
+            "it": "Scala in acciaio nero"
+          },
+          "text": {
+            "es": "Zancas de acero y peldaños de madera, suspendidos en el aire.",
+            "it": "Cosciali in acciaio e pedate in legno, sospesi nel vuoto."
+          },
+          "crop": [
+            0.36,
+            0.22,
+            0.48,
+            0.3
+          ]
+        },
+        {
+          "x": 47,
+          "y": 61,
+          "title": {
+            "es": "Chimenea lineal",
+            "it": "Camino lineare"
+          },
+          "text": {
+            "es": "La llama corre a lo largo del banco, bajo la escalera.",
+            "it": "La fiamma corre lungo la panca, sotto la scala."
+          },
+          "crop": [
+            0.28,
+            0.54,
+            0.4,
+            0.16
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dormitorio",
+      "level": "nivel-calle",
+      "name": {
+        "es": "Dormitorio principal",
+        "it": "Camera padronale"
+      },
+      "source": "28-camera-vetrata-soppalco.jpg",
+      "image": "/scenes/dormitorio",
+      "depth": "/depth/dormitorio.png",
+      "center": [
+        45,
+        50
+      ],
+      "steps": [
+        {
+          "to": "dormitorio-cama",
+          "x": 60,
+          "y": 84,
+          "label": {
+            "es": "Cama",
+            "it": "Letto"
+          }
+        }
+      ],
+      "stairs": {
+        "to": "escalera",
+        "dir": "down",
+        "x": 22,
+        "y": 74,
+        "label": {
+          "es": "Bajar",
+          "it": "Scendi"
+        }
+      },
+      "hotspots": [
+        {
+          "x": 38,
+          "y": 30,
+          "title": {
+            "es": "Ventanal sobre la doble altura",
+            "it": "Vetrata sulla doppia altezza"
+          },
+          "text": {
+            "es": "El dormitorio se asoma al salón a través del vidrio.",
+            "it": "La camera si affaccia sul soggiorno attraverso il vetro."
+          },
+          "crop": [
+            0.13,
+            0.03,
+            0.37,
+            0.9
+          ]
+        },
+        {
+          "x": 64,
+          "y": 45,
+          "title": {
+            "es": "Paneles pivotantes negros",
+            "it": "Pannelli girevoli neri"
+          },
+          "text": {
+            "es": "Puertas de suelo a techo que esconden el vestidor.",
+            "it": "Ante a tutta altezza che nascondono la cabina armadio."
+          },
+          "crop": [
+            0.54,
+            0.18,
+            0.24,
+            0.62
+          ]
+        },
+        {
+          "x": 82,
+          "y": 57,
+          "title": {
+            "es": "Cabecero con luz de lectura",
+            "it": "Testiera con luce da lettura"
+          },
+          "text": {
+            "es": "Panel negro sobre pared verde oliva, con luz integrada.",
+            "it": "Pannello nero su parete verde oliva, con luce integrata."
+          },
+          "crop": [
+            0.74,
+            0.4,
+            0.26,
+            0.38
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dormitorio-cama",
+      "level": "nivel-calle",
+      "name": {
+        "es": "Dormitorio principal",
+        "it": "Camera padronale"
+      },
+      "source": "29-camera-letto-pannelli.jpg",
+      "image": "/scenes/dormitorio-cama",
+      "depth": "/depth/dormitorio-cama.png",
+      "center": [
+        55,
+        50
+      ],
+      "steps": [
+        {
+          "to": "dormitorio",
+          "x": 15,
+          "y": 82,
+          "label": {
+            "es": "Ventanal",
+            "it": "Vetrata"
+          }
+        }
+      ],
+      "stairs": {
+        "to": "porche",
+        "dir": "down",
+        "x": 41,
+        "y": 56,
+        "label": {
+          "es": "Bajar a la terraza",
+          "it": "Scendi in terrazza"
+        }
+      },
+      "hotspots": [
+        {
+          "x": 62,
+          "y": 33,
+          "title": {
+            "es": "Verde oliva",
+            "it": "Verde oliva"
+          },
+          "text": {
+            "es": "Pintura mate y profunda que envuelve el dormitorio.",
+            "it": "Pittura opaca e profonda che avvolge la camera."
+          },
+          "crop": [
+            0.48,
+            0.2,
+            0.28,
+            0.36
+          ]
+        },
+        {
+          "x": 35,
+          "y": 90,
+          "title": {
+            "es": "Roble en todo el nivel",
+            "it": "Rovere su tutto il livello"
+          },
+          "text": {
+            "es": "Las mismas lamas del salón, sin interrupciones.",
+            "it": "Le stesse doghe del soggiorno, senza interruzioni."
+          },
+          "crop": [
+            0.26,
+            0.74,
+            0.3,
+            0.26
+          ]
+        }
+      ]
+    },
+    {
+      "id": "porche",
+      "level": "nivel-mar",
+      "name": {
+        "es": "Porche",
+        "it": "Portico"
+      },
+      "source": "02-portico-led-piscina-tramonto.jpg",
+      "image": "/scenes/porche",
+      "depth": "/depth/porche.png",
+      "center": [
+        55,
+        55
+      ],
+      "steps": [
+        {
+          "to": "salon",
+          "x": 92,
+          "y": 58
+        },
+        {
+          "to": "piscina",
+          "x": 52,
+          "y": 68
+        },
+        {
+          "to": "pasaje",
+          "x": 88,
+          "y": 72
+        }
+      ],
+      "hotspots": [
+        {
+          "x": 52,
+          "y": 20,
+          "title": {
+            "es": "Línea de luz cálida",
+            "it": "Linea di luce calda"
+          },
+          "text": {
+            "es": "LED continuo bajo el voladizo: la casa se enciende al atardecer.",
+            "it": "LED continuo sotto lo sbalzo: la casa si accende al tramonto."
+          },
+          "crop": [
+            0.36,
+            0.0,
+            0.36,
+            0.42
+          ]
+        },
+        {
+          "x": 74,
+          "y": 86,
+          "title": {
+            "es": "Losas efecto pizarra",
+            "it": "Lastre effetto ardesia"
+          },
+          "text": {
+            "es": "Gran formato gris oscuro, con textura de piedra natural.",
+            "it": "Grande formato grigio scuro, con texture di pietra naturale."
+          },
+          "crop": [
+            0.6,
+            0.7,
+            0.36,
+            0.3
+          ]
+        },
+        {
+          "x": 28,
+          "y": 90,
+          "title": {
+            "es": "Tarima de madera",
+            "it": "Deck in legno"
+          },
+          "text": {
+            "es": "Lamas cálidas alrededor del agua.",
+            "it": "Doghe calde intorno all'acqua."
+          },
+          "crop": [
+            0.0,
+            0.74,
+            0.4,
+            0.26
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pasaje",
+      "level": "nivel-mar",
+      "name": {
+        "es": "Pasaje de piedra",
+        "it": "Passaggio in pietra"
+      },
+      "source": "22-passaggio-pietra-cemento-tramonto.jpg",
+      "image": "/scenes/pasaje",
+      "depth": "/depth/pasaje.png",
+      "center": [
+        50,
+        50
+      ],
+      "steps": [
+        {
+          "to": "piscina",
+          "x": 46,
+          "y": 58
+        },
+        {
+          "to": "porche",
+          "x": 47,
+          "y": 90
+        }
+      ],
+      "hotspots": [
+        {
+          "x": 78,
+          "y": 45,
+          "title": {
+            "es": "Muro de piedra natural",
+            "it": "Muro in pietra naturale"
+          },
+          "text": {
+            "es": "Piedra local en hiladas irregulares, colocada a mano.",
+            "it": "Pietra locale a corsi irregolari, posata a mano."
+          },
+          "crop": [
+            0.6,
+            0.2,
+            0.4,
+            0.5
+          ]
+        },
+        {
+          "x": 18,
+          "y": 40,
+          "title": {
+            "es": "Hormigón visto de tablilla",
+            "it": "Cemento a vista con casseratura in tavole"
+          },
+          "text": {
+            "es": "La huella de la madera queda impresa en el muro.",
+            "it": "L'impronta del legno resta impressa nel muro."
+          },
+          "crop": [
+            0.0,
+            0.15,
+            0.36,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "piscina",
+      "level": "nivel-mar",
+      "final": true,
+      "name": {
+        "es": "Piscina desbordante",
+        "it": "Piscina a sfioro"
+      },
+      "source": "11-piscina-sfioro-tramonto-passi.jpg",
+      "image": "/scenes/piscina",
+      "depth": "/depth/piscina.png",
+      "center": [
+        45,
+        50
+      ],
+      "steps": [
+        {
+          "to": "porche",
+          "x": 50,
+          "y": 93
+        }
+      ],
+      "hotspots": [
+        {
+          "x": 42,
+          "y": 63,
+          "title": {
+            "es": "Piscina desbordante",
+            "it": "Piscina a sfioro"
+          },
+          "text": {
+            "es": "El borde desaparece: el agua se funde con el mar.",
+            "it": "Il bordo scompare: l'acqua si fonde con il mare."
+          },
+          "crop": [
+            0.1,
+            0.52,
+            0.6,
+            0.26
+          ]
+        },
+        {
+          "x": 37,
+          "y": 81,
+          "title": {
+            "es": "Pasos de piedra sobre el agua",
+            "it": "Passi in pietra sull'acqua"
+          },
+          "text": {
+            "es": "Losas oscuras que flotan hasta la tarima.",
+            "it": "Lastre scure che galleggiano fino al deck."
+          },
+          "crop": [
+            0.14,
+            0.74,
+            0.56,
+            0.14
+          ]
+        }
+      ]
+    }
+  ],
+  "contact": {
+    "whatsapp": "393461758562",
+    "email": "",
+    "cta": {
+      "es": "Agenda una visita",
+      "it": "Prenota una visita"
+    }
+  }
+}

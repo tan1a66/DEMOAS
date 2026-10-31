@@ -1,0 +1,23 @@
+{
+  "name": "villa-tm2-demo",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Villa TM2 (Gatti/Piu) — demo de experiencia inmersiva. Alessia Studio.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "images": "python3 scripts/images.py",
+    "depth": "/home/user/.venv-depth/bin/python scripts/depth.py"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "gsap": "^3.15.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}
