@@ -1,5 +1,9 @@
 # Villa Pedramar — piano di lavoro (passaggio di consegne tra sessioni)
 
+**Branch di lavoro: `claude/lucid-fermi-w7vjzy`** (repository tan1a66/DEMOAS). Se la sessione ha un altro branch
+assegnato, partire da questo: `git fetch origin claude/lucid-fermi-w7vjzy` e continuare da lì.
+La chiave Runpod è in `RUNPOD_API_KEY` (Alessia l'ha impostata nell'ambiente; permessi "All", credito 10–15 $).
+
 Leggere tutto prima di lavorare. Scrivere ad Alessia **in italiano**, frasi brevi e chiare.
 **Chiedere sempre ad Alessia quando c'è una scelta da fare** (richiesta esplicita, con AskUserQuestion).
 
@@ -55,6 +59,15 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
   Nota: `run` usa il Python del Pod; fetch_assets.py usa solo la libreria standard.
   **Spegnere il Pod quando non si renderizza.** Tenere traccia delle ore (budget 10–15 €).
 - In questo ambiente cloud (4 CPU) un'anteprima 960×640 del soggiorno richiede ~1 min; un finale ~1 h.
+
+## Cieli e asset scelti (render/fetch_assets.py)
+- MATTINA `qwantani_mid_morning_puresky`, TRAMONTO `qwantani_sunset_puresky`, NOTTE `qwantani_dusk_2_puresky`
+  (attenuato, ~0,1–0,2, con tutte le luci della casa accese). Sono HDRI di **solo cielo** della stessa serie:
+  terreno, mare (a ~60 m sotto la villa) e costa lontana vanno modellati. `white_cliff_top` resta per la prova del soggiorno.
+- Texture: rovere `laminate_floor_02`, boiserie `oak_veneer_01`, pietra `rustic_stone_wall_02`, cemento a vista
+  `concrete_layers_02`, lastre `granite_tile`, deck `wood_floor_deck`, terreno `dry_ground_rocks`, velluto `velour_velvet`.
+- Modelli: cespugli `shrub_01/02/04`, massi di granito `namaqualand_boulder_02/04`, pianta, vaso, libri.
+  Gli arredi di Poly Haven sono classici/vintage: divani, poltrone, sedie, letto vanno modellati (vedi salon.py).
 
 ## Riferimenti geometrici
 - `src/data/inventory.md`: lettura dei disegni (livelli, soppalco, scala, camere, piscina, pendenza) e finiture.
