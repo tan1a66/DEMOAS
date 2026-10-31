@@ -14,7 +14,8 @@ import { Motion } from '../input/motion.js';
   - goTo(): passo in avanti (spinta in scala e profondità + dissolvenza, ~0,8 s).
 */
 
-const STRENGTH = 0.022; // spostamento massimo (frazione della larghezza) tra profondità 0 e 1
+const STRENGTH = 0.016; // spostamento massimo (frazione della larghezza) tra profondità 0 e 1
+                        // (per scena si può scalare con "parallax" nel JSON, es. 0.8)
 const FOCUS = 0.35; // profondità che resta ferma
 const KB_AMPLITUDE = 0.05; // zoom massimo del Ken Burns
 const KB_PERIOD = 48; // secondi per un ciclo completo (avanti e indietro)
@@ -175,10 +176,12 @@ export class Viewer {
 
   #freshView(scene, asset) {
     const focus = scene.focus ?? FOCUS;
+    const strength = STRENGTH * (scene.parallax ?? 1);
     const c = scene.center || [50, 50];
     return {
       asset,
       focus,
+      strength,
       center: new Vector2(c[0] / 100, 1 - c[1] / 100),
       kbTime: 0,
       push: 0,
@@ -205,7 +208,7 @@ export class Viewer {
     const ia = view.asset.aspect;
     const cover = sa > ia ? new Vector2(1, ia / sa) : new Vector2(sa / ia, 1);
 
-    const m = STRENGTH * Math.max(view.focus, 1 - view.focus);
+    const m = view.strength * Math.max(view.focus, 1 - view.focus);
     view.margin.set(m, m * ia);
     const base = Math.max(1, cover.x / (1 - 2 * view.margin.x), cover.y / (1 - 2 * view.margin.y)) * 1.015;
 
@@ -214,7 +217,7 @@ export class Viewer {
     const zoom = base * (1 + kb);
     view.extent.set(cover.x / zoom, cover.y / zoom);
 
-    view.shift.set(-STRENGTH * this.head.x, -STRENGTH * this.head.y * ia);
+    view.shift.set(-view.strength * this.head.x, -view.strength * this.head.y * ia);
 
     // L'inquadratura resta dentro la foto, con il margine per la parallasse.
     const lx = view.extent.x / 2 + view.margin.x;

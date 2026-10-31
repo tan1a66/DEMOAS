@@ -66,7 +66,7 @@ def main():
             out = out.resize((round(w * s), round(h * s)), Image.LANCZOS)
         # Piccola dilatazione dei primi piani e ammorbidimento: i bordi degli oggetti vicini
         # si spostano interi e il visore non mostra gradini.
-        out = out.filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.GaussianBlur(1.2))
+        out = out.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(2.2))
         path = OUT / Path(scene["depth"]).name
         out.save(path, optimize=True)
         print(f"{scene['id']:16s} {w}x{h} -> {out.size[0]}x{out.size[1]}  {path.relative_to(ROOT)}")

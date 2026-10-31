@@ -33,7 +33,7 @@ Parametri utili nell'indirizzo:
 
 ## Stato
 - [x] Fase 1: immagini, inventario, lettura dei disegni, scene e navigazione
-- [ ] Fase 2: visore con parallasse, passi, finiture, debug — **manca la generazione delle mappe di profondità**
+- [x] Fase 2: mappe di profondità, visore con parallasse, passi, finiture, debug
 - [ ] Fase 3: plastico 3D e sequenza "Entrar"
 - [ ] Fase 4: sequenza della scala nel plastico in sezione
 - [ ] Fase 5: intro, finale, CTA, loader
