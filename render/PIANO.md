@@ -57,6 +57,9 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
   python3 render/runpod.py down          # SEMPRE alla fine: termina il Pod
   ```
   Nota: `run` usa il Python del Pod; fetch_assets.py usa solo la libreria standard.
+  Nota (31/10): il cloud COMMUNITY era vuoto per tutte le GPU; Alessia ha scelto **RTX 4090 SECURE (0,89 $/h)**:
+  `python3 render/runpod.py up --cloud SECURE`. Cloudflare blocca lo User-Agent "Python-urllib" (errore 1010):
+  runpod.py ora manda un User-Agent proprio.
   **Spegnere il Pod quando non si renderizza.** Tenere traccia delle ore (budget 10–15 €).
 - In questo ambiente cloud (4 CPU) un'anteprima 960×640 del soggiorno richiede ~1 min; un finale ~1 h.
 

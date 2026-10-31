@@ -31,6 +31,7 @@ REPO = ROOT.parent
 STATE = ROOT / ".runpod.json"
 API = "https://rest.runpod.io/v1"
 IMAGE = "nvidia/cuda:12.6.3-base-ubuntu24.04"
+UA = "villa-render/1.0 (+curl compatible)"  # Cloudflare rifiuta "Python-urllib" (errore 1010)
 
 
 def key():
@@ -44,6 +45,7 @@ def api(method, path, body=None):
     req = urllib.request.Request(API + path, method=method, data=json.dumps(body).encode() if body is not None else None)
     req.add_header("Authorization", f"Bearer {key()}")
     req.add_header("Content-Type", "application/json")
+    req.add_header("User-Agent", UA)
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             raw = r.read()
@@ -65,6 +67,7 @@ def farm(method, path, data=None, raw=False, timeout=600):
     url = f"https://{s['pod']}-8000.proxy.runpod.net{path}"
     req = urllib.request.Request(url, method=method, data=data)
     req.add_header("X-Token", s["token"])
+    req.add_header("User-Agent", UA)
     if isinstance(data, (bytes, bytearray)) and path.startswith("/run"):
         req.add_header("Content-Type", "application/json")
     try:
