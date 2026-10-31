@@ -62,7 +62,17 @@ export class Viewer {
 
     this.clock = performance.now();
     this.listeners = new Set();
-    this.renderer.setAnimationLoop(() => this.#frame());
+    this.active = false;
+    this.setActive(true);
+  }
+
+  /** Avvia o ferma il ciclo di disegno (quando è visibile il plastico le foto non si disegnano). */
+  setActive(on) {
+    if (on === this.active) return;
+    this.active = on;
+    this.motion.enabled = on;
+    if (on) this.clock = performance.now();
+    this.renderer.setAnimationLoop(on ? () => this.#frame() : null);
   }
 
   /** Callback a ogni frame (per i marcatori DOM). */
@@ -78,16 +88,37 @@ export class Viewer {
     return ids.filter((x) => this.scenes.has(x));
   }
 
-  async show(id) {
+  /** Precarica una scena (es. il soggiorno mentre si guarda il plastico). */
+  preload(id) {
+    const scene = this.scenes.get(id);
+    return scene ? this.cache.load(scene) : Promise.resolve(null);
+  }
+
+  /**
+   * Mostra una scena senza transizione. opts.arrive: la foto arriva con una spinta in avanti
+   * (entrata dal plastico).
+   */
+  async show(id, opts = {}) {
     const scene = this.scenes.get(id);
     if (!scene) throw new Error(`Escena desconocida: ${id}`);
     this.onLoading(true);
     const asset = await this.cache.load(scene);
     this.onLoading(false);
     this.front.setAsset(asset);
-    this.views.set(this.front, this.#freshView(scene, asset));
+    const view = this.#freshView(scene, asset);
+    this.views.set(this.front, view);
     this.front.uniforms.uOpacity.value = 1;
+    this.back.mesh.visible = false;
     this.current = id;
+    if (opts.arrive) {
+      view.pushCenter.copy(view.center);
+      view.push = opts.arrive === 'boom' ? -0.32 : -0.16;
+      this.busy = true;
+      gsap.to(view, {
+        push: 0, duration: opts.arrive === 'boom' ? 1.6 : 1.1, ease: 'power3.out',
+        onComplete: () => { this.busy = false; this.motion.touch(); },
+      });
+    }
     this.#afterChange();
   }
 

@@ -10,8 +10,15 @@
   </head>
   <body>
     <div id="app">
-      <canvas id="gl" aria-hidden="true"></canvas>
-      <div id="markers" class="markers"></div>
+      <div id="photo" class="stage stage--photo">
+        <canvas id="gl" aria-hidden="true"></canvas>
+        <div id="markers" class="markers"></div>
+      </div>
+      <div id="model" class="stage stage--model">
+        <canvas id="plastico" aria-hidden="true"></canvas>
+        <div id="map-markers" class="markers"></div>
+      </div>
+      <div id="flash" class="flash" aria-hidden="true"></div>
       <div id="ui" class="ui"></div>
     </div>
     <script type="module" src="/src/main.js"></script>

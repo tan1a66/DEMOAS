@@ -45,9 +45,23 @@ export class Chrome {
 
   setScene(scene) {
     this.scene = scene;
-    const where = this.$('.where');
-    gsap.fromTo(where, { autoAlpha: 0, y: -4 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' });
+    this.place = null;
+    this.#reveal();
     this.refreshLang();
+  }
+
+  /** Indicatore libero (es. Exterior · Maqueta sul plastico). */
+  setPlace(level, room) {
+    const changed = !this.place || this.place[0] !== level || this.place[1] !== room;
+    this.scene = null;
+    this.place = [level, room];
+    this.$('.where__level').textContent = level;
+    this.$('.where__room').textContent = room;
+    if (changed) this.#reveal();
+  }
+
+  #reveal() {
+    gsap.fromTo(this.$('.where'), { autoAlpha: 0, y: -4 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' });
   }
 
   refreshLang() {
