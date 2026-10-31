@@ -24,11 +24,33 @@ def B(x, y, z):
 
 # ---------------------------------------------------------------- scena
 
+def use_gpu():
+    """Usa la GPU se c'è (OptiX, poi CUDA); altrimenti CPU. Restituisce il tipo scelto."""
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+    except KeyError:
+        return "CPU"
+    for kind in ("OPTIX", "CUDA"):
+        try:
+            prefs.compute_device_type = kind
+            prefs.get_devices()
+        except Exception:  # noqa: BLE001
+            continue
+        devs = [d for d in prefs.devices if d.type == kind]
+        if devs:
+            for d in prefs.devices:
+                d.use = d.type == kind
+            bpy.context.scene.cycles.device = "GPU"
+            return kind
+    bpy.context.scene.cycles.device = "CPU"
+    return "CPU"
+
+
 def reset(samples=256, res=(1600, 1067)):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.engine = "CYCLES"
-    sc.cycles.device = "CPU"
+    print("Dispositivo di render:", use_gpu())
     sc.cycles.samples = samples
     sc.cycles.use_adaptive_sampling = True
     sc.cycles.adaptive_threshold = 0.015
