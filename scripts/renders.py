@@ -1,7 +1,7 @@
 """Prepara i render di Blender per il sito (public/renders/).
 
 Da render/out/ (scaricati dal Pod) produce:
-  - giro esterno: public/renders/orbit/<ora>/1920/fNN.jpg e .../1280/fNN.jpg
+  - giro esterno: public/renders/orbit/<ora>/1920/fNN.webp e .../1280/fNN.webp
   - panorami:     public/renders/pano/<id>_<ora>.jpg (4096×2048, per tutti)
                   public/renders/pano/<id>_<ora>_full.jpg (risoluzione piena, per i desktop che la reggono)
   - finiture:     public/renders/crops/<id>-<n>.jpg, vista prospettica ravvicinata (dal panorama al tramonto)
@@ -29,6 +29,11 @@ def save(im, path, q):
     im.save(path, "JPEG", quality=q, optimize=True, progressive=True, subsampling="4:2:0")
 
 
+def webp(im, path, q):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    im.save(path, "WEBP", quality=q, method=6)
+
+
 def orbit(suffix):
     for t in R["times"]:
         src = OUT / f"orbit_{t}{suffix}"
@@ -39,8 +44,9 @@ def orbit(suffix):
             w, h = R["orbit"]["size"]
             if im.size != (w, h):
                 im = im.resize((w, h), Image.LANCZOS)
-            save(im, PUB / "orbit" / t / "1920" / f.name, 82)
-            save(im.resize((1280, 720), Image.LANCZOS), PUB / "orbit" / t / "1280" / f.name, 80)
+            name = f.with_suffix(".webp").name
+            webp(im, PUB / "orbit" / t / "1920" / name, 80)
+            webp(im.resize((1280, 720), Image.LANCZOS), PUB / "orbit" / t / "1280" / name, 78)
         print("giro", t, len(list(src.glob("f*.jpg"))), "fotogrammi")
 
 
@@ -84,7 +90,7 @@ def panos(suffix):
             if not f.exists():
                 continue
             im = Image.open(f).convert("RGB")
-            save(im, PUB / "pano" / f"{p['id']}_{t}_full.jpg", 80)
+            save(im, PUB / "pano" / f"{p['id']}_{t}_full.jpg", 72)
             small = im if im.width <= 4096 else im.resize((4096, 2048), Image.LANCZOS)
             save(small, PUB / "pano" / f"{p['id']}_{t}.jpg", 82)
             print("panorama", p["id"], t, im.size)

@@ -15,6 +15,7 @@ const dropSources = () => ({
 });
 
 export default defineConfig({
+  base: './',
   resolve: { dedupe: ['three'] },
   server: { host: 'localhost' },
   build: { target: 'es2020', assetsInlineLimit: 0 },

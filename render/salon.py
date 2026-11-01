@@ -171,7 +171,7 @@ def living(M):
     for z in (2.98, 3.72):
         box(f"TavTraversa{z}", 2.18, 3.42, 0.34, 0.36, z - 0.012, z + 0.012, M["steel"], bevel=0.001)
     # oggetti sul tavolino e sulla panca (Poly Haven, CC0)
-    lib.append_model("decorative_book_set_01", (3.05, 0.38, 3.5), rot_deg=8, scale=0.3)
+    book_stack(3.05, 0.38, 3.42)
     lib.append_model("ceramic_vase_01", (2.45, 0.38, 3.2), rot_deg=0, scale=0.8)
     lib.append_model("potted_plant_04", (3.85, 0.42, 0.65), rot_deg=30, scale=1.0)
 
@@ -180,6 +180,32 @@ def living(M):
     # Poltrone in velluto vicino alla vetrata, rivolte verso il soggiorno
     armchair(M, "PoltronaN", 1.2, 2.3, facing_deg=-10)
     armchair(M, "PoltronaS", 1.2, 3.65, facing_deg=10)
+
+
+def book_stack(x, y, z, picks=("book_hardcover_01_cover34", "book_softcover_01_cover12", "book_hardcover_01_cover80"),
+               twist_deg=12):
+    """Pila di tre libri appoggiati in piano sul tavolino (dal set Poly Haven, che è una fila di ~60 libri:
+    intero sborda dal tavolo). Ogni libro viene ruotato in piano e appoggiato sul precedente."""
+    d = lib.ASSETS / "models" / "decorative_book_set_01"
+    blend = next(d.glob("*.blend"))
+    with bpy.data.libraries.load(str(blend), link=False) as (src, dst):
+        dst.objects = [n for n in src.objects if n in picks]
+    top = y
+    for k, ob in enumerate(o for o in dst.objects if o is not None):
+        bpy.context.scene.collection.objects.link(ob)
+        ob.parent = None
+        ob.location = (0, 0, 0)
+        ob.rotation_euler = (0, math.radians(90), math.radians(twist_deg + (k - 1) * 9))
+        bpy.context.view_layer.update()
+        from mathutils import Vector
+        pts = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        cx = sum(p.x for p in pts) / 8
+        cy = sum(p.y for p in pts) / 8
+        zmin = min(p.z for p in pts)
+        zmax = max(p.z for p in pts)
+        target = B(x + (k - 1) * 0.012, top, z + (k - 1) * 0.01)
+        ob.location = (target.x - cx, target.y - cy, target.z - zmin)
+        top += zmax - zmin
 
 
 def sofa(M, name, x0, x1, z_back, depth, facing, xw=None):

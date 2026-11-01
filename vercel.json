@@ -5,7 +5,7 @@
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
     {
-      "source": "/(scenes|depth|crops)/(.*)",
+      "source": "/renders/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
     }
   ]

@@ -38,7 +38,7 @@ export class OrbitView {
   }
 
   url(time, i) {
-    return asset(`/renders/orbit/${time}/${this.res}/f${String(i).padStart(2, '0')}.jpg`);
+    return asset(`/renders/orbit/${time}/${this.res}/f${String(i).padStart(2, '0')}.webp`);
   }
 
   /** Carica le immagini di un'ora del giorno, dal fotogramma più vicino a quello visibile. */
