@@ -35,19 +35,48 @@ def webp(im, path, q):
 
 
 def orbit(suffix):
+    """Giro: 96 fotogrammi (orbit96_<ora>); se mancano, i pari si prendono dal giro a 48 (orbit_<ora>)."""
+    n = R["orbit"]["frames"]
     for t in R["times"]:
-        src = OUT / f"orbit_{t}{suffix}"
-        if not src.is_dir():
-            continue
-        for f in sorted(src.glob("f*.jpg")):
+        done = 0
+        for k in range(n):
+            f = OUT / f"orbit96_{t}{suffix}" / f"f{k:02d}.jpg"
+            if not f.exists() and k % 2 == 0:
+                f = OUT / f"orbit_{t}{suffix}" / f"f{k // 2:02d}.jpg"
+            if not f.exists():
+                continue
             im = Image.open(f).convert("RGB")
-            w, h = R["orbit"]["size"]
-            if im.size != (w, h):
-                im = im.resize((w, h), Image.LANCZOS)
-            name = f.with_suffix(".webp").name
-            webp(im, PUB / "orbit" / t / "1920" / name, 80)
-            webp(im.resize((1280, 720), Image.LANCZOS), PUB / "orbit" / t / "1280" / name, 78)
-        print("giro", t, len(list(src.glob("f*.jpg"))), "fotogrammi")
+            name = f"f{k:02d}.webp"
+            webp(im.resize((1600, 900), Image.LANCZOS), PUB / "orbit" / t / "1600" / name, 78)
+            webp(im.resize((1024, 576), Image.LANCZOS), PUB / "orbit" / t / "1024" / name, 75)
+            done += 1
+        print("giro", t, done, "fotogrammi")
+
+
+def flight():
+    """Volo di arrivo: fotogrammi -> MP4 H.264 (30 fps) per il web."""
+    import subprocess
+    for t in R.get("flight", {}).get("times", []):
+        src = OUT / f"flight_{t}"
+        if not (src / "f000.jpg").exists():
+            continue
+        dst = PUB / "flight" / f"flight_{t}.mp4"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "30", "-i", str(src / "f%03d.jpg"),
+                        "-c:v", "libx264", "-preset", "slow", "-crf", "22", "-pix_fmt", "yuv420p",
+                        "-movflags", "+faststart", "-an", str(dst)], check=True)
+        print("volo", t, f"{dst.stat().st_size / 1e6:.1f} MB")
+        if t == "sunset":   # anteprima per WhatsApp e social (1200×630)
+            im = Image.open(src / "f100.jpg").convert("RGB").resize((1200, 675), Image.LANCZOS)
+            save(im.crop((0, 22, 1200, 652)), ROOT / "public" / "og.jpg", 86)
+
+
+def sections():
+    for t in R["times"]:
+        f = OUT / f"section_{t}.jpg"
+        if f.exists():
+            save(Image.open(f).convert("RGB"), PUB / "section" / f"section_{t}.jpg", 85)
+            print("sezione", t)
 
 
 def perspective(eq, pano, point, out_w=1200, out_h=800, hfov_deg=48.0):
@@ -90,9 +119,9 @@ def panos(suffix):
             if not f.exists():
                 continue
             im = Image.open(f).convert("RGB")
-            save(im, PUB / "pano" / f"{p['id']}_{t}_full.jpg", 72)
+            webp(im, PUB / "pano" / f"{p['id']}_{t}_full.webp", 76)
             small = im if im.width <= 4096 else im.resize((4096, 2048), Image.LANCZOS)
-            save(small, PUB / "pano" / f"{p['id']}_{t}.jpg", 82)
+            webp(small, PUB / "pano" / f"{p['id']}_{t}.webp", 80)
             print("panorama", p["id"], t, im.size)
         # ritagli delle finiture: dal tramonto (o dalla prima ora disponibile)
         srcs = [OUT / f"pano_{p['id']}_{t}{suffix}.jpg" for t in ("sunset", "morning", "night")]
@@ -108,13 +137,17 @@ def panos(suffix):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preview", action="store_true")
-    ap.add_argument("--only", choices=["orbit", "pano"], default=None)
+    ap.add_argument("--only", choices=["orbit", "pano", "flight", "section"], default=None)
     a = ap.parse_args()
     suffix = "_preview" if a.preview else ""
     if a.only in (None, "orbit"):
         orbit(suffix)
     if a.only in (None, "pano"):
         panos(suffix)
+    if a.only in (None, "flight"):
+        flight()
+    if a.only in (None, "section"):
+        sections()
 
 
 if __name__ == "__main__":

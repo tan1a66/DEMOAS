@@ -8,8 +8,8 @@ import { orbitCamera, projectOrbit, faces } from './geo.js';
   da quello visibile, prima nella versione leggera (1280) se lo schermo è piccolo.
 */
 
-const PX_PER_FRAME = 16;
-const AUTO_SPEED = 0.55; // fotogrammi al secondo quando nessuno tocca
+const PX_PER_FRAME = 9;
+const AUTO_SPEED = 1.1; // fotogrammi al secondo quando nessuno tocca (96 per giro)
 const IDLE_MS = 3500;
 
 export class OrbitView {
@@ -28,7 +28,7 @@ export class OrbitView {
     this.lastInput = 0;
     this.fade = null;       // dissolvenza tra due ore del giorno
     const big = Math.max(screen.width, screen.height) * Math.min(devicePixelRatio || 1, 2) > 1700;
-    this.res = big ? 1920 : 1280;
+    this.res = big ? 1600 : 1024;
     this.#bind();
     this.resize();
     addEventListener('resize', () => this.resize());

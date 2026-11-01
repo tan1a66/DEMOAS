@@ -12,6 +12,9 @@ import { asset } from './asset.js';
 import { OrbitView } from './render/OrbitView.js';
 import { PanoView } from './render/PanoView.js';
 import { Hud } from './render/Hud.js';
+import { Ambience } from './render/Ambience.js';
+import { Rooms } from './render/Rooms.js';
+import { Section } from './render/Section.js';
 import { Panel } from './ui/panel.js';
 import { Chrome } from './ui/chrome.js';
 
@@ -48,7 +51,16 @@ uiRoot.insertAdjacentHTML('beforeend', `
   <button type="button" class="btn-map btn-exterior" hidden><span class="btn-exterior__icon" aria-hidden="true"></span><span class="btn-map__label"></span></button>
   <a class="cta-visit" target="_blank" rel="noopener"><span></span></a>
   <p class="hint" aria-live="polite"></p>
+  <button type="button" class="btn-sound" aria-pressed="false"><span class="btn-sound__bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
 `);
+const btnSound = uiRoot.querySelector('.btn-sound');
+const flightVideo = document.createElement('video');
+flightVideo.className = 'flight';
+flightVideo.muted = true;
+flightVideo.playsInline = true;
+flightVideo.setAttribute('playsinline', '');
+flightVideo.preload = 'auto';
+document.getElementById('app').insertBefore(flightVideo, flash);
 const timesNav = uiRoot.querySelector('.times');
 const btnExterior = uiRoot.querySelector('.btn-exterior');
 const ctaVisit = uiRoot.querySelector('.cta-visit');
@@ -68,6 +80,57 @@ const hudOrbit = new Hud(document.getElementById('orbit-markers'));
 const hudPano = new Hud(document.getElementById('pano-markers'));
 orbit.onInteract = () => hideHint();
 pano.onInteract = () => hideHint();
+
+const ambience = new Ambience();
+const section = new Section(uiRoot);
+const rooms = new Rooms(uiRoot, R.panos, { onPick: (id) => pickRoom(id) });
+
+function soundUi() {
+  btnSound.classList.toggle('is-on', ambience.on);
+  btnSound.setAttribute('aria-pressed', String(ambience.on));
+  btnSound.setAttribute('aria-label', ui('sound'));
+}
+// il suono parte al primo gesto (regola dei browser); il pulsante lo spegne e lo riaccende
+let soundWanted = true;
+const firstGesture = () => {
+  removeEventListener('pointerdown', firstGesture, true);
+  if (soundWanted) { ambience.start(); ambience.setTime(state.time); soundUi(); }
+};
+addEventListener('pointerdown', firstGesture, true);
+btnSound.addEventListener('pointerdown', (e) => e.stopPropagation());
+btnSound.addEventListener('click', (e) => {
+  e.stopPropagation();
+  removeEventListener('pointerdown', firstGesture, true);
+  soundWanted = ambience.toggle();
+  ambience.setTime(state.time);
+  soundUi();
+});
+
+const OUTDOOR = new Set(['terrazza', 'passaggio']);
+
+/** Dall'elenco degli ambienti. */
+async function pickRoom(id) {
+  if (state.busy) return;
+  if (id === 'section') { section.open(state.time); rooms.setActive('section'); return; }
+  section.close();
+  if (id === 'exterior') { if (state.mode !== 'orbit') toOrbit(); return; }
+  if (state.mode === 'orbit') { enterPano(id, R.orbit.entries.find((e) => e.to === id)?.at); return; }
+  if (pano.current?.pano.id === id) return;
+  state.busy = true;
+  panel.close();
+  hudPano.setVisible(false);
+  chrome.loading(true);
+  try {
+    const p = await pano.jump(id);
+    if (p) arrived(p);
+  } catch (e) {
+    chrome.toast(String(e.message || e), 6000);
+  }
+  chrome.loading(false);
+  hudPano.setVisible(true);
+  state.busy = false;
+}
+section.onClose = () => rooms.setActive(state.mode === 'pano' ? pano.current?.pano.id : 'exterior');
 
 const nextSuggested = () => route.find((id) => !state.visited.has(id)) || null;
 
@@ -101,6 +164,7 @@ function refreshTexts() {
   ctaVisit.querySelector('span').textContent = t(data.contact.cta);
   if (state.mode === 'orbit') chrome.setPlace(ui('exterior'), ui(state.time));
   if (state.mode === 'pano') setWhere(pano.current.pano);
+  soundUi();
 }
 
 function setWhere(p) {
@@ -112,6 +176,8 @@ async function setTime(time) {
   if (time === state.time || state.busy) return;
   state.time = time;
   refreshTexts();
+  ambience.setTime(time);
+  section.setTime(time);
   chrome.loading(true);
   try {
     if (state.mode === 'pano') await pano.setTime(time);
@@ -136,15 +202,79 @@ function setPanoHud(p) {
 
 function arrived(p) {
   state.visited.add(p.id);
+  rooms.setActive(p.id);
+  ambience.setIndoor(!OUTDOOR.has(p.id));
   setWhere(p);
   setPanoHud(p);
   ctaVisit.classList.toggle('is-final', !!p.final);
   (p.links || []).forEach((l) => pano.preload(l.to, state.time));
 }
 
+/** Campo verticale (gradi) con cui si vede il video a tutto schermo ("cover"). */
+function flightFov() {
+  const F = R.flight;
+  const [w, h] = F.size;
+  const vNative = 2 * Math.atan((F.sensor / 2) * (h / w) / F.lens);
+  const aspect = innerWidth / innerHeight;
+  if (aspect <= w / h) return (vNative * 180) / Math.PI;
+  const hNative = 2 * Math.atan(F.sensor / 2 / F.lens);
+  return (2 * Math.atan(Math.tan(hNative / 2) / aspect) * 180) / Math.PI;
+}
+
+/** Volo di arrivo renderizzato: dal mare fino al soggiorno, poi il panorama prende il posto del video. */
+async function playFlight(at) {
+  const F = R.flight;
+  state.busy = true;
+  panel.close();
+  hudOrbit.setVisible(false);
+  chrome.loading(true);
+  const tex = pano.texture(F.to, state.time);
+  flightVideo.src = asset(`/renders/flight/flight_${state.time}.mp4`);
+  const ready = new Promise((resolve, reject) => {
+    flightVideo.oncanplaythrough = resolve;
+    flightVideo.onerror = () => reject(new Error('video'));
+  });
+  flightVideo.load();
+  const sp = at ? orbit.project(at) : null;
+  if (sp) stageOrbit.style.transformOrigin = `${sp.x}px ${sp.y}px`;
+  gsap.to(stageOrbit, { scale: 1.25, duration: 1.2, ease: 'power2.in' });
+  try {
+    await Promise.all([ready, tex]);
+    await flightVideo.play();
+  } catch {
+    chrome.loading(false);
+    state.busy = false;
+    gsap.set(stageOrbit, { scale: 1 });
+    return enterPano(F.to, at, { noFlight: true });
+  }
+  chrome.loading(false);
+  gsap.fromTo(flightVideo, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7, ease: 'power2.out' });
+  rooms.setDisabled(true);
+  await new Promise((resolve) => { flightVideo.onended = resolve; });
+  const p = await pano.show(F.to, state.time, { lookAt: F.look, fovDeg: flightFov() });
+  pano.setActive(true);
+  gsap.set(stagePano, { autoAlpha: 1 });
+  gsap.set(stageOrbit, { autoAlpha: 0, scale: 1 });
+  orbit.setActive(false);
+  state.mode = 'pano';
+  arrived(p);
+  gsap.to(pano, { zoom: 1, duration: 1.8, ease: 'power2.inOut', delay: 0.15 });
+  await gsap.to(flightVideo, { autoAlpha: 0, duration: 0.5, ease: 'power1.inOut' }).then();
+  flightVideo.removeAttribute('src');
+  flightVideo.load();
+  rooms.setDisabled(false);
+  btnExterior.hidden = false;
+  gsap.fromTo(btnExterior, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 });
+  hudPano.setVisible(true);
+  showHint('pano');
+  state.busy = false;
+  return p;
+}
+
 /** Dall'esterno a una stanza: avvicinamento sul giro, lampo caldo, panorama. */
-async function enterPano(id, at) {
+async function enterPano(id, at, { noFlight } = {}) {
   if (state.busy) return;
+  if (!noFlight && R.flight && id === R.flight.to && R.flight.times.includes(state.time)) return playFlight(at);
   state.busy = true;
   panel.close();
   hudOrbit.setVisible(false);
@@ -216,6 +346,8 @@ async function toOrbit() {
   btnExterior.hidden = true;
   ctaVisit.classList.remove('is-final');
   hudOrbit.setVisible(true);
+  rooms.setActive('exterior');
+  ambience.setIndoor(false);
   showHint('orbit');
   state.busy = false;
 }
@@ -227,6 +359,8 @@ onLang(() => {
   hudOrbit.refreshLang();
   hudPano.refreshLang();
   panel.refreshLang();
+  rooms.refreshLang();
+  section.refreshLang();
   refreshTexts();
 });
 

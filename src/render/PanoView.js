@@ -56,7 +56,7 @@ export class PanoView {
   }
 
   url(id, time) {
-    return asset(`/renders/pano/${id}_${time}${this.full ? '_full' : ''}.jpg`);
+    return asset(`/renders/pano/${id}_${time}${this.full ? '_full' : ''}.webp`);
   }
 
   texture(id, time) {
@@ -99,7 +99,19 @@ export class PanoView {
   preload(id, time) { return this.texture(id, time).catch(() => {}); }
 
   /** Mostra un panorama (all'ingresso dall'esterno). */
-  async show(id, time, { lookAt } = {}) {
+  /** Sguardo iniziale: lookAt esplicito, altrimenti il punto "start" del panorama, altrimenti "look". */
+  startView(pano, lookAt) {
+    if (lookAt) return lonLatTo(pano, lookAt);
+    if (pano.start) return lonLatTo(pano, pano.start);
+    return lookLonLat(pano);
+  }
+
+  /** Ingrandimento che dà un campo verticale di fovDeg (per raccordarsi con l'ultimo fotogramma del video). */
+  zoomForFov(fovDeg) {
+    return Math.tan(THREE.MathUtils.degToRad(this.baseFov) / 2) / Math.tan(THREE.MathUtils.degToRad(fovDeg) / 2);
+  }
+
+  async show(id, time, { lookAt, fovDeg } = {}) {
     const pano = this.panos.get(id);
     const tex = await this.texture(id, time);
     const s = this.spheres[this.front];
@@ -108,12 +120,12 @@ export class PanoView {
     s.rotation.y = panoYaw(pano);
     s.material.opacity = 1;
     this.spheres[1 - this.front].material.opacity = 0;
-    const look = lookAt ? lonLatTo(pano, lookAt) : lookLonLat(pano);
+    const look = this.startView(pano, lookAt);
     this.lon = look.lon;
     this.lat = clamp(look.lat, -0.35, 0.35);
     this.vlon = this.vlat = 0;
     this.current = { pano, time };
-    this.zoom = 1;
+    this.zoom = fovDeg ? this.zoomForFov(fovDeg) : 1;
     return pano;
   }
 
@@ -147,13 +159,56 @@ export class PanoView {
     tl.to(this, { zoom: 1.35, duration: 0.55, ease: 'power2.in' });
     tl.to(b.material, { opacity: 1, duration: 0.5, ease: 'power1.inOut' }, 0.25);
     tl.call(() => {
-      // la direzione di arrivo: si continua a guardare dove si andava
+      // la direzione di arrivo: si continua a guardare dove si andava (o verso il punto "start" della stanza)
       this.current = { pano: to, time };
       this.lat = clamp(this.lat * 0.4, -0.2, 0.2);
     });
     tl.to(this, { zoom: 1, duration: 0.7, ease: 'power2.out' });
+    if (to.start) {
+      const sv = lonLatTo(to, to.start);
+      tl.add(() => {
+        let d = sv.lon - this.lon;
+        d = Math.atan2(Math.sin(d), Math.cos(d));
+        gsap.to(this, { lon: this.lon + d, lat: clamp(sv.lat, -0.3, 0.2), duration: 1.2, ease: 'power2.inOut' });
+      }, '-=0.5');
+    }
     await tl.then();
     a.material.opacity = 0;
+    this.front = 1 - this.front;
+    this.busy = false;
+    return to;
+  }
+
+  /** Salto diretto a una stanza (dall'elenco degli ambienti): spinta, buio breve, arrivo. */
+  async jump(id) {
+    if (this.busy || !this.current) return null;
+    this.busy = true;
+    const { time } = this.current;
+    const to = this.panos.get(id);
+    const texP = this.texture(id, time);
+    const a = this.spheres[this.front];
+    const b = this.spheres[1 - this.front];
+    await gsap.timeline()
+      .to(this, { zoom: 1.2, duration: 0.45, ease: 'power2.in' })
+      .to(a.material, { opacity: 0, duration: 0.35, ease: 'power1.in' }, 0.1)
+      .then();
+    let tex;
+    try { tex = await texP; } catch (e) { a.material.opacity = 1; this.zoom = 1; this.busy = false; throw e; }
+    b.material.map = tex;
+    b.material.needsUpdate = true;
+    b.rotation.y = panoYaw(to);
+    b.renderOrder = 2;
+    a.renderOrder = 1;
+    const sv = this.startView(to);
+    this.lon = sv.lon;
+    this.lat = clamp(sv.lat, -0.35, 0.35);
+    this.vlon = this.vlat = 0;
+    this.current = { pano: to, time };
+    this.zoom = 1.15;
+    await gsap.timeline()
+      .to(b.material, { opacity: 1, duration: 0.5, ease: 'power1.out' })
+      .to(this, { zoom: 1, duration: 0.8, ease: 'power2.out' }, 0)
+      .then();
     this.front = 1 - this.front;
     this.busy = false;
     return to;

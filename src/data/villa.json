@@ -106,6 +106,22 @@
     "renderNote": {
       "es": "Imágenes generadas por ordenador",
       "it": "Immagini generate al computer"
+    },
+    "rooms": {
+      "es": "Ambientes",
+      "it": "Ambienti"
+    },
+    "section": {
+      "es": "Sección",
+      "it": "Sezione"
+    },
+    "sectionTitle": {
+      "es": "La villa en sección: los dos niveles, la doble altura y la piscina",
+      "it": "La villa in sezione: i due livelli, la doppia altezza e la piscina"
+    },
+    "sound": {
+      "es": "Sonido",
+      "it": "Suono"
     }
   },
   "plastico_note": "Modello esterno notturno. Metri: x = da ovest (mare) a est (strada), z = da nord a sud, y = quota; x=0 facciata sul mare, z=0 lato nord del livello strada, y=0 pavimento del livello mare. Misure da pianta D1 (circa 19,2 px/m), prospetti, foto e video del drone: modello semplificato.",
@@ -2965,7 +2981,7 @@
     ],
     "defaultTime": "sunset",
     "orbit": {
-      "frames": 48,
+      "frames": 96,
       "center": [
         2.5,
         3.2,
@@ -3145,7 +3161,11 @@
               "it": "Sei metri di luce, con un anello LED sospeso."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Salón",
+          "it": "Soggiorno"
+        }
       },
       {
         "id": "cucina",
@@ -3259,7 +3279,11 @@
               "it": "Tavolo nero, sedie in velluto senape e luce lineare."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Cocina",
+          "it": "Cucina"
+        }
       },
       {
         "id": "ballatoio",
@@ -3328,7 +3352,11 @@
               "it": "Dall'alto, il mare entra dalle vetrate dei due livelli."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Galería",
+          "it": "Ballatoio"
+        }
       },
       {
         "id": "camera",
@@ -3431,7 +3459,11 @@
           5.7,
           4.3,
           7.5
-        ]
+        ],
+        "short": {
+          "es": "Dormitorio",
+          "it": "Camera"
+        }
       },
       {
         "id": "bagno",
@@ -3506,7 +3538,11 @@
               "it": "Vetro senza telaio e soffione a soffitto."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Baño",
+          "it": "Bagno"
+        }
       },
       {
         "id": "terrazza",
@@ -3620,7 +3656,11 @@
               "it": "Doghe calde intorno all'acqua."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Terraza",
+          "it": "Terrazza"
+        }
       },
       {
         "id": "passaggio",
@@ -3680,8 +3720,30 @@
               "it": "L'impronta del legno resta impressa nel muro."
             }
           }
-        ]
+        ],
+        "short": {
+          "es": "Pasaje",
+          "it": "Passaggio"
+        }
       }
-    ]
+    ],
+    "flight": {
+      "times": [
+        "sunset",
+        "night"
+      ],
+      "to": "soggiorno",
+      "look": [
+        14.0,
+        1.45,
+        3.3
+      ],
+      "lens": 22.0,
+      "sensor": 36.0,
+      "size": [
+        1280,
+        720
+      ]
+    }
   }
 }

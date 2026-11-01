@@ -14,10 +14,16 @@ const dropSources = () => ({
   },
 });
 
+// Anteprima per WhatsApp e social: og:image vuole l'indirizzo completo. SITE_URL=https://... npm run build
+const siteUrl = () => ({
+  name: 'site-url',
+  transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', (process.env.SITE_URL || '').replace(/\/$/, '')),
+});
+
 export default defineConfig({
   base: './',
   resolve: { dedupe: ['three'] },
   server: { host: 'localhost' },
   build: { target: 'es2020', assetsInlineLimit: 0 },
-  plugins: [dropSources()],
+  plugins: [siteUrl(), dropSources()],
 });
