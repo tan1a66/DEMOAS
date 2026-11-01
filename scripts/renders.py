@@ -70,6 +70,7 @@ def flight():
                         "-c:v", "libvpx-vp9", "-crf", "34", "-b:v", "0", "-row-mt", "1", "-pix_fmt", "yuv420p",
                         "-an", str(webm)], check=True)
         print("volo", t, f"{dst.stat().st_size / 1e6:.1f} MB + webm {webm.stat().st_size / 1e6:.1f} MB")
+        save(Image.open(src / "f000.jpg").convert("RGB"), dst.parent / f"poster_{t}.jpg", 82)   # primo fotogramma (intro)
         if t == "sunset":   # anteprima per WhatsApp e social (1200×630)
             im = Image.open(src / "f100.jpg").convert("RGB").resize((1200, 675), Image.LANCZOS)
             save(im.crop((0, 22, 1200, 652)), ROOT / "public" / "og.jpg", 86)

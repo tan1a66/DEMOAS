@@ -14,7 +14,8 @@ import { PanoView } from './render/PanoView.js';
 import { Hud } from './render/Hud.js';
 import { Ambience } from './render/Ambience.js';
 import { Rooms } from './render/Rooms.js';
-import { Section } from './render/Section.js';
+import { InteriorMap } from './render/InteriorMap.js';
+import { Intro } from './render/Intro.js';
 import { Panel } from './ui/panel.js';
 import { Chrome } from './ui/chrome.js';
 
@@ -51,9 +52,13 @@ uiRoot.insertAdjacentHTML('beforeend', `
   <button type="button" class="btn-map btn-exterior" hidden><span class="btn-exterior__icon" aria-hidden="true"></span><span class="btn-map__label"></span></button>
   <a class="cta-visit" target="_blank" rel="noopener"><span></span></a>
   <p class="hint" aria-live="polite"></p>
+  <button type="button" class="cta-interiors" hidden><span></span></button>
   <button type="button" class="btn-sound" aria-pressed="false"><span class="btn-sound__bars" aria-hidden="true"><i></i><i></i><i></i></span></button>
 `);
 const btnSound = uiRoot.querySelector('.btn-sound');
+const btnInteriors = uiRoot.querySelector('.cta-interiors');
+btnInteriors.addEventListener('pointerdown', (e) => e.stopPropagation());
+btnInteriors.addEventListener('click', (e) => { e.stopPropagation(); imap.open('section', state.time); rooms.setActive('section'); });
 const flightVideo = document.createElement('video');
 flightVideo.className = 'flight';
 flightVideo.muted = true;
@@ -82,8 +87,8 @@ orbit.onInteract = () => hideHint();
 pano.onInteract = () => hideHint();
 
 const ambience = new Ambience();
-const section = new Section(uiRoot);
 const rooms = new Rooms(uiRoot, R.panos, { onPick: (id) => pickRoom(id) });
+const imap = new InteriorMap(uiRoot, panos, { onEnter: (id) => pickRoom(id, { fromMap: true }) });
 
 function soundUi() {
   btnSound.classList.toggle('is-on', ambience.on);
@@ -107,14 +112,19 @@ btnSound.addEventListener('click', (e) => {
 });
 
 const OUTDOOR = new Set(['terrazza', 'passaggio']);
+let intro = null;
 
 /** Dall'elenco degli ambienti. */
-async function pickRoom(id) {
+async function pickRoom(id, { fromMap } = {}) {
   if (state.busy) return;
-  if (id === 'section') { section.open(state.time); rooms.setActive('section'); return; }
-  section.close();
+  if (id === 'section') { imap.open('section', state.time); rooms.setActive('section'); return; }
+  if (!fromMap) imap.close();
   if (id === 'exterior') { if (state.mode !== 'orbit') toOrbit(); return; }
-  if (state.mode === 'orbit') { enterPano(id, R.orbit.entries.find((e) => e.to === id)?.at); return; }
+  if (state.mode === 'orbit') {
+    // dalla mappa: BOOM (zoom già fatto nella mappa), senza il volo; dall'elenco: come dagli ingressi del giro
+    enterPano(id, fromMap ? null : R.orbit.entries.find((e) => e.to === id)?.at, { noFlight: fromMap });
+    return;
+  }
   if (pano.current?.pano.id === id) return;
   state.busy = true;
   panel.close();
@@ -130,7 +140,7 @@ async function pickRoom(id) {
   hudPano.setVisible(true);
   state.busy = false;
 }
-section.onClose = () => rooms.setActive(state.mode === 'pano' ? pano.current?.pano.id : 'exterior');
+imap.onClose = () => rooms.setActive(state.mode === 'pano' ? pano.current?.pano.id : 'exterior');
 
 const nextSuggested = () => route.find((id) => !state.visited.has(id)) || null;
 
@@ -162,6 +172,7 @@ function refreshTexts() {
   const msg = encodeURIComponent(`${data.villa.name} — ${t(data.contact.cta)}`);
   ctaVisit.href = `https://wa.me/${data.contact.whatsapp}?text=${msg}`;
   ctaVisit.querySelector('span').textContent = t(data.contact.cta);
+  btnInteriors.querySelector('span').textContent = ui('interiors');
   if (state.mode === 'orbit') chrome.setPlace(ui('exterior'), ui(state.time));
   if (state.mode === 'pano') setWhere(pano.current.pano);
   soundUi();
@@ -177,7 +188,7 @@ async function setTime(time) {
   state.time = time;
   refreshTexts();
   ambience.setTime(time);
-  section.setTime(time);
+  imap.setTime(time);
   chrome.loading(true);
   try {
     if (state.mode === 'pano') await pano.setTime(time);
@@ -203,6 +214,9 @@ function setPanoHud(p) {
 function arrived(p) {
   state.visited.add(p.id);
   rooms.setActive(p.id);
+  imap.setCurrent(p.id);
+  if (!imap.isOpen) gsap.to(imap.el, { autoAlpha: 0, duration: 0.3, overwrite: true });
+  btnInteriors.hidden = true;
   ambience.setIndoor(!OUTDOOR.has(p.id));
   setWhere(p);
   setPanoHud(p);
@@ -264,8 +278,6 @@ async function playFlight(at) {
   flightVideo.removeAttribute('src');
   flightVideo.load();
   rooms.setDisabled(false);
-  btnExterior.hidden = false;
-  gsap.fromTo(btnExterior, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 });
   hudPano.setVisible(true);
   showHint('pano');
   state.busy = false;
@@ -303,8 +315,6 @@ async function enterPano(id, at, { noFlight } = {}) {
     })
     .to(flash, { autoAlpha: 0, duration: 0.9, ease: 'power2.out' })
     .then();
-  btnExterior.hidden = false;
-  gsap.fromTo(btnExterior, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6 });
   hudPano.setVisible(true);
   showHint('pano');
   state.busy = false;
@@ -328,7 +338,7 @@ async function step(ln) {
 }
 
 /** Torna al giro esterno (all'avvio o dal pulsante Exterior). */
-async function toOrbit() {
+async function toOrbit({ fromIntro } = {}) {
   if (state.busy) return;
   state.busy = true;
   panel.close();
@@ -340,14 +350,17 @@ async function toOrbit() {
   setOrbitHud();
   state.mode = 'orbit';
   refreshTexts();
-  gsap.set(stageOrbit, { scale: 1.08, transformOrigin: '50% 50%' });
-  gsap.to(stageOrbit, { autoAlpha: 1, scale: 1, duration: 1.2, ease: 'power3.out' });
+  gsap.set(stageOrbit, { scale: fromIntro ? 1.4 : 1.08, transformOrigin: '50% 50%' });
+  gsap.to(stageOrbit, { autoAlpha: 1, scale: 1, duration: fromIntro ? 2.6 : 1.2, ease: 'power3.out' });
   await gsap.to(stagePano, { autoAlpha: 0, duration: 0.8, ease: 'power2.inOut' }).then();
   pano.setActive(false);
   btnExterior.hidden = true;
   ctaVisit.classList.remove('is-final');
   hudOrbit.setVisible(true);
   rooms.setActive('exterior');
+  imap.setCurrent(null);
+  btnInteriors.hidden = false;
+  gsap.fromTo(btnInteriors, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.9, delay: fromIntro ? 1.6 : 0.3, ease: 'power3.out' });
   ambience.setIndoor(false);
   showHint('orbit');
   state.busy = false;
@@ -361,7 +374,8 @@ onLang(() => {
   hudPano.refreshLang();
   panel.refreshLang();
   rooms.refreshLang();
-  section.refreshLang();
+  imap.refreshLang();
+  intro?.refreshLang();
   refreshTexts();
 });
 
@@ -375,10 +389,14 @@ if (startPano) {
     state.mode = 'pano';
     arrived(p);
     refreshTexts();
-    btnExterior.hidden = false;
   }).catch((err) => chrome.toast(String(err.message || err), 6000));
 } else {
-  toOrbit();
+  orbit.load(state.time);
+  intro = new Intro(document.getElementById('app'), {
+    time: state.time,
+    onStart: () => { if (soundWanted && !ambience.ctx) { ambience.start(); ambience.setTime(state.time); soundUi(); } },
+    onDone: () => { intro = null; toOrbit({ fromIntro: true }); },
+  });
 }
 
 // Per prove dalla console.

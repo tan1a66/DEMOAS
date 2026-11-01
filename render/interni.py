@@ -227,6 +227,18 @@ def sanitary(M, name, cx, z_wall, y_top, lid=True):
         beam(f"{name}_Bocca", (cx, y_top + 0.12, z_wall + 0.08), (cx, y_top + 0.12, z_wall + 0.17), 0.02, 0.02, M["black"])
 
 
+def sanitary_x(M, name, x_wall, cz, y_top, lid=True):
+    """Come sanitary(), ma su una parete lungo z (x = x_wall): il corpo sporge verso +x."""
+    ellipse_block(f"{name}_Corpo", x_wall + 0.3, cz, y_top - 0.3, y_top, 0.24, 0.18, M["ceramic"], bevel=0.05)
+    box(f"{name}_Attacco", x_wall, x_wall + 0.22, y_top - 0.3, y_top, cz - 0.17, cz + 0.17, M["ceramic"], bevel=0.04)
+    if lid:
+        ellipse_block(f"{name}_Sedile", x_wall + 0.32, cz, y_top + 0.005, y_top + 0.03, 0.23, 0.18, M["ceramic"], bevel=0.012)
+    else:
+        ellipse_block(f"{name}_Bacino", x_wall + 0.31, cz, y_top - 0.02, y_top + 0.002, 0.17, 0.13, M["mirror"], bevel=0.0)
+        beam(f"{name}_Rubinetto", (x_wall + 0.08, y_top, cz), (x_wall + 0.08, y_top + 0.12, cz), 0.03, 0.03, M["black"])
+        beam(f"{name}_Bocca", (x_wall + 0.08, y_top + 0.12, cz), (x_wall + 0.17, y_top + 0.12, cz), 0.02, 0.02, M["black"])
+
+
 def bathroom(M):
     """Bagno padronale (x 6.12..9.5, z 5.9..10.9): parete verde salvia, pavimento scuro, top lungo con due
     lavabi e specchio retroilluminato, doccia a filo con vetro, wc sospeso; finestra sul lato sud."""
@@ -256,10 +268,11 @@ def bathroom(M):
     beam("SoffioneBraccio", (6.9, H2 - 0.3, 10.45), (6.9, H2, 10.45), 0.015, 0.015, M["black"])
     # wc sospeso sulla parete nord, asciugamani
     # sanitari sospesi in ceramica bianca: wc con sedile e bidet con rubinetto
-    zw = za
-    sanitary(M, "WC", 7.05, zw, U + 0.42, lid=True)
-    sanitary(M, "Bidet", 7.8, zw, U + 0.4, lid=False)
-    box("PlaccaWC", 6.98, 7.12, U + 0.95, U + 1.1, zw, zw + 0.008, M["black"], bevel=0.002)
+    # wc e bidet sulla parete ovest, di fronte ai lavabi (richiesta di Alessia)
+    xw = xa + 0.02
+    sanitary_x(M, "WC", xw, 7.1, U + 0.42, lid=True)
+    sanitary_x(M, "Bidet", xw, 7.85, U + 0.4, lid=False)
+    box("PlaccaWC", xw, xw + 0.008, U + 0.95, U + 1.1, 7.03, 7.17, M["black"], bevel=0.002)
     beam("Portasciugamani", (xb - 0.06, U + 1.0, 9.75), (xb - 0.06, U + 1.0, 10.5), 0.015, 0.015, M["black"])
     box("Asciugamano", xb - 0.1, xb - 0.04, U + 0.55, U + 1.02, 9.8, 10.45, M["towel"], bevel=0.01)
     # binario luci
