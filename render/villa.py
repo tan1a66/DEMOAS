@@ -893,17 +893,18 @@ def outdoor_chair(M, name, cx, cz, facing):
 
 def outdoor_furniture(M):
     # lettini sul deck nord (foto 19), divani sulla lingua, tavolo da pranzo sul deck sud
-    for i, x in enumerate((-8.6, -7.4, -6.2, -5.0)):
-        z0 = -2.95
-        box(f"LettinoTelaio{i}", x - 0.33, x + 0.33, 0.0, 0.28, z0, z0 + 2.0, M["steel"], bevel=0.01)
-        cushion(f"LettinoMat{i}", x - 0.32, x + 0.32, 0.26, 0.34, z0 + 0.02, z0 + 1.45, M["outdoor"], puff=0.02, radius=0.03)
-        sch = cushion(f"LettinoSch{i}", x - 0.32, x + 0.32, 0.3, 0.38, z0 + 1.45, z0 + 1.98, M["outdoor"], puff=0.02, radius=0.03)
-        sch.rotation_euler = (math.radians(-38), 0, 0)
-        pv = B(x, 0.34, z0 + 1.45)
+    # lettini rivolti al mare: schienale a est, si guarda verso ovest
+    for i, z in enumerate((-3.0, -2.2, -1.4, -0.6)):
+        xa, xb = -8.95, -6.95
+        box(f"LettinoTelaio{i}", xa, xb, 0.0, 0.28, z - 0.33, z + 0.33, M["steel"], bevel=0.01)
+        cushion(f"LettinoMat{i}", xa + 0.02, xb - 0.55, 0.26, 0.34, z - 0.32, z + 0.32, M["outdoor"], puff=0.02, radius=0.03)
+        sch = cushion(f"LettinoSch{i}", xb - 0.55, xb - 0.02, 0.3, 0.38, z - 0.32, z + 0.32, M["outdoor"], puff=0.02, radius=0.03)
+        sch.rotation_euler = (0, math.radians(-38), 0)
+        pv = B(xb - 0.55, 0.34, z)
         sch.location = pv - sch.rotation_euler.to_matrix() @ pv
     for i, z in enumerate((1.6, 3.6)):
         rounded_block(f"DivanoEst{i}", -4.2, -2.8, 0.0, 0.32, z - 0.45, z + 0.45, M["outdoor"], radius=0.08)
-        cushion(f"DivanoEstSch{i}", -4.2, -3.85, 0.3, 0.75, z - 0.42, z + 0.42, M["outdoor"], puff=0.05, radius=0.1)
+        cushion(f"DivanoEstSch{i}", -3.15, -2.8, 0.3, 0.75, z - 0.42, z + 0.42, M["outdoor"], puff=0.05, radius=0.1)  # schienale verso casa
     box("TavoloEstPiano", -9.1, -6.1, 0.72, 0.76, 10.5, 11.5, M["concrete"], bevel=0.006)
     for x in (-8.75, -6.45):
         box(f"TavoloEstGamba{x}", x - 0.05, x + 0.05, 0.0, 0.72, 10.65, 11.35, M["steel"], bevel=0.003)
@@ -1013,6 +1014,109 @@ def orbit_camera(i, n=48, radius=42.0, height=17.0, lens=32.0):
     return lib.camera(pos=(x, y, z), target=(CENTER[0], CENTER[1] + 0.5, CENTER[2]), lens=lens)
 
 
+# ---------------------------------------------------------------- casa tagliata (sezione)
+
+SECTION_Z = 6.05          # piano di taglio (z): apre camera, bagno, pranzo e cucina; la piscina è tagliata
+POCHE = (0.032, 0.032, 0.035)   # antracite delle parti tagliate
+EARTH = (0.085, 0.065, 0.045)   # terra tagliata
+MODEL_WORDS = ("shrub", "searsia", "didelta", "rooibos", "boulder", "rock", "vase", "book", "potted", "plant")
+NO_POCHE = ("Vetro", "Acqua", "Mare", "Fiamma", "LED", "Luce", "Lontano", "Specchio", "Bottiglie", "Ceramica")
+
+
+def poche():
+    """Le facce interne (retro) diventano antracite piena solo per i raggi della camera: la casa tagliata
+    sembra piena come un plastico, e la luce resta quella della casa intera."""
+    for m in bpy.data.materials:
+        if not m.use_nodes or any(w in m.name.lower() for w in MODEL_WORDS) or any(w in m.name for w in NO_POCHE):
+            continue
+        nt = m.node_tree
+        out = next((n for n in nt.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output), None)
+        if out is None or not out.inputs["Surface"].links:
+            continue
+        src = out.inputs["Surface"].links[0].from_socket
+        geo = nt.nodes.new("ShaderNodeNewGeometry")
+        lp = nt.nodes.new("ShaderNodeLightPath")
+        mul = nt.nodes.new("ShaderNodeMath")
+        mul.operation = "MULTIPLY"
+        nt.links.new(geo.outputs["Backfacing"], mul.inputs[0])
+        nt.links.new(lp.outputs["Is Camera Ray"], mul.inputs[1])
+        em = nt.nodes.new("ShaderNodeEmission")
+        em.inputs["Color"].default_value = (*(EARTH if m.name in ("Terreno", "Ghiaia", "Sterrato") else POCHE), 1)
+        em.inputs["Strength"].default_value = 1.0
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        nt.links.new(mul.outputs["Value"], mix.inputs["Fac"])
+        nt.links.new(src, mix.inputs[1])
+        nt.links.new(em.outputs["Emission"], mix.inputs[2])
+        nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+
+
+def section_cap(M):
+    """Terra piena sul piano di taglio: sotto il profilo del terreno (e sotto la casa e la vasca) un piano
+    color terra visibile solo alla camera, così non si vede il vuoto sotto la superficie del terreno."""
+    z = SECTION_Z + 0.003
+    xs = [x * 0.5 for x in range(-800, 801)]
+    top = []
+    for x in xs:
+        if -10.3 <= x <= 0.0:
+            y = -1.42                      # sotto la vasca e il deck
+        elif 0.0 < x <= 14.7:
+            y = -0.42                      # sotto la platea della casa
+        else:
+            y = min(ground(x, SECTION_Z), ground(x, SECTION_Z + 0.5)) - 0.03
+        top.append(y)
+    bm = bmesh.new()
+    up = [bm.verts.new(B(x, y, z)) for x, y in zip(xs, top)]
+    dn = [bm.verts.new(B(x, -140.0, z)) for x in xs]
+    for i in range(len(xs) - 1):
+        bm.faces.new([dn[i], dn[i + 1], up[i + 1], up[i]])
+    em = lib.mat_emission("TerraSezione", EARTH, 1.0)
+    ob = lib.mesh_obj("TerraSezione", bm, em)
+    for attr in ("visible_shadow", "visible_diffuse", "visible_glossy", "visible_transmission", "visible_volume_scatter"):
+        setattr(ob, attr, False)
+    return ob
+
+
+def section_camera(dist=27.0, height=3.6, cx=2.3, lens=30.0):
+    """Camera a nord che guarda verso sud: il piano vicino di ritaglio coincide con il taglio z = SECTION_Z."""
+    cam = lib.camera(pos=(cx, height, SECTION_Z - dist), target=(cx, height, SECTION_Z + 10), lens=lens)
+    cam.data.clip_start = dist
+    cam.data.clip_end = 5000
+    cam.data.shift_y = 0.1           # meno terra in basso, più cielo
+    return cam
+
+
+# ---------------------------------------------------------------- volo di arrivo (video)
+
+FLIGHT_KEYS = [  # posizione della camera, punto guardato
+    ((-150.0, 32.0, -25.0), (2.0, 3.0, 5.0)),
+    ((-70.0, 15.0, -6.0), (2.0, 3.0, 5.0)),
+    ((-30.0, 6.0, 2.0), (2.0, 2.5, 4.0)),
+    ((-12.0, 2.6, 3.2), (2.0, 1.8, 3.5)),
+    ((-3.0, 1.7, 3.3), (8.0, 1.6, 3.3)),
+    ((1.5, 1.6, 3.3), (12.0, 1.5, 3.3)),
+    ((4.15, 1.55, 3.3), (14.0, 1.45, 3.3)),   # = punto di vista del panorama "soggiorno", sguardo verso la cucina
+]
+
+
+def _catmull(pts, u):
+    i = min(int(u), len(pts) - 2)
+    t = u - i
+    p0, p1, p2, p3 = (pts[max(i - 1, 0)], pts[i], pts[i + 1], pts[min(i + 2, len(pts) - 1)])
+    return tuple(0.5 * ((2 * p1[k]) + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t * t
+                        + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t ** 3) for k in range(3))
+
+
+def flight_camera(f, n, lens=22.0):
+    t = f / max(1, n - 1)
+    a = 0.8                                      # fino all'80 % passo costante sulla curva, poi frena fino a fermarsi
+    k = 2 / (1 + a)
+    g = k * t if t < a else k * a + k * (t - a) - k * (t - a) ** 2 / (2 * (1 - a))
+    u = min(1.0, g) * (len(FLIGHT_KEYS) - 1)
+    pos = _catmull([k[0] for k in FLIGHT_KEYS], u)
+    look = _catmull([k[1] for k in FLIGHT_KEYS], u)
+    return lib.camera(pos=pos, target=look, lens=lens), pos
+
+
 VIEWS = {
     "front": dict(pos=(-22.5, 0.15, 5.6), target=(0.0, 3.4, 5.6), lens=19.0, shift=(0.0, 0.08)),  # come la foto 19
     "aerial": dict(pos=(-34.0, 18.0, -16.0), target=(2.0, 2.0, 6.0), lens=30.0, shift=(0.0, 0.0)),
@@ -1069,6 +1173,8 @@ def main():
     ap.add_argument("--res", default="", help="es. 1920x1080")
     ap.add_argument("--save-blend", action="store_true")
     ap.add_argument("--skip-existing", action="store_true", help="salta i fotogrammi/panorami già renderizzati")
+    ap.add_argument("--orbit-n", type=int, default=48, help="fotogrammi del giro completo (96 = passo di 3,75°)")
+    ap.add_argument("--flight-n", type=int, default=180, help="fotogrammi del volo di arrivo (30 al secondo)")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     a = ap.parse_args(argv)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -1097,13 +1203,37 @@ def main():
             lib.render(OUT / f"pano_{name}_{a.time}{suffix}.jpg")
             bpy.data.objects.remove(cam, do_unlink=True)
             print(f"panorama {name} fatto", flush=True)
+    elif a.view == "section":
+        poche()
+        section_cap(None)
+        if not a.res:
+            sc.render.resolution_x, sc.render.resolution_y = (1200, 600) if a.preview else (2400, 1200)
+        section_camera()
+        lib.render(OUT / f"section_{a.time}{suffix}.jpg")
+    elif a.view == "flight":
+        d = OUT / f"flight_{a.time}{suffix}"
+        d.mkdir(parents=True, exist_ok=True)
+        if not a.res:
+            sc.render.resolution_x, sc.render.resolution_y = (640, 360) if a.preview else (1280, 720)
+        interni.portals()
+        base = sc.view_settings.exposure
+        inside = interni.PANOS["soggiorno"]["exp"][list(TIMES).index(a.time)]
+        for i in parse_frames(a.frames) if a.frames else range(a.flight_n):
+            if a.skip_existing and (d / f"f{i:03d}.jpg").exists():
+                continue
+            cam, pos = flight_camera(i, a.flight_n)
+            k = min(1.0, max(0.0, (pos[0] + 8.0) / 10.0))    # esposizione dall'esterno all'interno
+            sc.view_settings.exposure = base + inside * k * k * (3 - 2 * k)
+            lib.render(d / f"f{i:03d}.jpg")
+            bpy.data.objects.remove(cam, do_unlink=True)
+            print(f"volo {i} fatto", flush=True)
     elif a.view == "orbit":
-        d = OUT / f"orbit_{a.time}{suffix}"
+        d = OUT / (f"orbit_{a.time}{suffix}" if a.orbit_n == 48 else f"orbit{a.orbit_n}_{a.time}{suffix}")
         d.mkdir(parents=True, exist_ok=True)
         for i in parse_frames(a.frames):
             if a.skip_existing and (d / f"f{i:02d}.jpg").exists():
                 continue
-            cam = orbit_camera(i)
+            cam = orbit_camera(i, n=a.orbit_n)
             lib.render(d / f"f{i:02d}.jpg")
             bpy.data.objects.remove(cam, do_unlink=True)
             print(f"fotogramma {i} fatto", flush=True)

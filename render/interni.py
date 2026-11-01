@@ -111,6 +111,28 @@ def upper(M):
         cylinder(f"FarettoBall{k}", 5.3, z, H2 - 0.24, H2 - 0.05, 0.035, M["black"], segments=24, bevel=0.003)
     bedroom(M)
     bathroom(M)
+    guest_room(M)
+
+
+def guest_room(M):
+    """Seconda camera nell'angolo sud-est del livello strada (x 9.62..13.3, z 6..10.9): si vede nella sezione."""
+    xa, xb, za, zb = 9.62, 13.3, 6.0, 10.88
+    box("Camera2ParetN", xa, xb, U, H2, za - 0.1, za, M["plaster"], bevel=0)
+    box("Camera2ParetS", xa, xb, U, H2, zb, zb + 0.02, M["plaster"], bevel=0)
+    box("Camera2ParetE", xb - 0.02, xb, U, H2, za, zb, M["plaster"], bevel=0)
+    box("Camera2Boiserie", xb - 0.06, xb - 0.02, U, U + 1.2, 7.2, 9.8, M["boiserie"], bevel=0.002)
+    rounded_block("Letto2", 11.3, xb - 0.06, U, U + 0.32, 7.6, 9.4, M["linen"], radius=0.06)
+    cushion("Letto2Piumone", 11.25, 12.8, U + 0.3, U + 0.42, 7.62, 9.38, M["duvet"], puff=0.02, radius=0.05)
+    for zz in (8.05, 8.95):
+        pl = lib.pillow(f"Letto2Guanciale{zz}", 12.95, U + 0.55, zz, 0.62, 0.42, 0.15, M["linen"])
+        pl.rotation_mode = "ZYX"
+        pl.rotation_euler = (0, math.radians(-20), math.radians(90))
+    for zz in (7.3, 9.7):
+        cylinder(f"Comodino2{zz}", 12.95, zz, U, U + 0.45, 0.2, M["black"], segments=40, bevel=0.01)
+        cylinder(f"Lampada2{zz}", 12.95, zz, U + 0.45, U + 0.75, 0.1, M["lamp_warm"], segments=24, bevel=0.01)
+    box("Camera2Tappeto", 10.4, 12.6, U, U + 0.012, 7.2, 9.8, M["rug_dark"], bevel=0.004)
+    box("Camera2Scrivania", 9.75, 10.45, U + 0.72, U + 0.76, 9.6, 10.75, M["boiserie"], bevel=0.003)
+    beam("BinarioCamera2", (10.2, H2 - 0.03, 8.4), (12.8, H2 - 0.03, 8.4), 0.035, 0.04, M["black"])
 
 
 def lib_glass(M, name, a, b, y0, y1, mullions=2):
@@ -123,9 +145,7 @@ def bedroom(M):
     pannelli neri girevoli lungo la parete sud, binario luci."""
     zb0, zb1 = 6.7, 8.3            # larghezza del letto lungo z
     # parete del letto: verde oliva sopra, fascia nera con luci di lettura
-    box("CameraParete", 6.0, 6.12, U, H2, 6.65, 8.85, M["olive"], bevel=0)
-    box("CameraPareteN", 6.0, 6.12, U, H2, 5.9, 6.0, M["olive"], bevel=0)
-    box("CameraPortaSopra", 6.0, 6.12, U + 2.3, H2, 6.0, 6.65, M["olive"], bevel=0)
+    box("CameraParete", 6.0, 6.12, U, H2, 5.9, 8.85, M["olive"], bevel=0)
     box("FasciaTestiera", 5.92, 6.0, U + 0.95, U + 1.25, 6.25, 8.75, M["black"], bevel=0.003)
     for zz in (6.45, 8.55):
         box(f"LuceLettura{zz}", 5.88, 5.92, U + 1.02, U + 1.06, zz - 0.1, zz + 0.1, M["lamp_warm"], bevel=0.002)
@@ -135,15 +155,28 @@ def bedroom(M):
     cushion("Materasso", 3.85, 5.6, U + 0.28, U + 0.52, zb0 + 0.08, zb1 - 0.08, M["linen"], puff=0.015, radius=0.06)
     duv = cushion("Piumone", 3.8, 5.0, U + 0.48, U + 0.58, zb0 + 0.04, zb1 - 0.04, M["duvet"], puff=0.03, radius=0.05)
     lib.wrinkles(duv, 0.012, 0.25)
-    for zz, rz in ((7.1, -6), (7.9, 7)):
-        lib.pillow(f"Guanciale{zz}", 5.35, U + 0.72, zz, 0.62, 0.42, 0.17, M["linen"], rot=(math.radians(rz), math.radians(-70), 0))
-    lib.pillow("CuscinoRighe", 5.05, U + 0.66, 7.5, 0.5, 0.34, 0.14, M["sofa"], rot=(0, math.radians(-62), math.radians(4)))
+    # (lib.pillow: larghezza su x, spessore su y, altezza su z di Blender; ordine ZYX = prima gira, poi inclina)
+    for zz, tw in ((7.12, -2), (7.88, 3)):
+        pl = lib.pillow(f"Guanciale{zz}", 5.43, U + 0.74, zz, 0.68, 0.46, 0.17, M["linen"])
+        pl.rotation_mode = "ZYX"
+        pl.rotation_euler = (0, math.radians(22), math.radians(90 + tw))
+    pl = lib.pillow("CuscinoRighe", 5.2, U + 0.7, 7.5, 0.5, 0.36, 0.13, M["sofa"])
+    pl.rotation_mode = "ZYX"
+    pl.rotation_euler = (0, math.radians(30), math.radians(94))
     box("Plaid", 4.05, 4.5, U + 0.56, U + 0.6, zb0 - 0.02, zb1 + 0.02, M["velvet_green"], bevel=0.02)
     # comodini tondi neri
     for zz in (6.35, 8.65):
         cylinder(f"Comodino{zz}", 5.6, zz, U, U + 0.42, 0.21, M["black"], segments=48, bevel=0.01)
     # pannelli neri girevoli a tutta altezza lungo la parete sud (cabina armadio dietro)
-    box("CameraFondo", 0.3, 6.0, U, H2, 8.85, 8.9, M["olive"], bevel=0)
+    box("CameraFondoO", 0.3, 3.3, U, H2, 8.85, 8.9, M["olive"], bevel=0)
+    box("CameraFondoE", 3.95, 6.0, U, H2, 8.85, 8.9, M["olive"], bevel=0)
+    box("CameraFondoSopra", 3.3, 3.95, U + 2.4, H2, 8.85, 8.9, M["olive"], bevel=0)
+    # cabina armadio (x 1.6..6, z 8.9..10.9): ripiani e appenderia in rovere, porta verso il bagno
+    box("CabinaFondo", 1.6, 6.0, U, H2, 10.86, 10.9, M["plaster"], bevel=0)
+    box("CabinaArmadio", 1.7, 5.9, U, U + 2.5, 10.35, 10.86, M["boiserie"], bevel=0.003)
+    for k in range(3):
+        y = U + 0.4 + k * 0.7
+        box(f"CabinaVano{k}", 1.75, 5.85, y, y + 0.5, 10.34, 10.36, M["black"], bevel=0)
     for i in range(7):
         x = 0.9 + i * 0.68
         ang = (0, 0, 18, 0, 65, 0, 0)[i]
@@ -162,6 +195,33 @@ def bedroom(M):
         ob.location.z += U
 
 
+def ellipse_block(name, cx, cz, y0, y1, rx, rz, material, bevel=0.02, segments=48):
+    """Blocco a pianta ellittica (rx lungo x, rz lungo z della villa), con spigoli arrotondati."""
+    import bmesh
+    bm = bmesh.new()
+    bmesh.ops.create_cone(bm, cap_ends=True, cap_tris=False, segments=segments, radius1=1.0, radius2=1.0, depth=y1 - y0)
+    for v in bm.verts:
+        v.co.x *= rx
+        v.co.y *= rz
+    bmesh.ops.translate(bm, verts=bm.verts, vec=B(cx, (y0 + y1) / 2, cz))
+    ob = lib.mesh_obj(name, bm, material, bevel, segments=4, smooth=True)
+    if bevel:
+        ob.modifiers["Bevel"].limit_method = "NONE"
+    return ob
+
+
+def sanitary(M, name, cx, z_wall, y_top, lid=True):
+    """Wc o bidet sospeso: corpo ovale attaccato alla parete (z_wall), profondo 0,54 m."""
+    ellipse_block(f"{name}_Corpo", cx, z_wall + 0.3, y_top - 0.3, y_top, 0.18, 0.24, M["ceramic"], bevel=0.05)
+    box(f"{name}_Attacco", cx - 0.17, cx + 0.17, y_top - 0.3, y_top, z_wall, z_wall + 0.22, M["ceramic"], bevel=0.04)
+    if lid:
+        ellipse_block(f"{name}_Sedile", cx, z_wall + 0.32, y_top + 0.005, y_top + 0.03, 0.18, 0.23, M["ceramic"], bevel=0.012)
+    else:
+        ellipse_block(f"{name}_Bacino", cx, z_wall + 0.31, y_top - 0.02, y_top + 0.002, 0.13, 0.17, M["mirror"], bevel=0.0)
+        beam(f"{name}_Rubinetto", (cx, y_top, z_wall + 0.08), (cx, y_top + 0.12, z_wall + 0.08), 0.03, 0.03, M["black"])
+        beam(f"{name}_Bocca", (cx, y_top + 0.12, z_wall + 0.08), (cx, y_top + 0.12, z_wall + 0.17), 0.02, 0.02, M["black"])
+
+
 def bathroom(M):
     """Bagno padronale (x 6.12..9.5, z 5.9..10.9): parete verde salvia, pavimento scuro, top lungo con due
     lavabi e specchio retroilluminato, doccia a filo con vetro, wc sospeso; finestra sul lato sud."""
@@ -169,7 +229,9 @@ def bathroom(M):
     box("BagnoPav", xa, xb, U, U + 0.012, za, zb, M["bath_floor"], bevel=0)
     box("BagnoParetN", xa, xb, U, H2, za, za + 0.1, M["plaster"], bevel=0)
     box("BagnoParetE", xb, xb + 0.12, U, H2, za, zb, M["sage"], bevel=0)
-    box("BagnoParetO", 6.0, 6.12, U, H2, 8.85, zb, M["sage"], bevel=0)
+    box("BagnoParetO1", 6.0, 6.12, U, H2, 8.85, 9.05, M["sage"], bevel=0)
+    box("BagnoParetO2", 6.0, 6.12, U, H2, 9.85, zb, M["sage"], bevel=0)
+    box("BagnoPortaSopra", 6.0, 6.12, U + 2.3, H2, 9.05, 9.85, M["sage"], bevel=0)
     for nm, (a, b, y0, y1) in (("BagnoS1", (xa, 6.8, U, H2)), ("BagnoS2", (8.4, xb, U, H2)),
                                ("BagnoS3", (6.8, 8.4, U, U + 0.8)), ("BagnoS4", (6.8, 8.4, U + 2.3, H2))):
         box(nm, a, b, y0, y1, zb - 0.02, zb, M["sage"], bevel=0)
@@ -182,14 +244,17 @@ def bathroom(M):
     box("Specchio", xb - 0.03, xb, U + 1.1, U + 2.2, 6.6, 9.4, M["mirror"], bevel=0.002)
     box("SpecchioLuce", xb - 0.02, xb - 0.005, U + 1.08, U + 1.1, 6.6, 9.4, M["lamp_warm"], bevel=0)
     # doccia a filo nell'angolo sud-ovest, con parete in vetro e soffione
-    box("DocciaPiatto", xa, 7.8, U + 0.012, U + 0.02, 9.3, zb, M["bath_floor"], bevel=0)
-    box("DocciaVetro", 7.8, 7.81, U + 0.02, U + 2.1, 9.3, 10.4, M["glass"], bevel=0)
-    beam("DocciaProfilo", (7.805, U + 2.1, 9.3), (7.805, U + 2.1, 10.4), 0.02, 0.02, M["black"])
-    cylinder("Soffione", 6.9, 10.1, H2 - 0.33, H2 - 0.3, 0.15, M["black"], segments=32, bevel=0.003)
-    beam("SoffioneBraccio", (6.9, H2 - 0.3, 10.1), (6.9, H2, 10.1), 0.015, 0.015, M["black"])
+    box("DocciaPiatto", xa, 7.8, U + 0.012, U + 0.02, 9.95, zb, M["bath_floor"], bevel=0)
+    box("DocciaVetro", 6.3, 7.15, U + 0.02, U + 2.1, 9.95, 9.96, M["glass"], bevel=0)
+    beam("DocciaProfilo", (6.3, U + 2.1, 9.955), (7.15, U + 2.1, 9.955), 0.02, 0.02, M["black"])
+    cylinder("Soffione", 6.9, 10.45, H2 - 0.33, H2 - 0.3, 0.15, M["black"], segments=32, bevel=0.003)
+    beam("SoffioneBraccio", (6.9, H2 - 0.3, 10.45), (6.9, H2, 10.45), 0.015, 0.015, M["black"])
     # wc sospeso sulla parete nord, asciugamani
-    rounded_block("WC", 6.75, 7.15, U + 0.25, U + 0.42, za + 0.1, za + 0.66, M["ceramic"], radius=0.08)
-    box("PlaccaWC", 6.88, 7.02, U + 0.95, U + 1.1, za + 0.1, za + 0.105, M["black"], bevel=0.002)
+    # sanitari sospesi in ceramica bianca: wc con sedile e bidet con rubinetto
+    zw = za + 0.1
+    sanitary(M, "WC", 6.85, zw, U + 0.42, lid=True)
+    sanitary(M, "Bidet", 7.6, zw, U + 0.4, lid=False)
+    box("PlaccaWC", 6.78, 6.92, U + 0.95, U + 1.1, zw, zw + 0.008, M["black"], bevel=0.002)
     beam("Portasciugamani", (xb - 0.06, U + 1.0, 9.75), (xb - 0.06, U + 1.0, 10.5), 0.015, 0.015, M["black"])
     box("Asciugamano", xb - 0.1, xb - 0.04, U + 0.55, U + 1.02, 9.8, 10.45, M["towel"], bevel=0.01)
     # binario luci
@@ -286,6 +351,12 @@ def lights(M, k):
     bpy.context.collection.objects.link(ob)
     ob.location = B(9.42, U + 1.07, 8.0)
     ob.visible_camera = False
+    for zz in (7.3, 9.7):
+        d = bpy.data.lights.new(f"Lampada2L{zz}", "POINT")
+        d.energy, d.color, d.shadow_soft_size = 18 * max(k, 0.5), warm, 0.08
+        ob = bpy.data.objects.new(f"Lampada2L{zz}", d)
+        bpy.context.collection.objects.link(ob)
+        ob.location = B(12.95, U + 0.62, zz)
     # passaggio
     for i, x in enumerate((6.0, 8.6, 11.2, 13.8)):
         spot(f"SpotPass{i}", (x, ramp_y(x) + 0.32, 12.4), 10 * k, warm, 120, (0, -0.4, -1))

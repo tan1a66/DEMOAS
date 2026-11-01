@@ -2953,8 +2953,8 @@
     "whatsapp": "393461758562",
     "email": "",
     "cta": {
-      "es": "Agenda una visita",
-      "it": "Prenota una visita"
+      "es": "Contáctanos",
+      "it": "Contattaci"
     }
   },
   "renders": {
@@ -3359,9 +3359,9 @@
           {
             "to": "bagno",
             "at": [
-              6.06,
+              3.62,
               3.5,
-              6.32
+              9.4
             ]
           }
         ],
@@ -3426,6 +3426,11 @@
               "it": "Il letto guarda il golfo attraverso la vetrata."
             }
           }
+        ],
+        "start": [
+          5.7,
+          4.3,
+          7.5
         ]
       },
       {
@@ -3451,7 +3456,7 @@
             "at": [
               6.06,
               3.5,
-              6.32
+              9.45
             ]
           }
         ],
@@ -3488,9 +3493,9 @@
           },
           {
             "at": [
-              7.0,
+              6.9,
               4.7,
-              10.1
+              10.45
             ],
             "title": {
               "es": "Ducha a ras de suelo",

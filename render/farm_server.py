@@ -10,10 +10,15 @@ Tutte le richieste richiedono l'intestazione  X-Token: <FARM_TOKEN>.
   GET  /job?id=                stato del lavoro e ultime righe del log
   GET  /ls?path=               elenco file in /work/<path>
   GET  /file?path=             scarica /work/<path>
+
+Sicurezza sul credito: dopo FARM_IDLE_MIN minuti (45) senza lavori e senza richieste il Pod si termina
+da solo con la chiave che Runpod gli assegna (RUNPOD_API_KEY / RUNPOD_POD_ID). Scaricare i risultati prima!
 """
 import json
 import os
 import subprocess
+import time
+import urllib.request
 import tarfile
 import threading
 import io
@@ -29,6 +34,43 @@ LOGS.mkdir(exist_ok=True)
 SETUP_LOG = LOGS / "setup.log"
 JOBS = {}
 STATE = {"ready": False, "error": None}
+IDLE_LIMIT = int(os.environ.get("FARM_IDLE_MIN", "45")) * 60
+LAST = {"t": time.time()}
+
+
+def busy():
+    return any(j["proc"].poll() is None for j in JOBS.values())
+
+
+def self_terminate():
+    """Termina il Pod da solo (chiave che Runpod mette nel Pod): niente costi se la sessione si interrompe."""
+    key, pod = os.environ.get("RUNPOD_API_KEY"), os.environ.get("RUNPOD_POD_ID")
+    if not key or not pod:
+        return "manca RUNPOD_API_KEY/RUNPOD_POD_ID nel Pod"
+    tries = [("DELETE", f"https://rest.runpod.io/v1/pods/{pod}", None),
+             ("POST", "https://api.runpod.io/graphql",
+              json.dumps({"query": f'mutation {{ podTerminate(input: {{podId: "{pod}"}}) }}'}).encode())]
+    for method, url, body in tries:
+        try:
+            req = urllib.request.Request(url, method=method, data=body)
+            req.add_header("Authorization", f"Bearer {key}")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("User-Agent", "villa-render/1.0")
+            urllib.request.urlopen(req, timeout=30).read()
+            return "ok"
+        except Exception as e:  # noqa: BLE001
+            err = str(e)
+    return err
+
+
+def watchdog():
+    while True:
+        time.sleep(60)
+        if busy():
+            LAST["t"] = time.time()
+        elif time.time() - LAST["t"] > IDLE_LIMIT:
+            STATE["shutdown"] = self_terminate()
+            time.sleep(600)
 
 SETUP = r"""
 set -e
@@ -77,6 +119,7 @@ class H(BaseHTTPRequestHandler):
         if not TOKEN or self.headers.get("X-Token") != TOKEN:
             self._send(403, {"error": "token"})
             return False
+        LAST["t"] = time.time()
         return True
 
     def _send(self, code, obj=None, raw=None, ctype="application/json"):
@@ -98,7 +141,10 @@ class H(BaseHTTPRequestHandler):
         if u.path == "/health":
             gpu = subprocess.run(["bash", "-c", "nvidia-smi --query-gpu=name,memory.used,utilization.gpu --format=csv,noheader || true"],
                                  capture_output=True, text=True).stdout.strip()
-            return self._send(200, {**STATE, "gpu": gpu, "setup_log": tail(SETUP_LOG, 15)})
+            idle = 0 if busy() else int(time.time() - LAST["t"])
+            return self._send(200, {**STATE, "gpu": gpu, "idle_s": idle, "idle_limit_s": IDLE_LIMIT,
+                                    "self_kill": bool(os.environ.get("RUNPOD_API_KEY") and os.environ.get("RUNPOD_POD_ID")),
+                                    "setup_log": tail(SETUP_LOG, 15)})
         if u.path == "/job":
             j = JOBS.get(q.get("id"))
             if not j:
@@ -142,4 +188,5 @@ class H(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     threading.Thread(target=setup, daemon=True).start()
+    threading.Thread(target=watchdog, daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0", 8000), H).serve_forever()
