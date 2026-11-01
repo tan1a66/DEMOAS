@@ -28,7 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
-STATE = ROOT / ".runpod.json"
+STATE = Path(os.environ.get("RUNPOD_STATE", ROOT / ".runpod.json"))  # RUNPOD_STATE=render/.runpod2.json per un secondo Pod
 API = "https://rest.runpod.io/v1"
 IMAGE = "nvidia/cuda:12.6.3-base-ubuntu24.04"
 UA = "villa-render/1.0 (+curl compatible)"  # Cloudflare rifiuta "Python-urllib" (errore 1010)

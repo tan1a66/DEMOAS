@@ -11,7 +11,26 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-for cmd in sys.argv[1:]:
+MAX_PARALLEL = 2   # processi villa.py insieme al massimo (RAM del Pod: 31 GB)
+
+
+def running_villa():
+    n = 0
+    for d in Path("/proc").iterdir():
+        try:
+            if d.name.isdigit() and b"villa.py" in (d / "cmdline").read_bytes():
+                n += 1
+        except OSError:
+            pass
+    return n
+
+
+args = sys.argv[1:]
+if args and args[0].startswith("--max="):      # --max=1: parte solo quando nessun altro render è in corso
+    MAX_PARALLEL = int(args.pop(0).split("=", 1)[1])
+for cmd in args:
+    while running_villa() >= MAX_PARALLEL:
+        time.sleep(15)
     t0 = time.time()
     print(f"=== {cmd}", flush=True)
     r = subprocess.run([sys.executable, str(HERE / "villa.py"), *shlex.split(cmd)])

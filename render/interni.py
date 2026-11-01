@@ -104,7 +104,12 @@ def upper(M):
     # vetrata della camera sul vuoto (foto 28): telaio nero spesso, due ante
     lib_glass(M, "VetrataCamera", (0.3, z1 + 0.04), (x1, z1 + 0.04), U, H2 - 0.02, mullions=2)
     # ballatoio: parete di fondo con porta filo muro e binario luci
-    box("FondoStrada", 6.0, 6.12, U, H2, 0.2, z1, M["plaster"], bevel=0)
+    box("FondoStrada", 6.0, 6.12, U, H2, 0.2, 4.95, M["plaster"], bevel=0)
+    box("FondoStradaS", 6.0, 6.12, U, H2, 5.75, z1, M["plaster"], bevel=0)
+    box("PortaBagnoSopra", 6.0, 6.12, U + 2.3, H2, 4.95, 5.75, M["plaster"], bevel=0)
+    for zz in (4.95, 5.75):  # stipiti neri sottili
+        box(f"PortaBagnoStipite{zz}", 5.99, 6.13, U, U + 2.3, zz - 0.015, zz + 0.015, M["black"], bevel=0.002)
+    box("PortaBagnoTraverso", 5.99, 6.13, U + 2.285, U + 2.315, 4.95, 5.75, M["black"], bevel=0.002)
     box("PortaFondo", 5.98, 6.0, U, U + 2.4, 2.4, 3.3, M["black"], bevel=0.002)
     beam("BinarioBallatoio", (5.3, H2 - 0.03, 0.4), (5.3, H2 - 0.03, 5.6), 0.035, 0.04, M["black"])
     for k, z in enumerate((1.2, 2.8, 4.4)):
@@ -225,13 +230,13 @@ def sanitary(M, name, cx, z_wall, y_top, lid=True):
 def bathroom(M):
     """Bagno padronale (x 6.12..9.5, z 5.9..10.9): parete verde salvia, pavimento scuro, top lungo con due
     lavabi e specchio retroilluminato, doccia a filo con vetro, wc sospeso; finestra sul lato sud."""
-    xa, xb, za, zb = 6.12, 9.5, 5.9, 10.9
+    xa, xb, za, zb = 6.12, 9.5, 4.95, 10.9
     box("BagnoPav", xa, xb, U, U + 0.012, za, zb, M["bath_floor"], bevel=0)
-    box("BagnoParetN", xa, xb, U, H2, za, za + 0.1, M["plaster"], bevel=0)
+    box("BagnoParetN", xa, xb, U, H2, za - 0.1, za, M["plaster"], bevel=0)
+    # lato bagno della parete ovest (dietro c'è la camera, verde oliva): salvia, con il vano della porta
+    box("BagnoPelleO", xa, xa + 0.02, U, H2, 5.75, zb, M["sage"], bevel=0)
     box("BagnoParetE", xb, xb + 0.12, U, H2, za, zb, M["sage"], bevel=0)
-    box("BagnoParetO1", 6.0, 6.12, U, H2, 8.85, 9.05, M["sage"], bevel=0)
-    box("BagnoParetO2", 6.0, 6.12, U, H2, 9.85, zb, M["sage"], bevel=0)
-    box("BagnoPortaSopra", 6.0, 6.12, U + 2.3, H2, 9.05, 9.85, M["sage"], bevel=0)
+    box("BagnoParetO", 6.0, 6.12, U, H2, 8.85, zb, M["sage"], bevel=0)
     for nm, (a, b, y0, y1) in (("BagnoS1", (xa, 6.8, U, H2)), ("BagnoS2", (8.4, xb, U, H2)),
                                ("BagnoS3", (6.8, 8.4, U, U + 0.8)), ("BagnoS4", (6.8, 8.4, U + 2.3, H2))):
         box(nm, a, b, y0, y1, zb - 0.02, zb, M["sage"], bevel=0)
@@ -251,10 +256,10 @@ def bathroom(M):
     beam("SoffioneBraccio", (6.9, H2 - 0.3, 10.45), (6.9, H2, 10.45), 0.015, 0.015, M["black"])
     # wc sospeso sulla parete nord, asciugamani
     # sanitari sospesi in ceramica bianca: wc con sedile e bidet con rubinetto
-    zw = za + 0.1
-    sanitary(M, "WC", 6.85, zw, U + 0.42, lid=True)
-    sanitary(M, "Bidet", 7.6, zw, U + 0.4, lid=False)
-    box("PlaccaWC", 6.78, 6.92, U + 0.95, U + 1.1, zw, zw + 0.008, M["black"], bevel=0.002)
+    zw = za
+    sanitary(M, "WC", 7.05, zw, U + 0.42, lid=True)
+    sanitary(M, "Bidet", 7.8, zw, U + 0.4, lid=False)
+    box("PlaccaWC", 6.98, 7.12, U + 0.95, U + 1.1, zw, zw + 0.008, M["black"], bevel=0.002)
     beam("Portasciugamani", (xb - 0.06, U + 1.0, 9.75), (xb - 0.06, U + 1.0, 10.5), 0.015, 0.015, M["black"])
     box("Asciugamano", xb - 0.1, xb - 0.04, U + 0.55, U + 1.02, 9.8, 10.45, M["towel"], bevel=0.01)
     # binario luci

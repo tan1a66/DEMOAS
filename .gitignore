@@ -9,3 +9,4 @@ dist-preview
 render/assets/
 render/out/
 render/.runpod.json
+render/.runpod2.json
