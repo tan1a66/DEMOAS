@@ -84,24 +84,25 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
   incassate, volume superiore rivestito in pietra, scala esterna in legno sul lato strada).
 - Geometria dell'esterno già misurata in `src/data/villa.json` (levels, parts, site, lamps…).
 
-## Stato al passaggio (1 novembre, mattina)
-**Fatto e funzionante:**
-- `render/villa.py`: tutta la villa con il sito (terreno con colline e macchia a chiazze, mare, costa del golfo,
-  strada e piazzale, piscina a sfioro, deck, arredi esterni, luci notturne) e le tre ore del giorno.
-  `render/interni.py`: interni per i panorami (soggiorno/cucina/bar, ballatoio, camera padronale, bagno,
-  passaggio pietra/cemento), luci interne, portali, camere panoramiche. `render/coda.py`: render in sequenza.
-- **Render finali fatti** (sul Pod, scaricati in `render/out/`, fuori dal repo):
-  giro esterno 3 × 48 fotogrammi 1920×1080 (256 campioni), 21 panorami 6000×3000 (7 punti × 3 ore, 384 campioni).
-  Versioni web in `public/renders/` (95 MB) con `python3 scripts/renders.py` (anche i ritagli delle finiture).
-- **Sito nuovo** (solo render, niente foto): `src/render/` (giro esterno trascinabile, panorami 360° con passi,
-  finiture, marcatori proiettati da punti 3D con le stesse camere dei render), `src/main.js`, dati in
-  `villa.json → renders`. Selettore mattina/tramonto/notte, ES/IT, CTA WhatsApp, noindex.
-  Prova: `npx vite build && npx vite preview` (o `?pano=cucina&time=night` per aprire una stanza).
-  I vecchi moduli (`src/viewer`, `src/plastico`, `src/ui/markers.js`…) non sono più usati.
-- **Pod spento** (7,4 h in tutto). **Credito Runpod rimasto: 3,41 $.**
+## Stato al passaggio (1 novembre, mattina, seconda tornata)
+**Richieste di Alessia del 1/11 (tutte fatte nel codice, render in corso o fatti):**
+- sedie del pranzo girate verso il tavolo; libri sul tavolino in pila (prima sbordavano);
+- giro esterno più fluido: **96 fotogrammi** (`--orbit-n 96`, cartelle `orbit96_<ora>`);
+- pulsante **"Contáctanos / Contattaci"** (WhatsApp 393461758562);
+- camera: cuscini appoggiati alla testata, niente porta finta accanto al comodino (al bagno si passa dalla
+  cabina armadio dietro i pannelli neri), all'arrivo lo sguardo è sul letto (`start` in villa.json);
+- divanetti della piscina e lettini rivolti al mare; bagno con wc e bidet sospesi;
+- **elenco verticale degli ambienti** sempre visibile a sinistra (con salto diretto alla stanza);
+- aggiunte "stile Xelha" scelte: anteprima WhatsApp (Open Graph, `SITE_URL=https://… npm run build`),
+  suono d'ambiente (mare, cicale/grilli, accordi), **casa tagliata** (`--view section`),
+  **video di arrivo** dal mare al soggiorno (`--view flight`, solo tramonto e notte).
+- Pubblicazione: Alessia carica lo **ZIP di dist/** lei stessa (render/out/villa-pedramar-sito.zip).
 
-**Da decidere con Alessia:** come pubblicare (95 MB di render: niente file unico). Opzioni: token Vercel
-(`VERCEL_TOKEN` nell'ambiente), render nel repository con Vercel collegato a GitHub, oppure ZIP di `dist/`.
+**Render:** `python3 scripts/renders.py` converte tutto per il web (giro 1600/1024 WebP, panorami WebP 4096 e
+6000, video MP4 con ffmpeg, sezioni, ritagli, og.jpg). Il passaggio in pietra non è stato rifatto (invariato).
+
+**Pod:** 4090 SECURE 0,89 $/h (il cloud COMMUNITY non ha mai avuto 4090 libere). Credito ~3,1 $ all'avvio
+della seconda tornata. Il Pod si termina da solo dopo 45 min di inattività (farm_server.py).
 
 **Lezioni (per non ripetere errori):**
 - Il container del Pod ha **31 GB di RAM**: al massimo due processi Blender con tutta la villa insieme (~9 GB l'uno),
@@ -109,6 +110,5 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
 - Mai chiamare uno script `queue.py` (o con il nome di un modulo standard): `bpy` lo importa al posto di quello vero.
 - Spegnere il Pod appena finiscono i render: una sessione può interrompersi per ore (6 h perse a vuoto il 1/11).
 - Nodo Mix di Blender 5: usare `lib.sock()` (le prese "A"/"B"/"Result" hanno nomi doppi Float/Color).
-
-**Migliorie possibili se c'è tempo/credito:** interni del mattino più luminosi (il sole non entra sotto lo sbalzo:
-ora compensato con l'esposizione), sedie esterne e lettini più dettagliati, passaggio in pietra più largo.
+- Se si cambia qualcosa visibile dall'esterno, il giro va rifatto tutto (altrimenti i fotogrammi vecchi e nuovi
+  si alternano e si vede uno sfarfallio).
