@@ -215,7 +215,7 @@ function arrived(p) {
   state.visited.add(p.id);
   rooms.setActive(p.id);
   imap.setCurrent(p.id);
-  if (!imap.isOpen) gsap.to(imap.el, { autoAlpha: 0, duration: 0.3, overwrite: true });
+  if (!imap.isOpen) { gsap.killTweensOf(imap.el); gsap.set(imap.el, { autoAlpha: 0 }); imap.el.setAttribute('aria-hidden', 'true'); }
   btnInteriors.hidden = true;
   ambience.setIndoor(!OUTDOOR.has(p.id));
   setWhere(p);
