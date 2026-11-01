@@ -60,7 +60,8 @@ export function lonLatTo(pano, point) {
 
 /** Sguardo iniziale del panorama (verso `look`). */
 export function lookLonLat(pano) {
-  return { lon: Math.atan2(pano.look[2] - pano.pos[2], pano.look[0] - pano.pos[0]), lat: 0 };
+  const { lon, lat } = lonLatTo(pano, pano.look);
+  return { lon, lat: Math.max(-0.3, Math.min(0.2, lat)) };
 }
 
 export const dirFromLonLat = (lon, lat, out = new THREE.Vector3()) =>

@@ -84,21 +84,31 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
   incassate, volume superiore rivestito in pietra, scala esterna in legno sul lato strada).
 - Geometria dell'esterno già misurata in `src/data/villa.json` (levels, parts, site, lamps…).
 
-## Stato al passaggio (vedi `git log`)
-- Fatto: pipeline Blender, soggiorno di prova con divani, poltrone a pozzetto, scala, panca-camino, boiserie,
-  pranzo, isola, terrazza, piscina, mare; confronto con la foto 08 in `render/prova-soggiorno-vs-foto08.jpg`.
-  Alessia: "la preview mi piace, ancora un po' finto ma va già meglio".
-- Da migliorare nel soggiorno: luce più calda e contrastata, divano ad angolo come in foto, vista con la costa,
-  neri meno uniformi, dettagli.
-- Da fare: `villa.py` con tutta la casa (esterno + interni) e preset luce mattina/tramonto/notte;
-  camere/panorami; giro esterno; visore web dei render; deploy.
+## Stato al passaggio (1 novembre, mattina)
+**Fatto e funzionante:**
+- `render/villa.py`: tutta la villa con il sito (terreno con colline e macchia a chiazze, mare, costa del golfo,
+  strada e piazzale, piscina a sfioro, deck, arredi esterni, luci notturne) e le tre ore del giorno.
+  `render/interni.py`: interni per i panorami (soggiorno/cucina/bar, ballatoio, camera padronale, bagno,
+  passaggio pietra/cemento), luci interne, portali, camere panoramiche. `render/coda.py`: render in sequenza.
+- **Render finali fatti** (sul Pod, scaricati in `render/out/`, fuori dal repo):
+  giro esterno 3 × 48 fotogrammi 1920×1080 (256 campioni), 21 panorami 6000×3000 (7 punti × 3 ore, 384 campioni).
+  Versioni web in `public/renders/` (95 MB) con `python3 scripts/renders.py` (anche i ritagli delle finiture).
+- **Sito nuovo** (solo render, niente foto): `src/render/` (giro esterno trascinabile, panorami 360° con passi,
+  finiture, marcatori proiettati da punti 3D con le stesse camere dei render), `src/main.js`, dati in
+  `villa.json → renders`. Selettore mattina/tramonto/notte, ES/IT, CTA WhatsApp, noindex.
+  Prova: `npx vite build && npx vite preview` (o `?pano=cucina&time=night` per aprire una stanza).
+  I vecchi moduli (`src/viewer`, `src/plastico`, `src/ui/markers.js`…) non sono più usati.
+- **Pod spento** (7,4 h in tutto). **Credito Runpod rimasto: 3,41 $.**
 
-## Ordine di lavoro proposto (24 h)
-1. Pod su, misurare i tempi reali di render (anteprima e finale).
-2. `villa.py`: esterno completo (pietra, sbalzo con doghe, vetrate, terreno con macchia e rocce, piscina, deck,
-   arredi esterni, luci notturne) + preset luce (HDRI mattina, tramonto `white_cliff_top`, notte con luci accese).
-3. Interni: soggiorno+cucina (parte da salon.py), scala/ballatoio, camera padronale, bagno padronale.
-4. Render: giro esterno 3×48 fotogrammi, panorami 7×3. Controllare ogni render prima del successivo lotto.
-5. Sito: sostituire il visore di foto con un visore di panorami 360° + giro esterno a fotogrammi
-   (i dati delle scene restano in villa.json), selettore ora del giorno.
-6. Build, prova su viewport iPhone, deploy.
+**Da decidere con Alessia:** come pubblicare (95 MB di render: niente file unico). Opzioni: token Vercel
+(`VERCEL_TOKEN` nell'ambiente), render nel repository con Vercel collegato a GitHub, oppure ZIP di `dist/`.
+
+**Lezioni (per non ripetere errori):**
+- Il container del Pod ha **31 GB di RAM**: al massimo due processi Blender con tutta la villa insieme (~9 GB l'uno),
+  altrimenti SIGKILL (rc -9). Usare `coda.py` per mettere in fila i render.
+- Mai chiamare uno script `queue.py` (o con il nome di un modulo standard): `bpy` lo importa al posto di quello vero.
+- Spegnere il Pod appena finiscono i render: una sessione può interrompersi per ore (6 h perse a vuoto il 1/11).
+- Nodo Mix di Blender 5: usare `lib.sock()` (le prese "A"/"B"/"Result" hanno nomi doppi Float/Color).
+
+**Migliorie possibili se c'è tempo/credito:** interni del mattino più luminosi (il sole non entra sotto lo sbalzo:
+ora compensato con l'esposizione), sedie esterne e lettini più dettagliati, passaggio in pietra più largo.
