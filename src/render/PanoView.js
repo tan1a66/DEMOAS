@@ -240,11 +240,13 @@ export class PanoView {
     const h = this.canvas.clientHeight || innerHeight;
     this.renderer.setSize(w, h, false);
     this.size = { w, h };
-    // inquadratura: ~100° in orizzontale su schermi larghi, ~78° in verticale su quelli stretti
+    // inquadratura: ~100° in orizzontale su schermi larghi; su quelli verticali (telefono) 74° in verticale,
+    // altrimenti la prospettiva stira l'immagine in alto e in basso (prima: fino a 100°, "tutto allungato")
     const aspect = w / h;
-    const hfov = THREE.MathUtils.degToRad(aspect > 1 ? 100 : 95);
-    const vfov = 2 * Math.atan(Math.tan(hfov / 2) / aspect);
-    this.baseFov = clamp(THREE.MathUtils.radToDeg(vfov), 55, 100);
+    const vfov = aspect >= 1
+      ? 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(100) / 2) / aspect)
+      : THREE.MathUtils.degToRad(74);
+    this.baseFov = clamp(THREE.MathUtils.radToDeg(vfov), 55, 80);
     this.camera.aspect = aspect;
   }
 
