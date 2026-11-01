@@ -26,8 +26,11 @@ export class Section {
     this.refreshLang();
   }
 
+  // di mattina la casa tagliata è troppo scura dentro (luci spente): si mostra quella del tramonto
+  static src(time) { return asset(`/renders/section/section_${time === 'morning' ? 'sunset' : time}.jpg`); }
+
   open(time) {
-    this.img.src = asset(`/renders/section/section_${time}.jpg`);
+    this.img.src = Section.src(time);
     this.isOpen = true;
     this.el.setAttribute('aria-hidden', 'false');
     gsap.fromTo(this.el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.6, ease: 'power2.out' });
@@ -37,7 +40,7 @@ export class Section {
   }
 
   setTime(time) {
-    if (this.isOpen) this.img.src = asset(`/renders/section/section_${time}.jpg`);
+    if (this.isOpen) this.img.src = Section.src(time);
   }
 
   close() {

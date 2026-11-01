@@ -1174,6 +1174,7 @@ def main():
     ap.add_argument("--save-blend", action="store_true")
     ap.add_argument("--skip-existing", action="store_true", help="salta i fotogrammi/panorami già renderizzati")
     ap.add_argument("--orbit-n", type=int, default=48, help="fotogrammi del giro completo (96 = passo di 3,75°)")
+    ap.add_argument("--exp-add", type=float, default=0.0, help="esposizione in più (es. sezione del mattino)")
     ap.add_argument("--flight-n", type=int, default=180, help="fotogrammi del volo di arrivo (30 al secondo)")
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
     a = ap.parse_args(argv)
@@ -1206,6 +1207,7 @@ def main():
     elif a.view == "section":
         poche()
         section_cap(None)
+        sc.view_settings.exposure += a.exp_add
         if not a.res:
             sc.render.resolution_x, sc.render.resolution_y = (1200, 600) if a.preview else (2400, 1200)
         section_camera()

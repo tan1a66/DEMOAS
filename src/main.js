@@ -229,7 +229,8 @@ async function playFlight(at) {
   hudOrbit.setVisible(false);
   chrome.loading(true);
   const tex = pano.texture(F.to, state.time);
-  flightVideo.src = asset(`/renders/flight/flight_${state.time}.mp4`);
+  const mp4 = flightVideo.canPlayType('video/mp4; codecs="avc1.4D401F"');
+  flightVideo.src = asset(`/renders/flight/flight_${state.time}.${mp4 ? 'mp4' : 'webm'}`);
   const ready = new Promise((resolve, reject) => {
     flightVideo.oncanplaythrough = resolve;
     flightVideo.onerror = () => reject(new Error('video'));
