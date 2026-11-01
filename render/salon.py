@@ -273,7 +273,7 @@ def chair(M, name, cx, cz, facing):
     """Sedia imbottita (velluto senape) con gambe nere sottili."""
     s = 0.24
     cushion(f"{name}_Seduta", cx - s, cx + s, 0.42, 0.5, cz - s, cz + s, M["mustard"], puff=0.03, radius=0.04)
-    zb = cz + facing * (s - 0.04)
+    zb = cz - facing * (s - 0.04)  # schienale dalla parte opposta al tavolo (facing = verso il tavolo)
     zb0, zb1 = (zb - 0.06, zb + 0.06)
     cushion(f"{name}_Schienale", cx - s + 0.02, cx + s - 0.02, 0.5, 0.86, min(zb0, zb1), max(zb0, zb1), M["mustard"], puff=0.04, radius=0.05)
     for (dx, dz) in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
