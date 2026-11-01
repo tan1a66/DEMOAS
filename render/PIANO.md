@@ -104,11 +104,24 @@ Un sito (Vite + Three.js + GSAP, in questo repository) che mostra solo render:
 **Pod:** 4090 SECURE 0,89 $/h (il cloud COMMUNITY non ha mai avuto 4090 libere). Credito ~3,1 $ all'avvio
 della seconda tornata. Il Pod si termina da solo dopo 45 min di inattività (farm_server.py).
 
+## Percorso definitivo (deciso da Alessia, 1 novembre ore 11)
+1. **Intro da film**: nero → "Alessia Studio presenta" → titolo, slogan, ENTRAR → volo dal mare (prima
+   parte di `flight_sunset`) che si dissolve nel giro esterno.
+2. **Giro esterno** (96 fotogrammi) con il pulsante **Ver interiores**.
+3. **Casa tagliata** (`InteriorMap.js`): gli ambienti toccati si accendono con un'aura dorata, il secondo tocco
+   (o ENTRAR) fa lo zoom nella stanza (BOOM). Seconda scheda: **piantina** dei due livelli, con la stessa aura;
+   si apre anche dal pulsante "Plano" in basso a sinistra.
+4. Sempre presente l'**elenco laterale** degli ambienti, per andare ovunque senza seguire l'ordine.
+- Solo due ore: **Atardecer / Noche** (il mattino rendeva meno). Bagno: wc e bidet di fronte ai lavabi.
+- Riquadri degli ambienti nella sezione: calcolati con la camera della sezione (`renders.section.rooms`).
+
 **Lezioni (per non ripetere errori):**
 - Il container del Pod ha **31 GB di RAM**: al massimo due processi Blender con tutta la villa insieme (~9 GB l'uno),
   altrimenti SIGKILL (rc -9). Usare `coda.py` per mettere in fila i render.
 - Mai chiamare uno script `queue.py` (o con il nome di un modulo standard): `bpy` lo importa al posto di quello vero.
 - Spegnere il Pod appena finiscono i render: una sessione può interrompersi per ore (6 h perse a vuoto il 1/11).
 - Nodo Mix di Blender 5: usare `lib.sock()` (le prese "A"/"B"/"Result" hanno nomi doppi Float/Color).
+- Un Pod può capitare su una macchina lenta (la stessa sezione: 9 min invece di 30 s): se i tempi
+  sono anomali, accendere un altro Pod e spegnere quello lento.
 - Se si cambia qualcosa visibile dall'esterno, il giro va rifatto tutto (altrimenti i fotogrammi vecchi e nuovi
   si alternano e si vede uno sfarfallio).
