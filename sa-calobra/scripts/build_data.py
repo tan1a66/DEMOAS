@@ -42,6 +42,11 @@ BRIDGE_PAD_M = 12        # attorno a ponti/gallerie il DEM non vale: si interpol
 CARVE_HALF = 4.0         # metà della fascia piana (8 m totali)
 CARVE_FALLOFF = 18.0     # raccordo morbido ai lati (m)
 CARVE_DEPTH = 0.25       # il terreno sta appena sotto l'asfalto (m)
+HI_MARGIN_M = 320        # livello di dettaglio: corridoio attorno alla strada...
+HI_CELL = 4.0            # ...con griglia da 4 m
+FAR_SIZE_M = 26000       # livello lontano (orizzonte): 26 km di lato...
+FAR_CELL = 100.0         # ...con griglia da 100 m (tile AWS z11)
+FAR_ZOOM = 11
 
 TERRARIUM = "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
 UA = "AlessiaStudio-SaCalobra-demo/1.0"
@@ -201,6 +206,13 @@ class IGNMosaic:
         for lat0, lon0, _, _, a in tiles:
             j = int(round((lat_top - lat0) / self.d)); i = int(round((lon0 - lon_left) / self.d))
             self.h[j:j + a.shape[0], i:i + a.shape[1]] = a
+        # l'MDT05 è in metri interi: due passate di filtro binomiale 5×5 (σ≈1,4 px ≈ 6 m)
+        # tolgono i "gradini" da 1 m che da vicino sembrerebbero curve di livello
+        k = np.array([1, 4, 6, 4, 1], float) / 16
+        for axis in (0, 1, 0, 1):
+            p = np.pad(self.h, [(2, 2) if a == axis else (0, 0) for a in (0, 1)], mode="edge")
+            n = self.h.shape[axis]
+            self.h = sum(k[o] * (p[o:o + n, :] if axis == 0 else p[:, o:o + n]) for o in range(5))
         self.lat_top, self.lon_left = lat_top, lon_left
         self.tiles = len(tiles)
         self.bytes = sum(os.path.getsize(os.path.join(folder, f)) for f in os.listdir(folder) if f.startswith("ign5_"))
@@ -254,7 +266,7 @@ def main():
     ap.add_argument("--zoom", type=int, default=13)
     ap.add_argument("--cell", type=float, default=8.0)
     ap.add_argument("--compare", action="store_true", help="confronta zoom 13 e 14")
-    ap.add_argument("--dem", choices=["aws", "ign"], default="aws", help="sorgente del rilievo")
+    ap.add_argument("--dem", choices=["aws", "ign"], default="ign", help="sorgente del rilievo")
     ap.add_argument("--ign", help="cartella con i blocchi ign5_*.tif (solo --dem ign)")
     ap.add_argument("--out-suffix", default="", help="suffisso per i file di anteprima/confronto")
     args = ap.parse_args()
@@ -395,43 +407,92 @@ def main():
     # gli estremi tengono la quota del DEM lisciato localmente (niente "trascinamento")
     grade = np.diff(prof) / ROAD_STEP * 100
 
-    # --- scavo della sede stradale nella heightmap
-    carved = terrain.copy()
-    best_d = np.full(terrain.shape, np.inf)
-    best_h = np.zeros(terrain.shape)
-    reach = CARVE_HALF + CARVE_FALLOFF
-    r_cells = int(math.ceil(reach / cell)) + 1
-    for k in range(len(rs_s)):
-        if kind[k] != "road":
-            continue  # sotto un ponte / sopra una galleria il terreno non segue questa strada
-        px, pz = rs_s[k]
-        ci = int(round((px + W / 2) / cell))
-        cj = int(round((pz + H / 2) / cell))
-        i0_, i1_ = max(ci - r_cells, 0), min(ci + r_cells + 1, nx)
-        j0_, j1_ = max(cj - r_cells, 0), min(cj + r_cells + 1, nz)
-        d = np.hypot(GX[j0_:j1_, i0_:i1_] - px, GZ[j0_:j1_, i0_:i1_] - pz)
-        sub_d = best_d[j0_:j1_, i0_:i1_]
-        upd = d < sub_d
-        sub_d[upd] = d[upd]
-        best_h[j0_:j1_, i0_:i1_][upd] = prof[k]
-    t = smoothstep(CARVE_HALF, reach, best_d)
-    mask = np.isfinite(best_d)
-    carved[mask] = (best_h[mask] - CARVE_DEPTH) * (1 - t[mask]) + terrain[mask] * t[mask]
+    # --- scavo della sede stradale nelle heightmap (livello base e corridoio di dettaglio)
+    def carve(GX_, GZ_, terr, c):
+        out = terr.copy()
+        nz_, nx_ = terr.shape
+        x0, z0 = GX_[0, 0], GZ_[0, 0]
+        best_d = np.full(terr.shape, np.inf)
+        best_h = np.zeros(terr.shape)
+        reach = CARVE_HALF + CARVE_FALLOFF
+        r = int(math.ceil(reach / c)) + 1
+        for k in range(len(rs_s)):
+            if kind[k] != "road":
+                continue  # sotto un ponte / sopra una galleria il terreno non segue questa strada
+            px, pz = rs_s[k]
+            ci, cj = int(round((px - x0) / c)), int(round((pz - z0) / c))
+            i0_, i1_ = max(ci - r, 0), min(ci + r + 1, nx_)
+            j0_, j1_ = max(cj - r, 0), min(cj + r + 1, nz_)
+            if i0_ >= i1_ or j0_ >= j1_:
+                continue
+            d = np.hypot(GX_[j0_:j1_, i0_:i1_] - px, GZ_[j0_:j1_, i0_:i1_] - pz)
+            sub_d = best_d[j0_:j1_, i0_:i1_]
+            upd = d < sub_d
+            sub_d[upd] = d[upd]
+            best_h[j0_:j1_, i0_:i1_][upd] = prof[k]
+        t = smoothstep(CARVE_HALF, reach, best_d)
+        m = np.isfinite(best_d)
+        out[m] = (best_h[m] - CARVE_DEPTH) * (1 - t[m]) + terr[m] * t[m]
+        return out
 
-    # --- export heightmap 16 bit
-    hmin, hmax = float(np.floor(carved.min())), float(np.ceil(carved.max()))
-    q = np.round((carved - hmin) / (hmax - hmin) * 65535).astype(np.uint16)
+    def grid(x0, x1, z0, z1, c):
+        X, Z = np.meshgrid(np.arange(x0, x1 + c / 2, c), np.arange(z0, z1 + c / 2, c))
+        la, lo = P.inv(X, Z)
+        return X, Z, la, lo
+
+    def sample_terrain(la, lo):
+        h = M.sample(la, lo)
+        if args.dem == "ign":
+            sea_ = h <= 0.5
+            h[sea_] = np.minimum(aws.sample(la, lo)[sea_], -2.0)
+        return h
+
+    carved = carve(GX, GZ, terrain, cell)
+
+    # corridoio di dettaglio (4 m) attorno alla strada
+    hx0 = math.floor((rs_s[:, 0].min() - HI_MARGIN_M) / HI_CELL) * HI_CELL
+    hx1 = math.ceil((rs_s[:, 0].max() + HI_MARGIN_M) / HI_CELL) * HI_CELL
+    hz0 = math.floor((rs_s[:, 1].min() - HI_MARGIN_M) / HI_CELL) * HI_CELL
+    hz1 = math.ceil((rs_s[:, 1].max() + HI_MARGIN_M) / HI_CELL) * HI_CELL
+    HX, HZ, hlat, hlon = grid(hx0, hx1, hz0, hz1, HI_CELL)
+    hi_carved = carve(HX, HZ, sample_terrain(hlat, hlon), HI_CELL)
+
+    # orizzonte lontano (100 m, tile AWS z11, nessuno scavo)
+    FX, FZ, flat_, flon_ = grid(-FAR_SIZE_M / 2, FAR_SIZE_M / 2, -FAR_SIZE_M / 2, FAR_SIZE_M / 2, FAR_CELL)
+    far_m = Mosaic(args.cache, FAR_ZOOM, flat_.min() - 0.01, flat_.max() + 0.01, flon_.min() - 0.01, flon_.max() + 0.01)
+    far_h = far_m.sample(flat_, flon_)
+    report["far"] = {"tiles": far_m.tiles, "kB": round(far_m.bytes / 1024)}
+
+    # --- export: un PNG 16 bit per livello + metadati
     os.makedirs(os.path.join(ROOT, "public", "data"), exist_ok=True)
-    Image.fromarray(q).save(os.path.join(ROOT, "public", "data", "terrain.png"), optimize=True)
+
+    def export_level(name, h, X, Z, c):
+        lo_, hi_ = float(np.floor(h.min())), float(np.ceil(h.max()))
+        q = np.round((h - lo_) / (hi_ - lo_) * 65535).astype(np.uint16)
+        fn = f"terrain_{name}.png"
+        Image.fromarray(q).save(os.path.join(ROOT, "public", "data", fn), optimize=True)
+        return {"file": fn, "width": int(h.shape[1]), "height": int(h.shape[0]), "cell": c,
+                "xMin": float(X[0, 0]), "xMax": float(X[0, -1]), "zMin": float(Z[0, 0]), "zMax": float(Z[-1, 0]),
+                "hMin": lo_, "hMax": hi_,
+                "kB": round(os.path.getsize(os.path.join(ROOT, "public", "data", fn)) / 1024)}
+
+    levels = {
+        "base": export_level("base", carved, GX, GZ, cell),
+        "hi": export_level("hi", hi_carved, HX, HZ, HI_CELL),
+        "far": export_level("far", far_h, FX, FZ, FAR_CELL),
+    }
+    hmin, hmax = levels["base"]["hMin"], levels["base"]["hMax"]
+    old_png = os.path.join(ROOT, "public", "data", "terrain.png")
+    if os.path.exists(old_png):
+        os.remove(old_png)
     meta = {
-        "width": nx, "height": nz, "cell": cell,
-        "extent": {"xMin": -W / 2, "xMax": W / 2, "zMin": -H / 2, "zMax": H / 2},
-        "hMin": hmin, "hMax": hmax,
-        "encoding": "uint16 grayscale PNG: h = hMin + v/65535*(hMax-hMin); row 0 = zMin (nord), col 0 = xMin (ovest)",
+        "levels": levels,
+        "encoding": "uint16 grayscale PNG: h = hMin + v/65535*(hMax-hMin); riga 0 = zMin (nord), colonna 0 = xMin (ovest)",
         "origin": {"lat": round(float(c_lat), 7), "lon": round(float(c_lon), 7)},
         "axes": "x = est, y = quota (m s.l.m.), z = sud",
-        "source": (f"IGN MDT05 (CNIG, CC-BY 4.0) + batimetria AWS Terrain Tiles z{args.zoom}, ricampionati a {cell} m"
-                   if args.dem == "ign" else f"AWS Terrain Tiles (Terrarium) z{args.zoom}, ricampionate a {cell} m"),
+        "dem": args.dem,
+        "source": (f"base/hi: IGN MDT05 (CNIG, CC-BY 4.0) + batimetria AWS Terrain Tiles z{args.zoom}; far: AWS z{FAR_ZOOM}"
+                   if args.dem == "ign" else f"AWS Terrain Tiles (Terrarium) z{args.zoom}; far: AWS z{FAR_ZOOM}"),
         "carve": {"half": CARVE_HALF, "falloff": CARVE_FALLOFF, "depth": CARVE_DEPTH},
     }
     with open(os.path.join(ROOT, "public", "data", "terrain.json"), "w") as f:
@@ -498,7 +559,7 @@ def main():
         "carve_change_max_m": round(float(np.abs(carved - terrain).max()), 1),
         "h_range": [hmin, hmax],
         "spans": road_out["spans"],
-        "png_kB": round(os.path.getsize(os.path.join(ROOT, "public", "data", "terrain.png")) / 1024),
+        "levels": {k: f"{v['width']}x{v['height']} @ {v['cell']} m, {v['kB']} kB" for k, v in levels.items()},
         "road_json_kB": round(os.path.getsize(os.path.join(ROOT, "public", "data", "road.json")) / 1024),
         "tiles": report,
     }

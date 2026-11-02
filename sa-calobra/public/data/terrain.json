@@ -1,22 +1,53 @@
 {
- "width": 633,
- "height": 802,
- "cell": 8.0,
- "extent": {
-  "xMin": -2528.0,
-  "xMax": 2528.0,
-  "zMin": -3204.0,
-  "zMax": 3204.0
+ "levels": {
+  "base": {
+   "file": "terrain_base.png",
+   "width": 633,
+   "height": 802,
+   "cell": 8.0,
+   "xMin": -2528.0,
+   "xMax": 2528.0,
+   "zMin": -3204.0,
+   "zMax": 3204.0,
+   "hMin": -13.0,
+   "hMax": 1288.0,
+   "kB": 527
+  },
+  "hi": {
+   "file": "terrain_hi.png",
+   "width": 675,
+   "height": 813,
+   "cell": 4.0,
+   "xMin": -1348.0,
+   "xMax": 1348.0,
+   "zMin": -1224.0,
+   "zMax": 2024.0,
+   "hMin": -10.0,
+   "hMax": 812.0,
+   "kB": 721
+  },
+  "far": {
+   "file": "terrain_far.png",
+   "width": 261,
+   "height": 261,
+   "cell": 100.0,
+   "xMin": -13000.0,
+   "xMax": 13000.0,
+   "zMin": -13000.0,
+   "zMax": 13000.0,
+   "hMin": -19.0,
+   "hMax": 1422.0,
+   "kB": 64
+  }
  },
- "hMin": -40.0,
- "hMax": 1267.0,
- "encoding": "uint16 grayscale PNG: h = hMin + v/65535*(hMax-hMin); row 0 = zMin (nord), col 0 = xMin (ovest)",
+ "encoding": "uint16 grayscale PNG: h = hMin + v/65535*(hMax-hMin); riga 0 = zMin (nord), colonna 0 = xMin (ovest)",
  "origin": {
   "lat": 39.8428858,
   "lon": 2.8060134
  },
  "axes": "x = est, y = quota (m s.l.m.), z = sud",
- "source": "AWS Terrain Tiles (Terrarium) z13, ricampionate a 8.0 m",
+ "dem": "ign",
+ "source": "base/hi: IGN MDT05 (CNIG, CC-BY 4.0) + batimetria AWS Terrain Tiles z13; far: AWS z11",
  "carve": {
   "half": 4.0,
   "falloff": 18.0,
