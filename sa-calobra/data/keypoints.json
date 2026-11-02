@@ -1,0 +1,36 @@
+{
+ "TOP": {
+  "name": "Coll dels Reis",
+  "osm_node": 1123226364,
+  "lat": 39.8275391,
+  "lon": 2.8179856,
+  "ele_osm": 682.0,
+  "roadIndex": 0,
+  "x": 1024.7,
+  "z": 1704.0,
+  "roadY": 721.6,
+  "roadS": 0.0
+ },
+ "CORBATA": {
+  "name": "Nus de sa Corbata (ponte, la strada passa sopra s\u00e9 stessa)",
+  "osm_way": 25073139,
+  "lat": 39.8320249,
+  "lon": 2.8159531,
+  "roadIndex": 269,
+  "x": 850.7,
+  "z": 1205.9,
+  "roadY": 636.1,
+  "roadS": 538.0
+ },
+ "PORT": {
+  "name": "Port de Sa Calobra (terminal traghetti)",
+  "osm_node": 3571097607,
+  "lat": 39.8513977,
+  "lon": 2.8003788,
+  "roadIndex": 5059,
+  "x": -482.3,
+  "z": -945.1,
+  "roadY": 47.6,
+  "roadS": 10117.6
+ }
+}

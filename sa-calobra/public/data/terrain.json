@@ -1,0 +1,25 @@
+{
+ "width": 633,
+ "height": 802,
+ "cell": 8.0,
+ "extent": {
+  "xMin": -2528.0,
+  "xMax": 2528.0,
+  "zMin": -3204.0,
+  "zMax": 3204.0
+ },
+ "hMin": -40.0,
+ "hMax": 1267.0,
+ "encoding": "uint16 grayscale PNG: h = hMin + v/65535*(hMax-hMin); row 0 = zMin (nord), col 0 = xMin (ovest)",
+ "origin": {
+  "lat": 39.8428858,
+  "lon": 2.8060134
+ },
+ "axes": "x = est, y = quota (m s.l.m.), z = sud",
+ "source": "AWS Terrain Tiles (Terrarium) z13, ricampionate a 8.0 m",
+ "carve": {
+  "half": 4.0,
+  "falloff": 18.0,
+  "depth": 0.25
+ }
+}
