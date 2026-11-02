@@ -32,6 +32,7 @@ export class OrbitView {
     this.#bind();
     this.resize();
     addEventListener('resize', () => this.resize());
+    if (window.ResizeObserver) new ResizeObserver(() => this.resize()).observe(this.canvas);
     this.tick = this.tick.bind(this);
     this.prev = performance.now();
     requestAnimationFrame(this.tick);
@@ -127,8 +128,17 @@ export class OrbitView {
     }, { passive: true });
   }
 
+  /** Safari su iPhone cambia l'altezza utile (barre, caricamento) anche senza l'evento resize:
+      si controlla la misura del canvas a ogni fotogramma, altrimenti l'immagine viene stirata. */
+  fitCheck() {
+    const w = this.canvas.clientWidth;
+    const h = this.canvas.clientHeight;
+    if (w && h && (w !== this.size.w || h !== this.size.h)) this.resize();
+  }
+
   tick(now) {
     requestAnimationFrame(this.tick);
+    this.fitCheck();
     const dt = Math.min(0.05, (now - this.prev) / 1000);
     this.prev = now;
     if (!this.active || !this.time) return;
