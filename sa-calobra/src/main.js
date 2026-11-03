@@ -26,6 +26,9 @@ import { CameraRig } from './camera/rig.js';
 import { createStory } from './story/story.js';
 import { createLook } from './ui/look.js';
 import { createAudio } from './ui/audio.js';
+import { createIntro } from './ui/intro.js';
+import { createInfo } from './ui/info.js';
+import { createLineOverlay } from './ui/lineOverlay.js';
 
 const params = new URLSearchParams(location.search);
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 820;
@@ -81,7 +84,13 @@ async function buildWorld(canvas, manager) {
 async function start() {
   const canvas = document.getElementById('gl');
   const manager = new LoadingManager();
+  // l'intro compare subito; la linea sotto il logo segue il caricamento
+  const dev = CAPTURE || params.has('view') || params.has('pos') || params.has('orbit');
+  const intro = dev ? null : createIntro();
+  if (dev) document.getElementById('intro').remove();
+  manager.onProgress = (_, loaded, total) => intro?.setProgress((loaded / total) * 0.75);
   const w = await buildWorld(canvas, manager);
+  intro?.setProgress(0.9);
   const { renderer, camera, hf, road, shared, roadObj, rider, post } = w;
 
   // ── dimensioni: il canvas è alto 100lvh, quindi la barra di Safari non lo ridimensiona
@@ -99,6 +108,7 @@ async function start() {
     renderer.setSize(W, H, false);
     post.composer.setSize(W, H, false);
     roadObj.line.setResolution(W, H);
+    roadObj.climb.setResolution(W, H);
     rider.setViewport(W, H);
   };
   addEventListener('resize', () => resize(false));
@@ -118,7 +128,10 @@ async function start() {
   const audio = createAudio();
   const story = createStory({ rig, road, capture: CAPTURE });
   const st = rig.state;
-  window.__story = { story, rig, w };
+  const overlay = createLineOverlay();
+  let lineVisible = dev ? 1 : 0; // la linea 3D compare quando la "M" dell'intro si posa sulla strada
+  const info = createInfo({ camera, road, rig, overlay, story, setLineVisible: (v) => { lineVisible = v ? 1 : 0; } });
+  window.__story = { story, rig, w, info };
 
   // pulsanti: suono e giroscopio
   const soundBtn = document.getElementById('sound');
@@ -129,21 +142,27 @@ async function start() {
     gyroBtn.addEventListener('click', async () => { if (await look.enableGyro()) gyroBtn.classList.add('on'); });
   }
 
-  let lastS = st.camS;
+  let lastS = st.lineS;
   const frame = (dt) => {
     renderer.info.reset();
     shared.uTime.value += dt;
     look.update(dt, st.stop);
     document.documentElement.classList.toggle('can-look', st.stop > 0.5);
     rig.update(dt);
-    // linea arancione: in discesa si disegna fino al ciclista, in salita resta tutta
+    // la linea della discesa si disegna fino al punto arancione; in salita si attenua e
+    // la salita si accende dal porto verso la cima
+    const L = road.length;
+    roadObj.line.setProgress(st.lineS / L);
+    roadObj.line.setOpacity((1 - 0.6 * st.dim) * lineVisible);
+    roadObj.climb.setOpacity(lineVisible);
+    roadObj.climb.setProgress((L - st.climbS) / L);
     const rs = rig.riderS();
-    roadObj.line.setProgress(st.dir > 0 ? rs / road.length : 1);
     rider.update(road, rs, st.rider);
     story.updateCounter();
-    const speed = (st.camS - lastS) / Math.max(dt, 1e-3);
-    lastS = st.camS;
-    audio.update(speed * st.dir, st.dir > 0 && speed > 0);
+    // audio: il ticchettio della ruota libera segue la velocità con cui scende la linea
+    const speed = (st.lineS - lastS) / Math.max(dt, 1e-3);
+    lastS = st.lineS;
+    audio.update(speed, st.dir > 0 && speed > 0);
     post.composer.render(dt);
   };
 
@@ -167,7 +186,6 @@ async function start() {
     return;
   }
 
-  story.intro();
   gsap.ticker.add((time, deltaMs) => {
     if (story.finalOpen) return; // la schermata finale copre tutto: niente 3D
     const dt = Math.min(deltaMs / 1000, 0.1);
@@ -181,8 +199,17 @@ async function start() {
       }
     }
   });
-  console.log('[sa-calobra]', JSON.stringify({ ...w.info, camera: rig.stats }));
+  console.log('[sa-calobra]', JSON.stringify(w.info));
   document.body.classList.add('ready');
+
+  // ── ENTRAR: sblocca audio e giroscopio (serve un gesto), poi lo zoom nella M
+  story.pause();
+  await intro.ready();
+  audio.unlock();
+  if (look.gyroAvailable) look.enableGyro().then((ok) => ok && gyroBtn.classList.add('on'));
+  await intro.play({ camera, road, overlay, lineS: st.lineS, onReveal: () => { lineVisible = 1; } });
+  story.resume();
+  story.intro();
 }
 
 // ── punti di vista fissi (sviluppo / screenshot della Fase 2) ─────────────────

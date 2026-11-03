@@ -62,6 +62,11 @@ export function createAudio() {
       if (master) master.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.4);
       return on;
     },
+    /** dentro il tocco su ENTRAR: prepara l'audio (resta muto finché non si tocca l'icona) */
+    unlock() {
+      if (!ctx) init();
+      if (ctx.state === 'suspended') ctx.resume();
+    },
     /** speed: metri di strada al secondo (positivo in discesa) */
     update(speed, descending) {
       if (!ctx || !on) return;

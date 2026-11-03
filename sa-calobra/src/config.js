@@ -145,34 +145,25 @@ export const CONFIG = {
     exposure: 1.0,
   },
 
-  // ── Camera
+  // ── Camera: inquadrature quasi ferme (drone in hovering); a muoversi è la linea arancione
   camera: {
     fovPortrait: 60,           // campo visivo verticale su telefono in verticale…
     fovLandscape: 45,          // …e su schermi orizzontali
     near: 2,
     far: 2500000,
-    height: 80,                // quota sopra la strada durante discesa e salita (m)
-    minClearance: 34,          // mai meno di così sopra il terreno (m)
-    maxSightRaise: 25,         // quanto può alzarsi in più per vedere oltre un crinale (m)
-    trackSmoothing: 160,       // lisciatura del tracciato (m): il drone "taglia" i tornanti
-    altitudeSmoothing: 140,    // lisciatura della quota (m): niente su e giù
-    lookAhead: 420,            // la rotta punta alla strada qualche centinaio di metri avanti (m)…
-    headingSmoothing: 280,     // …mediata su questa distanza (m): i tornanti non fanno girare la camera
-    maxTurnRate: 4.5,          // rotazione massima: gradi ogni 100 m di strada
-    maxPitchRate: 2.5,         // inclinazione: variazione massima in gradi ogni 100 m
-    pitchAhead: 380,           // l'inclinazione guarda la strada a questa distanza (m)…
-    pitchMin: -32,             // …entro questi limiti (gradi)
-    pitchMax: -12,
-    gimbal: 0.35,              // stabilizzatore: tempo di smorzamento delle rotazioni (s)
-    riderAhead: 250,           // il punto arancione "ciclista", testa della linea, davanti alla camera (m)
-    // inquadrature fisse (posizione → punto guardato), coordinate locali in metri
+    drift: 0.035,              // durante ogni inquadratura la camera avanza appena (frazione della distanza)
+    gimbal: 0.25,              // stabilizzatore: tempo di smorzamento delle rotazioni (s)
+    riderPx: 26,               // il punto arancione in testa alla linea (diametro in pixel)
+    // inquadrature (posizione → punto guardato), coordinate locali in metri
     poses: {
-      start: { roadS: 0, back: 60, up: 18, lookS: 280 },          // bassa sopra la strada al Coll
-      overview: { pos: [1250, 1180, 2350], target: [250, 250, -400] }, // drone: serpentina, gola, mare
-      // le soste: si arriva e si riparte con la direzione di marcia; in mezzo un'orbita lenta
-      port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] }, // sopra la cala: foce del Torrent de Pareis
-      nus: { pos: [905, 790, 1350], target: [850, 668, 1206] },    // il Nus de sa Corbata dall'alto, con la salita sotto
-      top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] }, // cima: tutta la salita e il mare al tramonto
+      start: { roadS: 0, back: 60, up: 18, lookS: 280 },             // bassa sopra la strada al Coll
+      a: { pos: [900, 1250, 2250], target: [700, 600, 1330] },       // discesa 1: Coll, Nus e tornanti
+      b: { pos: [250, 1150, 2350], target: [40, 380, 950] },         // discesa 2: metà strada
+      c: { pos: [-450, 700, 1350], target: [-620, 60, -250] },       // discesa 3: verso il mare
+      port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] },   // sosta 1 sopra la cala: foce del Torrent de Pareis
+      sea: { pos: [-900, 650, -2700], target: [300, 450, 1000] },    // salita: dal mare verso la montagna
+      nus: { pos: [780, 820, 980], target: [870, 660, 1260] },       // sosta 2: il Nus de sa Corbata
+      top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] },   // finale: tutta la salita e il mare al tramonto
     },
     look: {                    // soste a 360°
       dragSpeed: 0.0055,       // radianti per pixel trascinato
@@ -182,20 +173,46 @@ export const CONFIG = {
     },
   },
 
-  // ── Regia: lunghezza di ogni sezione in "schermate" di scroll (totale ≈ 10)
+  // ── Regia: lunghezza di ogni sezione in "schermate" di scroll (totale ≈ 11)
   story: {
-    rise: 0.7,                 // apertura: la camera sale e rivela la serpentina
-    swoop: 0.8,                // scende sulla strada
-    descent: 2.0,              // discesa verso il mare
-    arrive: 0.5,               // arrivo al porto (il drone rallenta e si ferma)
-    stop1: 1.5,                // sosta 1: porto (360°), orbita lenta verso la foce del Torrent de Pareis
-    leave: 0.5,                // si riparte, in salita
-    ascent: 1.9,               // salita (stessa velocità della discesa)
-    arrive2: 0.45,             // arrivo al Nus de sa Corbata
-    stop2: 1.0,                // sosta 2: Nus (360°); l'orbita lenta continua…
-    top: 1.1,                  // …fino alla vista finale su tutta la salita e sul mare
-    finale: 0.7,               // totale della tappa, frase finale e bottone
+    rise: 0.8,                 // apertura: dalla strada al Coll la camera sale sulla prima inquadratura
+    drawA: 0.9,                // discesa: la linea scende tra Coll, Nus e tornanti
+    moveAB: 0.45,              // la camera scivola sulla seconda inquadratura
+    drawB: 0.9,                // metà strada
+    moveBC: 0.45,
+    drawC: 0.8,                // verso il mare
+    arrive: 0.6,               // la camera scende sulla cala
+    stop1: 1.0,                // sosta 1: porto (360°)
+    leave: 0.6,                // si allarga sul mare: la salita inizia
+    climb: 1.6,                // la salita si accende dal porto verso la montagna, con il contatore
+    cut: 0.5,                  // dissolvenza verso il Nus
+    stop2: 0.8,                // sosta 2: Nus de sa Corbata (360°)
+    lookback: 1.3,             // ci si gira: tutta la salita e il mare al tramonto
+    finale: 0.7,               // totale della tappa, frase finale e bottoni
     scrub: 1,                  // morbidezza dello scroll (secondi di inseguimento)
+    // dove arriva la linea alla fine di ogni inquadratura della discesa (metri dal Coll)
+    introLine: 280,            // i primi metri di linea: quelli su cui si posa la M dell'intro
+    lineA: 2800, lineAB: 3300, lineB: 6200, lineBC: 6800,
+  },
+
+  // ── Il viaggio (INFO MALLORCA): la linea si raddrizza in una linea del tempo con i giorni.
+  //    Completare i giorni dal PDF di Nomads: name (tappa), stats (es. "60 KMS · 3:20 HRS · 1,623 M"), level.
+  trip: {
+    name: 'Mallorca',
+    dates: '19–28 octubre 2026',
+    climb: { km: 9.41, m: 660 },  // Coll de Sa Calobra (tabla "Rutas ciclistas" del PDF): valori finali del contatore
+    // dal PDF "Nomads Cycling Club x Mallorca" (nomi dei luoghi come nella tabla "Rutas ciclistas")
+    days: [
+      { day: 1, name: 'Aeropuerto de Palma', text: 'Recepción · Traslado al hotel · Cena de bienvenida' },
+      { day: 2, name: 'Alcudia · Sineu', text: 'El primer contacto con el asfalto mallorquín.', stats: '95 KMS · 3:15 HRS · 877 M', level: 'Fácil' },
+      { day: 3, name: 'Randa · Felanitx', text: 'El interior de la isla tiene su propia exigencia.', stats: '77 KMS · 2:45 HRS · 1,098 M', level: 'Fácil' },
+      { day: 4, name: 'Lluc · Pollença · Formentor', text: 'La Tramuntana entra en escena.', stats: '100 KMS · 4:15 HRS · 1,723 M', level: 'Intermedio' },
+      { day: 5, name: 'Lluc · Port de Sóller · Bunyola · Alaró', text: 'El día más duro.', stats: '98 KMS · 4:30 HRS · 2,155 M', level: 'Difícil' },
+      { day: 6, name: 'Camí Vell de Muro · Santa María · Alaró', text: 'Recuperar es también una decisión táctica.', stats: '50 KMS · 1:45 HRS · 434 M', level: 'Fácil · opcional' },
+      { day: 7, name: 'Calvià · Es Capdellà · Galilea · Puigpunyent · Valldemossa', text: 'Rampas explosivas hacia uno de los pueblos más fotogénicos de Europa.', stats: '82 KMS · 3:45 HRS · 1,414 M', level: 'Difícil' },
+      { day: 8, name: 'Esporles · Banyalbufar · Andratx', text: 'La costa oeste de la Tramuntana.', stats: '103 KMS · 4:00 HRS · 1,327 M', level: 'Intermedio' },
+      { day: 9, name: 'Ruta Sa Calobra', text: 'El final que se merece esta expedición.', stats: '60 KMS · 3:20 HRS · 1,623 M', level: 'Difícil', current: true },
+    ],
   },
 };
 

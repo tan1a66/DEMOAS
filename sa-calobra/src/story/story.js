@@ -1,13 +1,15 @@
 // La storia: un'unica timeline GSAP guidata dallo scroll (ScrollTrigger, scrub) con Lenis.
-// Si scende dal Coll dels Reis al mare, sosta al porto, si risale, sosta al Nus de sa Corbata,
-// cima. La timeline anima lo stato della camera (rig.state) e i testi; tutto il resto
-// (linea, ciclista, contatore, audio) si calcola da quello stato a ogni fotogramma.
+// La camera resta quasi ferma (inquadrature da drone in hovering): a muoversi è la linea
+// arancione, che scende dal Coll dels Reis al mare e poi si riaccende in salita.
+// La timeline anima lo stato (rig.state) e i testi; linea, ciclista, contatore e audio si
+// calcolano da quello stato a ogni fotogramma.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
 import { Vector3 } from 'three';
 import { CONFIG } from '../config.js';
+import { drifted } from '../camera/rig.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -20,7 +22,7 @@ export function createStory({ rig, road, capture = false }) {
   const poses = rig.poses;
   const nusS = road.keypoints.CORBATA.index * road.step;
 
-  const total = U.rise + U.swoop + U.descent + U.arrive + U.stop1 + U.leave + U.ascent + U.arrive2 + U.stop2 + U.top + U.finale;
+  const total = U.rise + U.drawA + U.moveAB + U.drawB + U.moveBC + U.drawC + U.arrive + U.stop1 + U.leave + U.climb + U.cut + U.stop2 + U.lookback + U.finale;
   document.documentElement.style.setProperty('--units', total.toFixed(3));
 
   // righe mascherate per i reveal
@@ -67,63 +69,70 @@ export function createStory({ rig, road, capture = false }) {
     return { px: p.pos.x, py: p.pos.y, pz: p.pos.z, yaw, pitch: p.pitch };
   };
 
+  const P = poses;
+  const draw = (to, dur, at) => tl.to(st, { lineS: to, duration: dur, ease: 'none' }, at);
+  const shot = (pz, dur, at, ease = 'none') => tl.to(st.sp, { ...pose(pz), duration: dur, ease }, at);
   let t = 0;
-  // 1 · Apertura: dalla strada al Coll la camera sale e ruota, rivela serpentina, gola e mare
-  tl.to(st.sp, { ...pose(poses.overview), duration: U.rise, ease: 'power2.inOut' }, t);
+
+  // 1 · Apertura: dalla strada al Coll la camera sale sulla prima inquadratura
+  shot(P.a, U.rise, t, 'sine.inOut');
   beatOut('#b-intro', t + U.rise * 0.42, { veilTo: 0 });
   t += U.rise;
 
-  // 2 · Discesa (un solo movimento continuo dal Coll al porto: niente scatti di velocità)
-  const descDur = U.swoop + U.descent + U.arrive;
-  // velocità costante: niente accelerazioni (le transizioni del drone ammorbidiscono inizio e fine)
-  tl.fromTo(st, { camS: 0 }, { camS: L, duration: descDur, ease: 'none', immediateRender: false }, t);
-  tl.to(st, { drone: 0, duration: U.swoop, ease: 'power2.inOut' }, t);
-  tl.to(st, { rider: 1, duration: U.swoop * 0.6 }, t + U.swoop * 0.4);
-  beatIn('#b-down', t + U.swoop + U.descent * 0.22);
-  beatOut('#b-down', t + U.swoop + U.descent * 0.68);
-  t += U.swoop + U.descent;
-  // arrivo al porto: il drone rallenta e si ferma sopra la fine della strada, con la stessa
-  // direzione di marcia (nessuna rotazione brusca)
-  const portIn = rig.followPose(1, L), portOut = portIn; // si arriva e si riparte guardando il mare
-  tl.set(st.sp, pose(portIn), t);
-  tl.to(st, { drone: 1, duration: U.arrive, ease: 'sine.inOut' }, t);
-  t += U.arrive;
+  // 2 · Discesa: tre inquadrature quasi ferme; la linea scende verso il mare
+  tl.to(st, { rider: 1, duration: 0.25 }, t);
+  shot(drifted(P.a), U.drawA, t);
+  draw(U.lineA, U.drawA, t);
+  t += U.drawA;
+  shot(P.b, U.moveAB, t, 'sine.inOut');
+  draw(U.lineAB, U.moveAB, t);
+  t += U.moveAB;
+  shot(drifted(P.b), U.drawB, t);
+  draw(U.lineB, U.drawB, t);
+  beatIn('#b-down', t + U.drawB * 0.1);
+  beatOut('#b-down', t + U.drawB * 0.72);
+  t += U.drawB;
+  shot(P.c, U.moveBC, t, 'sine.inOut');
+  draw(U.lineBC, U.moveBC, t);
+  t += U.moveBC;
+  shot(drifted(P.c), U.drawC, t);
+  draw(L, U.drawC, t);
+  t += U.drawC;
 
-  // 3 · Sosta 1: il porto, 360°. Orbita lenta: dal mare alla foce del Torrent de Pareis
-  // e ritorno. L'utente può guardarsi attorno in ogni momento.
+  // 3 · Al porto: la camera scende lenta sopra la cala; sosta a 360°
+  shot(P.port, U.arrive, t, 'sine.inOut');
+  t += U.arrive;
   const stops = [[t, t + U.stop1]];
-  // un'unica orbita continua (velocità angolare quasi costante, con partenza e arrivo dolci)
-  tl.to(st.sp, { keyframes: { '50%': pose(poses.port), '100%': pose(portOut), easeEach: 'none' }, duration: U.stop1, ease: 'sine.inOut' }, t);
+  shot(drifted(P.port, 0.02), U.stop1, t);
   tl.to(st, { stop: 1, duration: 0.12 }, t);
   beatIn('#b-port', t, { dur: 0.22, veilTo: 0.6 });
   fadeIn('#hint', t + 0.1);
   fadeOut('#hint', t + U.stop1 * 0.45);
   beatOut('#b-port', t + U.stop1 * 0.42, { veilTo: null });
-  beatIn('#b-up', t + U.stop1 * 0.6);
+  beatIn('#b-up', t + U.stop1 * 0.58);
   tl.to(st, { stop: 0, duration: 0.15 }, t + U.stop1 - 0.15);
-  tl.set(st, { dir: -1 }, t + U.stop1 - 0.02); // da qui si sale: il drone vola all'indietro davanti al ciclista
+  tl.set(st, { dir: -1 }, t + U.stop1 - 0.02); // da qui si sale: il punto arancione è il ciclista
   t += U.stop1;
 
-  // 4 · Salita (movimento continuo dal porto al Nus) con il contatore
-  const ascDur = U.leave + U.ascent + U.arrive2;
-  tl.fromTo(st, { camS: L }, { camS: nusS, duration: ascDur, ease: 'none', immediateRender: false }, t);
-  tl.to(st, { drone: 0, duration: U.leave, ease: 'sine.inOut' }, t);
+  // 4 · Salita: si allarga sul mare; la salita si accende dal porto verso la montagna
+  shot(P.sea, U.leave, t, 'sine.inOut');
+  tl.to(st, { dim: 1, duration: U.leave }, t);
+  tl.to(st, { climbS: nusS, duration: U.leave + U.climb + U.cut, ease: 'none' }, t);
   beatOut('#b-up', t + U.leave * 0.3);
   fadeIn('#counter', t + U.leave * 0.5, 0.3);
   tl.to('#veil-b', { opacity: 0.55, duration: 0.3 }, t + U.leave * 0.5);
-  t += U.leave + U.ascent;
-  tl.set(st.sp, pose(rig.followPose(1, nusS)), t);
-  tl.to(st, { drone: 1, duration: U.arrive2, ease: 'sine.inOut' }, t);
-  t += U.arrive2;
+  t += U.leave;
+  shot(drifted(P.sea, 0.06), U.climb, t);
+  t += U.climb;
+  // dissolvenza verso il Nus (niente lunghi voli di camera)
+  tl.to('#cut', { opacity: 1, duration: U.cut * 0.45, ease: 'power1.in' }, t);
+  tl.set(st.sp, pose(P.nus), t + U.cut * 0.5);
+  tl.to('#cut', { opacity: 0, duration: U.cut * 0.45, ease: 'power1.out' }, t + U.cut * 0.55);
+  t += U.cut;
 
-  // 5 · Sosta 2: il Nus de sa Corbata, 360°; poi l'orbita si apre verso il sole
+  // 5 · Sosta 2: il Nus de sa Corbata, 360°
   stops.push([t, t + U.stop2]);
-  // dal Nus la camera sale lenta fino alla vista finale su tutta la salita (stessa direzione)
-  const orbitDur = U.stop2 + U.top;
-  tl.to(st.sp, {
-    keyframes: { '35%': pose(poses.nus), '100%': pose(poses.top), easeEach: 'none' },
-    duration: orbitDur, ease: 'sine.inOut',
-  }, t);
+  shot(drifted(P.nus, 0.02), U.stop2, t);
   tl.to(st, { stop: 1, duration: 0.12 }, t);
   beatIn('#b-nus', t, { dur: 0.22, veilTo: 0.5 });
   fadeIn('#hint', t + 0.1);
@@ -131,11 +140,12 @@ export function createStory({ rig, road, capture = false }) {
   tl.to(st, { stop: 0, duration: 0.15 }, t + U.stop2 - 0.15);
   t += U.stop2;
 
-  // 6 · Cima: gli ultimi metri e la vista si apre su tutta la salita e sul mare al tramonto
+  // 6 · Ci si gira: tutta la salita e il mare al tramonto; il ciclista arriva al Coll
   beatOut('#b-nus', t, { veilTo: 0 });
-  tl.to(st, { camS: 0, riderOff: 0, duration: U.top, ease: 'sine.inOut' }, t); // il ciclista arriva in cima
-  beatIn('#b-top', t + U.top * 0.55, { dur: 0.2, veilTo: 0.45 });
-  t += U.top;
+  shot(P.top, U.lookback, t, 'sine.inOut');
+  tl.to(st, { climbS: 0, duration: U.lookback, ease: 'sine.inOut' }, t);
+  beatIn('#b-top', t + U.lookback * 0.6, { dur: 0.2, veilTo: 0.45 });
+  t += U.lookback;
 
   // il contatore lascia il posto al totale della tappa, poi la frase e il bottone
   fadeOut('#counter', t, 0.2);
@@ -199,23 +209,29 @@ export function createStory({ rig, road, capture = false }) {
   $('#back').addEventListener('click', close);
 
   // ── contatore (aggiornato a ogni fotogramma, il DOM solo quando cambia)
+  // valori ufficiali della salita (PDF Nomads, "Coll de Sa Calobra"): il contatore li raggiunge
+  // in proporzione a strada percorsa e quota guadagnata sul tracciato reale
   const kmEl = $('#c-km'), mEl = $('#c-m');
-  const yPort = road.y(road.count - 1);
+  const { km: KM, m: M } = CONFIG.trip.climb;
+  const yPort = road.y(road.count - 1), yTop = road.y(0);
   const p = new Vector3();
   let lastKm = '', lastM = '';
   const updateCounter = () => {
-    const rs = rig.riderS();
     const climbing = st.dir < 0;
+    const rs = rig.riderS();
     road.at(rs, p);
-    // valori reali misurati sulla strada: 0 → 10,1 km e 0 → ~700 m di dislivello
-    const km = (climbing ? Math.max(L - rs, 0) / 1000 : 0).toFixed(1);
-    const m = String(climbing ? Math.max(0, Math.round(p.y - yPort)) : 0);
+    const fKm = climbing ? Math.min(Math.max((L - rs) / L, 0), 1) : 0;
+    const fM = climbing ? Math.min(Math.max((p.y - yPort) / (yTop - yPort), 0), 1) : 0;
+    const km = (fKm * KM).toFixed(1);
+    const m = String(Math.round(fM * M));
     if (km !== lastKm) { kmEl.textContent = km; lastKm = km; }
     if (m !== lastM) { mEl.textContent = m; lastM = m; }
   };
 
   const api = {
     tl, lenis, total, intro, open, close, finalOpen: false,
+    pause() { lenis?.stop(); document.documentElement.classList.add('is-locked'); },
+    resume() { lenis?.start(); document.documentElement.classList.remove('is-locked'); },
     stops: stops.map(([a, b]) => [a / t, b / t]), // finestre delle soste, in frazione della storia
     updateCounter,
     /** solo per la registrazione: posiziona la storia senza scroll */

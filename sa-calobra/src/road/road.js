@@ -162,45 +162,52 @@ function buildWalls(road, hf, cfg) {
   } };
 }
 
-// ── linea arancione ───────────────────────────────────────────────────────────
-function buildLine(road, cfg) {
-  const pos = new Float32Array(road.count * 3);
-  for (let i = 0; i < road.count; i++) {
-    pos[i * 3] = road.x(i);
-    pos[i * 3 + 1] = road.y(i) + CONFIG.road.lift + cfg.lift;
-    pos[i * 3 + 2] = road.z(i);
-  }
+// ── linee arancioni ──────────────────────────────────────────────────────────
+// Line2 a spessore costante in pixel (come il tratto sopra le loro foto) + un alone morbido.
+// setProgress disegna la linea fino a una frazione del percorso (instanceCount dei segmenti).
+function makeLine(points, { width, glow, haloWidth, haloOpacity }) {
   const geo = new LineGeometry();
-  geo.setPositions(pos);
-  const color = new Color(CONFIG.brand.orange).multiplyScalar(cfg.glow);
-  const mat = new LineMaterial({ color, linewidth: cfg.width, worldUnits: false });
+  geo.setPositions(points);
+  const mat = new LineMaterial({
+    color: new Color(CONFIG.brand.orange).multiplyScalar(glow), linewidth: width, worldUnits: false, transparent: true,
+  });
   const line = new Line2(geo, mat);
   line.frustumCulled = false;
   line.renderOrder = 2;
-
-  // alone morbido: stessa geometria, linea più larga, additiva, che sfuma ai lati
   const glowMat = new LineMaterial({
-    color: new Color(CONFIG.brand.orange), linewidth: cfg.width * cfg.haloWidth, worldUnits: false,
+    color: new Color(CONFIG.brand.orange), linewidth: width * haloWidth, worldUnits: false,
     transparent: true, depthWrite: false, blending: AdditiveBlending,
   });
   glowMat.fragmentShader = glowMat.fragmentShader.replace(
     'gl_FragColor = vec4( diffuseColor.rgb, alpha );',
-    `gl_FragColor = vec4( diffuseColor.rgb, alpha * exp( -vUv.x * vUv.x * 3.5 ) * ${cfg.haloOpacity.toFixed(3)} );`,
+    `gl_FragColor = vec4( diffuseColor.rgb, alpha * exp( -vUv.x * vUv.x * 3.5 ) * ${haloOpacity.toFixed(3)} );`,
   );
-  const glow = new Line2(geo, glowMat);
-  glow.frustumCulled = false;
-  glow.renderOrder = 3;
-  line.add(glow);
-
-  const segments = road.count - 1;
+  const halo = new Line2(geo, glowMat);
+  halo.frustumCulled = false;
+  halo.renderOrder = 3;
+  line.add(halo);
+  const segments = points.length / 3 - 1;
   return {
     line,
-    /** p = 0…1: quota di percorso disegnata, dalla cima verso il mare */
+    /** p = 0…1: quanta parte della linea è disegnata */
     setProgress(p) {
       geo.instanceCount = Math.round(Math.min(Math.max(p, 0), 1) * segments);
+      line.visible = geo.instanceCount > 0;
     },
+    setOpacity(o) { mat.opacity = o; glowMat.opacity = o; },
     setResolution(w, h) { mat.resolution.set(w, h); glowMat.resolution.set(w, h); },
   };
+}
+
+function roadPoints(road, lift, reverse = false) {
+  const pos = new Float32Array(road.count * 3);
+  for (let k = 0; k < road.count; k++) {
+    const i = reverse ? road.count - 1 - k : k;
+    pos[k * 3] = road.x(i);
+    pos[k * 3 + 1] = road.y(i) + CONFIG.road.lift + lift;
+    pos[k * 3 + 2] = road.z(i);
+  }
+  return pos;
 }
 
 export function createRoad(road, hf, shared, rects, bakeTex) {
@@ -234,8 +241,12 @@ export function createRoad(road, hf, shared, rects, bakeTex) {
   walls.computeBoundingSphere();
   group.add(walls);
 
-  const line = buildLine(road, CONFIG.line);
-  group.add(line.line);
+  // discesa: dalla cima al mare · salita: dal porto verso la cima, più luminosa e appena più spessa
+  const cl = CONFIG.line;
+  const line = makeLine(roadPoints(road, cl.lift), cl);
+  const climb = makeLine(roadPoints(road, cl.lift + 0.1, true), { ...cl, width: cl.width * 1.25, glow: cl.glow * 1.35, haloOpacity: cl.haloOpacity * 1.4 });
+  climb.setProgress(0);
+  group.add(line.line, climb.line);
 
-  return { group, ribbon, walls, line, stats: { walls: w.items.length } };
+  return { group, ribbon, walls, line, climb, stats: { walls: w.items.length } };
 }
