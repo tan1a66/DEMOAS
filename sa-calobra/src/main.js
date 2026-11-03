@@ -135,7 +135,7 @@ async function start() {
     shared.uTime.value += dt;
     look.update(dt, st.stop);
     document.documentElement.classList.toggle('can-look', st.stop > 0.5);
-    rig.update();
+    rig.update(dt);
     // linea arancione: in discesa si disegna fino al ciclista, in salita resta tutta
     const rs = rig.riderS();
     roadObj.line.setProgress(st.dir > 0 ? rs / road.length : 1);
@@ -153,6 +153,14 @@ async function start() {
       story.seek(p);
       if (yaw !== null) { look.state.yaw = yaw; look.state.vy = 0; }
       frame(dt);
+    };
+    // misura del movimento (senza disegnare): posizione e orientamento della camera a p
+    window.__story.probe = (p, dt = 1 / 24) => {
+      story.seek(p);
+      look.update(dt, st.stop);
+      rig.update(dt);
+      const q = camera.quaternion, c = camera.position;
+      return [q.x, q.y, q.z, q.w, c.x, c.y, c.z];
     };
     story.intro(true);
     document.body.classList.add('ready');
@@ -173,7 +181,7 @@ async function start() {
       }
     }
   });
-  console.log('[sa-calobra]', JSON.stringify(w.info));
+  console.log('[sa-calobra]', JSON.stringify({ ...w.info, camera: rig.stats }));
   document.body.classList.add('ready');
 }
 

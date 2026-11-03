@@ -56,7 +56,16 @@ export function createStory({ rig, road, capture = false }) {
   };
   const fadeIn = (sel, at, dur = 0.2) => tl.fromTo(sel, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: dur, ease: 'power2.out', immediateRender: false }, at);
   const fadeOut = (sel, at, dur = 0.2) => tl.fromTo(sel, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -8, duration: dur, ease: 'power2.in', immediateRender: false }, at);
-  const pose = (p) => ({ px: p.pos.x, py: p.pos.y, pz: p.pos.z, tx: p.target.x, ty: p.target.y, tz: p.target.z });
+  // le inquadrature in ordine cronologico: la rotta di ognuna si "srotola" vicino alla precedente,
+  // così ogni passaggio gira per la via più breve e senza salti di 360°
+  let lastYaw = st.sp.yaw;
+  const pose = (p) => {
+    let yaw = p.yaw;
+    while (yaw - lastYaw > Math.PI) yaw -= 2 * Math.PI;
+    while (yaw - lastYaw < -Math.PI) yaw += 2 * Math.PI;
+    lastYaw = yaw;
+    return { px: p.pos.x, py: p.pos.y, pz: p.pos.z, yaw, pitch: p.pitch };
+  };
 
   let t = 0;
   // 1 · Apertura: dalla strada al Coll la camera sale e ruota, rivela serpentina, gola e mare
@@ -66,54 +75,65 @@ export function createStory({ rig, road, capture = false }) {
 
   // 2 · Discesa (un solo movimento continuo dal Coll al porto: niente scatti di velocità)
   const descDur = U.swoop + U.descent + U.arrive;
-  tl.fromTo(st, { camS: 0 }, { camS: L, duration: descDur, ease: 'sine.inOut', immediateRender: false }, t);
+  // velocità costante: niente accelerazioni (le transizioni del drone ammorbidiscono inizio e fine)
+  tl.fromTo(st, { camS: 0 }, { camS: L, duration: descDur, ease: 'none', immediateRender: false }, t);
   tl.to(st, { drone: 0, duration: U.swoop, ease: 'power2.inOut' }, t);
   tl.to(st, { rider: 1, duration: U.swoop * 0.6 }, t + U.swoop * 0.4);
   beatIn('#b-down', t + U.swoop + U.descent * 0.22);
   beatOut('#b-down', t + U.swoop + U.descent * 0.68);
   t += U.swoop + U.descent;
-  // arrivo al porto: la camera si stacca dalla strada verso l'inquadratura della cala
-  tl.set(st.sp, pose(poses.port), t);
-  tl.to(st, { drone: 1, duration: U.arrive, ease: 'power2.inOut' }, t);
+  // arrivo al porto: il drone rallenta e si ferma sopra la fine della strada, con la stessa
+  // direzione di marcia (nessuna rotazione brusca)
+  const portIn = rig.followPose(1, L), portOut = portIn; // si arriva e si riparte guardando il mare
+  tl.set(st.sp, pose(portIn), t);
+  tl.to(st, { drone: 1, duration: U.arrive, ease: 'sine.inOut' }, t);
   t += U.arrive;
 
-  // 3 · Sosta 1: il porto, 360°
+  // 3 · Sosta 1: il porto, 360°. Orbita lenta: dal mare alla foce del Torrent de Pareis
+  // e ritorno. L'utente può guardarsi attorno in ogni momento.
   const stops = [[t, t + U.stop1]];
+  // un'unica orbita continua (velocità angolare quasi costante, con partenza e arrivo dolci)
+  tl.to(st.sp, { keyframes: { '50%': pose(poses.port), '100%': pose(portOut), easeEach: 'none' }, duration: U.stop1, ease: 'sine.inOut' }, t);
   tl.to(st, { stop: 1, duration: 0.12 }, t);
   beatIn('#b-port', t, { dur: 0.22, veilTo: 0.6 });
-  fadeIn('#hint', t + 0.08);
-  fadeOut('#hint', t + U.stop1 * 0.5);
-  beatOut('#b-port', t + U.stop1 * 0.46, { veilTo: null });
-  beatIn('#b-up', t + U.stop1 * 0.56);
+  fadeIn('#hint', t + 0.1);
+  fadeOut('#hint', t + U.stop1 * 0.45);
+  beatOut('#b-port', t + U.stop1 * 0.42, { veilTo: null });
+  beatIn('#b-up', t + U.stop1 * 0.6);
   tl.to(st, { stop: 0, duration: 0.15 }, t + U.stop1 - 0.15);
-  tl.set(st, { dir: -1 }, t + U.stop1 - 0.02); // si gira verso la cima mentre l'inquadratura è fissa
+  tl.set(st, { dir: -1 }, t + U.stop1 - 0.02); // da qui si sale: il drone vola all'indietro davanti al ciclista
   t += U.stop1;
 
   // 4 · Salita (movimento continuo dal porto al Nus) con il contatore
   const ascDur = U.leave + U.ascent + U.arrive2;
-  tl.fromTo(st, { camS: L }, { camS: nusS, duration: ascDur, ease: 'sine.inOut', immediateRender: false }, t);
-  tl.to(st, { drone: 0, duration: U.leave, ease: 'power2.inOut' }, t);
-  beatOut('#b-up', t + U.leave * 0.25);
+  tl.fromTo(st, { camS: L }, { camS: nusS, duration: ascDur, ease: 'none', immediateRender: false }, t);
+  tl.to(st, { drone: 0, duration: U.leave, ease: 'sine.inOut' }, t);
+  beatOut('#b-up', t + U.leave * 0.3);
   fadeIn('#counter', t + U.leave * 0.5, 0.3);
   tl.to('#veil-b', { opacity: 0.55, duration: 0.3 }, t + U.leave * 0.5);
   t += U.leave + U.ascent;
-  tl.set(st.sp, pose(poses.nus), t);
-  tl.to(st, { drone: 1, duration: U.arrive2, ease: 'power2.inOut' }, t);
+  tl.set(st.sp, pose(rig.followPose(1, nusS)), t);
+  tl.to(st, { drone: 1, duration: U.arrive2, ease: 'sine.inOut' }, t);
   t += U.arrive2;
 
-  // 5 · Sosta 2: il Nus de sa Corbata, 360° (guardando indietro, tutta la salita)
+  // 5 · Sosta 2: il Nus de sa Corbata, 360°; poi l'orbita si apre verso il sole
   stops.push([t, t + U.stop2]);
+  // dal Nus la camera sale lenta fino alla vista finale su tutta la salita (stessa direzione)
+  const orbitDur = U.stop2 + U.top;
+  tl.to(st.sp, {
+    keyframes: { '35%': pose(poses.nus), '100%': pose(poses.top), easeEach: 'none' },
+    duration: orbitDur, ease: 'sine.inOut',
+  }, t);
   tl.to(st, { stop: 1, duration: 0.12 }, t);
   beatIn('#b-nus', t, { dur: 0.22, veilTo: 0.5 });
-  fadeIn('#hint', t + 0.08);
-  fadeOut('#hint', t + U.stop2 * 0.7);
+  fadeIn('#hint', t + 0.1);
+  fadeOut('#hint', t + U.stop2 * 0.6);
   tl.to(st, { stop: 0, duration: 0.15 }, t + U.stop2 - 0.15);
   t += U.stop2;
 
-  // 6 · Cima: gli ultimi metri e la vista si apre sul mare al tramonto
+  // 6 · Cima: gli ultimi metri e la vista si apre su tutta la salita e sul mare al tramonto
   beatOut('#b-nus', t, { veilTo: 0 });
-  tl.to(st.sp, { ...pose(poses.top), duration: U.top, ease: 'power2.inOut' }, t);
-  tl.to(st, { camS: 0, duration: U.top, ease: 'power1.inOut' }, t);
+  tl.to(st, { camS: 0, riderOff: 0, duration: U.top, ease: 'sine.inOut' }, t); // il ciclista arriva in cima
   beatIn('#b-top', t + U.top * 0.55, { dur: 0.2, veilTo: 0.45 });
   t += U.top;
 

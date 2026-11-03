@@ -151,18 +151,27 @@ export const CONFIG = {
     fovLandscape: 45,          // …e su schermi orizzontali
     near: 2,
     far: 2500000,
-    height: 62,                // quota sopra la strada durante discesa e salita (m)
-    minClearance: 30,          // mai meno di così sopra il terreno (m)
-    trackSmoothing: 75,        // lisciatura del tracciato (m): la camera "taglia" i tornanti
-    lookSmoothing: 30,         // lisciatura del punto di mira (m)
-    lookAhead: 330,            // guarda qualche centinaio di metri avanti (m)
-    riderAhead: 140,           // il punto arancione "ciclista" davanti alla camera (m)
+    height: 80,                // quota sopra la strada durante discesa e salita (m)
+    minClearance: 34,          // mai meno di così sopra il terreno (m)
+    maxSightRaise: 25,         // quanto può alzarsi in più per vedere oltre un crinale (m)
+    trackSmoothing: 160,       // lisciatura del tracciato (m): il drone "taglia" i tornanti
+    altitudeSmoothing: 140,    // lisciatura della quota (m): niente su e giù
+    lookAhead: 420,            // la rotta punta alla strada qualche centinaio di metri avanti (m)…
+    headingSmoothing: 280,     // …mediata su questa distanza (m): i tornanti non fanno girare la camera
+    maxTurnRate: 4.5,          // rotazione massima: gradi ogni 100 m di strada
+    maxPitchRate: 2.5,         // inclinazione: variazione massima in gradi ogni 100 m
+    pitchAhead: 380,           // l'inclinazione guarda la strada a questa distanza (m)…
+    pitchMin: -32,             // …entro questi limiti (gradi)
+    pitchMax: -12,
+    gimbal: 0.35,              // stabilizzatore: tempo di smorzamento delle rotazioni (s)
+    riderAhead: 250,           // il punto arancione "ciclista", testa della linea, davanti alla camera (m)
     // inquadrature fisse (posizione → punto guardato), coordinate locali in metri
     poses: {
       start: { roadS: 0, back: 60, up: 18, lookS: 280 },          // bassa sopra la strada al Coll
       overview: { pos: [1250, 1180, 2350], target: [250, 250, -400] }, // drone: serpentina, gola, mare
-      port: { pos: [-520, 100, -1290], target: [-60, 10, -1000] },  // sopra la cala: foce del Torrent de Pareis (girandosi: porto e strada)
-      nus: { pos: [930, 745, 1300], target: [845, 668, 1195] },    // il Nus de sa Corbata dall'alto
+      // le soste: si arriva e si riparte con la direzione di marcia; in mezzo un'orbita lenta
+      port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] }, // sopra la cala: foce del Torrent de Pareis
+      nus: { pos: [905, 790, 1350], target: [850, 668, 1206] },    // il Nus de sa Corbata dall'alto, con la salita sotto
       top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] }, // cima: tutta la salita e il mare al tramonto
     },
     look: {                    // soste a 360°
@@ -175,17 +184,17 @@ export const CONFIG = {
 
   // ── Regia: lunghezza di ogni sezione in "schermate" di scroll (totale ≈ 10)
   story: {
-    rise: 1.0,                 // apertura: la camera sale e rivela la serpentina
-    swoop: 0.7,                // scende sulla strada
-    descent: 2.1,              // discesa verso il mare
-    arrive: 0.45,              // arrivo al porto
-    stop1: 1.0,                // sosta 1: porto (360°)
-    leave: 0.45,               // si riparte, in salita
-    ascent: 1.6,               // salita
-    arrive2: 0.4,              // arrivo al Nus de sa Corbata
-    stop2: 0.75,               // sosta 2: Nus (360°)
-    top: 0.65,                 // ultimi metri fino al Coll dels Reis
-    finale: 0.8,               // totale della tappa, frase finale e bottone
+    rise: 0.7,                 // apertura: la camera sale e rivela la serpentina
+    swoop: 0.8,                // scende sulla strada
+    descent: 2.0,              // discesa verso il mare
+    arrive: 0.5,               // arrivo al porto (il drone rallenta e si ferma)
+    stop1: 1.5,                // sosta 1: porto (360°), orbita lenta verso la foce del Torrent de Pareis
+    leave: 0.5,                // si riparte, in salita
+    ascent: 1.9,               // salita (stessa velocità della discesa)
+    arrive2: 0.45,             // arrivo al Nus de sa Corbata
+    stop2: 1.0,                // sosta 2: Nus (360°); l'orbita lenta continua…
+    top: 1.1,                  // …fino alla vista finale su tutta la salita e sul mare
+    finale: 0.7,               // totale della tappa, frase finale e bottone
     scrub: 1,                  // morbidezza dello scroll (secondi di inseguimento)
   },
 };

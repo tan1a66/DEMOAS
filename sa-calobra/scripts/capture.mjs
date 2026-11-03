@@ -7,6 +7,7 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 
 const [base, outDir, nArg = '600', dprArg = '1', fromArg = '0', toArg = '1'] = process.argv.slice(2);
 const N = Number(nArg), from = Number(fromArg), to = Number(toArg);
+const FPS = Number(process.env.FPS || 24);
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: Number(dprArg), isMobile: true, hasTouch: true });
@@ -24,10 +25,11 @@ for (let i = 0; i < N; i++) {
   for (const [a, b] of stops) {
     if (p > a && p < b) {
       const u = (p - a) / (b - a);
-      yaw = Math.sin(Math.PI * Math.min(Math.max((u - 0.08) / 0.84, 0), 1)) * Math.PI * 0.85;
+      // un giro lento verso sinistra e ritorno (come una persona che si guarda attorno)
+      yaw = Math.sin(Math.PI * Math.min(Math.max((u - 0.1) / 0.8, 0), 1)) * Math.PI * 0.35;
     }
   }
-  await page.evaluate(([p, yaw]) => window.__story.seek(p, 1 / 24, yaw), [p, yaw]);
+  await page.evaluate(([p, yaw, fps]) => window.__story.seek(p, 1 / fps, yaw), [p, yaw, FPS]);
   await page.screenshot({ path: `${outDir}/${String(i).padStart(5, '0')}.png`, timeout: 120000 });
   if (i % 25 === 0) console.log(`fotogramma ${i}/${N} · ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
