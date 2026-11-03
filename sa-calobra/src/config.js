@@ -156,7 +156,7 @@ export const CONFIG = {
     trackSmoothing: 75,        // lisciatura del tracciato (m): la camera "taglia" i tornanti
     lookSmoothing: 30,         // lisciatura del punto di mira (m)
     lookAhead: 330,            // guarda qualche centinaio di metri avanti (m)
-    riderAhead: 95,            // il punto arancione "ciclista" davanti alla camera (m)
+    riderAhead: 140,           // il punto arancione "ciclista" davanti alla camera (m)
     // inquadrature fisse (posizione → punto guardato), coordinate locali in metri
     poses: {
       start: { roadS: 0, back: 60, up: 18, lookS: 280 },          // bassa sopra la strada al Coll

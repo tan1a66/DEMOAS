@@ -90,14 +90,15 @@ a { color: inherit; }
 /* ── suggerimento delle soste ────────────────────────────────── */
 .hint {
   position: fixed; z-index: 4; left: 50%; bottom: calc(var(--safe-b) + 128px); transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; white-space: nowrap;
-  padding: 11px 16px; border-radius: 40px; background: rgba(43, 43, 43, 0.55);
-  font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px; white-space: nowrap; max-width: calc(100vw - 2 * var(--gutter));
+  padding: 11px 15px; border-radius: 40px; background: rgba(43, 43, 43, 0.55);
+  font-family: var(--display); font-weight: 500; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
   visibility: hidden; opacity: 0; pointer-events: none;
 }
 .hint > svg { width: 30px; height: 15px; fill: none; stroke: var(--orange); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.gyro { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; padding-left: 12px; border-left: 1px solid rgba(237, 232, 223, 0.3); letter-spacing: inherit; font-size: inherit; text-transform: inherit; }
-.gyro svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.gyro { pointer-events: auto; display: inline-flex; align-items: center; gap: 6px; padding-left: 10px; border-left: 1px solid rgba(237, 232, 223, 0.3); letter-spacing: inherit; font-size: inherit; text-transform: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.gyro svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; }
 .gyro.on { color: var(--orange); }
 
 /* ── contatore della salita ──────────────────────────────────── */
