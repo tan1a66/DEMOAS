@@ -5,7 +5,7 @@ const { chromium } = createRequire(import.meta.url)('playwright'); // Playwright
 
 const [url, out, wait = '2500'] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-const page = await browser.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+const page = await browser.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: Number(process.env.DPR || 3), isMobile: true, hasTouch: true });
 page.on('console', (m) => console.log(`[${m.type()}]`, m.text()));
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 await page.goto(url, { waitUntil: 'load' });

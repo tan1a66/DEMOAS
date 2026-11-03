@@ -5,10 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2B2B2B" />
     <title>Nomads Cycling Club — Sa Calobra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Unbounded:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <canvas id="gl" aria-label="Sa Calobra en 3D"></canvas>
+    <canvas id="gl" aria-label="Sa Calobra en 3D: la carretera del Coll dels Reis al mar"></canvas>
+    <div class="veil" id="veil" aria-hidden="true"></div>
+    <div class="veil veil--bottom" id="veil-b" aria-hidden="true"></div>
+
+    <header class="top">
+      <span class="wordmark">nomads.</span>
+      <button class="sound" id="sound" type="button" aria-label="Sonido" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" /><path class="wave w1" d="M15.5 9.5a3.5 3.5 0 0 1 0 5" /><path class="wave w2" d="M18 7a7 7 0 0 1 0 10" /><path class="mute" d="M16 9.5l5 5m0-5l-5 5" /></svg>
+      </button>
+    </header>
+    <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+
+    <section class="story" aria-live="polite">
+      <div class="beat beat--intro" id="b-intro">
+        <p class="kicker">Día 9 · Ruta Sa Calobra</p>
+        <h1 class="headline" data-split>Mallorca no se visita, se conquista.</h1>
+      </div>
+      <div class="beat" id="b-down">
+        <p class="headline" data-split>Bajas para saber que tienes que subir de regreso.</p>
+      </div>
+      <div class="beat beat--place" id="b-port"><p class="kicker">Port de Sa Calobra</p></div>
+      <div class="beat beat--place" id="b-nus"><p class="kicker">Nus de sa Corbata</p></div>
+      <div class="beat beat--place" id="b-top"><p class="kicker">Coll dels Reis</p></div>
+      <div class="beat beat--big" id="b-up">
+        <p class="headline headline--big" data-split>Ahora, sube.</p>
+      </div>
+      <div class="beat beat--stats" id="b-stats">
+        <p class="kicker">Día 9 · Ruta Sa Calobra</p>
+        <p class="stats" data-split>60 KMS · 1,623 M</p>
+      </div>
+      <div class="beat beat--end" id="b-end">
+        <p class="headline" data-split>No es un viaje, es tu próxima historia.</p>
+        <button class="cta" id="cta" type="button">Próxima expedición <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+
+    <div class="hint" id="hint">
+      <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M6 12h36M6 12l5-5M6 12l5 5M42 12l-5-5M42 12l-5 5" /></svg>
+      <span>Desliza para mirar alrededor</span>
+      <button class="gyro" id="gyro" type="button" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M3 9a9 9 0 0 0 0 6M21 9a9 9 0 0 1 0 6" /></svg>
+        Giroscopio
+      </button>
+    </div>
+
+    <div class="counter" id="counter" aria-label="Subida">
+      <p class="counter__label">Subida</p>
+      <p class="counter__row">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c3 0 3-4 6-4s3 4 6 4M5 19a2 2 0 1 1 0-.01M19 5a2 2 0 1 1 0-.01M19 7v3c0 3-4 3-4 6" /></svg>
+        <b id="c-km">0.0</b><span>km</span>
+      </p>
+      <p class="counter__row">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l6-10 4 6 3-4 5 8z" /></svg>
+        <b id="c-m">0</b><span>m</span>
+      </p>
+    </div>
+
+    <p class="credit">© OpenStreetMap contributors · Terreno: IGN España, AWS Terrain Tiles</p>
+
+    <main id="scroll" aria-hidden="true"></main>
+
+    <section class="final" id="final" aria-hidden="true">
+      <div class="final__inner">
+        <p class="wordmark wordmark--dark">nomads.</p>
+        <h2 class="final__title">Esta parte la construimos juntos.</h2>
+        <a class="wa" href="https://wa.me/393461758562" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z" /></svg>
+          WhatsApp
+        </a>
+        <p class="sign">Alessia Studio — 3D web experience<br /><a href="https://www.alessia.studio" target="_blank" rel="noopener">www.alessia.studio</a></p>
+        <button class="back" id="back" type="button"><span aria-hidden="true">←</span> Sa Calobra</button>
+      </div>
+    </section>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

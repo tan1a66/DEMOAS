@@ -145,11 +145,48 @@ export const CONFIG = {
     exposure: 1.0,
   },
 
-  // ── Camera (Fase 2: punti di vista di prova; la regia arriva in Fase 3)
+  // ── Camera
   camera: {
-    fov: 50,
+    fovPortrait: 60,           // campo visivo verticale su telefono in verticale…
+    fovLandscape: 45,          // …e su schermi orizzontali
     near: 2,
     far: 2500000,
+    height: 62,                // quota sopra la strada durante discesa e salita (m)
+    minClearance: 30,          // mai meno di così sopra il terreno (m)
+    trackSmoothing: 75,        // lisciatura del tracciato (m): la camera "taglia" i tornanti
+    lookSmoothing: 30,         // lisciatura del punto di mira (m)
+    lookAhead: 330,            // guarda qualche centinaio di metri avanti (m)
+    riderAhead: 95,            // il punto arancione "ciclista" davanti alla camera (m)
+    // inquadrature fisse (posizione → punto guardato), coordinate locali in metri
+    poses: {
+      start: { roadS: 0, back: 60, up: 18, lookS: 280 },          // bassa sopra la strada al Coll
+      overview: { pos: [1250, 1180, 2350], target: [250, 250, -400] }, // drone: serpentina, gola, mare
+      port: { pos: [-520, 100, -1290], target: [-60, 10, -1000] },  // sopra la cala: foce del Torrent de Pareis (girandosi: porto e strada)
+      nus: { pos: [930, 745, 1300], target: [845, 668, 1195] },    // il Nus de sa Corbata dall'alto
+      top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] }, // cima: tutta la salita e il mare al tramonto
+    },
+    look: {                    // soste a 360°
+      dragSpeed: 0.0055,       // radianti per pixel trascinato
+      inertia: 0.92,           // 0…1, quanto continua a girare dopo il rilascio
+      pitchMin: -50,           // limiti verticali (gradi)
+      pitchMax: 22,
+    },
+  },
+
+  // ── Regia: lunghezza di ogni sezione in "schermate" di scroll (totale ≈ 10)
+  story: {
+    rise: 1.0,                 // apertura: la camera sale e rivela la serpentina
+    swoop: 0.7,                // scende sulla strada
+    descent: 2.1,              // discesa verso il mare
+    arrive: 0.45,              // arrivo al porto
+    stop1: 1.0,                // sosta 1: porto (360°)
+    leave: 0.45,               // si riparte, in salita
+    ascent: 1.6,               // salita
+    arrive2: 0.4,              // arrivo al Nus de sa Corbata
+    stop2: 0.75,               // sosta 2: Nus (360°)
+    top: 0.65,                 // ultimi metri fino al Coll dels Reis
+    finale: 0.8,               // totale della tappa, frase finale e bottone
+    scrub: 1,                  // morbidezza dello scroll (secondi di inseguimento)
   },
 };
 

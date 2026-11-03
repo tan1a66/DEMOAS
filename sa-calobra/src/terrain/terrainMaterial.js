@@ -49,13 +49,18 @@ const frag = /* glsl */ `
     d3.yz = d3.yz * mat2(0.80, -0.60, 0.60, 0.80);       // gradienti riportati in coordinate mondo
     d4.yz = d4.yz * mat2(0.93, 0.36, -0.36, 0.93);
     float n3 = mix(0.5, d3.x, fine);
+    // da vicino (< ~0,4 m per pixel): un'ottava in più, ~1 m, per sassi e cespugli
+    float close = 1.0 - smoothstep(0.12, 0.45, mpp);
+    vec3 d5 = close > 0.0 ? gnoised(pr2 * 1.15 + 3.1) : vec3(0.5, 0.0, 0.0);
+    d5.yz = d5.yz * mat2(0.93, 0.36, -0.36, 0.93);
 
     float slope0 = 1.0 - n.y;
     float rocky = smoothstep(uRockSlope.x, uRockSlope.y, slope0 + (n1 - 0.5) * 0.22 + (n2 - 0.5) * 0.1);
     rocky = max(rocky, 0.8 * smoothstep(820.0, 1180.0, y + (n1 - 0.5) * 200.0));   // in cima più roccia
 
     // micro-rilievo procedurale: più marcato sulla roccia, lieve sulla macchia (cespugli)
-    vec2 bump = d4.yz * 0.11 * mid * mix(0.35, 1.0, rocky) + d3.yz * 0.38 * 0.05 * fine * mix(1.4, 0.8, rocky);
+    vec2 bump = d4.yz * 0.11 * mid * mix(0.35, 1.0, rocky) + d3.yz * 0.38 * 0.05 * fine * mix(1.4, 0.8, rocky)
+              + d5.yz * 1.15 * 0.025 * close;
     n = normalize(n + vec3(-bump.x, 0.0, -bump.y) * 3.0);
     float slope = 1.0 - n.y;
 
@@ -66,7 +71,7 @@ const frag = /* glsl */ `
     float sB = vnoise(vec2(p.y * 0.23, y * 0.018)) * 0.6 + mix(0.5, vnoise(vec2(p.y * 0.9, y * 0.06)), mid) * 0.4;
     float streak = mix(sA, sB, wz);
     vec3 rock = mix(uRockDark, uRock, smoothstep(0.15, 0.85, streak + (n2 - 0.5) * 0.35));
-    rock *= 0.86 + 0.28 * n3;
+    rock *= (0.86 + 0.28 * n3) * mix(1.0, 0.85 + 0.3 * d5.x, close);
 
     // macchia mediterranea: densa e scura nelle conche, più rada e secca sulle creste
     float wet = smoothstep(0.98, 0.7, bk.a);              // conche (occlusione alta)
@@ -74,6 +79,7 @@ const frag = /* glsl */ `
     vec3 veg = mix(uValley, scrub, smoothstep(uValleyH.x, uValleyH.y, y + (n1 - 0.5) * 120.0));
     float clumps = smoothstep(0.25, 0.75, d3.x * 0.55 + d4.x * 0.45);
     veg *= mix(1.0, 0.62 + 0.62 * clumps, fine * 0.8 + 0.2);   // cespugli e radure
+    veg *= mix(1.0, 0.78 + 0.44 * d5.x, close);
 
     // roccia che affiora tra la macchia
     float outcrop = smoothstep(0.7, 0.86, d4.x * 0.6 + n2 * 0.4) * (1.0 - wet) * mid;

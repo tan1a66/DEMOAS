@@ -5,7 +5,7 @@ Una sola scena: la MA-2141 dal Coll dels Reis al porto di Sa Calobra, si scende 
 ## Stato
 - [x] Fase 1 — dati geografici reali (strada OSM, rilievo, punti chiave) → `docs/checkpoint1.png`
 - [x] Fase 2 — scena 3D (terreno, strada, mare, cielo, pini, post) → `docs/checkpoint2.jpg`
-- [ ] Fase 3 — camera, scroll e storia
+- [x] Fase 3 — camera, scroll e storia (GSAP + ScrollTrigger + Lenis) → `docs/checkpoint3.jpg`
 - [ ] Fase 4 — loader
 - [ ] Fase 5 — rifinitura e pubblicazione
 
@@ -21,6 +21,20 @@ Parametri di sviluppo nell'URL:
 - `?set=sky.exposure:1.2,fog.density:0.0002` prova valori di `src/config.js` senza modificarlo
 
 Screenshot di verifica (Playwright, iPhone 15): `node scripts/shot.mjs "http://127.0.0.1:5174/?view=porto&shot" out.png`
+
+Video dell'intera storia, fotogramma per fotogramma (il browser headless non ha GPU):
+```bash
+node scripts/capture.mjs "http://127.0.0.1:5174/" fotogrammi/ 720 1
+ffmpeg -framerate 24 -i fotogrammi/%05d.png -c:v libx264 -pix_fmt yuv420p video.mp4
+```
+Prova dello scroll reale e del trascinamento: `node scripts/scrolltest.mjs "http://127.0.0.1:5174/" out.png`
+
+## Regia (Fase 3)
+- `src/story/story.js` — la timeline: apertura (drone), discesa, sosta al porto, salita, sosta al Nus, cima, finale
+- `src/camera/rig.js` — la camera su `CatmullRomCurve3` lisciate (discesa e salita), sempre 30–80 m sopra la strada, e le inquadrature fisse
+- `src/ui/look.js` — soste a 360°: trascinamento con inerzia (orizzontale su touch, libero col mouse) e giroscopio
+- `src/ui/audio.js` — vento e ruota libera generati con Web Audio (icona in alto a destra)
+- In `config.js`: `camera` (quote, lisciatura, inquadrature `poses`, limiti dello sguardo) e `story` (lunghezza di ogni sezione in schermate)
 
 ## Dati (Fase 1)
 ```bash
