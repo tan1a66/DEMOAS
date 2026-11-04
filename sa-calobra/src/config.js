@@ -24,13 +24,13 @@ export const CONFIG = {
   // ── Sole e cielo (tramonto di fine ottobre: il sole tramonta a WSW)
   sun: {
     azimuth: 252,              // gradi da nord, in senso orario
-    elevation: 7.5,            // gradi sopra l'orizzonte
-    color: '#ffbe85',          // luce diretta, oro caldo
-    intensity: 3.0,
+    elevation: 9,              // gradi sopra l'orizzonte (ora dorata: luce radente, ombre lunghe)
+    color: '#ffc690',          // luce diretta, oro caldo
+    intensity: 3.4,
     shadowSoftness: 1.6,       // penombra delle ombre del rilievo (gradi)
   },
   sky: {
-    turbidity: 2.4,
+    turbidity: 2.0,            // aria tersa, come dopo il maestrale
     rayleigh: 3.8,
     mieCoefficient: 0.003,
     mieDirectionalG: 0.82,
@@ -40,14 +40,14 @@ export const CONFIG = {
     horizonTint: '#ffd6a8',    // moltiplica il colore all'orizzonte (più dorato)
   },
   ambient: {
-    sky: '#8796ae',            // luce del cielo nelle ombre (fredda)
+    sky: '#7d92b6',            // luce del cielo nelle ombre (fredda, blu)
     ground: '#6e5640',         // rimbalzo dal suolo (caldo, scuro)
-    intensity: 1.15,
+    intensity: 0.95,           // ombre più profonde: più contrasto tra sole e ombra
   },
 
   // ── Nebbia atmosferica (esponenziale, più densa in basso)
   fog: {
-    density: 0.0002,           // densità al livello del mare
+    density: 0.00012,          // densità al livello del mare (aria tersa: si vede lontano)
     heightFalloff: 0.0018,     // quanto rapidamente si dirada salendo
     sunGlow: '#ffb27a',        // la nebbia verso il sole si scalda
     sunGlowPower: 6.0,
@@ -119,7 +119,7 @@ export const CONFIG = {
 
   // ── Mare
   sea: {
-    deep: '#0b3550',
+    deep: '#082f5c',           // blu profondo del Mediterraneo al largo
     shallow: '#1f8a8f',        // l'acqua turchese delle cale
     foam: '#e8f0f0',
     shallowDepth: 9,           // sotto questa profondità l'acqua diventa turchese (m)
@@ -140,6 +140,22 @@ export const CONFIG = {
     size: [4.5, 9.5],          // altezza (m)
   },
 
+  // ── Ciclisti sulla strada: gruppi che salgono e scendono, e il gruppo Nomads in testa alla linea
+  cyclists: {
+    groups: [                  // s0: dove parte il gruppo (m), speed: m/s, dir: +1 scende, -1 sale
+      { s0: 600, speed: 4.2, dir: -1, n: 5, nomads: true },
+      { s0: 3200, speed: 4.6, dir: -1, n: 3 },
+      { s0: 6100, speed: 3.9, dir: -1, n: 4 },
+      { s0: 8300, speed: 4.4, dir: -1, n: 2 },
+      { s0: 1500, speed: 9.5, dir: 1, n: 3 },
+      { s0: 5200, speed: 10.5, dir: 1, n: 4 },
+    ],
+    lead: 4,                   // il gruppo Nomads in testa alla linea arancione
+    gap: 2.6,                  // distanza tra le ruote in gruppo (m)
+    scaleFrom: 60,             // oltre questa distanza (m) i ciclisti si ingrandiscono…
+    scaleMax: 4.5,             // …fino a tanto, per restare visibili dalle inquadrature da drone
+  },
+
   // ── Post-processing
   post: {
     toneMapping: 'ACES_FILMIC', // 'AGX' (più morbido, desatura le luci) o 'ACES_FILMIC' (più contrasto e colore)
@@ -149,9 +165,9 @@ export const CONFIG = {
     bloomRadius: 0.6,
     vignetteDarkness: 0.55,
     vignetteOffset: 0.32,
-    grain: 0.09,               // opacità della grana
-    saturation: 0.14,          // -1…1
-    contrast: 0.08,            // -1…1
+    grain: 0.06,               // opacità della grana
+    saturation: 0.2,           // -1…1
+    contrast: 0.16,            // -1…1
     exposure: 1.0,
   },
 

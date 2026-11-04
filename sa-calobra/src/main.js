@@ -18,6 +18,7 @@ import { createSea } from './scene/sea.js';
 import { createSky, createSun } from './scene/sky.js';
 import { createTrees } from './scene/trees.js';
 import { createRider } from './scene/rider.js';
+import { createCyclists } from './scene/cyclists.js';
 import { createPost } from './scene/post.js';
 import { createShared } from './scene/shared.js';
 import { createDebug } from './debug.js';
@@ -72,6 +73,8 @@ async function buildWorld(canvas, manager) {
   scene.add(trees.mesh);
   const rider = createRider(shared);
   scene.add(rider.mesh);
+  const cyclists = createCyclists(road, shared, rects, bakeTex);
+  scene.add(cyclists.mesh);
 
   const post = createPost(renderer, scene, camera, isMobile);
   const info = {
@@ -80,7 +83,7 @@ async function buildWorld(canvas, manager) {
     trees: trees.count,
     walls: roadObj.stats.walls,
   };
-  return { renderer, scene, camera, hf, road, shared, roadObj, rider, post, info };
+  return { renderer, scene, camera, hf, road, shared, roadObj, rider, cyclists, post, info };
 }
 
 async function start() {
@@ -164,6 +167,7 @@ async function start() {
     roadObj.climb.setProgress((L - st.climbS) / L);
     const rs = rig.riderS();
     rider.update(road, rs, st.rider);
+    w.cyclists.update(dt, camera, rs, st.rider, st.dir);
     // audio: il ticchettio della ruota libera segue la velocità con cui scende la linea
     const speed = (st.lineS - lastS) / Math.max(dt, 1e-3);
     lastS = st.lineS;
