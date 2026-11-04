@@ -20,24 +20,33 @@
     <header class="top">
       <span class="logo" role="img" aria-label="Nomads Cycling Club"></span>
       <div class="top__right">
-        <button class="info-btn" id="info-open" type="button">Info Mallorca</button>
+        <button class="info-btn" id="info-open" type="button">Cap. 01 · Mallorca</button>
         <button class="sound" id="sound" type="button" aria-label="Sonido" aria-pressed="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" /><path class="wave w1" d="M15.5 9.5a3.5 3.5 0 0 1 0 5" /><path class="wave w2" d="M18 7a7 7 0 0 1 0 10" /><path class="mute" d="M16 9.5l5 5m0-5l-5 5" /></svg>
         </button>
       </div>
     </header>
-    <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+    <!-- la linea arancione è anche la barra di avanzamento: un punto per tappa -->
+    <div class="rail" aria-hidden="true"><span class="rail__fill" id="rail-fill"></span><span class="rail__dots" id="rail-dots"></span></div>
 
     <!-- testi delle tappe: generati da config.js → copy (il finale ha i bottoni) -->
     <section class="story" id="story" aria-live="polite">
-      <div class="beat beat--end" id="b-end">
+      <div class="beat beat--end" id="b-next">
         <div class="end-actions">
-          <button class="cta" id="cta" type="button">Próxima expedición <span aria-hidden="true">→</span></button>
-          <button class="cta cta--ghost" id="info-open-end" type="button">Info Mallorca</button>
+          <button class="cta" id="cta" type="button">Quiero el próximo capítulo <span aria-hidden="true">→</span></button>
+          <button class="cta cta--ghost" id="info-open-end" type="button">Cap. 01 · Mallorca</button>
         </div>
       </div>
     </section>
     <div class="cue" id="cue" aria-hidden="true"><span></span></div>
+    <!-- salita: si tiene premuto -->
+    <div class="hold" id="hold" aria-hidden="true">
+      <svg viewBox="0 0 40 40"><circle class="hold__track" cx="20" cy="20" r="16" /><circle class="hold__ring" id="hold-ring" cx="20" cy="20" r="16" pathLength="1" /><circle class="hold__dot" cx="20" cy="20" r="5" /></svg>
+      <span id="hold-text"></span>
+    </div>
+    <!-- fine: la linea prosegue verso l'orizzonte, il prossimo capitolo -->
+    <svg class="next" id="next" aria-hidden="true"><path class="next__glow" id="next-glow" /><path class="next__line" id="next-line" /><circle class="next__dot" id="next-dot" r="5" /></svg>
+    <p class="next__label" id="next-label" aria-hidden="true"></p>
 
     <div class="hint" id="hint">
       <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M6 12h36M6 12l5-5M6 12l5 5M42 12l-5-5M42 12l-5 5" /></svg>
@@ -49,15 +58,16 @@
     </div>
 
     <div class="counter" id="counter" aria-label="Subida">
-      <p class="counter__label">Subida</p>
-      <p class="counter__row">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c3 0 3-4 6-4s3 4 6 4M5 19a2 2 0 1 1 0-.01M19 5a2 2 0 1 1 0-.01M19 7v3c0 3-4 3-4 6" /></svg>
-        <b id="c-km">0.0</b><span>km</span>
-      </p>
-      <p class="counter__row">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l6-10 4 6 3-4 5 8z" /></svg>
-        <b id="c-m">0</b><span>m</span>
-      </p>
+      <p class="counter__head"><span class="counter__label">Subida</span><span class="counter__nums"><b id="c-km">0.0</b> km<i>·</i><b id="c-m">0</b> m</span></p>
+      <div class="profile">
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <defs><clipPath id="profile-clip"><rect id="profile-cut" x="0" y="-10" width="0" height="120" /></clipPath></defs>
+          <path class="profile__area" id="profile-area" />
+          <path class="profile__base" id="profile-base" />
+          <path class="profile__done" id="profile-done" clip-path="url(#profile-clip)" />
+        </svg>
+        <i class="profile__dot" id="profile-dot"></i>
+      </div>
     </div>
 
     <p class="credit">© OpenStreetMap contributors · Terreno: IGN España, AWS Terrain Tiles</p>
@@ -77,15 +87,18 @@
     </section>
 
     <!-- INFO MALLORCA: la linea si raddrizza nella linea del tempo del viaggio -->
-    <section class="info" id="info" aria-hidden="true" aria-label="Mallorca: el viaje día a día">
+    <section class="info" id="info" aria-hidden="true" aria-label="Capítulo 01, Mallorca: el viaje día a día">
       <div class="info__scroll" id="info-scroll">
         <header class="info__head">
           <p class="kicker" id="info-dates"></p>
           <h2 class="info__title" id="info-title"></h2>
+          <p class="info__lead" id="info-lead"></p>
+          <div class="levels" id="levels" role="group" aria-label="¿Cuál es tu nivel?"></div>
         </header>
         <ol class="days" id="days"></ol>
+        <section class="incl" id="incl"></section>
         <div class="info__next">
-          <button class="cta" id="cta-info" type="button">Próxima expedición <span aria-hidden="true">→</span></button>
+          <button class="cta" id="cta-info" type="button"></button>
         </div>
       </div>
       <button class="info__close" id="info-close" type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>

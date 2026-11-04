@@ -1,5 +1,5 @@
 // Sa Calobra — avvio.
-//   (nessun parametro)  la storia guidata dallo scroll
+//   (nessun parametro)  la storia a tappe (swipe, rotella, frecce)
 //   ?debug              contatore FPS / draw call / triangoli (+ risoluzione adattiva)
 //   ?view=serpentina|meta|porto|nus|tramonto   punti di vista fissi (sviluppo)
 //   ?orbit              OrbitControls per esplorare (sviluppo)
@@ -29,6 +29,7 @@ import { createAudio } from './ui/audio.js';
 import { createIntro } from './ui/intro.js';
 import { createInfo } from './ui/info.js';
 import { createLineOverlay } from './ui/lineOverlay.js';
+import { createShare } from './ui/share.js';
 
 const params = new URLSearchParams(location.search);
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 820;
@@ -126,12 +127,15 @@ async function start() {
   const rig = new CameraRig(camera, road, hf);
   const look = createLook(rig.look);
   const audio = createAudio();
-  const story = createStory({ rig, road, capture: CAPTURE });
+  const story = createStory({ rig, road, camera, capture: CAPTURE });
   const st = rig.state;
   const overlay = createLineOverlay();
   let lineVisible = dev ? 1 : 0; // la linea 3D compare quando la "M" dell'intro si posa sulla strada
   const info = createInfo({ camera, road, rig, overlay, story, setLineVisible: (v) => { lineVisible = v ? 1 : 0; } });
-  window.__story = { story, rig, w, info };
+  // "Comparte tu cima": l'immagine si prepara quando si arriva in cima
+  const share = createShare({ canvas, road, render: () => post.composer.render(0) });
+  story.onStep = (k) => { if (story.order[k] === 'top') share.prepare(); };
+  window.__story = { story, rig, w, info, share };
 
   // pulsanti: suono e giroscopio
   const soundBtn = document.getElementById('sound');
@@ -146,6 +150,7 @@ async function start() {
   const frame = (dt) => {
     renderer.info.reset();
     shared.uTime.value += dt;
+    story.update(dt); // salita tenendo premuto, dov'è il ciclista, profilo e contatore
     look.update(dt, st.stop);
     document.documentElement.classList.toggle('can-look', st.stop > 0.5);
     rig.update(dt);
@@ -158,7 +163,6 @@ async function start() {
     roadObj.climb.setProgress((L - st.climbS) / L);
     const rs = rig.riderS();
     rider.update(road, rs, st.rider);
-    story.updateCounter();
     // audio: il ticchettio della ruota libera segue la velocità con cui scende la linea
     const speed = (st.lineS - lastS) / Math.max(dt, 1e-3);
     lastS = st.lineS;
@@ -207,7 +211,7 @@ async function start() {
   await intro.ready();
   audio.unlock();
   if (look.gyroAvailable) look.enableGyro().then((ok) => ok && gyroBtn.classList.add('on'));
-  await intro.play({ camera, road, overlay, lineS: st.lineS, onReveal: () => { lineVisible = 1; } });
+  await intro.play({ camera, road, overlay, lineS: st.lineS, onReveal: () => { lineVisible = 1; }, onShift: () => audio.shift() });
   story.resume();
   story.intro();
 }

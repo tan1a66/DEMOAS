@@ -154,16 +154,17 @@ export const CONFIG = {
     drift: 0.035,              // durante ogni inquadratura la camera avanza appena (frazione della distanza)
     gimbal: 0.25,              // stabilizzatore: tempo di smorzamento delle rotazioni (s)
     riderPx: 26,               // il punto arancione in testa alla linea (diametro in pixel)
-    // inquadrature (posizione → punto guardato), coordinate locali in metri
+    // inquadrature (posizione → punto guardato), coordinate locali in metri. Una per tappa,
+    // sempre alte e larghe (da vicino il rilievo perde dettaglio)
     poses: {
-      start: { roadS: 0, back: 60, up: 18, lookS: 280 },             // bassa sopra la strada al Coll
-      a: { pos: [900, 1250, 2250], target: [700, 600, 1330] },       // discesa 1: Coll, Nus e tornanti
-      b: { pos: [250, 1150, 2350], target: [40, 380, 950] },         // discesa 2: metà strada
-      c: { pos: [-450, 700, 1350], target: [-620, 60, -250] },       // discesa 3: verso il mare
-      port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] },   // sosta 1 sopra la cala: foce del Torrent de Pareis
-      sea: { pos: [-900, 650, -2700], target: [300, 450, 1000] },    // salita: dal mare verso la montagna
-      nus: { pos: [780, 820, 980], target: [870, 660, 1260] },       // sosta 2: il Nus de sa Corbata
-      top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] },   // finale: tutta la salita e il mare al tramonto
+      start: { pos: [900, 1250, 2250], target: [700, 600, 1330] },   // 0 · dove si posa la M: il Coll, il Nus e i tornanti
+      b: { pos: [1600, 1500, 1900], target: [0, 350, 1100] },        // 1 · la linea scende tra i tornanti, vista da est
+      c: { pos: [-400, 890, 1830], target: [-620, 60, -250] },        // 2 · la linea arriva al mare
+      port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] },   // 3 · sopra la cala: foce del Torrent de Pareis (360°)
+      sea: { pos: [-900, 650, -2700], target: [300, 450, 1000] },    // 4 · dal mare verso la montagna: la salita
+      nus: { pos: [780, 820, 980], target: [870, 660, 1260] },       // 5 · il Nus de sa Corbata (360°)
+      top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] },   // 6 · tutta la salita e il mare al tramonto
+      next: { pos: [1250, 1520, 2300], target: [-3640, 520, 3340] }, // 7 · lo sguardo va al tramonto: il prossimo capitolo
     },
     look: {                    // soste a 360°
       dragSpeed: 0.0055,       // radianti per pixel trascinato
@@ -177,46 +178,55 @@ export const CONFIG = {
   //    Durate in secondi dell'animazione tra una tappa e l'altra.
   story: {
     steps: {
-      a: 4.2,      // 0 → 1  dalla strada al Coll; la linea scende tra Nus e tornanti
-      b: 3.6,      // 1 → 2  metà strada
-      c: 4.4,      // 2 → 3  verso il mare, poi giù sulla cala del porto (360°)
-      up: 1.6,     // 3 → 4  "Ahora, sube."
-      climb: 4.4,  // 4 → 5  la salita si accende dal porto, con il contatore
-      nus: 2.6,    // 5 → 6  dissolvenza sul Nus de sa Corbata (360°)
-      top: 4.0,    // 6 → 7  ci si gira: tutta la salita e il mare al tramonto
-      stats: 1.6,  // 7 → 8
-      end: 1.6,    // 8 → 9  frase finale e bottoni
+      b: 4.2,      // 0 → 1  la linea scende dal Coll tra i tornanti
+      c: 4.0,      // 1 → 2  la linea arriva al mare
+      port: 2.4,   // 2 → 3  dissolvenza sulla cala del porto: the crew (360°)
+      sea: 3.0,    // 3 → 4  si allarga sul mare: "Ahora, sube." (si sale tenendo premuto)
+      nus: 2.4,    // 4 → 5  dissolvenza sul Nus de sa Corbata: il coach (360°)
+      top: 4.2,    // 5 → 6  ci si gira: il ciclista arriva al Coll
+      next: 3.2,   // 6 → 7  la linea prosegue verso l'orizzonte: Capítulo 02
     },
     hurry: 3,      // uno swipe durante l'animazione la accelera di tanto
     backSpeed: 2.2, // all'indietro si torna più in fretta
-    introLine: 280,      // i primi metri di linea: quelli su cui si posa la M dell'intro
-    lineA: 2800,         // fin dove scende la linea alla tappa 1 (m dal Coll)
-    lineB: 6400,         // … alla tappa 2
-    climbStop: 4600,     // fin dove è salito il ciclista alla tappa 5 (m dal Coll)
-    counter: true,       // in salita: km e metri saliti (valori ufficiali della salita, dal PDF)
+    introLine: 1500,     // i metri di strada su cui si posa la M dell'intro
+    lineB: 4300,         // fin dove scende la linea alla tappa 1 (m dal Coll)
+    holdTime: 5.5,       // secondi da tenere premuto per salire dal porto al Nus
+    autoClimb: 1.4,      // con uno swipe invece di tenere premuto: la salita si completa in tanti secondi
+    counter: true,       // in salita: profilo, km e metri saliti (valori ufficiali della salita, dal PDF)
   },
 
   // ── Testi delle tappe (frasi dal PDF di Nomads). size: 'headline' (grande), 'lead' (frase
-  //    lunga), 'big' (enorme). Il viaggio a Mallorca è nel pannello INFO MALLORCA.
+  //    lunga), 'big' (enorme); sub: riga piccola sotto; photo: 'crew' | 'coach' (foto dal PDF).
+  //    Il viaggio a Mallorca è nel pannello del Capítulo 01.
   copy: {
-    intro: { kicker: 'Nomads Cycling Club', text: 'El mundo no se visita, se conquista pedaleando.' },
-    a: { kicker: 'Quiénes somos', text: 'Nacimos de la pasión. Crecimos para conquistar el asfalto.' },
-    b: { kicker: 'Quiénes somos', text: 'Nacimos en México con una visión audaz: consolidarnos como la empresa líder en viajes recreativos bajo un concepto de emociones puras.', size: 'lead' },
-    port: { kicker: 'Qué hacemos', text: 'Ofrecer experiencias únicas a quienes, como nosotros, ven en la bicicleta una forma de libertad.', size: 'lead' },
-    up: { text: 'Ahora, sube.', size: 'big' },
-    climb: { kicker: 'The crew · Soporte y liderazgo de élite', text: 'Tu única responsabilidad es el asfalto. Nuestro equipo garantiza una ejecución perfecta con soporte 360° en todo momento.', size: 'lead' },
-    nus: { kicker: 'Head coach y guía · Alfredo “Freddy” Cruz', text: 'Rodar exige más que fuerza; requiere estrategia.' },
-    top: { kicker: 'Qué hacemos', text: 'No solo te llevamos a un destino, te conectamos con nuevas culturas y paisajes a través de la pasión y el espíritu de aventura.', size: 'lead' },
-    stats: { text: 'Queremos que cada ruta sea una historia que valga la pena contar. Por eso, no visitamos el mundo, lo pedaleamos.', size: 'lead' },
-    end: { text: 'No es un viaje, es tu próxima historia.' },
+    start: { kicker: 'Nomads Cycling Club', text: 'El mundo no se visita, se conquista pedaleando.' },
+    b: { kicker: 'Quiénes somos', text: 'Nacimos de la pasión. Crecimos para conquistar el asfalto.' },
+    c: { kicker: 'Qué hacemos', text: 'Experiencias únicas para quienes ven en la bicicleta una forma de libertad.', size: 'lead' },
+    port: { kicker: 'The crew', text: 'Tu única responsabilidad es pedalear.', sub: 'Nosotros nos encargamos de todo.', photo: 'crew' },
+    sea: { text: 'Ahora, sube.', size: 'big' },
+    nus: { kicker: 'Head coach · Alfredo “Freddy” Cruz', text: 'Rodar exige más que fuerza; requiere estrategia.', sub: 'UCI Coach Nivel 3 · Estratega detrás de la victoria de Isaac del Toro en el Tour de l’Avenir.', photo: 'coach' },
+    top: { text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
+    next: { text: 'No es un viaje, es tu próxima historia.' },
+    hold: 'Mantén presionado para subir',
+    share: 'Comparte tu cima',
+    nextChapter: 'Capítulo 02 · Próximamente',
     introMeta: 'Viajes en bicicleta · Desde México', // sotto il logo nell'intro
+    // l'immagine da condividere (formato storia 1080 × 1920)
+    card: { kicker: 'Capítulo 01 · Mallorca', title: 'Conquisté\nSa Calobra.', stats: '9.41 KM · 660 M' }, // \n = a capo
   },
 
-  // ── Il viaggio (INFO MALLORCA): la linea si raddrizza in una linea del tempo con i giorni.
-  //    Completare i giorni dal PDF di Nomads: name (tappa), stats (es. "60 KMS · 3:20 HRS · 1,623 M"), level.
+  // ── Il viaggio: Capítulo 01 · Mallorca (bottone in alto e alla fine). La linea si raddrizza
+  //    in una linea del tempo con i giorni. status: 'past' = viaggio già fatto (si racconta
+  //    com'è stato e si chiede il prossimo capitolo); 'open' = in vendita (prezzo e apartado).
   trip: {
+    chapter: 'Capítulo 01',
+    button: 'Cap. 01 · Mallorca',
+    status: 'past',
     name: 'Mallorca',
     dates: '19–28 octubre 2026',
+    price: { total: '€2,750', deposit: '€350', note: 'Cupos limitados para mantener una experiencia personalizada.' },
+    includes: ['Staff especializado acompañando cada ruta', 'Kit del ciclista', 'Vehículo de apoyo permanente', 'Hidratación y nutrición estratégica', 'Gestión de renta de bicicletas', 'Traslados aeropuerto–hotel–aeropuerto', 'Alojamiento con desayuno incluido', 'Cena de bienvenida y cena de despedida', 'Día de descanso activo'],
+    levels: ['Fácil', 'Intermedio', 'Difícil'],
     climb: { km: 9.41, m: 660 },  // Coll de Sa Calobra (tabla "Rutas ciclistas" del PDF): valori finali del contatore
     // dal PDF "Nomads Cycling Club x Mallorca" (nomi dei luoghi come nella tabla "Rutas ciclistas")
     days: [

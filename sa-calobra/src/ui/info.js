@@ -1,4 +1,4 @@
-// INFO MALLORCA: la linea arancione si stacca dalla strada e si raddrizza in verticale,
+// Capítulo 01 · Mallorca: la linea arancione si stacca dalla strada e si raddrizza in verticale,
 // diventando la linea del tempo del viaggio con i giorni (dati in config.js → trip).
 // Chiudendo, la linea torna a posarsi sulla strada e la storia riprende.
 import gsap from 'gsap';
@@ -7,27 +7,57 @@ import { resample, projectRoad, lerpPts } from './lineOverlay.js';
 
 const N = 90;
 
-function buildDays() {
+const norm = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+// il pannello dal config: capitolo, giorni, livello, cosa include e (se in vendita) il prezzo
+function build() {
   const t = CONFIG.trip;
-  document.getElementById('info-dates').textContent = t.dates;
+  const past = t.status === 'past';
+  for (const id of ['info-open', 'info-open-end']) document.getElementById(id).textContent = t.button;
+  document.getElementById('info-dates').textContent = `${t.chapter} · ${t.dates}`;
   document.getElementById('info-title').textContent = t.name;
+  document.getElementById('info-lead').textContent = past ? 'Así fue el primer capítulo.' : t.price.note;
+  document.getElementById('levels').innerHTML = `<p>¿Cuál es tu nivel?</p>` +
+    ['Todos', ...t.levels].map((l, i) => `<button type="button" data-level="${i ? norm(l) : ''}" aria-pressed="${i ? 'false' : 'true'}">${l}</button>`).join('');
   const ol = document.getElementById('days');
   ol.innerHTML = t.days.map((d) => `
-    <li class="day${d.current ? ' day--current' : ''}">
+    <li class="day${d.current ? ' day--current' : ''}" data-level="${d.level ? norm(d.level) : ''}">
       <i class="day__dot" aria-hidden="true"></i>
       <p class="day__n">Día ${d.day}${d.level ? ` · <span>${d.level}</span>` : ''}</p>
       ${d.name ? `<p class="day__name">${d.name}</p>` : ''}
       ${d.text ? `<p class="day__text">${d.text}</p>` : ''}
       ${d.stats ? `<p class="day__stats">${d.stats}</p>` : ''}
     </li>`).join('');
+  document.getElementById('incl').innerHTML = `
+    <h3>${past ? 'Lo que incluía' : 'Tu viaje incluye'}</h3>
+    <ul>${t.includes.map((x) => `<li>${x}</li>`).join('')}</ul>
+    ${past ? '' : `<div class="price"><p><b>${t.price.total}</b><span>Inversión total</span></p><p><b>${t.price.deposit}</b><span>Apartado inicial</span></p></div>`}`;
+  document.getElementById('cta-info').innerHTML = past
+    ? 'Quiero el próximo capítulo <span aria-hidden="true">→</span>'
+    : `Aparta tu lugar · ${t.price.deposit} <span aria-hidden="true">→</span>`;
+}
+
+// ¿Cuál es tu nivel?: evidenzia i giorni di quel livello
+function bindLevels() {
+  const box = document.getElementById('levels');
+  const days = document.getElementById('days');
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const lvl = b.dataset.level;
+    for (const x of box.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x === b));
+    days.classList.toggle('is-filtered', !!lvl);
+    for (const d of days.children) d.classList.toggle('is-match', !!lvl && d.dataset.level.startsWith(lvl));
+  });
 }
 
 export function createInfo({ camera, road, rig, overlay, story, setLineVisible }) {
-  buildDays();
+  build();
+  bindLevels();
   const el = document.getElementById('info');
   const scroller = document.getElementById('info-scroll');
   const days = document.getElementById('days');
-  const items = () => [document.querySelector('.info__head'), ...days.children, document.querySelector('.info__next')];
+  const items = () => [document.querySelector('.info__head'), ...days.children, document.getElementById('incl'), document.querySelector('.info__next')];
   let isOpen = false, busy = false;
 
   // la parte di linea visibile adesso: in discesa fin dove è disegnata, poi tutta

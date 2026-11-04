@@ -67,8 +67,13 @@ html, body { overflow: hidden; height: 100%; } /* niente scroll nativo: la stori
 .sound[aria-pressed='true'] .wave { display: block; }
 .sound[aria-pressed='true'] .mute { display: none; }
 
-.progress { position: fixed; z-index: 6; top: 0; left: 0; right: 0; height: 2px; pointer-events: none; }
-.progress span { display: block; height: 100%; background: var(--orange); transform-origin: 0 50%; transform: scaleX(0); }
+/* la linea arancione come barra di avanzamento (bordo destro), un punto per tappa */
+.rail { position: fixed; z-index: 6; right: 9px; top: 50%; height: 34svh; width: 9px; transform: translateY(-50%); pointer-events: none; opacity: 0; }
+.rail::before { content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 1px; background: rgba(237, 232, 223, 0.28); }
+.rail__fill { position: absolute; left: 3.5px; top: 0; width: 2px; height: 100%; background: var(--orange); transform-origin: top; transform: scaleY(0); box-shadow: 0 0 8px rgba(232, 98, 44, 0.6); }
+.rail__dots i { position: absolute; left: 1.5px; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--anthracite); border: 1.5px solid rgba(237, 232, 223, 0.5); transition: background 0.3s, border-color 0.3s, transform 0.3s; }
+.rail__dots i.on { background: var(--orange); border-color: var(--orange); }
+.rail__dots i.now { transform: scale(1.5); }
 
 /* ── testi della storia ──────────────────────────────────────── */
 .story { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
@@ -92,6 +97,13 @@ html, body { overflow: hidden; height: 100%; } /* niente scroll nativo: la stori
   text-shadow: 0 1px 24px rgba(0, 0, 0, 0.25);
 }
 .headline--big { font-size: clamp(44px, 14vw, 120px); font-weight: 300; letter-spacing: -0.035em; }
+.sub { margin: 14px 0 0; font-size: 14px; line-height: 1.45; max-width: 30ch; opacity: 0.85; text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4); }
+/* foto (crew, coach): una cartolina che entra sopra la scena */
+.beat__photo { margin: 22px 0 0; width: min(36vw, 170px); aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); outline: 1px solid rgba(237, 232, 223, 0.25); outline-offset: 4px; }
+.beat__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.share { pointer-events: auto; margin-top: 26px; display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px 13px; border: 1px solid rgba(237, 232, 223, 0.6); border-radius: 40px; font-family: var(--display); font-weight: 500; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; background: rgba(43, 43, 43, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.share svg { width: 16px; height: 16px; fill: none; stroke: var(--orange); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.share[aria-busy='true'] { opacity: 0.6; }
 .lead {
   margin: 0; font-family: var(--text); font-weight: 500; font-size: clamp(20px, 5.4vw, 34px); line-height: 1.32;
   letter-spacing: -0.01em; max-width: 22ch; text-wrap: pretty; text-shadow: 0 1px 20px rgba(0, 0, 0, 0.3);
@@ -136,14 +148,36 @@ html, body { overflow: hidden; height: 100%; } /* niente scroll nativo: la stori
 
 /* ── contatore della salita ──────────────────────────────────── */
 .counter {
-  position: fixed; z-index: 4; left: var(--gutter); bottom: calc(var(--safe-b) + 46px);
+  position: fixed; z-index: 4; left: var(--gutter); right: var(--gutter); bottom: calc(var(--safe-b) + 40px);
   visibility: hidden; opacity: 0; pointer-events: none;
 }
-.counter__label { margin: 0 0 10px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--orange); }
-.counter__row { margin: 0; display: flex; align-items: baseline; gap: 9px; line-height: 1.25; }
-.counter__row svg { width: 16px; height: 16px; align-self: center; fill: none; stroke: var(--cream); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
-.counter__row b { font-family: var(--display); font-weight: 400; font-size: 27px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; min-width: 2.6em; }
-.counter__row span { font-family: var(--display); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.8; }
+.counter__head { margin: 0 0 10px; display: flex; justify-content: space-between; align-items: baseline; }
+.counter__label { font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--orange); }
+.counter__nums { font-family: var(--display); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+.counter__nums b { font-weight: 400; font-size: 22px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; margin-right: 4px; }
+.counter__nums i { font-style: normal; margin: 0 10px; opacity: 0.5; }
+/* profilo altimetrico vero della salita: grigio tutto, arancione fin dove è arrivato il ciclista */
+.profile { position: relative; height: 54px; }
+.profile svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.profile__area { fill: rgba(237, 232, 223, 0.08); }
+.profile__base { fill: none; stroke: rgba(237, 232, 223, 0.35); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.profile__done { fill: none; stroke: var(--orange); stroke-width: 2.4; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 4px rgba(232, 98, 44, 0.8)); }
+.profile__dot { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(232, 98, 44, 0.25), 0 0 12px rgba(232, 98, 44, 0.9); left: 0; top: 100%; }
+/* salita: tieni premuto */
+.hold { position: fixed; z-index: 4; left: 50%; bottom: calc(var(--safe-b) + 150px); transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 8px 18px 8px 8px; border-radius: 40px; background: rgba(43, 43, 43, 0.55); font-family: var(--display); font-weight: 500; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; visibility: hidden; opacity: 0; pointer-events: none; }
+.hold svg { width: 34px; height: 34px; transform: rotate(-90deg); overflow: visible; }
+.hold__track { fill: none; stroke: rgba(237, 232, 223, 0.25); stroke-width: 2; }
+.hold__ring { fill: none; stroke: var(--orange); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.hold__dot { fill: var(--orange); transform-origin: 20px 20px; animation: hold-pulse 1.4s ease-in-out infinite; }
+.is-holding .hold__dot { animation-duration: 0.45s; }
+@keyframes hold-pulse { 0%, 100% { transform: scale(0.7); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
+/* fine: la linea prosegue verso l'orizzonte */
+.next { position: fixed; inset: 0; z-index: 2; width: 100vw; height: 100lvh; pointer-events: none; overflow: visible; visibility: hidden; }
+.next path { fill: none; stroke-linecap: round; }
+.next__line { stroke: var(--orange); stroke-width: 3; }
+.next__glow { stroke: var(--orange); stroke-width: 12; opacity: 0.22; }
+.next__dot { fill: var(--orange); }
+.next__label { position: fixed; z-index: 3; margin: 0; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; white-space: nowrap; visibility: hidden; opacity: 0; pointer-events: none; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7), 0 0 3px rgba(0, 0, 0, 0.5); }
 
 .credit {
   position: fixed; z-index: 4; right: var(--gutter); bottom: calc(var(--safe-b) + 12px); left: var(--gutter);
@@ -194,7 +228,27 @@ html, body { overflow: hidden; height: 100%; } /* niente scroll nativo: la stori
 .day__text { margin: 0 0 6px; font-size: 13px; line-height: 1.45; opacity: 0.78; }
 .day__stats { margin: 0; font-family: var(--display); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.9; }
 .day__stats span { color: var(--blue-grey); }
-.info__next { padding: 34px 0 0 34px; }
+.info__next { padding: 34px 0 0; }
+.info__next .cta { white-space: nowrap; }
+.info__lead { margin: 14px 0 0; font-size: 14px; line-height: 1.5; opacity: 0.8; max-width: 32ch; }
+/* ¿Cuál es tu nivel? */
+.levels { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.levels p { width: 100%; margin: 0 0 2px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.7; }
+.levels button { padding: 9px 13px; border: 1px solid rgba(237, 232, 223, 0.4); border-radius: 30px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; transition: background 0.25s, color 0.25s, border-color 0.25s; }
+.levels button[aria-pressed='true'] { background: var(--orange); border-color: var(--orange); color: var(--anthracite); }
+.day > * { transition: opacity 0.35s ease; }
+.days.is-filtered .day:not(.is-match) > * { opacity: 0.28; } /* sui figli: l'apertura anima l'opacità dei giorni */
+.days.is-filtered .day.is-match .day__dot { background: var(--orange); }
+/* cosa include (e prezzo, se il viaggio è in vendita) */
+.incl { padding: 30px 0 0 34px; }
+.incl h3 { margin: 0 0 14px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--orange); }
+.incl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.incl li { position: relative; padding-left: 20px; font-size: 13.5px; line-height: 1.4; }
+.incl li::before { content: ''; position: absolute; left: 0; top: 0.6em; width: 10px; height: 1.5px; background: var(--orange); }
+.price { margin: 26px 0 0; display: flex; gap: 26px; align-items: baseline; }
+.price b { display: block; font-family: var(--display); font-weight: 400; font-size: 30px; letter-spacing: -0.01em; }
+.price span { font-family: var(--display); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.7; }
+.price__note { margin: 12px 0 0; font-size: 12.5px; opacity: 0.7; }
 .info__close {
   position: absolute; top: calc(var(--safe-t) + 14px); right: calc(var(--gutter) - 8px); width: 44px; height: 44px;
   display: grid; place-items: center; font-size: 28px; line-height: 1; font-weight: 300;

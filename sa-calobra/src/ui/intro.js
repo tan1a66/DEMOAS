@@ -81,7 +81,7 @@ export function createIntro() {
      * zoom nella M → strada → linea sulla carretera 3D.
      * onReveal: chiamata quando la scena è scoperta (la linea 3D deve comparire lì).
      */
-    play({ camera, road, overlay, lineS, onReveal }) {
+    play({ camera, road, overlay, lineS, onReveal, onShift }) {
       el.classList.add('is-leaving');
       for (const t of entrance) t.progress(1).kill(); // un tocco veloce non deve trovare l'entrata ancora in corso
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -124,7 +124,8 @@ export function createIntro() {
         tl.to('.intro__bar, .intro__enter, .intro__meta', { opacity: 0, y: 8, duration: 0.35, ease: 'power2.in' }, 0)
           // la M diventa asfalto con la linea arancione
           .to(s, { asphalt: 1, line: 1, duration: 0.45, ease: 'power2.out' }, 0.1)
-          // la M si smolla: si arrotonda, un'onda la percorre e si spegne piano
+          // la M si smolla (con il suono di un cambio di marcia): si arrotonda, un'onda la percorre
+          .add(() => onShift?.(), 0.4)
           .to(s, { slack: 1, duration: 1.3, ease: 'sine.inOut' }, 0.45)
           .to(s, { phase: Math.PI * 5, duration: 2.6, ease: 'none' }, 0.45)
           .to(s, { keyframes: { wave: [0, 1, 0.6, 0], easeEach: 'sine.inOut' }, duration: 2.1, ease: 'none' }, 0.45)

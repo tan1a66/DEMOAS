@@ -67,6 +67,55 @@ export function createAudio() {
       if (!ctx) init();
       if (ctx.state === 'suspended') ctx.resume();
     },
+    /**
+     * il suono dell'ingresso: un cambio di marcia e la ruota libera che parte, mentre la M
+     * diventa strada. Segue il tocco su ENTRAR, quindi suona anche con l'ambiente spento.
+     */
+    shift() {
+      if (!ctx) init();
+      if (ctx.state === 'suspended') ctx.resume();
+      const t = ctx.currentTime + 0.03;
+      const out = ctx.createGain();
+      out.gain.value = 0.55;
+      out.connect(ctx.destination);
+      // il "clac" del deragliatore: due colpi brevi e filtrati, poi un piccolo suono metallico
+      const knock = (at, f, dur, vol) => {
+        const s = ctx.createBufferSource();
+        s.buffer = noiseBuffer(dur);
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 3.5;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(vol, at);
+        g.gain.exponentialRampToValueAtTime(0.001, at + dur);
+        s.connect(bp).connect(g).connect(out);
+        s.start(at);
+      };
+      knock(t, 2700, 0.035, 0.8);
+      knock(t + 0.06, 1700, 0.07, 1.0);
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = 3150;
+      og.gain.setValueAtTime(0.0001, t + 0.055);
+      og.gain.exponentialRampToValueAtTime(0.05, t + 0.065);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.connect(og).connect(out);
+      o.start(t + 0.05); o.stop(t + 0.45);
+      // la ruota libera che prende velocità e si allontana
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 3000;
+      const tg = ctx.createGain();
+      tg.gain.setValueAtTime(0.0001, t + 0.3);
+      tg.gain.exponentialRampToValueAtTime(0.09, t + 0.5);
+      tg.gain.exponentialRampToValueAtTime(0.0001, t + 2.1);
+      hp.connect(tg).connect(out);
+      const click = noiseBuffer(0.006);
+      for (let at = t + 0.32, r = 7; at < t + 2.1; at += 1 / r, r = Math.min(r * 1.06, 30)) {
+        const s = ctx.createBufferSource();
+        s.buffer = click;
+        s.playbackRate.value = 0.85 + Math.random() * 0.3;
+        s.connect(hp);
+        s.start(at);
+      }
+    },
     /** speed: metri di strada al secondo (positivo in discesa) */
     update(speed, descending) {
       if (!ctx || !on) return;
