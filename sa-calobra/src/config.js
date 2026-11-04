@@ -265,15 +265,6 @@ export const CONFIG = {
     glow: ['#f6dfb0', '#dca06a', '#9a6f86'], // il bagliore intorno: champagne, ambra, malva
     sunlight: '#fff0da',       // la luce calda del mattino sulla Terra
     ambient: 0.52,             // quanto è chiara anche la parte meno illuminata
-    // nomi sulla cartina, per orientarsi
-    labels: [
-      { t: 'México', lat: 23.6, lon: -102.5 }, { t: 'Estados Unidos', lat: 39, lon: -98 },
-      { t: 'España', lat: 40.2, lon: -3.7 }, { t: 'Francia', lat: 46.6, lon: 2.4 }, { t: 'Italia', lat: 42.6, lon: 12.6 },
-      { t: 'Marruecos', lat: 31.6, lon: -6.6 }, { t: 'Reino Unido', lat: 53, lon: -1.8 },
-      { t: 'Alemania', lat: 51, lon: 10.3 },
-      { t: 'Océano Atlántico', lat: 31, lon: -42, sea: true }, { t: 'Mar Mediterráneo', lat: 37.6, lon: 17, sea: true },
-      { t: 'Golfo de México', lat: 25, lon: -90, sea: true },
-    ],
     copy: {
       done: 'Completado',
       loading: 'Loading',

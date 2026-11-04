@@ -379,3 +379,31 @@ html.is-exploring .credit { display: none; }
 html.is-riding .top .logo { background: var(--anthracite); }
 html.is-riding .wa-top { color: var(--anthracite); border-color: rgba(43, 43, 43, 0.4); }
 html.is-riding .credit { color: rgba(43, 43, 43, 0.6); }
+
+/* ── il menu sotto il logo e le sue pagine ─────────────────────── */
+.top { align-items: flex-start; }
+.top__left { display: grid; gap: 8px; }
+.menu { pointer-events: auto; display: flex; gap: 16px; }
+.menu button { all: unset; cursor: pointer; padding: 4px 0; font-family: var(--display); font-weight: 500; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); opacity: 0.85; transition: color 0.3s ease, opacity 0.3s ease; }
+.menu button:hover, .menu button:focus-visible { color: var(--orange); opacity: 1; }
+html.is-riding .menu button { color: var(--anthracite); }
+.wa-top { margin-top: 2px; }
+.page__title { font-size: clamp(28px, 8vw, 48px); line-height: 1.08; max-width: 14ch; }
+.page__block { margin: 26px 0 0 34px; }
+.page .label { margin: 0 0 8px; font-family: var(--display); font-weight: 500; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--orange); }
+.page__text { margin: 0; font-size: 16px; line-height: 1.45; max-width: 30ch; }
+.page__sub { margin: 8px 0 0; font-size: 13px; line-height: 1.5; opacity: 0.7; max-width: 32ch; }
+.page__person { margin: 30px 0 0 34px; display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: start; }
+.page__person img { width: 112px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 3px; display: block; }
+.trips { list-style: none; margin: 22px 0 0 34px; padding: 0; display: grid; gap: 10px; }
+.trip { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; gap: 4px; padding: 16px 44px 16px 16px; position: relative; border-radius: 3px; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(43, 43, 43, 0.1); }
+.trip__top { display: flex; justify-content: space-between; align-items: center; }
+.trip__top b { font-family: var(--display); font-weight: 500; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; }
+.trip__top i { font-style: normal; display: flex; align-items: center; }
+.trip__top .battery { margin-left: 0; }
+.trip__top .battery__t { font-size: 7.5px; }
+.trip strong { font-family: var(--display); font-weight: 500; font-size: 20px; line-height: 1.15; }
+.trip__when { font-size: 13px; opacity: 0.75; }
+.trip__lead { font-size: 13px; line-height: 1.45; opacity: 0.75; margin-top: 4px; }
+.trip__go { position: absolute; right: 16px; top: 50%; translate: 0 -50%; color: var(--orange); font-size: 16px; }
+.trip:hover, .trip:focus-visible { border-color: var(--orange); }

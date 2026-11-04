@@ -13,13 +13,13 @@
  "med": {
   "file": "globe_med.webp",
   "box": [
-   -8,
-   33,
-   20,
-   51
+   -18,
+   27,
+   36,
+   63
   ],
-  "width": 2016,
-  "height": 1296
+  "width": 3564,
+  "height": 2376
  },
  "bal": {
   "file": "globe_bal.webp",
@@ -42,5 +42,16 @@
   "width": 2048,
   "height": 1024
  },
- "source": "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico)"
+ "eu": {
+  "file": "globe_eu.webp",
+  "box": [
+   -18,
+   27,
+   36,
+   63
+  ],
+  "width": 3564,
+  "height": 2376
+ },
+ "source": "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa: NASA Blue Marble Next Generation via GIBS"
 }

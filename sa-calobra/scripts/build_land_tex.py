@@ -3,12 +3,15 @@
 Texture del globo dai contorni Natural Earth (esportati da scripts/build_land.mjs).
 Tre livelli, in proiezione equirettangolare (riga 0 = nord):
   world  — tutto il mondo, coste 1:50m
-  med    — Mediterraneo occidentale e Alpi, coste 1:10m
+  med    — Europa e Mediterraneo, coste 1:10m (la zona che si esplora)
   bal    — Baleari, coste 1:10m (per lo zoom su Mallorca)
 Canali: R = terra (antialias), G = linea di costa, B = confini tra stati.
 Uscita: public/data/globe_{world,med,bal}.webp e public/data/globe.json (riquadri).
 In più la Terra vera: NASA Blue Marble (colori) e il rilievo, dominio pubblico, presi dal
 mirror jsDelivr degli esempi di three-globe → public/data/globe_earth.webp, globe_topo.webp.
+Per l'Europa e il Mediterraneo una foto molto più nitida: NASA Blue Marble Next Generation dal
+servizio GIBS (dominio pubblico), con i colori di mare e terra adattati a quelli del globo così
+che il bordo della zona non si veda → public/data/globe_eu.webp.
 """
 import urllib.request
 import json
@@ -22,7 +25,7 @@ DATA = ROOT / "public" / "data"
 
 LEVELS = {
     "world": {"src": "50m", "box": [-180, -90, 180, 90], "w": 4096, "q": 80},
-    "med": {"src": "10m", "box": [-8, 33, 20, 51], "ppd": 72, "q": 82},
+    "med": {"src": "10m", "box": [-18, 27, 36, 63], "ppd": 66, "q": 82},
     "bal": {"src": "10m", "box": [0.8, 38.4, 4.8, 40.4], "ppd": 420, "q": 85},
 }
 SS = 2  # sovracampionamento per l'antialias
@@ -97,6 +100,54 @@ def earth(meta):
         print(f"{name}: {im.width}x{im.height} → {out.name} {out.stat().st_size // 1024} KB")
 
 
+GIBS = ("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap"
+        "&VERSION=1.3.0&LAYERS=BlueMarble_NextGeneration&STYLES=&CRS=EPSG:4326&FORMAT=image/jpeg")
+
+
+def europe(meta, mask):
+    """la foto nitida dell'Europa (stesso riquadro e risoluzione della maschera med), con i
+    colori del mare e della terra portati a quelli della texture del mondo"""
+    import numpy as np
+    x0, y0, x1, y1 = LEVELS["med"]["box"]
+    W, H = mask.size
+    f = ROOT / ".cache" / "earth" / f"gibs-eu-{W}x{H}.jpg"
+    if not f.exists():
+        url = f"{GIBS}&BBOX={y0},{x0},{y1},{x1}&WIDTH={W}&HEIGHT={H}"
+        f.write_bytes(urllib.request.urlopen(url, timeout=600).read())
+    eu = np.asarray(Image.open(f).convert("RGB"), dtype=np.float32) / 255
+    land = np.asarray(mask.split()[0], dtype=np.float32)[..., None] / 255
+    # la stessa zona nella texture del mondo, alla stessa scala
+    w = Image.open(DATA / "globe_earth.webp").convert("RGB")
+    WW, WH = w.size
+    box = ((x0 + 180) / 360 * WW, (90 - y1) / 180 * WH, (x1 + 180) / 360 * WW, (90 - y0) / 180 * WH)
+    ref = np.asarray(w.transform((W, H), Image.EXTENT, box, Image.BICUBIC), dtype=np.float32) / 255
+    lin = lambda c: np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+    srgb = lambda c: np.where(c <= 0.0031308, c * 12.92, 1.055 * np.clip(c, 0, None) ** (1 / 2.4) - 0.055)
+    # la terra: la foto nitida, con i colori portati a quelli del globo
+    sel = land[..., 0] > 0.95
+    g_land = lin(ref)[sel].mean(0) / np.maximum(lin(eu)[sel].mean(0), 1e-4)
+    print("terra guadagno", g_land.round(2))
+    # il mare: il colore del globo, sfumato e senza la terra che vi sbava vicino alle coste
+    # (nella foto NASA il mare è quasi nero: schiarirlo tirerebbe fuori il rumore)
+    sea = 1 - land
+    def box(a, r, axis):
+        c = np.cumsum(np.pad(a, [(r + 1, r) if i == axis else (0, 0) for i in range(a.ndim)], mode="edge"), axis=axis)
+        hi = np.take(c, range(2 * r + 1, c.shape[axis]), axis=axis)
+        lo = np.take(c, range(0, c.shape[axis] - 2 * r - 1), axis=axis)
+        return (hi - lo) / (2 * r + 1)
+    def blur(a):  # tre passate di media mobile ≈ gaussiana
+        for _ in range(3):
+            a = box(box(a, 14, 0), 14, 1)
+        return a
+    sea_col = blur(lin(ref) * sea) / np.maximum(blur(sea), 1e-3)
+    out = land * lin(eu) * g_land + sea * sea_col
+    img = Image.fromarray((np.clip(srgb(out), 0, 1) * 255 + 0.5).astype("uint8"))
+    o = DATA / "globe_eu.webp"
+    img.save(o, "WEBP", quality=76, method=6)
+    meta["eu"] = {"file": o.name, "box": LEVELS["med"]["box"], "width": W, "height": H}
+    print(f"eu: {W}x{H} → {o.name} {o.stat().st_size // 1024} KB")
+
+
 def main():
     meta = {}
     cache = {}
@@ -107,12 +158,15 @@ def main():
         W = L.get("w") or int(round((x1 - x0) * L["ppd"]))
         H = int(round(W * (y1 - y0) / (x1 - x0)))
         img = render(src, L["box"], W, H)
+        if name == "med":
+            med_mask = img
         f = DATA / f"globe_{name}.webp"
         img.save(f, "WEBP", quality=L["q"], method=6)
         meta[name] = {"file": f.name, "box": L["box"], "width": W, "height": H}
         print(f"{name}: {W}x{H} → {f.name} {f.stat().st_size // 1024} KB")
     earth(meta)
-    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico)"
+    europe(meta, med_mask)
+    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa: NASA Blue Marble Next Generation via GIBS"
     (DATA / "globe.json").write_text(json.dumps(meta, indent=1))
 
 

@@ -14,6 +14,7 @@ import { ll2v } from './geo.js';
 import { createGlobeStory } from './story.js';
 import { createRide } from './ride.js';
 import { createChapterPanel } from './chapter.js';
+import { createPages } from './pages.js';
 import { createLoader } from '../ui/loader.js';
 import { createInfo } from '../ui/info.js';
 import { createLineOverlay } from '../ui/lineOverlay.js';
@@ -36,7 +37,7 @@ async function start() {
   manager.onProgress = (_, loaded, total) => loader?.setProgress((loaded / total) * 0.95);
   const data = await loadGlobeData(manager);
 
-  const globe = createGlobe(data, G);
+  const globe = createGlobe(data, G, Math.min(renderer.capabilities.getMaxAnisotropy(), 8));
   scene.add(globe.group);
 
   // le mete: Capítulo 01 (Mallorca) e i capitoli in arrivo che hanno già un luogo (niente rotte)
@@ -91,8 +92,7 @@ async function start() {
     marks.push(m);
     return m;
   };
-  for (const l of G.labels) addMark(l, `place${l.sea ? ' place--sea' : ''}`, l.t, { near: 1.25, far: 4.6 });
-  const pinOrigin = addMark(G.origin, 'pin pin--origin', `<i aria-hidden="true"></i><span>${G.origin.name}</span>`);
+  // sulla cartina solo le mete dei viaggi: nessun nome di paese
   const pin1 = addMark(ch1, 'pin pin--chapter', `<i aria-hidden="true"></i><span><b>Capítulo ${ch1.n}</b>${ch1.name}</span>`, { tag: 'button' });
   const pinsNext = placed.map((c) => addMark(c, 'pin pin--soon', `<i aria-hidden="true"></i><span><b>Capítulo ${c.n}</b>${c.name}</span>`, { tag: 'button' }));
 
@@ -212,6 +212,17 @@ async function start() {
     const b = e.target.closest('[data-chapter]');
     if (b) goChapter(b.dataset.chapter);
   });
+
+  // il menu sotto il logo: Nosotros e Viajes sono pagine leggere, Contacto la schermata con WhatsApp
+  const pages = createPages({ story, onChapter: goChapter });
+  for (const b of document.querySelectorAll('[data-page]')) {
+    b.addEventListener('click', () => {
+      if (info.isOpen) info.close();
+      if (panel.isOpen) panel.close();
+      if (b.dataset.page === 'contacto') story.open({ currentTarget: b });
+      else pages.open(b.dataset.page);
+    });
+  }
   pin1.el.addEventListener('click', () => goChapter(ch1.n));
   pinsNext.forEach((p, i) => p.el.addEventListener('click', () => goChapter(placed[i].n)));
 
@@ -274,6 +285,7 @@ async function start() {
     vlat = vlon = 0;
     if (info.isOpen) info.close();
     if (panel.isOpen) panel.close();
+    if (pages.isOpen) pages.close();
     story.home();
   });
 

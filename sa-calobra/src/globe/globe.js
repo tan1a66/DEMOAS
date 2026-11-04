@@ -1,7 +1,8 @@
 // Il globo: la Terra vera (NASA Blue Marble, dominio pubblico) con il rilievo, il riflesso del
-// sole sul mare, confini e coste sottili (Natural Earth), il bordo acceso dall'alba con un
-// bagliore dorato intorno, e un cielo di piccole stelle. Vicino a Mallorca la costa viene da maschere più nitide
-// (Mediterraneo, Baleari), così l'isola resta definita anche da vicino.
+// confini e coste sottili (Natural Earth), il bordo acceso dall'alba con un bagliore dorato
+// intorno, e un cielo di piccole stelle. L'Europa e il Mediterraneo, dove si esplora, hanno una
+// foto molto più nitida (NASA Blue Marble Next Generation) e coste da maschere più fini
+// (Europa, Baleari), così restano definite anche da vicino.
 import {
   Mesh, Group, SphereGeometry, ShaderMaterial, Color, Vector3, Vector4, BackSide,
   RepeatWrapping, ClampToEdgeWrapping, BufferGeometry, Float32BufferAttribute, Points, PointsMaterial,
@@ -20,7 +21,7 @@ const vert = /* glsl */ `
 `;
 
 const frag = /* glsl */ `
-  uniform sampler2D tEarth, tTopo, tWorld, tMed, tBal;
+  uniform sampler2D tEarth, tTopo, tWorld, tMed, tBal, tEu;
   uniform vec4 uMedBox, uBalBox;          // lonMin, latMin, lonMax, latMax
   uniform vec3 uLight, uAtmo, uSun;
   uniform float uBump, uCamDist, uAmbient;
@@ -51,12 +52,9 @@ const frag = /* glsl */ `
     vec4 r2 = regional(tBal, uBalBox, ll);
     vec3 crisp = mix(mix(m, r1.rgb, r1.a), r2.rgb, r2.a);
     float land = crisp.r, coast = crisp.g, border = crisp.b;
-    float region = max(r1.a, r2.a);
-    // da vicino: la forma della costa dalle maschere nitide, il colore dalla foto della Terra
-    vec3 seaAround = textureGrad(tEarth, uv, gx * 24.0, gy * 24.0).rgb;
-    vec3 landCol = mix(vec3(0.13, 0.12, 0.07), earth, smoothstep(0.3, 0.8, m.r));
-    vec3 seaCol = mix(earth, seaAround * 0.85, smoothstep(0.2, 0.8, m.r));
-    earth = mix(earth, mix(seaCol, landCol, land), region);
+    // Europa e Mediterraneo: la foto nitida (stesso riquadro della maschera fine)
+    vec2 euv = clamp((ll - uMedBox.xy) / (uMedBox.zw - uMedBox.xy), 0.0, 1.0);
+    earth = mix(earth, texture2D(tEu, euv).rgb, r1.a);
 
     // il mare un po' più chiaro e turchese: la foto della NASA ha oceani molto scuri
     earth = mix(earth, earth * vec3(1.1, 1.38, 1.5) + vec3(0.0, 0.008, 0.016), 1.0 - land);
@@ -73,7 +71,7 @@ const frag = /* glsl */ `
     float ndl = max(dot(n, uLight), 0.0);
     vec3 col = earth * (uAmbient + 1.0 * ndl) * uSun;
     // confini e coste, sottili
-    col = mix(col, vec3(0.95), border * 0.5 * land);
+    col = mix(col, vec3(0.95), border * 0.22 * land);
     col = mix(col, vec3(0.92, 0.95, 1.0), coast * 0.28);
     // l'atmosfera sul bordo
     // (solo da lontano: da vicino l'aria è trasparente e la costa resta nitida)
@@ -147,13 +145,15 @@ function createGlow([gold, orange, rose]) {
   return s;
 }
 
-export function createGlobe({ tex, meta }, { atmosphere, halo, haloWidth = 1.035, glow, sunlight, ambient }) {
+export function createGlobe({ tex, meta }, { atmosphere, halo, haloWidth = 1.035, glow, sunlight, ambient }, anisotropy = 1) {
   for (const t of [tex.world, tex.earth, tex.topo]) t.wrapS = RepeatWrapping;
-  for (const t of [tex.med, tex.bal]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
+  for (const t of [tex.med, tex.bal, tex.eu]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
+  // nitide anche di sbieco, verso il bordo della Terra
+  for (const t of [tex.earth, tex.eu]) t.anisotropy = anisotropy;
   const box = (b) => new Vector4(b[0], b[1], b[2], b[3]);
   const uniforms = {
     tEarth: { value: tex.earth }, tTopo: { value: tex.topo },
-    tWorld: { value: tex.world }, tMed: { value: tex.med }, tBal: { value: tex.bal },
+    tWorld: { value: tex.world }, tMed: { value: tex.med }, tBal: { value: tex.bal }, tEu: { value: tex.eu },
     uMedBox: { value: box(meta.med.box) }, uBalBox: { value: box(meta.bal.box) },
     uLight: { value: new Vector3(0, 0, 1) },
     uAtmo: { value: new Color(atmosphere) },
