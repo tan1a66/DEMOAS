@@ -250,23 +250,14 @@ export const CONFIG = {
         lead: 'Los puertos de montaña del norte de Italia, Patrimonio de la Humanidad por la UNESCO.',
         facts: [['Fechas', 'Verano 2027'], ['Itinerario', 'En preparación'], ['Precio', 'Próximamente']] },
     ],
-    // inquadratura per tappa del racconto: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
-    views: [
-      { lat: 39.62, lon: 2.98, dist: 1.25 },  // 0 · in sella: il globo aspetta su Mallorca (è la mappa dello schermo)
-      { lat: 39.62, lon: 2.98, dist: 1.25 },  // 1 · LLEGASTE sullo schermo del ciclocomputer
-      { lat: 43.4, lon: -3.8, dist: 2.75 },   // 2 · si esce dallo schermo: l'Europa · el mundo no se visita…
-      { lat: 42.7, lon: -2.3, dist: 2.64 },   // 3 · quiénes somos (a ogni frase un poco più vicino a Mallorca)
-      { lat: 42.0, lon: -0.9, dist: 2.53 },   // 4 · qué hacemos
-      { lat: 41.3, lon: 0.4, dist: 2.42 },    // 5 · the crew
-      { lat: 40.6, lon: 1.6, dist: 2.32 },    // 6 · head coach
-    ],
-    // l'intro in sella: dopo `delay` secondi la camera va da sola verso il ciclocomputer
-    intro: { delay: 1.8 },
-    // arrivati in Europa il racconto finisce: il mondo diventa esplorabile da qui
+    // in sella il globo aspetta su Mallorca, da vicino: è la mappa sullo schermo del ciclocomputer
+    views: [{ lat: 39.62, lon: 2.98, dist: 1.25 }],
+    // si esce dallo schermo sull'Europa, già esplorabile da qui
     explore: { lat: 42, lon: 6, dist: 2.25 },
+    // l'intro in sella: dopo `delay` secondi la camera va da sola verso il ciclocomputer;
+    // LLEGASTE resta sullo schermo `hold` secondi, poi si entra nell'Europa (un gesto anticipa)
+    intro: { delay: 1.8, hold: 2.2 },
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
-    progress: [1, 1, 1, 1, 1, 1, 1, 1], // la rotta di Mallorca è già tutta disegnata
-    arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
     // l'alba color oro champagne: il sole sorge dietro la Terra
     atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra
     halo: '#f6e2b8',           // il filo champagne sul bordo della Terra
@@ -278,14 +269,12 @@ export const CONFIG = {
     labels: [
       { t: 'México', lat: 23.6, lon: -102.5 }, { t: 'Estados Unidos', lat: 39, lon: -98 },
       { t: 'España', lat: 40.2, lon: -3.7 }, { t: 'Francia', lat: 46.6, lon: 2.4 }, { t: 'Italia', lat: 42.6, lon: 12.6 },
-      { t: 'Portugal', lat: 39.7, lon: -8.1 }, { t: 'Marruecos', lat: 31.6, lon: -6.6 }, { t: 'Reino Unido', lat: 53, lon: -1.8 },
+      { t: 'Marruecos', lat: 31.6, lon: -6.6 }, { t: 'Reino Unido', lat: 53, lon: -1.8 },
       { t: 'Alemania', lat: 51, lon: 10.3 },
       { t: 'Océano Atlántico', lat: 31, lon: -42, sea: true }, { t: 'Mar Mediterráneo', lat: 37.6, lon: 17, sea: true },
       { t: 'Golfo de México', lat: 25, lon: -90, sea: true },
     ],
     copy: {
-      exploreKicker: 'Explora los capítulos',
-      exploreHint: 'Gira el mundo y toca un destino.',
       done: 'Completado',
       loading: 'Loading',
       promise: 'Tu única responsabilidad es pedalear. Nosotros nos encargamos de todo.',

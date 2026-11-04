@@ -10,8 +10,7 @@ import {
 import { CONFIG } from '../config.js';
 import { loadGlobeData } from '../data/load.js';
 import { createGlobe } from './globe.js';
-import { ll2v, arcPoints } from './geo.js';
-import { makeLine } from '../road/road.js';
+import { ll2v } from './geo.js';
 import { createGlobeStory } from './story.js';
 import { createRide } from './ride.js';
 import { createChapterPanel } from './chapter.js';
@@ -40,24 +39,13 @@ async function start() {
   const globe = createGlobe(data, G);
   scene.add(globe.group);
 
-  // le rotte: Capítulo 01 (Mallorca) e i capitoli in arrivo che hanno già un luogo
+  // le mete: Capítulo 01 (Mallorca) e i capitoli in arrivo che hanno già un luogo (niente rotte)
   const [ch1] = G.chapters;
-  const route = arcPoints(G.origin, ch1, 260, G.arcHeight);
-  const line = makeLine(route.flat, CONFIG.line);
-  scene.add(line.line);
   const placed = G.chapters.filter((c) => c.status !== 'done' && c.lat != null);
-  const nextLines = placed.map((c) => {
-    const l = makeLine(arcPoints(G.origin, c, 260, G.arcHeight * 1.15).flat, { ...CONFIG.line, width: CONFIG.line.width * 0.8 });
-    scene.add(l.line);
-    return l;
-  });
 
-  // ── in sella (ride.js): il manubrio all'alba. Lo schermo del ciclocomputer mostra il globo
-  // visto da sopra Mallorca (una seconda ripresa in una texture), poi "LLEGASTE" con la distanza
-  // vera da Città del Messico (arco di cerchio massimo)
-  const R = Math.PI / 180, o = G.origin;
-  const km = Math.round(6371 * Math.acos(Math.sin(o.lat * R) * Math.sin(ch1.lat * R) + Math.cos(o.lat * R) * Math.cos(ch1.lat * R) * Math.cos((ch1.lon - o.lon) * R)));
-  const ride = createRide({ renderer, km, from: o.name, place: ch1.name, chapter: ch1.n });
+  // ── in sella (ride.js): il manubrio al tramonto. Lo schermo del ciclocomputer mostra il globo
+  // visto da sopra Mallorca (una seconda ripresa in una texture), poi il logo e "LLEGASTE"
+  const ride = createRide({ renderer });
   const screenRT = new WebGLRenderTarget(640, 974, { samples: 4 });
   ride.screen.uniforms.tMap.value = screenRT.texture;
   // la ripresa per lo schermo è la stessa del globo alla fine del volo: il passaggio non si vede
@@ -118,8 +106,6 @@ async function start() {
     place();
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(W, H, false);
-    line.setResolution(W, H);
-    nextLines.forEach((l) => l.setResolution(W, H));
     const dpr = renderer.getPixelRatio();
     rideRT.setSize(Math.round(W * dpr), Math.round(H * dpr));
     ride.resize(W, H);
@@ -135,10 +121,11 @@ async function start() {
   let lineVisible = 1;
 
   const v = new Vector3(), cam = new Vector3(), right = new Vector3(), up = new Vector3(0, 1, 0), tmp = new Vector3();
-  /** la rotta disegnata, proiettata sullo schermo (il pannello di Mallorca ci fa partire la sua linea) */
-  const routeOnScreen = () => {
-    const b = Math.max(2, Math.round(st.prog * (route.pts.length - 1)));
-    return route.pts.slice(0, b + 1).map((p) => { v.copy(p).project(camera); return [(v.x * 0.5 + 0.5) * W, (-v.y * 0.5 + 0.5) * H]; });
+  /** il pin di Mallorca sullo schermo: da lì nasce la linea del tempo del pannello del viaggio */
+  const pinOnScreen = () => {
+    v.copy(pin1.pos).project(camera);
+    const x = (v.x * 0.5 + 0.5) * W, y = (-v.y * 0.5 + 0.5) * H;
+    return [[x, y], [x, y + 2]];
   };
 
   const frame = () => {
@@ -152,9 +139,6 @@ async function start() {
     right.crossVectors(cam, up).normalize();
     globe.uniforms.uLight.value.copy(cam).normalize().addScaledVector(up, 0.5).addScaledVector(right, 0.3).normalize();
     globe.uniforms.uCamDist.value = st.dist;
-    line.setProgress(st.prog);
-    line.setOpacity(lineVisible);
-    nextLines.forEach((l) => { l.setProgress(st.prog2); l.setOpacity(lineVisible); });
     pin1.show = st.mallorca;
     pinsNext.forEach((p) => { p.show = st.soon; });
     // prima i pin, poi i nomi (che si spengono vicino al bordo della Terra e vicino ai pin)
@@ -213,7 +197,7 @@ async function start() {
 
   // i pannelli dei capitoli: 01 completo (giorni, livelli, cosa include, sul mare cristallino),
   // 02 e 03 con quello che si sa già
-  const info = createInfo({ overlay, story, setLineVisible: (on) => { lineVisible = on ? 1 : 0; }, source: routeOnScreen });
+  const info = createInfo({ overlay, story, setLineVisible: (on) => { lineVisible = on ? 1 : 0; }, source: pinOnScreen });
   const panel = createChapterPanel({ story });
   const openChapter = (n) => {
     const ch = G.chapters.find((c) => c.n === n);

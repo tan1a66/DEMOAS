@@ -1,7 +1,7 @@
 // In sella: il manubrio visto da chi pedala, nitido, e dietro, fuori fuoco, il tramonto sulle
 // montagne di Sa Calobra (un fotogramma della scena 3D di Mallorca: src/assets/ride-bg.webp).
 // Sul manubrio un ciclocomputer (senza marchi): prima mostra la mappa (il globo stesso,
-// disegnato in una texture), poi si accende con "LLEGASTE". Il manubrio è tutto in codice.
+// disegnato in una texture), poi si accende con il logo Nomads e "LLEGASTE". Il manubrio è in codice.
 //
 // Coordinate in metri: centro della piega nell'origine, x a destra, y in alto, -z avanti.
 import {
@@ -12,6 +12,7 @@ import {
   Quaternion, Color, MathUtils,
 } from 'three';
 import sunsetUrl from '../assets/ride-bg.webp';
+import logoUrl from '../assets/nomads-logo.png';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -109,7 +110,7 @@ const screenFrag = /* glsl */ `
   }
 `;
 
-export function createRide({ renderer, km, from, place, chapter }) {
+export function createRide({ renderer }) {
   const scene = new Scene();
   const camera = new PerspectiveCamera(50, 1, 0.004, 1200);
   const pmrem = new PMREMGenerator(renderer);
@@ -233,41 +234,42 @@ export function createRide({ renderer, km, from, place, chapter }) {
   const N = V(0, 0, 1).applyQuaternion(q);
   const F = V(0, 1, 0).applyQuaternion(q);
 
-  // ── la scritta "LLEGASTE" (ridisegnata quando i caratteri sono pronti)
+  // ── lo schermo acceso: il logo Nomads e "LLEGASTE" (ridisegnato quando logo e caratteri sono pronti)
   const ui = document.createElement('canvas');
   ui.width = 460; ui.height = 700;
   const uiTex = new CanvasTexture(ui);
   uiTex.colorSpace = SRGBColorSpace;
   screenMat.uniforms.tUI.value = uiTex;
+  const logo = new Image();
   const drawUI = () => {
     const g = ui.getContext('2d');
-    const W = ui.width, H = ui.height, L = 46;
+    const W = ui.width, H = ui.height;
     const bg = g.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, '#16181c'); bg.addColorStop(1, '#0a0b0d');
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    const cream = '#ede8df', orange = '#e8622c', champagne = '#e8d2a6';
-    const text = (t, x, y, font, color, spacing = 0) => { g.font = font; g.fillStyle = color; g.letterSpacing = `${spacing}px`; g.fillText(t, x, y); };
-    // in alto: il marchio e la batteria piena
-    text('NOMADS', L, 64, '500 19px Unbounded, sans-serif', 'rgba(237,232,223,0.8)', 6);
-    g.strokeStyle = cream; g.lineWidth = 3; g.strokeRect(W - L - 46, 46, 42, 20);
-    g.fillStyle = cream; g.fillRect(W - L - 3, 51, 5, 10);
-    g.fillStyle = orange; g.fillRect(W - L - 42, 50, 34, 12);
-    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(L, 92, W - 2 * L, 2);
-    // il cuore
-    text(`CAPÍTULO ${chapter}`, L, 230, '500 16px Unbounded, sans-serif', champagne, 5);
-    text('LLEGASTE', L - 3, 302, '500 58px Unbounded, sans-serif', cream, -1);
-    g.fillStyle = orange; g.fillRect(L, 330, 60, 4);
-    text(place, L, 388, '400 36px Manrope, sans-serif', cream);
-    // in basso: i dati veri del viaggio
-    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(L, 496, W - 2 * L, 2);
-    text('DISTANCIA', L, 546, '500 13px Unbounded, sans-serif', 'rgba(237,232,223,0.6)', 4);
-    text(`${km.toLocaleString('es-MX').replace(/,/g, '.')} km`, L, 586, '500 28px Unbounded, sans-serif', cream);
-    text('DESDE', L, 626, '500 13px Unbounded, sans-serif', 'rgba(237,232,223,0.6)', 4);
-    text(from, L, 662, '500 25px Manrope, sans-serif', cream);
+    // il logo Nomads (quello originale), color crema
+    if (logo.complete && logo.naturalWidth) {
+      const w = 270, h = (w * logo.naturalHeight) / logo.naturalWidth;
+      const tint = document.createElement('canvas');
+      tint.width = w; tint.height = Math.ceil(h);
+      const t = tint.getContext('2d');
+      t.drawImage(logo, 0, 0, w, h);
+      t.globalCompositeOperation = 'source-in';
+      t.fillStyle = '#ede8df'; t.fillRect(0, 0, w, h);
+      g.drawImage(tint, (W - w) / 2, 236 - h / 2);
+    }
+    g.fillStyle = '#e8622c'; g.fillRect(W / 2 - 28, 318, 56, 4);
+    g.font = '500 58px Unbounded, sans-serif';
+    g.letterSpacing = '-1px';
+    g.textAlign = 'center';
+    g.fillStyle = '#ede8df';
+    g.fillText('LLEGASTE', W / 2, 420);
     uiTex.needsUpdate = true;
   };
+  logo.onload = drawUI;
+  logo.src = logoUrl;
   drawUI();
-  document.fonts?.load('500 58px Unbounded').then(() => document.fonts.load('400 36px Manrope')).then(drawUI).catch(() => {});
+  document.fonts?.load('500 58px Unbounded').then(drawUI).catch(() => {});
 
   // ── le inquadrature: 0 lo schermo intero · 1 in sella · 2 vicino al ciclocomputer · 3 di nuovo lo schermo
   // in sella, un po' a sinistra: la piega attraversa l'inquadratura fino alla leva destra
