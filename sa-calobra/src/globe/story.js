@@ -17,7 +17,7 @@ export function battery(status) {
   return `<span class="battery battery--${status}" aria-hidden="true"><i></i></span><em class="battery__t">${status === 'done' ? G.copy.done : G.copy.loading}</em>`;
 }
 
-/** in basso, durante l'esplorazione: i capitoli (con la batteria) e il contatto */
+/** in basso, durante l'esplorazione: i capitoli con la batteria (il contatto è nel menu) */
 function buildDock() {
   const G = CONFIG.globe;
   const dock = document.createElement('nav');
@@ -28,9 +28,6 @@ function buildDock() {
       <button class="chapter" type="button" data-chapter="${ch.n}"><b>Capítulo ${ch.n}</b><i>${battery(ch.status)}</i><strong>${ch.name ?? ch.title}</strong><span>${ch.when}</span></button>`).join('')}
     </div>`;
   document.body.appendChild(dock);
-  const cta = $('#cta');
-  cta.classList.add('dock__cta');
-  dock.appendChild(cta);
   dock.insertAdjacentHTML('beforeend', '<p class="dock__credit">Tierra: NASA Blue Marble · Mapa: Natural Earth</p>');
 }
 
@@ -38,7 +35,7 @@ export function createGlobeStory({ capture = false } = {}) {
   buildDock();
   const G = CONFIG.globe;
   const [ride, E] = [G.views[0], G.explore];
-  // stato: camera (lat, lon, distanza), pin, quanto il globo sta in basso (low), e la scena in
+  // stato: camera (lat, lon, distanza), pin, quanto il globo si centra tra menu e capitoli (low), e la scena in
   // sella: quanto si vede (ride), inquadratura (rk, 0..3); il mondo nello schermo: quanto è
   // visibile (portalA) e quanto si è allargato (portal, 0 = lo schermo, 1 = tutta la pagina).
   // Si parte in sella; il globo intanto aspetta su Mallorca, da vicino. Esplorando lo cambiano
@@ -58,7 +55,7 @@ export function createGlobeStory({ capture = false } = {}) {
   tl.to(state, { rk: 3, duration: 1.5, ease: 'power1.in' }, t + 0.15);
   tl.to(state, { portal: 1, duration: 1.4, ease: 'power2.inOut' }, t + 0.25);
   tl.to(state, { lat: E.lat, lon: E.lon, dist: E.dist, duration: 2.2, ease: 'power2.inOut' }, t + 0.25);
-  tl.to(state, { low: 0.15, duration: 2.0, ease: 'sine.inOut' }, t + 0.25);
+  tl.to(state, { low: 1, duration: 2.0, ease: 'sine.inOut' }, t + 0.25);
   tl.set(state, { ride: 0 }, t + 1.7);
   tl.to(state, { soon: 1, duration: 0.5 }, t + 1.7);
   tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', immediateRender: false }, t + 1.85);
@@ -159,7 +156,6 @@ export function createGlobeStory({ capture = false } = {}) {
     locked = false;
     api.finalOpen = false;
   };
-  $('#cta').addEventListener('click', open);
   $('#back').addEventListener('click', close);
 
   const api = {

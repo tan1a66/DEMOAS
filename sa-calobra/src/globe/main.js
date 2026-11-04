@@ -104,9 +104,16 @@ async function start() {
   const pinsNext = placed.map((c) => addMark(c, 'pin pin--soon', `<i aria-hidden="true"></i><span><b>Capítulo ${c.n}</b>${c.name}</span>`, { tag: 'button' }));
 
   // ── dimensioni: sul telefono in verticale il globo sta più in basso, i testi in alto
-  let W = 1, H = 1, low = 1;
+  // esplorando, il globo si centra nello spazio libero tra il menu in alto e i capitoli in basso
+  let W = 1, H = 1, low = 0, fitShift = 0;
+  const measureFit = () => {
+    const top = $('.top__left').getBoundingClientRect().bottom + 8;
+    const dock = $('#dock')?.getBoundingClientRect();
+    const bottom = dock && dock.height ? dock.top - 8 : H;
+    fitShift = H / 2 - (top + bottom) / 2;
+  };
   const place = () => {
-    camera.setViewOffset(W, H, 0, (W < H ? -H * 0.24 : -H * 0.1) * low, W, H);
+    camera.setViewOffset(W, H, 0, fitShift * low, W, H);
     camera.updateProjectionMatrix();
   };
   const resize = () => {
@@ -121,11 +128,14 @@ async function start() {
     globeRT.setSize(Math.round(W * dpr), Math.round(H * dpr));
     comp.material.uniforms.uView.value.set(W * dpr, H * dpr);
     ride.resize(W, H);
+    measureFit();
   };
   addEventListener('resize', resize);
   resize();
 
   const story = createGlobeStory({ capture: CAPTURE });
+  measureFit();
+  place();
   const st = story.state;
   const overlay = createLineOverlay();
   let lineVisible = 1;

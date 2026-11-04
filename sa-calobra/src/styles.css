@@ -352,19 +352,16 @@ body:has(#globe)::after { content: ''; position: fixed; inset: 0; z-index: 9; po
 html.is-exploring #globe { cursor: grab; }
 html.is-exploring.is-dragging #globe { cursor: grabbing; }
 html.is-exploring .credit { display: none; }
-.dock { position: fixed; z-index: 5; left: 0; right: 0; bottom: calc(var(--safe-b) + 12px); padding: 0 var(--gutter); display: grid; gap: 10px; visibility: hidden; opacity: 0; }
-.dock__chapters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); scroll-snap-type: x mandatory; }
-.dock__chapters::-webkit-scrollbar { display: none; }
-.dock .chapter { flex: none; width: 232px; scroll-snap-align: start; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 12px 14px 13px; }
-.dock .chapter b { grid-row: 1; grid-column: 1; font-size: 9px; opacity: 0.75; }
-.dock .chapter > i { grid-row: 1; grid-column: 2; justify-self: end; }
-.dock .chapter b { white-space: nowrap; }
-.dock .chapter > i .battery { margin-left: 0; }
-.dock .chapter > i .battery__t { font-size: 7.5px; }
-.dock .chapter strong { grid-column: 1 / -1; font-family: var(--display); font-weight: 500; font-size: 16px; letter-spacing: 0.01em; line-height: 1.15; }
-.dock .chapter span { grid-row: auto; grid-column: 1 / -1; font-size: 12px; }
-@media (min-width: 720px) { .dock { left: 50%; right: auto; transform: translateX(-50%); width: min(680px, 100%); } }
-.dock__cta { margin-top: 0; justify-self: start; padding: 14px 20px 13px; }
+.dock { position: fixed; z-index: 5; left: 0; right: 0; bottom: calc(var(--safe-b) + 10px); margin: 0 auto; max-width: 600px; padding: 0 12px; display: grid; gap: 8px; visibility: hidden; opacity: 0; }
+/* i tre capitoli sempre interi, uno accanto all'altro */
+.dock__chapters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.dock .chapter { grid-template-columns: 1fr; align-content: start; gap: 3px; padding: 10px 10px 11px; }
+.dock .chapter b { grid-row: auto; grid-column: 1; font-size: 7.5px; letter-spacing: 0.14em; opacity: 0.75; white-space: nowrap; }
+.dock .chapter > i { grid-row: auto; grid-column: 1; justify-self: start; }
+.dock .chapter > i .battery { width: 16px; height: 8px; margin: 0 6px 0 0; }
+.dock .chapter > i .battery__t { font-size: 6.5px; }
+.dock .chapter strong { grid-column: 1; margin-top: 3px; font-family: var(--display); font-weight: 500; font-size: clamp(12.5px, 3.5vw, 17px); letter-spacing: 0.01em; line-height: 1.15; }
+.dock .chapter span { grid-row: auto; grid-column: 1; font-size: clamp(10px, 2.7vw, 12.5px); opacity: 0.75; }
 .dock__credit { margin: 0; font-size: 8.5px; opacity: 0.5; }
 
 /* in alto solo il logo (torna all'inizio) e WhatsApp */
@@ -423,3 +420,12 @@ body:has(#globe) #info .day__dot { background: #e4faf5; }
 body:has(#globe) #info .day__stats span { color: #1d6b74; }
 body:has(#globe) #info .info__close { color: #0f2e30; }
 body:has(#globe) #info .cta { background: #0f2e30; color: #eaf8f5; }
+
+/* schermi bassi (telefono in orizzontale): capitoli più compatti */
+@media (max-height: 500px) {
+  .dock { bottom: calc(var(--safe-b) + 6px); gap: 4px; }
+  .dock .chapter { padding: 7px 10px 8px; gap: 2px; }
+  .dock .chapter strong { font-size: 13px; }
+  .dock .chapter span { font-size: 10px; }
+  .dock__credit { display: none; }
+}
