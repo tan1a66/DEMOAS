@@ -383,8 +383,8 @@ html.is-riding .credit { color: rgba(43, 43, 43, 0.6); }
 /* ── il menu sotto il logo e le sue pagine ─────────────────────── */
 .top { align-items: flex-start; }
 .top__left { display: grid; gap: 8px; }
-.menu { pointer-events: auto; display: flex; gap: 16px; }
-.menu button { all: unset; cursor: pointer; padding: 4px 0; font-family: var(--display); font-weight: 500; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); opacity: 0.85; transition: color 0.3s ease, opacity 0.3s ease; }
+.menu { pointer-events: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.menu button { all: unset; cursor: pointer; padding: 3px 0; font-family: var(--display); font-weight: 500; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cream); opacity: 0.85; transition: color 0.3s ease, opacity 0.3s ease; }
 .menu button:hover, .menu button:focus-visible { color: var(--orange); opacity: 1; }
 html.is-riding .menu button { color: var(--anthracite); }
 .wa-top { margin-top: 2px; }

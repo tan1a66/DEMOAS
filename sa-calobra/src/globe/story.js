@@ -52,15 +52,15 @@ export function createGlobeStory({ capture = false } = {}) {
   labels.push(t);
   // 2 · il mondo compare nello schermo e, in un solo movimento, si allarga a tutta la pagina
   // mentre il globo si apre da Mallorca sull'Europa; poi le mete e la barra dei capitoli
-  const d = 3;
-  tl.to(state, { portalA: 1, duration: 0.45, ease: 'sine.inOut' }, t);
-  tl.to(state, { rk: 3, duration: 1.9, ease: 'power1.in' }, t + 0.1);
-  tl.to(state, { portal: 1, duration: 1.9, ease: 'power2.in' }, t + 0.25);
-  tl.to(state, { lat: E.lat, lon: E.lon, dist: E.dist, duration: 2.6, ease: 'sine.inOut' }, t + 0.25);
-  tl.to(state, { low: 0.15, duration: 2.4, ease: 'sine.inOut' }, t + 0.25);
-  tl.set(state, { ride: 0 }, t + 2.2);
-  tl.to(state, { soon: 1, duration: 0.6 }, t + 2.1);
-  tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false }, t + 2.2);
+  const d = 1.9;
+  tl.to(state, { portalA: 1, duration: 0.3, ease: 'sine.inOut' }, t);
+  tl.to(state, { rk: 3, duration: 1.1, ease: 'power1.in' }, t + 0.05);
+  tl.to(state, { portal: 1, duration: 1.05, ease: 'power2.inOut' }, t + 0.15);
+  tl.to(state, { lat: E.lat, lon: E.lon, dist: E.dist, duration: 1.6, ease: 'power2.inOut' }, t + 0.15);
+  tl.to(state, { low: 0.15, duration: 1.5, ease: 'sine.inOut' }, t + 0.15);
+  tl.set(state, { ride: 0 }, t + 1.25);
+  tl.to(state, { soon: 1, duration: 0.5 }, t + 1.2);
+  tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', immediateRender: false }, t + 1.3);
   t += d;
   labels.push(t);
   tl.to({}, { duration: 0.001 }, t);
