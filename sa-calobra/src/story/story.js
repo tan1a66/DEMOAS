@@ -2,8 +2,8 @@
 // ferma, dove c'è un testo. Sotto c'è un'unica timeline GSAP in secondi con un'etichetta per
 // tappa; il controller la porta da un'etichetta all'altra.
 // La camera resta quasi ferma (inquadrature da drone in hovering): a muoversi è la linea
-// arancione, che scende dal Coll dels Reis al mare e poi si riaccende in salita. La salita dal
-// porto al Nus si fa tenendo premuto; alla fine la linea prosegue verso il prossimo capitolo.
+// arancione, che scende dal Coll dels Reis al mare e poi si riaccende in salita; alla fine la
+// linea prosegue verso il prossimo capitolo. Vista a 360° solo al porto, sul mare.
 // I testi vengono da config.js → copy: parlano di Nomads (il viaggio è nel pannello del Capítulo 01).
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
@@ -16,8 +16,7 @@ import coachImg from '../assets/coach.webp';
 gsap.registerPlugin(SplitText);
 
 const $ = (s) => document.querySelector(s);
-const ORDER = ['start', 'b', 'c', 'port', 'sea', 'nus', 'top', 'next'];
-const HOLD_STEP = ORDER.indexOf('sea');
+const ORDER = ['start', 'b', 'c', 'port', 'nus', 'top', 'next'];
 const PHOTOS = {
   crew: { src: crewImg, alt: 'Ciclistas de Nomads en una pausa de café' },
   coach: { src: coachImg, alt: 'Alfredo “Freddy” Cruz revisa la estrategia con un ciclista' },
@@ -44,7 +43,6 @@ function buildBeats() {
     if (key === 'top') parts.push(`<button class="share" id="share" type="button">${SHARE_ICON}<span>${CONFIG.copy.share}</span></button>`);
     el.insertAdjacentHTML('afterbegin', parts.join(''));
   }
-  $('#hold-text').textContent = CONFIG.copy.hold;
   $('#next-label').textContent = CONFIG.copy.nextChapter;
 }
 
@@ -56,8 +54,8 @@ export function createStory({ rig, road, camera, capture = false }) {
   const st = rig.state;
   const P = rig.poses;
   const nusS = road.keypoints.CORBATA.index * road.step;
-  st.hold = 0;     // salita tenendo premuto: 0 = porto, 1 = Nus
-  st.climbTop = 0; // dal Nus al Coll (animato dalla timeline)
+  st.hold = 0;     // salita dal porto al Nus, 0…1 (animata dalla timeline)
+  st.climbTop = 0; // dal Nus al Coll, 0…1
 
   // righe mascherate per i reveal
   const lines = new Map();
@@ -111,10 +109,11 @@ export function createStory({ rig, road, camera, capture = false }) {
   // si arriva sull'inquadratura e il drone continua ad avvicinarsi piano, fino a fermarsi
   const settle = (pz, dur, at, k) => shot(drifted(pz, k), dur, at, 'sine.out');
   const draw = (to, dur, at, ease = 'sine.inOut') => tl.to(st, { lineS: to, duration: dur, ease }, at);
+  // passaggio morbido: si sfuma nella luce calda del tramonto (non nel nero) e si riapre altrove
   const cutTo = (pz, at) => {
-    tl.to('#cut', { opacity: 1, duration: 0.4, ease: 'power1.in' }, at);
-    tl.set(st.sp, pose(pz), at + 0.42);
-    tl.to('#cut', { opacity: 0, duration: 0.55, ease: 'power1.out' }, at + 0.45);
+    tl.to('#cut', { opacity: 1, duration: 0.6, ease: 'sine.inOut' }, at);
+    tl.set(st.sp, pose(pz), at + 0.62);
+    tl.to('#cut', { opacity: 0, duration: 0.85, ease: 'sine.inOut' }, at + 0.66);
   };
   const stopOn = (at) => tl.to(st, { stop: 1, duration: 0.2 }, at);
   const stopOff = (at) => tl.to(st, { stop: 0, duration: 0.2 }, at);
@@ -162,35 +161,24 @@ export function createStory({ rig, road, camera, capture = false }) {
   mark(D.port);
   stops.push(labels.length - 1);
 
-  // 3 → 4 · "Ahora, sube.": si allarga sul mare; la salita si fa tenendo premuto
+  // 3 → 4 · head coach: ci si allarga sul mare mentre la salita si accende dal porto,
+  //          poi luce calda e si arriva sul Nus de sa Corbata
   beatOut('#b-port', t, { veilTo: null });
   fadeOut('#hint', t);
   stopOff(t);
   tl.set(st, { dir: -1 }, t + 0.05); // da qui si sale: il punto arancione è il ciclista
-  shot(P.sea, D.sea * 0.6, t);
-  settle(P.sea, D.sea * 0.4, t + D.sea * 0.6, 0.03);
-  tl.to(st, { dim: 1, duration: D.sea * 0.5, ease: 'sine.inOut' }, t);
-  tl.to('#veil-b', { opacity: 0.55, duration: 0.5 }, t + D.sea * 0.5);
-  beatIn('#b-sea', t + D.sea * 0.45);
-  if (S.counter) fadeIn('#counter', t + D.sea * 0.55);
-  fadeIn('#hold', t + D.sea * 0.75);
-  mark(D.sea);
-
-  // 4 → 5 · head coach: dissolvenza sul Nus de sa Corbata, sosta a 360°
-  beatOut('#b-sea', t);
-  fadeOut('#hold', t);
-  cutTo(P.nus, t);
-  settle(P.nus, D.nus - 0.45, t + 0.45, 0.02);
-  stopOn(t + D.nus - 0.2);
-  beatIn('#b-nus', t + D.nus * 0.35, { veilTo: 0.55 });
-  fadeIn('#hint', t + D.nus * 0.65);
+  shot(P.sea, D.nus * 0.5, t);
+  tl.to(st, { dim: 1, duration: D.nus * 0.4, ease: 'sine.inOut' }, t);
+  tl.to(st, { hold: 1, duration: D.nus * 0.62, ease: 'sine.inOut' }, t + D.nus * 0.08);
+  tl.to('#veil-b', { opacity: 0.55, duration: 0.6 }, t + D.nus * 0.3);
+  if (S.counter) fadeIn('#counter', t + D.nus * 0.3);
+  cutTo(P.nus, t + D.nus * 0.5);
+  settle(P.nus, D.nus * 0.5 - 0.66, t + D.nus * 0.5 + 0.66, 0.02);
+  beatIn('#b-nus', t + D.nus * 0.72, { veilTo: 0.55 });
   mark(D.nus);
-  stops.push(labels.length - 1);
 
   // 5 → 6 · ci si gira: tutta la salita e il mare al tramonto; il ciclista arriva al Coll
   beatOut('#b-nus', t);
-  fadeOut('#hint', t);
-  stopOff(t);
   shot(P.top, D.top * 0.85, t);
   tl.to(st, { climbTop: 1, duration: D.top * 0.85, ease: 'sine.out' }, t + D.top * 0.05);
   beatIn('#b-top', t + D.top * 0.6, { veilTo: 0.5 });
@@ -254,18 +242,13 @@ export function createStory({ rig, road, camera, capture = false }) {
 
   // ── navigazione a tappe
   let step = 0, anim = null, locked = true;
-  let auto = null; // salita completata da sola (swipe invece di tenere premuto)
-  const resetHold = () => { auto?.kill(); auto = null; gsap.to(st, { hold: 0, duration: 0.8, ease: 'sine.inOut' }); };
   const goTo = (k) => {
     k = Math.max(0, Math.min(labels.length - 1, k));
     if (k === step && !anim) return;
-    const from = step;
     const to = labels[k];
     const dist = Math.abs(to - tl.time());
     const forward = to > tl.time();
-    if (from === HOLD_STEP && k < HOLD_STEP) resetHold();
     step = k;
-    holding = false;
     anim?.kill();
     anim = gsap.to(tl, {
       time: to,
@@ -274,7 +257,6 @@ export function createStory({ rig, road, camera, capture = false }) {
       onUpdate: setBar,
       onComplete: () => {
         anim = null;
-        if (k === HOLD_STEP && from > HOLD_STEP) resetHold(); // tornati alla salita: si può rifare
         api.onStep?.(k);
       },
     });
@@ -284,34 +266,13 @@ export function createStory({ rig, road, camera, capture = false }) {
     if (locked) return;
     // uno swipe mentre si sta andando avanti accelera l'animazione invece di saltare la tappa
     if (anim && labels[step] > tl.time()) { anim.timeScale(S.hurry); return; }
-    if (step === HOLD_STEP && !anim) {
-      // invece di tenere premuto: la salita fino al Nus si completa da sola
-      if (auto) { auto.timeScale(S.hurry); return; }
-      if (st.hold < 1) {
-        auto = gsap.to(st, { hold: 1, duration: S.autoClimb * (1 - st.hold), ease: 'sine.inOut', onComplete: () => { auto = null; goTo(HOLD_STEP + 1); } });
-        return;
-      }
-    }
     goTo(step + 1);
   };
   const prev = () => { if (!locked) goTo(step - 1); };
 
-  // ── salita tenendo premuto (dito, mouse) alla tappa "Ahora, sube."
-  let holding = false, holdV = 0;
   const root = document.documentElement;
-  const canHold = () => step === HOLD_STEP && !anim && !auto && !locked;
 
   if (!capture) {
-    addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.closest('a, button, .info, .final')) return;
-      if (canHold()) holding = true;
-    });
-    const release = () => { holding = false; };
-    addEventListener('pointerup', release);
-    addEventListener('pointercancel', release);
-    addEventListener('blur', release);
-
     // rotella / trackpad: un gesto = una tappa (l'inerzia del trackpad non conta come altri gesti)
     let acc = 0, busy = false, lastWheel = 0, fired = 0;
     addEventListener('wheel', (e) => {
@@ -341,7 +302,7 @@ export function createStory({ rig, road, camera, capture = false }) {
       tracking = false;
       const p = e.changedTouches[0];
       const dx = p.clientX - tx, dy = p.clientY - ty;
-      if (Math.abs(dy) > 36 && Math.abs(dy) > Math.abs(dx) * 1.2) { holding = false; (dy < 0 ? next : prev)(); }
+      if (Math.abs(dy) > 36 && Math.abs(dy) > Math.abs(dx) * 1.2) (dy < 0 ? next : prev)();
     }, { passive: true });
     addEventListener('keydown', (e) => {
       if (e.target.closest?.('.info, .final')) return;
@@ -403,23 +364,13 @@ export function createStory({ rig, road, camera, capture = false }) {
   $('#profile-base').setAttribute('d', profD);
   $('#profile-done').setAttribute('d', profD);
   $('#profile-area').setAttribute('d', `${profD} L1000,100 L0,100 Z`);
-  const cut = $('#profile-cut'), pdot = $('#profile-dot'), ring = $('#hold-ring');
+  const cut = $('#profile-cut'), pdot = $('#profile-dot');
   const p = new Vector3();
-  let lastKm = '', lastM = '', lastF = -1, lastRing = -1, lastHolding = false;
+  let lastKm = '', lastM = '', lastF = -1;
 
-  /** a ogni fotogramma: la salita tenendo premuto, dove è il ciclista, profilo e contatore */
-  const update = (dt) => {
-    // tenendo premuto la velocità cresce e cala dolcemente (niente scatti)
-    const target = holding && canHold() ? 1 / S.holdTime : 0;
-    holdV += (target - holdV) * Math.min(1, dt * (target ? 5 : 7));
-    if (holdV > 1e-4 && !auto) st.hold = Math.min(1, st.hold + holdV * dt);
-    if (st.hold >= 1 && step === HOLD_STEP && !anim && !auto && holdV > 1e-4) { holdV = 0; holding = false; goTo(HOLD_STEP + 1); }
-    if (holding !== lastHolding) { root.classList.toggle('is-holding', holding); lastHolding = holding; }
-    // dopo la tappa della salita il ciclista è almeno al Nus (anche quando si salta avanti)
-    const h = tl.time() > labels[HOLD_STEP] + 1e-3 ? 1 : st.hold;
-    st.climbS = L - h * (L - nusS) - st.climbTop * nusS;
-    const r = Math.round(st.hold * 200) / 200;
-    if (r !== lastRing) { ring.style.strokeDashoffset = String(1 - r); lastRing = r; }
+  /** a ogni fotogramma: dov'è il ciclista, profilo e contatore */
+  const update = () => {
+    st.climbS = L - st.hold * (L - nusS) - st.climbTop * nusS;
 
     const climbing = st.dir < 0;
     const rs = rig.riderS();
@@ -444,10 +395,9 @@ export function createStory({ rig, road, camera, capture = false }) {
     get step() { return step; },
     labels: labels.map((x) => x / total), // tappe, in frazione della storia
     stops: stops.map((k) => labels[k] / total), // tappe con la vista a 360°
-    holdStep: HOLD_STEP,
     order: ORDER,
     // INFO e intro: la storia si ferma dov'è (anche a metà di un passaggio)
-    pause() { locked = true; holding = false; anim?.pause(); root.classList.add('is-locked'); },
+    pause() { locked = true; anim?.pause(); root.classList.add('is-locked'); },
     resume() { locked = false; anim?.resume(); root.classList.remove('is-locked'); },
     /** solo per la registrazione: posiziona la storia in un punto preciso */
     seek(progress) { tl.progress(progress); step = labels.findIndex((x) => x >= tl.time() - 1e-3); setBar(); },

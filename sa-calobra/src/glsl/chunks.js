@@ -52,6 +52,25 @@ export const BAKE_GLSL = /* glsl */ `
   }
 `;
 
+/** foto aerea PNOA (IGN) sui livelli 'hi' e 'base': colore vero del suolo e dell'acqua sotto costa.
+ *  Richiede RECTS_GLSL. Restituisce rgb (lineare) e peso (0 dove la foto non arriva). */
+export const ORTHO_GLSL = /* glsl */ `
+  uniform sampler2D tOrthoHi, tOrthoBase;
+  uniform float uOrtho;
+  vec2 rectUv(vec4 r, vec2 xz) { return (xz - r.xy) / (r.zw - r.xy); }
+  vec4 sampleOrtho(vec2 xz) {
+    vec3 b = texture2D(tOrthoBase, rectUv(uRectBase, xz)).rgb;
+    vec3 h = texture2D(tOrthoHi, rectUv(uRectHi, xz)).rgb;
+    return vec4(mix(b, h, edgeW(uRectHi, xz, 60.0)), edgeW(uRectBase, xz, 300.0) * uOrtho);
+  }
+  // la stessa foto ammorbidita (mipmap più grossa): i colori "larghi", senza le macchie
+  vec3 sampleOrthoSoft(vec2 xz, float bias) {
+    vec3 b = texture2D(tOrthoBase, rectUv(uRectBase, xz), bias).rgb;
+    vec3 h = texture2D(tOrthoHi, rectUv(uRectHi, xz), bias).rgb;
+    return mix(b, h, edgeW(uRectHi, xz, 60.0));
+  }
+`;
+
 export const NOISE_GLSL = /* glsl */ `
   float hash12(vec2 p) {
     vec3 p3 = fract(vec3(p.xyx) * 0.1031);

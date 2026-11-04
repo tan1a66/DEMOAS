@@ -20,14 +20,11 @@ for (const i of pick) {
   await page.screenshot({ path: `${outDir}/step-${i}.png`, timeout: 120000 });
   console.log('tappa', i, labels[i].toFixed(3));
 }
-// EXTRA=1: anche la salita a metà (tenendo premuto) e l'immagine "Comparte tu cima"
+// EXTRA=1: anche l'immagine "Comparte tu cima" e il pannello del viaggio
 if (process.env.EXTRA) {
   const { writeFileSync } = await import('node:fs');
-  const h = labels[await page.evaluate(() => window.__story.story.holdStep)];
-  await page.evaluate((p) => { window.__story.rig.state.hold = 0.55; window.__story.seek(p, 10); window.__story.seek(p, 10); }, h);
-  await page.screenshot({ path: `${outDir}/step-hold.png`, timeout: 120000 });
   const top = labels[await page.evaluate(() => window.__story.story.order.indexOf('top'))];
-  await page.evaluate((p) => { window.__story.rig.state.hold = 0; window.__story.seek(p, 10); window.__story.seek(p, 10); }, top);
+  await page.evaluate((p) => { window.__story.seek(p, 10); window.__story.seek(p, 10); }, top);
   const url = await page.evaluate(() => window.__story.share.dataURL());
   writeFileSync(`${outDir}/share.jpg`, Buffer.from(url.split(',')[1], 'base64'));
   // il pannello del Capítulo 01, con il livello "Difícil" scelto

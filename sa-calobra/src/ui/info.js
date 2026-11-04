@@ -56,6 +56,7 @@ export function createInfo({ camera, road, rig, overlay, story, setLineVisible }
   bindLevels();
   const el = document.getElementById('info');
   const scroller = document.getElementById('info-scroll');
+  const sea = el.querySelector('.info__sea'); // fondo: il mare cristallino della cala
   const days = document.getElementById('days');
   const items = () => [document.querySelector('.info__head'), ...days.children, document.getElementById('incl'), document.querySelector('.info__next')];
   let isOpen = false, busy = false;
@@ -93,7 +94,7 @@ export function createInfo({ camera, road, rig, overlay, story, setLineVisible }
     draw();
     setLineVisible(false);
     gsap.timeline({ onComplete: () => { busy = false; } })
-      .to(el, { backgroundColor: 'rgba(28,28,27,0.9)', duration: 0.9, ease: 'power2.inOut' }, 0)
+      .to(sea, { opacity: 1, duration: 1.1, ease: 'sine.inOut' }, 0)
       .to(s, { t: 1, duration: 1.25, ease: 'power3.inOut', onUpdate: draw }, 0.05)
       .add(() => { gsap.set(days, { '--line': 1 }); overlay.hide(); }, 1.3)
       .to(items(), { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 1.2);
@@ -121,7 +122,7 @@ export function createInfo({ camera, road, rig, overlay, story, setLineVisible }
         },
       })
         .to(s, { t: 0, duration: 1.1, ease: 'power3.inOut', onUpdate: draw }, 0)
-        .to(el, { backgroundColor: 'rgba(28,28,27,0)', duration: 0.8, ease: 'power2.inOut' }, 0.2);
+        .to(sea, { opacity: 0, duration: 0.9, ease: 'sine.inOut' }, 0.2);
     };
     gsap.to(items(), { opacity: 0, y: -10, duration: 0.35, stagger: 0.02, ease: 'power2.in', onComplete: done });
   }

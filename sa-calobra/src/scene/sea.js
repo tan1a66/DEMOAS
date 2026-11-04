@@ -2,7 +2,7 @@
 // onde animate (normali procedurali, niente texture) e schiuma dove tocca la costa.
 import { Mesh, BufferGeometry, BufferAttribute, ShaderMaterial, Color, DataTexture, RedFormat, UnsignedByteType, LinearFilter, ClampToEdgeWrapping } from 'three';
 import { CONFIG } from '../config.js';
-import { RECTS_GLSL, NOISE_GLSL, LIGHT_GLSL, FOG_GLSL } from '../glsl/chunks.js';
+import { ORTHO_GLSL, RECTS_GLSL, NOISE_GLSL, LIGHT_GLSL, FOG_GLSL } from '../glsl/chunks.js';
 
 const MAX_DEPTH = 25;
 
@@ -29,12 +29,13 @@ const vert = /* glsl */ `
 
 const frag = /* glsl */ `
   ${RECTS_GLSL}
+  ${ORTHO_GLSL}
   ${NOISE_GLSL}
   ${LIGHT_GLSL}
   ${FOG_GLSL}
   uniform sampler2D tDepthHi, tDepthBase, tDepthFar;
   uniform vec3 uDeep, uShallow, uFoam;
-  uniform float uShallowDepth, uTime, uWaveSpeed, uGlint;
+  uniform float uShallowDepth, uTime, uWaveSpeed, uGlint, uPhotoGain, uPhotoDepth;
   varying vec3 vWorld;
 
   float waterDepth(vec2 xz) {
@@ -75,6 +76,9 @@ const frag = /* glsl */ `
 
     // colore dell'acqua: turchese sui fondali bassi, blu profondo al largo
     vec3 body = mix(uShallow, uDeep, smoothstep(0.5, uShallowDepth, depth));
+    // sotto costa il colore vero dell'acqua dalla foto aerea: turchese, fondale e scogli visibili
+    vec4 o = sampleOrtho(xz);
+    body = mix(body, o.rgb * uPhotoGain, o.a * (1.0 - smoothstep(uPhotoDepth * 0.4, uPhotoDepth, depth)));
     vec3 bodyLit = shade(body, vec3(0.0, 1.0, 0.0), 1.0, 1.0) * 0.55;
 
     vec3 r = reflect(rd, n);
@@ -119,7 +123,7 @@ function seaGeometry() {
   return g;
 }
 
-export function createSea(levels, shared, rects) {
+export function createSea(levels, shared, rects, ortho = null) {
   const c = CONFIG.sea;
   const geo = seaGeometry();
   const mat = new ShaderMaterial({
@@ -133,6 +137,11 @@ export function createSea(levels, shared, rects) {
       uShallow: { value: new Color(c.shallow) },
       uFoam: { value: new Color(c.foam) },
       uShallowDepth: { value: c.shallowDepth },
+      tOrthoHi: { value: ortho?.hi ?? null },
+      tOrthoBase: { value: ortho?.base ?? null },
+      uOrtho: { value: ortho ? 1 : 0 },
+      uPhotoGain: { value: c.photoGain },
+      uPhotoDepth: { value: c.photoDepth },
       uWaveSpeed: { value: c.waveSpeed },
       uGlint: { value: c.sunGlint },
     },

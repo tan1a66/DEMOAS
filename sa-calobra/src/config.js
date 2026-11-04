@@ -67,6 +67,14 @@ export const CONFIG = {
     valleyHeight: [40, 260],   // quote in cui il fondovalle sfuma nella macchia
     aoStrength: 1.0,           // occlusione da curvatura
     noiseScale: 1.0,
+    photo: {                   // foto aerea PNOA (IGN) come colore del suolo
+      strength: 1.0,           // 0 = terreno solo procedurale
+      gain: 1.15,              // luminosità della foto
+      saturation: 1.15,
+      contrast: 0.6,           // 1 = contrasto della foto; meno = macchie (ombre di mezzogiorno) più leggere
+      detail: 0.35,            // quanto dettaglio fine della foto resta sopra i colori larghi
+      blur: 1.6,               // quanto si ammorbidisce la foto per i colori larghi (livelli di mipmap)
+    },
   },
 
   // ── Mesh del terreno: passo della griglia in funzione della distanza dalla strada
@@ -117,11 +125,13 @@ export const CONFIG = {
     shallowDepth: 9,           // sotto questa profondità l'acqua diventa turchese (m)
     waveSpeed: 0.6,
     sunGlint: 1.6,
+    photoGain: 2.2,            // l'acqua della foto aerea sotto costa (è più scura del colore percepito)
+    photoDepth: 40,            // fino a questa profondità (m) si usa il colore vero della foto
   },
 
   // ── Pini (InstancedMesh)
   trees: {
-    count: 14000,
+    count: 14000,              // solo se manca trees.bin (i pini veri riconosciuti nella foto aerea)
     color: '#3f4f2b',
     colorVar: 0.2,
     slope: [0.02, 0.24],       // solo pendenze medie (1 − n.y: 0,02 ≈ 11°, 0,24 ≈ 40°)
@@ -161,7 +171,7 @@ export const CONFIG = {
       b: { pos: [1600, 1500, 1900], target: [0, 350, 1100] },        // 1 · la linea scende tra i tornanti, vista da est
       c: { pos: [-400, 890, 1830], target: [-620, 60, -250] },        // 2 · la linea arriva al mare
       port: { pos: [-560, 110, -1300], target: [-60, 10, -1000] },   // 3 · sopra la cala: foce del Torrent de Pareis (360°)
-      sea: { pos: [-900, 650, -2700], target: [300, 450, 1000] },    // 4 · dal mare verso la montagna: la salita
+      sea: { pos: [-900, 650, -2700], target: [300, 450, 1000] },    // passaggio porto → Nus: dal mare si vede accendersi la salita
       nus: { pos: [780, 820, 980], target: [870, 660, 1260] },       // 5 · il Nus de sa Corbata (360°)
       top: { pos: [1300, 1420, 2200], target: [-1300, 0, -1900] },   // 6 · tutta la salita e il mare al tramonto
       next: { pos: [1250, 1520, 2300], target: [-3640, 520, 3340] }, // 7 · lo sguardo va al tramonto: il prossimo capitolo
@@ -180,18 +190,15 @@ export const CONFIG = {
     steps: {
       b: 4.2,      // 0 → 1  la linea scende dal Coll tra i tornanti
       c: 4.0,      // 1 → 2  la linea arriva al mare
-      port: 2.4,   // 2 → 3  dissolvenza sulla cala del porto: the crew (360°)
-      sea: 3.0,    // 3 → 4  si allarga sul mare: "Ahora, sube." (si sale tenendo premuto)
-      nus: 2.4,    // 4 → 5  dissolvenza sul Nus de sa Corbata: il coach (360°)
-      top: 4.2,    // 5 → 6  ci si gira: il ciclista arriva al Coll
-      next: 3.2,   // 6 → 7  la linea prosegue verso l'orizzonte: Capítulo 02
+      port: 3.0,   // 2 → 3  luce calda e si apre sulla cala del porto: the crew (vista a 360°)
+      nus: 5.4,    // 3 → 4  ci si allarga sul mare mentre la salita si accende, poi il Nus: il coach
+      top: 4.2,    // 4 → 5  ci si gira: il ciclista arriva al Coll
+      next: 3.2,   // 5 → 6  la linea prosegue verso l'orizzonte: Capítulo 02
     },
     hurry: 3,      // uno swipe durante l'animazione la accelera di tanto
     backSpeed: 2.2, // all'indietro si torna più in fretta
     introLine: 1500,     // i metri di strada su cui si posa la M dell'intro
     lineB: 4300,         // fin dove scende la linea alla tappa 1 (m dal Coll)
-    holdTime: 5.5,       // secondi da tenere premuto per salire dal porto al Nus
-    autoClimb: 1.4,      // con uno swipe invece di tenere premuto: la salita si completa in tanti secondi
     counter: true,       // in salita: profilo, km e metri saliti (valori ufficiali della salita, dal PDF)
   },
 
@@ -203,11 +210,9 @@ export const CONFIG = {
     b: { kicker: 'Quiénes somos', text: 'Nacimos de la pasión. Crecimos para conquistar el asfalto.' },
     c: { kicker: 'Qué hacemos', text: 'Experiencias únicas para quienes ven en la bicicleta una forma de libertad.', size: 'lead' },
     port: { kicker: 'The crew', text: 'Tu única responsabilidad es pedalear.', sub: 'Nosotros nos encargamos de todo.', photo: 'crew' },
-    sea: { text: 'Ahora, sube.', size: 'big' },
     nus: { kicker: 'Head coach · Alfredo “Freddy” Cruz', text: 'Rodar exige más que fuerza; requiere estrategia.', sub: 'UCI Coach Nivel 3 · Estratega detrás de la victoria de Isaac del Toro en el Tour de l’Avenir.', photo: 'coach' },
     top: { text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
     next: { text: 'No es un viaje, es tu próxima historia.' },
-    hold: 'Mantén presionado para subir',
     share: 'Comparte tu cima',
     nextChapter: 'Capítulo 02 · Próximamente',
     introMeta: 'Viajes en bicicleta · Desde México', // sotto il logo nell'intro

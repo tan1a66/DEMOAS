@@ -52,5 +52,23 @@
   "half": 4.0,
   "falloff": 18.0,
   "depth": 0.25
+ },
+ "ortho": {
+  "hi": {
+   "file": "ortho_hi.webp",
+   "width": 1348,
+   "height": 1624
+  },
+  "base": {
+   "file": "ortho_base.webp",
+   "width": 1011,
+   "height": 1282
+  },
+  "source": "PNOA máxima actualidad © Instituto Geográfico Nacional (CC BY 4.0 scne.es)"
+ },
+ "trees": {
+  "file": "trees.bin",
+  "count": 22000,
+  "source": "chiome riconosciute nell'ortofoto PNOA"
  }
 }

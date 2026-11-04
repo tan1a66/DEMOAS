@@ -1,8 +1,9 @@
-// Materiale del terreno: colori da pendenza e quota (roccia calcarea, macchia, fondovalle),
+// Materiale del terreno: il colore vero viene dalla foto aerea PNOA (IGN) dove c'è; sopra, e
+// dove la foto non arriva, colori da pendenza e quota (roccia calcarea, macchia, fondovalle),
 // rumore multi-scala, ombre e occlusione cotte, nebbia atmosferica.
 import { ShaderMaterial, Color, Vector2 } from 'three';
 import { CONFIG } from '../config.js';
-import { BAKE_GLSL, NOISE_GLSL, LIGHT_GLSL, FOG_GLSL } from '../glsl/chunks.js';
+import { BAKE_GLSL, ORTHO_GLSL, NOISE_GLSL, LIGHT_GLSL, FOG_GLSL } from '../glsl/chunks.js';
 
 const vert = /* glsl */ `
   attribute float aRoad;
@@ -18,12 +19,13 @@ const vert = /* glsl */ `
 
 const frag = /* glsl */ `
   ${BAKE_GLSL}
+  ${ORTHO_GLSL}
   ${NOISE_GLSL}
   ${LIGHT_GLSL}
   ${FOG_GLSL}
   uniform vec3 uRock, uRockDark, uScrub, uScrubDry, uValley, uShore, uShoulder;
   uniform vec2 uRockSlope, uValleyH;
-  uniform float uAo, uNoise;
+  uniform float uAo, uNoise, uOrthoGain, uOrthoSat, uOrthoDetail, uOrthoContrast, uOrthoBlur;
   uniform int uDebug;
   varying vec3 vWorld;
   varying float vRoad;
@@ -86,12 +88,32 @@ const frag = /* glsl */ `
     float vegMask = (1.0 - rocky) * (1.0 - outcrop * 0.7);
     vec3 albedo = mix(mix(rock, uRockDark, outcrop * (1.0 - rocky) * 0.6), veg, vegMask);
 
-    // costa e banchina della strada
-    albedo = mix(uShore, albedo, smoothstep(1.0, 7.0, y + (n2 - 0.5) * 4.0));
-    float sh = 1.0 - smoothstep(3.2, 5.2, vRoad + (n3 - 0.5) * 1.5);
-    albedo = mix(albedo, uShoulder, sh * 0.6);
+    // la foto aerea: il colore vero di rocce, pini, prati e sentieri. Da vicino è morbida
+    // (2 m per pixel), quindi sopra resta il dettaglio fine procedurale
+    vec4 o = sampleOrtho(vWorld.xz);
+    if (o.a > 0.0) {
+      // colori larghi dalla foto ammorbidita; del dettaglio della foto (chiome, ombre di
+      // mezzogiorno) ne resta solo una parte, così non fa "mimetica" sotto la luce del tramonto
+      const vec3 LW = vec3(0.2126, 0.7152, 0.0722);
+      vec3 soft = sampleOrthoSoft(vWorld.xz, uOrthoBlur);
+      float ls = max(dot(soft, LW), 1e-3);
+      float detail = clamp(dot(o.rgb, LW) / ls, 0.55, 1.6);
+      vec3 photo = soft * mix(1.0, detail, uOrthoDetail);
+      float pl = dot(photo, LW);
+      float mean = 0.16;
+      photo = mix(vec3(mean) * photo / max(pl, 1e-3), photo, uOrthoContrast);   // meno contrasto, stessa tinta
+      pl = dot(photo, LW);
+      photo = mix(vec3(pl), photo, uOrthoSat) * uOrthoGain;
+      photo *= mix(1.0, 0.8 + 0.4 * n3, fine) * mix(1.0, 0.82 + 0.36 * d5.x, close);
+      albedo = mix(albedo, photo, o.a);
+    }
 
-    float ao = mix(1.0, bk.a, uAo) * mix(1.0, 0.75 + 0.5 * d3.x, fine * vegMask);
+    // costa e banchina della strada (la foto le ha già: lì si attenuano)
+    albedo = mix(uShore, albedo, max(smoothstep(1.0, 7.0, y + (n2 - 0.5) * 4.0), o.a));
+    float sh = 1.0 - smoothstep(3.2, 5.2, vRoad + (n3 - 0.5) * 1.5);
+    albedo = mix(albedo, uShoulder, sh * 0.6 * (1.0 - 0.6 * o.a));
+
+    float ao = mix(1.0, bk.a, uAo * (1.0 - 0.4 * o.a)) * mix(1.0, 0.75 + 0.5 * d3.x, fine * vegMask * (1.0 - 0.5 * o.a));
     vec3 col = shade(albedo, n, bk.b, ao);
     if (uDebug == 1) { gl_FragColor = vec4(bk.rg, 0.5, 1.0); return; }
     if (uDebug == 2) { gl_FragColor = vec4(vec3(bk.b), 1.0); return; }
@@ -101,7 +123,7 @@ const frag = /* glsl */ `
   }
 `;
 
-export function createTerrainMaterial(shared, rects, bakeTex) {
+export function createTerrainMaterial(shared, rects, bakeTex, ortho = null) {
   const t = CONFIG.terrain;
   return new ShaderMaterial({
     uniforms: {
@@ -121,6 +143,14 @@ export function createTerrainMaterial(shared, rects, bakeTex) {
       uValleyH: { value: new Vector2(...t.valleyHeight) },
       uAo: { value: t.aoStrength },
       uNoise: { value: t.noiseScale },
+      tOrthoHi: { value: ortho?.hi ?? null },
+      tOrthoBase: { value: ortho?.base ?? null },
+      uOrtho: { value: ortho ? t.photo.strength : 0 },
+      uOrthoGain: { value: t.photo.gain },
+      uOrthoSat: { value: t.photo.saturation },
+      uOrthoDetail: { value: t.photo.detail },
+      uOrthoContrast: { value: t.photo.contrast },
+      uOrthoBlur: { value: t.photo.blur },
       uDebug: { value: t.debug ?? 0 },  // 1 normali, 2 sole, 3 occlusione, 4 colore (solo sviluppo)
     },
     vertexShader: vert,

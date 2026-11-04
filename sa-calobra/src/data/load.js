@@ -1,6 +1,6 @@
 // Caricamento dei dati geografici (Fase 1) tramite THREE.LoadingManager,
 // così il loader (Fase 4) può seguirne l'avanzamento.
-import { FileLoader } from 'three';
+import { FileLoader, Texture, SRGBColorSpace, LinearMipmapLinearFilter, LinearFilter } from 'three';
 import { decode } from 'fast-png';
 
 const BASE = `${import.meta.env.BASE_URL}data/`;
@@ -23,6 +23,30 @@ async function loadHeightLevel(manager, meta) {
   return { ...meta, data: h };
 }
 
+/** foto aerea (WebP) → texture sRGB; la riga 0 dell'immagine è il nord (zMin), come le heightmap */
+async function loadOrtho(manager, meta) {
+  const buf = await loadFile(manager, BASE + meta.file, 'arraybuffer');
+  const url = URL.createObjectURL(new Blob([buf], { type: 'image/webp' }));
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  URL.revokeObjectURL(url);
+  const t = new Texture(img);
+  t.colorSpace = SRGBColorSpace;
+  t.flipY = false;
+  t.minFilter = LinearMipmapLinearFilter;
+  t.magFilter = LinearFilter;
+  t.needsUpdate = true;
+  return t;
+}
+
+/** pini riconosciuti nella foto: x·2, z·2 (int16) e grandezza 0…255 */
+async function loadTrees(manager, meta) {
+  const buf = await loadFile(manager, BASE + meta.file, 'arraybuffer');
+  const n = new DataView(buf).getUint32(0, true);
+  return { count: n, xz: new Int16Array(buf.slice(4, 4 + n * 4)), size: new Uint8Array(buf, 4 + n * 4, n) };
+}
+
 export async function loadGeoData(manager) {
   const [terrainMeta, road] = await Promise.all([
     loadFile(manager, BASE + 'terrain.json', 'json'),
@@ -31,5 +55,12 @@ export async function loadGeoData(manager) {
   const names = Object.keys(terrainMeta.levels);
   const decoded = await Promise.all(names.map((n) => loadHeightLevel(manager, terrainMeta.levels[n])));
   const levels = Object.fromEntries(names.map((n, i) => [n, decoded[i]]));
-  return { terrainMeta, levels, road };
+  // foto aerea e pini veri (se presenti: senza, il terreno resta procedurale)
+  const om = terrainMeta.ortho;
+  const [orthoHi, orthoBase, trees] = await Promise.all([
+    om ? loadOrtho(manager, om.hi) : null,
+    om ? loadOrtho(manager, om.base) : null,
+    terrainMeta.trees ? loadTrees(manager, terrainMeta.trees) : null,
+  ]);
+  return { terrainMeta, levels, road, ortho: om ? { hi: orthoHi, base: orthoBase } : null, trees };
 }

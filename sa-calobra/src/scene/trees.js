@@ -1,5 +1,6 @@
-// Pini low-poly (chioma irregolare tipo pino d'Aleppo) con InstancedMesh:
-// solo sui pendii medi, lontano dalla strada, a gruppi. Un'unica draw call.
+// Pini low-poly (chioma irregolare tipo pino d'Aleppo) con InstancedMesh, un'unica draw call.
+// Dove ci sono, i pini veri riconosciuti nella foto aerea (trees.bin); altrimenti a gruppi
+// sui pendii medi, lontano dalla strada.
 import {
   InstancedMesh, IcosahedronGeometry, CylinderGeometry, ShaderMaterial, Color, Matrix4, Quaternion,
   Vector3, Euler, BufferAttribute,
@@ -99,13 +100,25 @@ const frag = /* glsl */ `
   }
 `;
 
-export function createTrees(hf, road, shared, rects, bakeTex) {
+export function createTrees(hf, road, shared, rects, bakeTex, photoTrees = null) {
   const c = CONFIG.trees;
   const rand = mulberry32(20261028);
   const items = [];
   const near = {};
   const { hi, base } = hf;
-  const maxTries = c.count * 60;
+  if (photoTrees) {
+    const { count, xz, size } = photoTrees;
+    for (let k = 0; k < count; k++) {
+      const x = xz[2 * k] / 2, z = xz[2 * k + 1] / 2;
+      const h = hf.height(x, z);
+      if (h < 1.5) continue;
+      if (road.nearest(x, z, 7, false, near)) continue;
+      // chiome più marcate nella foto → alberi un po' più grandi
+      const g = Math.min(Math.max((size[k] - 60) / 195, 0), 1);
+      items.push([x, h, z, 0.25 + 0.6 * g * rand() + 0.15 * rand(), rand(), rand()]);
+    }
+  }
+  const maxTries = photoTrees ? 0 : c.count * 60;
   for (let tries = 0; items.length < c.count && tries < maxTries; tries++) {
     const L = rand() < 0.72 ? hi : base;
     const x = L.xMin + rand() * (L.xMax - L.xMin);

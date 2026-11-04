@@ -60,14 +60,15 @@ async function buildWorld(canvas, manager) {
   scene.add(createSun(shared));
 
   const terrainGeo = buildTerrainGeometry(hf, road, geo.terrainMeta.carve);
-  const terrain = new Mesh(terrainGeo, createTerrainMaterial(shared, rects, bakeTex));
+  if (geo.ortho) for (const t of Object.values(geo.ortho)) t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const terrain = new Mesh(terrainGeo, createTerrainMaterial(shared, rects, bakeTex, geo.ortho));
   terrain.frustumCulled = false;
   scene.add(terrain);
 
   const roadObj = createRoad(road, hf, shared, rects, bakeTex);
   scene.add(roadObj.group);
-  scene.add(createSea(geo.levels, shared, rects));
-  const trees = createTrees(hf, road, shared, rects, bakeTex);
+  scene.add(createSea(geo.levels, shared, rects, geo.ortho));
+  const trees = createTrees(hf, road, shared, rects, bakeTex, geo.trees);
   scene.add(trees.mesh);
   const rider = createRider(shared);
   scene.add(rider.mesh);
@@ -150,7 +151,7 @@ async function start() {
   const frame = (dt) => {
     renderer.info.reset();
     shared.uTime.value += dt;
-    story.update(dt); // salita tenendo premuto, dov'è il ciclista, profilo e contatore
+    story.update(dt); // dov'è il ciclista, profilo e contatore
     look.update(dt, st.stop);
     document.documentElement.classList.toggle('can-look', st.stop > 0.5);
     rig.update(dt);
@@ -190,8 +191,13 @@ async function start() {
     return;
   }
 
+  let drawn = 0;
   gsap.ticker.add((time, deltaMs) => {
     if (story.finalOpen) return; // la schermata finale copre tutto: niente 3D
+    // dietro lo schermo crema dell'intro basta qualche fotogramma (per preparare gli shader):
+    // poi il telefono lavora solo per l'animazione della M
+    if (intro?.covering && drawn > 3) return;
+    drawn++;
     const dt = Math.min(deltaMs / 1000, 0.1);
     frame(dt);
     if (debug) {

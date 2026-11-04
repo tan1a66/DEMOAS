@@ -10,7 +10,7 @@ const DATA_DIR = 'public/data';
 function inlineData() {
   const map = {};
   for (const f of readdirSync(DATA_DIR)) {
-    const mime = extname(f) === '.png' ? 'image/png' : 'application/json';
+    const mime = { '.png': 'image/png', '.webp': 'image/webp', '.bin': 'application/octet-stream' }[extname(f)] || 'application/json';
     map[f] = `data:${mime};base64,${readFileSync(join(DATA_DIR, f)).toString('base64')}`;
   }
   return {

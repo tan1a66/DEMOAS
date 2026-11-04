@@ -59,8 +59,9 @@ export function createIntro() {
 
   const t0 = performance.now();
   let shown = 0;
-  return {
+  const api = {
     el,
+    covering: true, // lo schermo crema copre tutto: il 3D dietro non serve disegnarlo
     setProgress(p) {
       shown = Math.max(shown, Math.min(p, 1));
       bar.style.transform = `scaleX(${shown.toFixed(3)})`;
@@ -86,6 +87,7 @@ export function createIntro() {
       for (const t of entrance) t.progress(1).kill(); // un tocco veloce non deve trovare l'entrata ancora in corso
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduce) {
+        api.covering = false;
         return new Promise((resolve) => gsap.to(el, { opacity: 0, duration: 0.6, onComplete: () => { el.remove(); onReveal(); resolve(); } }));
       }
       const r = logoBox.getBoundingClientRect();
@@ -123,26 +125,29 @@ export function createIntro() {
         const tl = gsap.timeline({ onUpdate: render, onComplete: () => { overlay.hide(); el.remove(); resolve(); } });
         tl.to('.intro__bar, .intro__enter, .intro__meta', { opacity: 0, y: 8, duration: 0.35, ease: 'power2.in' }, 0)
           // la M diventa asfalto con la linea arancione
-          .to(s, { asphalt: 1, line: 1, duration: 0.45, ease: 'power2.out' }, 0.1)
+          .to(s, { asphalt: 1, line: 1, duration: 0.5, ease: 'sine.out' }, 0.1)
           // la M si smolla (con il suono di un cambio di marcia): si arrotonda, un'onda la percorre
           .add(() => onShift?.(), 0.4)
-          .to(s, { slack: 1, duration: 1.3, ease: 'sine.inOut' }, 0.45)
-          .to(s, { phase: Math.PI * 5, duration: 2.6, ease: 'none' }, 0.45)
-          .to(s, { keyframes: { wave: [0, 1, 0.6, 0], easeEach: 'sine.inOut' }, duration: 2.1, ease: 'none' }, 0.45)
-          // zoom dentro la M; le altre lettere e la filigrana svaniscono
-          .to(s, { zoom: ZMAX, duration: 1.65, ease: 'power3.in' }, 0.5)
-          .to(logoBox, { scale: ZMAX, transformOrigin: origin, duration: 1.65, ease: 'power3.in' }, 0.5)
-          .to(logoBox, { opacity: 0, duration: 0.45, ease: 'power1.in' }, 0.4)
-          .to('#intro-contours', { scale: 1.6, opacity: 0, duration: 1.5, ease: 'power3.in' }, 0.5)
+          .to(s, { slack: 1, duration: 1.4, ease: 'sine.inOut' }, 0.4)
+          .to(s, { phase: Math.PI * 5, duration: 2.8, ease: 'none' }, 0.4)
+          .to(s, { keyframes: { wave: [0, 1, 0.55, 0], easeEach: 'sine.inOut' }, duration: 2.4, ease: 'none' }, 0.4)
+          // zoom dentro la M: parte piano e rallenta posandosi, mentre la M scivola già sulla
+          // strada (un solo movimento continuo, niente arresti bruschi)
+          .to(s, { zoom: ZMAX, duration: 1.9, ease: 'power2.inOut' }, 0.45)
+          .to(logoBox, { scale: ZMAX, transformOrigin: origin, duration: 1.9, ease: 'power2.inOut' }, 0.45)
+          .to(logoBox, { opacity: 0, duration: 0.5, ease: 'sine.in' }, 0.4)
+          .to('#intro-contours', { scale: 1.5, opacity: 0, duration: 1.6, ease: 'sine.inOut' }, 0.45)
           // si apre la scena: la strada-M si posa sulla carretera vera
-          .to(el, { backgroundColor: 'rgba(237,232,223,0)', duration: 0.9, ease: 'power2.inOut' }, 1.65)
-          .to(s, { morph: 1, duration: 1.45, ease: 'sine.inOut' }, 1.7)
-          .add(() => onReveal(), 3.05)
-          .to(s, { line: 0, duration: 0.35 }, 3.15);
+          .add(() => { api.covering = false; }, 1.3) // da qui il 3D si vede: si torna a disegnarlo
+          .to(el, { backgroundColor: 'rgba(237,232,223,0)', duration: 1.1, ease: 'sine.inOut' }, 1.45)
+          .to(s, { morph: 1, duration: 1.6, ease: 'power2.inOut' }, 1.5)
+          .add(() => onReveal(), 2.95)
+          .to(s, { line: 0, duration: 0.45, ease: 'sine.out' }, 3.0);
         // sviluppo: ?introAt=1.4 ferma la transizione a quell'istante (per gli screenshot)
         const at = new URLSearchParams(location.search).get('introAt');
-        if (at !== null) { tl.pause(Number(at)); render(); document.body.classList.add('intro-paused'); }
+        if (at !== null) { tl.pause(Number(at)); render(); api.covering = Number(at) < 1.3; document.body.classList.add('intro-paused'); }
       });
     },
   };
+  return api;
 }
