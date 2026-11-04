@@ -173,26 +173,43 @@ export const CONFIG = {
     },
   },
 
-  // ── Regia: lunghezza di ogni sezione in "schermate" di scroll (totale ≈ 11)
+  // ── Regia a tappe: ogni gesto (swipe, rotella, tasti) porta alla tappa successiva.
+  //    Durate in secondi dell'animazione tra una tappa e l'altra.
   story: {
-    rise: 0.8,                 // apertura: dalla strada al Coll la camera sale sulla prima inquadratura
-    drawA: 0.9,                // discesa: la linea scende tra Coll, Nus e tornanti
-    moveAB: 0.45,              // la camera scivola sulla seconda inquadratura
-    drawB: 0.9,                // metà strada
-    moveBC: 0.45,
-    drawC: 0.8,                // verso il mare
-    arrive: 0.6,               // la camera scende sulla cala
-    stop1: 1.0,                // sosta 1: porto (360°)
-    leave: 0.6,                // si allarga sul mare: la salita inizia
-    climb: 1.6,                // la salita si accende dal porto verso la montagna, con il contatore
-    cut: 0.5,                  // dissolvenza verso il Nus
-    stop2: 0.8,                // sosta 2: Nus de sa Corbata (360°)
-    lookback: 1.3,             // ci si gira: tutta la salita e il mare al tramonto
-    finale: 0.7,               // totale della tappa, frase finale e bottoni
-    scrub: 1,                  // morbidezza dello scroll (secondi di inseguimento)
-    // dove arriva la linea alla fine di ogni inquadratura della discesa (metri dal Coll)
-    introLine: 280,            // i primi metri di linea: quelli su cui si posa la M dell'intro
-    lineA: 2800, lineAB: 3300, lineB: 6200, lineBC: 6800,
+    steps: {
+      a: 4.2,      // 0 → 1  dalla strada al Coll; la linea scende tra Nus e tornanti
+      b: 3.6,      // 1 → 2  metà strada
+      c: 4.4,      // 2 → 3  verso il mare, poi giù sulla cala del porto (360°)
+      up: 1.6,     // 3 → 4  "Ahora, sube."
+      climb: 4.4,  // 4 → 5  la salita si accende dal porto, con il contatore
+      nus: 2.6,    // 5 → 6  dissolvenza sul Nus de sa Corbata (360°)
+      top: 4.0,    // 6 → 7  ci si gira: tutta la salita e il mare al tramonto
+      stats: 1.6,  // 7 → 8
+      end: 1.6,    // 8 → 9  frase finale e bottoni
+    },
+    hurry: 3,      // uno swipe durante l'animazione la accelera di tanto
+    backSpeed: 2.2, // all'indietro si torna più in fretta
+    introLine: 280,      // i primi metri di linea: quelli su cui si posa la M dell'intro
+    lineA: 2800,         // fin dove scende la linea alla tappa 1 (m dal Coll)
+    lineB: 6400,         // … alla tappa 2
+    climbStop: 4600,     // fin dove è salito il ciclista alla tappa 5 (m dal Coll)
+    counter: true,       // in salita: km e metri saliti (valori ufficiali della salita, dal PDF)
+  },
+
+  // ── Testi delle tappe (frasi dal PDF di Nomads). size: 'headline' (grande), 'lead' (frase
+  //    lunga), 'big' (enorme). Il viaggio a Mallorca è nel pannello INFO MALLORCA.
+  copy: {
+    intro: { kicker: 'Nomads Cycling Club', text: 'El mundo no se visita, se conquista pedaleando.' },
+    a: { kicker: 'Quiénes somos', text: 'Nacimos de la pasión. Crecimos para conquistar el asfalto.' },
+    b: { kicker: 'Quiénes somos', text: 'Nacimos en México con una visión audaz: consolidarnos como la empresa líder en viajes recreativos bajo un concepto de emociones puras.', size: 'lead' },
+    port: { kicker: 'Qué hacemos', text: 'Ofrecer experiencias únicas a quienes, como nosotros, ven en la bicicleta una forma de libertad.', size: 'lead' },
+    up: { text: 'Ahora, sube.', size: 'big' },
+    climb: { kicker: 'The crew · Soporte y liderazgo de élite', text: 'Tu única responsabilidad es el asfalto. Nuestro equipo garantiza una ejecución perfecta con soporte 360° en todo momento.', size: 'lead' },
+    nus: { kicker: 'Head coach y guía · Alfredo “Freddy” Cruz', text: 'Rodar exige más que fuerza; requiere estrategia.' },
+    top: { kicker: 'Qué hacemos', text: 'No solo te llevamos a un destino, te conectamos con nuevas culturas y paisajes a través de la pasión y el espíritu de aventura.', size: 'lead' },
+    stats: { text: 'Queremos que cada ruta sea una historia que valga la pena contar. Por eso, no visitamos el mundo, lo pedaleamos.', size: 'lead' },
+    end: { text: 'No es un viaje, es tu próxima historia.' },
+    introMeta: 'Viajes en bicicleta · Desde México', // sotto il logo nell'intro
   },
 
   // ── Il viaggio (INFO MALLORCA): la linea si raddrizza in una linea del tempo con i giorni.

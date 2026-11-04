@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2B2B2B" />
-    <title>Nomads Cycling Club — Sa Calobra</title>
+    <title>Nomads Cycling Club</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Unbounded:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <canvas id="gl" aria-label="Sa Calobra en 3D: la carretera del Coll dels Reis al mar"></canvas>
+    <canvas id="gl" aria-label="Nomads Cycling Club: una carretera de montaña hacia el mar, en 3D"></canvas>
     <div class="veil" id="veil" aria-hidden="true"></div>
     <div class="veil veil--bottom" id="veil-b" aria-hidden="true"></div>
     <div class="cut" id="cut" aria-hidden="true"></div>
@@ -28,32 +28,16 @@
     </header>
     <div class="progress" aria-hidden="true"><span id="progress"></span></div>
 
-    <section class="story" aria-live="polite">
-      <div class="beat beat--intro" id="b-intro">
-        <p class="kicker">Día 9 · Ruta Sa Calobra</p>
-        <h1 class="headline" data-split>Mallorca no se visita, se conquista.</h1>
-      </div>
-      <div class="beat" id="b-down">
-        <p class="headline" data-split>Bajas para saber que tienes que subir de regreso.</p>
-      </div>
-      <div class="beat beat--place" id="b-port"><p class="kicker">Port de Sa Calobra</p></div>
-      <div class="beat beat--place" id="b-nus"><p class="kicker">Nus de sa Corbata</p></div>
-      <div class="beat beat--place" id="b-top"><p class="kicker">Coll dels Reis</p></div>
-      <div class="beat beat--big" id="b-up">
-        <p class="headline headline--big" data-split>Ahora, sube.</p>
-      </div>
-      <div class="beat beat--stats" id="b-stats">
-        <p class="kicker">Día 9 · Ruta Sa Calobra</p>
-        <p class="stats" data-split>60 KMS · 1,623 M</p>
-      </div>
+    <!-- testi delle tappe: generati da config.js → copy (il finale ha i bottoni) -->
+    <section class="story" id="story" aria-live="polite">
       <div class="beat beat--end" id="b-end">
-        <p class="headline" data-split>No es un viaje, es tu próxima historia.</p>
         <div class="end-actions">
           <button class="cta" id="cta" type="button">Próxima expedición <span aria-hidden="true">→</span></button>
           <button class="cta cta--ghost" id="info-open-end" type="button">Info Mallorca</button>
         </div>
       </div>
     </section>
+    <div class="cue" id="cue" aria-hidden="true"><span></span></div>
 
     <div class="hint" id="hint">
       <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M6 12h36M6 12l5-5M6 12l5 5M42 12l-5-5M42 12l-5 5" /></svg>
@@ -78,7 +62,6 @@
 
     <p class="credit">© OpenStreetMap contributors · Terreno: IGN España, AWS Terrain Tiles</p>
 
-    <main id="scroll" aria-hidden="true"></main>
 
     <section class="final" id="final" aria-hidden="true">
       <div class="final__inner">
@@ -89,7 +72,7 @@
           WhatsApp
         </a>
         <p class="sign">Alessia Studio — 3D web experience<br /><a href="https://www.alessia.studio" target="_blank" rel="noopener">www.alessia.studio</a></p>
-        <button class="back" id="back" type="button"><span aria-hidden="true">←</span> Sa Calobra</button>
+        <button class="back" id="back" type="button"><span aria-hidden="true">←</span> Volver</button>
       </div>
     </section>
 
@@ -115,7 +98,7 @@
         <div class="intro__logo" id="intro-logo"><span class="logo logo--dark logo--big" role="img" aria-label="Nomads Cycling Club"></span></div>
         <div class="intro__bar" aria-hidden="true"><span id="intro-bar"></span></div>
         <button class="intro__enter" id="enter" type="button" disabled>Entrar</button>
-        <p class="intro__meta">Mallorca · 19–28 octubre 2026</p>
+        <p class="intro__meta">Viajes en bicicleta · Desde México</p>
       </div>
     </section>
 

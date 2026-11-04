@@ -1,6 +1,5 @@
 // Soste a 360°: trascinando si gira la vista (con inerzia), oppure col giroscopio dell'iPhone.
-// Su touch: il gesto orizzontale gira la vista, quello verticale continua a scrollare
-// (touch-action: pan-y), così la storia non si blocca mai.
+// Su touch: il gesto orizzontale gira la vista, quello verticale porta alla tappa successiva.
 import { MathUtils } from 'three';
 import { CONFIG } from '../config.js';
 
@@ -27,7 +26,7 @@ export function createLook(target) {
     lx = e.clientX; ly = e.clientY;
     moved += Math.abs(dx);
     s.vy = dx * c.dragSpeed;
-    // col dito il verticale resta allo scroll; col mouse si può guardare anche su e giù
+    // col dito il verticale resta alle tappe; col mouse si può guardare anche su e giù
     s.vp = e.pointerType === 'mouse' ? dy * c.dragSpeed : 0;
     s.yaw += s.vy;
     s.pitch += s.vp;
