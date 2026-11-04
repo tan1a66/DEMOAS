@@ -4,8 +4,8 @@
 //   ?capture   anteprime: la storia si posiziona con window.__globe.seek(p)
 import gsap from 'gsap';
 import {
-  WebGLRenderer, Scene, PerspectiveCamera, OrthographicCamera, LoadingManager, Vector3, WebGLRenderTarget, HalfFloatType,
-  Mesh, PlaneGeometry, ShaderMaterial,
+  WebGLRenderer, Scene, PerspectiveCamera, OrthographicCamera, LoadingManager, Vector2, Vector3, Vector4, WebGLRenderTarget,
+  HalfFloatType, Mesh, PlaneGeometry, ShaderMaterial, NoBlending,
 } from 'three';
 import { CONFIG } from '../config.js';
 import { loadGlobeData } from '../data/load.js';
@@ -43,30 +43,33 @@ async function start() {
   const [ch1] = G.chapters;
   const placed = G.chapters.filter((c) => c.status !== 'done' && c.lat != null);
 
-  // ── in sella (ride.js): il manubrio al tramonto. Lo schermo del ciclocomputer mostra il globo
-  // visto da sopra Mallorca (una seconda ripresa in una texture), poi il logo e "LLEGASTE"
+  // ── in sella (ride.js): il manubrio al tramonto, il ciclocomputer acceso con LLEGASTE. Poi il
+  // mondo nasce dentro lo schermo piccolo e si allarga a tutta la pagina, senza stacchi: il globo
+  // si disegna a parte e si posa dentro il rettangolo dello schermo, che cresce (st.portal)
   const ride = createRide({ renderer });
-  const screenRT = new WebGLRenderTarget(640, 974, { samples: 4 });
-  ride.screen.uniforms.tMap.value = screenRT.texture;
-  // la ripresa per lo schermo è la stessa del globo alla fine del volo: il passaggio non si vede
-  const arrive = G.views[0];
-  const mapCam = new PerspectiveCamera(40, 640 / 974, 0.005, 100);
-  ll2v(arrive.lat, arrive.lon, arrive.dist, mapCam.position);
-  mapCam.lookAt(0, 0, 0);
-  mapCam.updateMatrixWorld();
-  const mapRight = new Vector3().crossVectors(mapCam.position, new Vector3(0, 1, 0)).normalize();
-  const mapLight = new Vector3().copy(mapCam.position).normalize().addScaledVector(new Vector3(0, 1, 0), 0.5).addScaledVector(mapRight, 0.3).normalize();
-  // la scena in sella si disegna a parte e si posa sopra il globo con una dissolvenza
   const rideRT = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
+  const globeRT = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
   const comp = new Mesh(new PlaneGeometry(2, 2), new ShaderMaterial({
-    uniforms: { tScene: { value: rideRT.texture }, uOpacity: { value: 0 } },
+    uniforms: {
+      tRide: { value: rideRT.texture }, tGlobe: { value: globeRT.texture },
+      uRect: { value: new Vector4(0, 0, 1, 1) }, uView: { value: new Vector2(1, 1) }, uK: { value: 0 }, uRad: { value: 0 },
+    },
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D tScene; uniform float uOpacity; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tRide, tGlobe; uniform vec4 uRect; uniform vec2 uView; uniform float uK, uRad;
+      varying vec2 vUv;
       vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
-      void main() { gl_FragColor = vec4(aces(texture2D(tScene, vUv).rgb * 1.1), uOpacity);
-      #include <colorspace_fragment>
+      void main() {
+        vec4 col = vec4(aces(texture2D(tRide, vUv).rgb * 1.1), 1.0);
+        // dentro lo schermo (angoli appena arrotondati): il globo, rimpicciolito per starci dentro
+        vec2 p = vUv * uView, a = uRect.xy * uView, b = uRect.zw * uView, c = (a + b) * 0.5, h = (b - a) * 0.5;
+        vec2 q = abs(p - c) - h + uRad;
+        float inside = clamp(0.5 - (length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - uRad), 0.0, 1.0);
+        float s = max(2.0 * h.x / uView.x, 2.0 * h.y / uView.y);
+        vec4 g = texture2D(tGlobe, 0.5 + (p - c) / (s * uView));
+        gl_FragColor = mix(col, g, inside * uK);
+        #include <colorspace_fragment>
       }`,
-    transparent: true, depthTest: false, depthWrite: false,
+    depthTest: false, depthWrite: false, blending: NoBlending,
   }));
   comp.frustumCulled = false;
   const compScene = new Scene();
@@ -108,9 +111,9 @@ async function start() {
     renderer.setSize(W, H, false);
     const dpr = renderer.getPixelRatio();
     rideRT.setSize(Math.round(W * dpr), Math.round(H * dpr));
+    globeRT.setSize(Math.round(W * dpr), Math.round(H * dpr));
+    comp.material.uniforms.uView.value.set(W * dpr, H * dpr);
     ride.resize(W, H);
-    mapCam.fov = 2 * Math.atan(ride.screenFrac * Math.tan((camera.fov * Math.PI) / 360)) * (180 / Math.PI);
-    mapCam.updateProjectionMatrix();
   };
   addEventListener('resize', resize);
   resize();
@@ -165,34 +168,28 @@ async function start() {
         m.el.classList.toggle('pin--left', m.x > W * 0.6);
       }
     }
-    const r = st.ride;
-    pinsEl.style.opacity = String(1 - r);
-    // in sella niente velo scuro: è lì per leggere i testi sul globo, sul tramonto spegnerebbe la luce
-    veil.style.visibility = r > 0.98 ? 'hidden' : '';
-    veil.style.filter = r > 0 ? `opacity(${(1 - r).toFixed(3)})` : '';
-    root.classList.toggle('is-riding', r > 0.5); // sul cielo chiaro il logo e i pulsanti diventano scuri
-    if (r < 1) renderer.render(scene, camera);
-    else { renderer.setRenderTarget(null); renderer.clear(); }
-    if (r > 0) {
-      ride.update(st.rk, performance.now() / 1000);
-      ride.screen.uniforms.uMix.value = st.screen;
-      if (st.screen < 1) {
-        // lo schermo: il globo da sopra Mallorca, con la luce giusta per quella ripresa
-        const keep = globe.uniforms.uLight.value.clone(), keepD = globe.uniforms.uCamDist.value;
-        globe.uniforms.uLight.value.copy(mapLight);
-        globe.uniforms.uCamDist.value = arrive.dist;
-        renderer.setRenderTarget(screenRT);
-        renderer.render(scene, mapCam);
-        globe.uniforms.uLight.value.copy(keep);
-        globe.uniforms.uCamDist.value = keepD;
-      }
-      ride.render(rideRT);
-      renderer.setRenderTarget(null);
-      comp.material.uniforms.uOpacity.value = r;
-      renderer.autoClear = false;
-      renderer.render(compScene, compCam);
-      renderer.autoClear = true;
+    const r = st.ride, P = st.portal;
+    // pin e nomi solo quando il mondo ha riempito la pagina
+    pinsEl.style.opacity = String(r > 0 ? Math.min(Math.max((P - 0.85) / 0.15, 0), 1) : 1);
+    // in sella niente velo scuro: sul tramonto spegnerebbe la luce
+    veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
+    root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
+    if (r <= 0) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
+    ride.update(st.rk, performance.now() / 1000);
+    ride.render(rideRT);
+    const u = comp.material.uniforms;
+    u.uK.value = st.portalA;
+    if (st.portalA > 0) {
+      renderer.setRenderTarget(globeRT);
+      renderer.render(scene, camera);
+      // il rettangolo: dallo schermo del ciclocomputer a tutta la pagina
+      const [x0, y0, x1, y1] = ride.screenRect();
+      const e = P * P * (3 - 2 * P);
+      u.uRect.value.set(x0 * (1 - e), y0 * (1 - e), x1 + (1 - x1) * e, y1 + (1 - y1) * e);
+      u.uRad.value = (1 - e) * 0.08 * Math.min((x1 - x0) * u.uView.value.x, (y1 - y0) * u.uView.value.y);
     }
+    renderer.setRenderTarget(null);
+    renderer.render(compScene, compCam);
   };
 
   // i pannelli dei capitoli: 01 completo (giorni, livelli, cosa include, sul mare cristallino),

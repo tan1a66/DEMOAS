@@ -1,7 +1,7 @@
 // In sella: il manubrio visto da chi pedala, nitido, e dietro, fuori fuoco, il tramonto sulle
 // montagne di Sa Calobra (un fotogramma della scena 3D di Mallorca: src/assets/ride-bg.webp).
-// Sul manubrio un ciclocomputer (senza marchi): prima mostra la mappa (il globo stesso,
-// disegnato in una texture), poi si accende con il logo Nomads e "LLEGASTE". Il manubrio è in codice.
+// Sul manubrio un ciclocomputer (senza marchi) acceso con il logo Nomads e "LLEGASTE": poi il
+// mondo nasce dentro quello schermo e si allarga a tutta la pagina (main.js). Il manubrio è in codice.
 //
 // Coordinate in metri: centro della piega nell'origine, x a destra, y in alto, -z avanti.
 import {
@@ -91,22 +91,13 @@ const screenVert = /* glsl */ `
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
-// lo schermo: la mappa (il globo disegnato in una texture) o la scritta, più il vetro
+// lo schermo: il logo e la scritta, più il riflesso del vetro
 const screenFrag = /* glsl */ `
-  uniform sampler2D tMap, tUI;
-  uniform float uMix;
-  uniform vec3 uDot;
+  uniform sampler2D tUI;
   varying vec2 vUv;
   void main() {
-    vec3 map = texture2D(tMap, vUv).rgb;
-    // la posizione: un punto arancione con l'anello bianco, al centro della mappa
-    float d = length((vUv - 0.5) * vec2(0.657, 1.0));
-    map = mix(map, vec3(1.0), smoothstep(0.0135, 0.0115, d));
-    map = mix(map, uDot, smoothstep(0.0095, 0.008, d));
-    vec3 ui = texture2D(tUI, vUv).rgb;
-    vec3 col = mix(map, ui, uMix);
     float g = smoothstep(0.3, 0.0, abs(vUv.x * 0.8 + vUv.y - 1.3)) * 0.05;
-    gl_FragColor = vec4(col + g, 1.0);
+    gl_FragColor = vec4(texture2D(tUI, vUv).rgb + g, 1.0);
   }
 `;
 
@@ -219,7 +210,7 @@ export function createRide({ renderer }) {
   led.position.set(0, 0.0086, -0.0405);
   unit.add(led);
   const screenMat = new ShaderMaterial({
-    uniforms: { tMap: { value: null }, tUI: { value: null }, uMix: { value: 0 }, uDot: { value: new Color('#e8622c') } },
+    uniforms: { tUI: { value: null } },
     vertexShader: screenVert, fragmentShader: screenFrag,
   });
   const screen = new Mesh(new PlaneGeometry(0.046, 0.07), screenMat);
@@ -281,14 +272,26 @@ export function createRide({ renderer }) {
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
   ];
   let aspect = 1, W = 1, H = 1;
-  const api = { scene, camera, screen: screenMat, screenFrac: 0.7 };
+  const api = { scene, camera };
+  // gli angoli dello schermo nel mondo: servono per sapere dove sta sulla pagina
+  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => V(x * 0.023, y * 0.035, 0).applyMatrix4(screen.matrixWorld));
+  const pv = new Vector3();
+  /** il rettangolo dello schermo sulla pagina, in coordinate 0..1 (origine in basso a sinistra) */
+  api.screenRect = () => {
+    let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+    for (const c of corners) {
+      pv.copy(c).project(camera);
+      const x = pv.x * 0.5 + 0.5, y = pv.y * 0.5 + 0.5;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return [x0, y0, x1, y1];
+  };
   const resize = (w, h) => {
     W = w; H = h; aspect = w / h;
     const f = Math.tan(MathUtils.degToRad(25));
     // 0 e 3: lo schermo occupa tutta la larghezza (o l'altezza): la mappa del globo ci entra dentro
     const dFit = Math.max(0.023 / (f * aspect), 0.035 / f);
     for (const k of [0, 3]) keys[k].pos.copy(S).addScaledVector(N, dFit);
-    api.screenFrac = 0.07 / (2 * dFit * f);
     POV.fov = aspect < 1 ? 58 : 42;
     const dpr = Math.min(renderer.getPixelRatio(), 2);
     rtA.setSize(Math.max(2, Math.round(w * dpr / 4)), Math.max(2, Math.round(h * dpr / 4)));
