@@ -12,6 +12,16 @@ const frag = `
     p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
     return fract(sin(p) * 43758.5453);
   }
+  // un rumore morbido: deforma le celle, così i bordi diventano curve
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+  }
+  vec2 warp(vec2 p, float t) {
+    return vec2(noise(p * 0.8 + vec2(t * 0.12, 0.0)) + 0.5 * noise(p * 1.7 - vec2(0.0, t * 0.1)),
+                noise(p * 0.8 + vec2(5.2, -t * 0.11)) + 0.5 * noise(p * 1.7 + vec2(t * 0.09, 3.1))) - 0.75;
+  }
   // la rete di luce: i bordi tra celle che si muovono (distanza tra la cella più vicina e la seconda)
   float net(vec2 p, float t) {
     vec2 i = floor(p), f = fract(p);
@@ -28,20 +38,20 @@ const frag = `
     vec2 uv = gl_FragCoord.xy / uRes.y;
     float t = uTime;
     // l'acqua ondeggia: la rete si deforma piano
-    vec2 w = vec2(sin(uv.y * 4.3 + t * 0.55) + sin(uv.y * 9.1 - t * 0.8) * 0.4,
-                  cos(uv.x * 3.9 - t * 0.45) + cos(uv.x * 8.3 + t * 0.7) * 0.4) * 0.03;
-    vec2 p = (uv + w) * 6.5;
-    float a = net(p, t * 0.6);
-    float b = net(p * 1.43 + vec2(3.1, 1.7), t * 0.8 + 1.3);
-    // linee sottili e luminose, come la luce rifratta sul fondo
-    float light = pow(smoothstep(0.09, 0.0, a), 1.6) * 0.65 + pow(smoothstep(0.07, 0.0, b), 1.6) * 0.45;
+    vec2 p = uv * 5.2;
+    vec2 pa = p + warp(p, t) * 1.15;
+    vec2 pb = p * 1.31 + vec2(3.1, 1.7) + warp(p * 1.31 + 7.0, t * 1.1) * 1.15;
+    float a = net(pa, t * 0.45);
+    float b = net(pb, t * 0.55 + 1.3);
+    // linee curve e morbide: la luce sfuma ai lati (gaussiana), come quella rifratta sul fondo
+    float light = exp(-pow(a / 0.075, 2.0)) * 0.6 + exp(-pow(b / 0.06, 2.0)) * 0.42;
     // turchese in alto, verde acqua in basso, appena più profondo ai bordi
     float y = gl_FragCoord.y / uRes.y;
     vec3 green = vec3(0.40, 0.85, 0.70), aqua = vec3(0.33, 0.83, 0.86), teal = vec3(0.16, 0.66, 0.72);
     vec3 col = mix(green, aqua, smoothstep(0.05, 0.75, y));
     col = mix(col, teal, smoothstep(0.82, 1.0, y) * 0.45);
     col += 0.035 * sin(uv.x * 2.3 + t * 0.35) + 0.025 * sin(uv.y * 3.7 - t * 0.27);
-    col += vec3(0.86, 1.0, 0.97) * light * 0.24;
+    col += vec3(0.86, 1.0, 0.97) * light * 0.22;
     float vig = smoothstep(1.35, 0.45, length((gl_FragCoord.xy / uRes - 0.5) * vec2(uRes.x / uRes.y, 1.0)));
     gl_FragColor = vec4(col * (0.9 + 0.1 * vig), 1.0);
   }
