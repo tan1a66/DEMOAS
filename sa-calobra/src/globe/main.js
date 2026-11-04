@@ -61,7 +61,7 @@ async function start() {
   const screenRT = new WebGLRenderTarget(640, 974, { samples: 4 });
   ride.screen.uniforms.tMap.value = screenRT.texture;
   // la ripresa per lo schermo è la stessa del globo alla fine del volo: il passaggio non si vede
-  const arrive = G.views[1];
+  const arrive = G.views[0];
   const mapCam = new PerspectiveCamera(40, 640 / 974, 0.005, 100);
   ll2v(arrive.lat, arrive.lon, arrive.dist, mapCam.position);
   mapCam.lookAt(0, 0, 0);

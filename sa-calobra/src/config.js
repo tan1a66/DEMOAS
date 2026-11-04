@@ -252,20 +252,20 @@ export const CONFIG = {
     ],
     // inquadratura per tappa del racconto: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
     views: [
-      { lat: 24, lon: -96, dist: 3.2 },       // 0 · la Ciudad de México
-      { lat: 39.62, lon: 2.98, dist: 1.25 },  // 1 · si scende su Mallorca: la mappa diventa il ciclocomputer
-      { lat: 43, lon: -3, dist: 2.7 },        // 2 · di nuovo il globo, sull'Europa: quiénes somos
-      { lat: 42.2, lon: -1.5, dist: 2.58 },   // 3 · qué hacemos (a ogni frase un poco più vicino a Mallorca)
-      { lat: 41.4, lon: 0, dist: 2.46 },      // 4 · the crew
-      { lat: 40.6, lon: 1.5, dist: 2.34 },    // 5 · head coach
+      { lat: 39.62, lon: 2.98, dist: 1.25 },  // 0 · in sella: il globo aspetta su Mallorca (è la mappa dello schermo)
+      { lat: 39.62, lon: 2.98, dist: 1.25 },  // 1 · LLEGASTE sullo schermo del ciclocomputer
+      { lat: 43.4, lon: -3.8, dist: 2.75 },   // 2 · si esce dallo schermo: l'Europa · el mundo no se visita…
+      { lat: 42.7, lon: -2.3, dist: 2.64 },   // 3 · quiénes somos (a ogni frase un poco più vicino a Mallorca)
+      { lat: 42.0, lon: -0.9, dist: 2.53 },   // 4 · qué hacemos
+      { lat: 41.3, lon: 0.4, dist: 2.42 },    // 5 · the crew
+      { lat: 40.6, lon: 1.6, dist: 2.32 },    // 6 · head coach
     ],
-    // il volo unico Messico → Mallorca: parte da solo dopo `delay` secondi, dura `duration`,
-    // a metà la camera si allontana fino a `peak` per vedere l'Atlantico
-    flight: { delay: 1.6, duration: 3.6, peak: 3.9 },
+    // l'intro in sella: dopo `delay` secondi la camera va da sola verso il ciclocomputer
+    intro: { delay: 1.8 },
     // arrivati in Europa il racconto finisce: il mondo diventa esplorabile da qui
     explore: { lat: 42, lon: 6, dist: 2.25 },
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
-    progress: [0.1, 1, 1, 1, 1, 1, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
+    progress: [1, 1, 1, 1, 1, 1, 1, 1], // la rotta di Mallorca è già tutta disegnata
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
     // l'alba color oro champagne: il sole sorge dietro la Terra
     atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra

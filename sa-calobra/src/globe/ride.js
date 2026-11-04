@@ -194,7 +194,8 @@ export function createRide({ renderer, km, from, place, chapter }) {
   const cap = new Mesh(new CylinderGeometry(0.021, 0.021, 0.045, 40), satin);
   cap.position.set(0, -0.014, 0.118);
   bike.add(cap);
-  const topcap = new Mesh(new CylinderGeometry(0.0165, 0.019, 0.005, 40), new MeshPhysicalMaterial({ color: '#2b2c2e', metalness: 0.9, roughness: 0.22 }));
+  // il tappo dello sterzo in alluminio anodizzato arancione: il dettaglio Nomads
+  const topcap = new Mesh(new CylinderGeometry(0.0165, 0.019, 0.005, 40), new MeshPhysicalMaterial({ color: '#e8622c', metalness: 0.75, roughness: 0.3, clearcoat: 0.6 }));
   topcap.position.set(0, 0.0105, 0.118);
   bike.add(topcap);
   const head = new Mesh(new CylinderGeometry(0.025, 0.031, 0.42, 40), new MeshPhysicalMaterial({ color: '#1e2023', roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.1 }));
@@ -270,7 +271,7 @@ export function createRide({ renderer, km, from, place, chapter }) {
 
   // ── le inquadrature: 0 lo schermo intero · 1 in sella · 2 vicino al ciclocomputer · 3 di nuovo lo schermo
   // in sella, un po' a sinistra: la piega attraversa l'inquadratura fino alla leva destra
-  const POV = { pos: V(-0.1, 0.34, 0.36), at: V(0.05, -0.06, -0.28), up: V(0, 1, 0), fov: 58 };
+  const POV = { pos: V(-0.075, 0.3, 0.3), at: V(0.035, -0.05, -0.3), up: V(0, 1, 0), fov: 58 };
   const keys = [
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
     POV,

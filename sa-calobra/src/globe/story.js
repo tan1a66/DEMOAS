@@ -1,9 +1,8 @@
-// La storia sul globo: dalla Ciudad de México un solo volo, che parte da solo, fino a Mallorca
-// (la linea arancione si disegna mentre la camera la segue). La mappa diventa lo schermo di un
-// ciclocomputer: siamo in sella, all'alba, e lo schermo si accende con "LLEGASTE" (ride.js).
-// Si rientra nello schermo e si torna sul globo: in Europa scorrono le frasi, una per gesto,
-// poi il racconto finisce e il mondo diventa esplorabile: si gira, ci si avvicina, si toccano
-// le mete. Ogni capitolo ha la sua batteria:
+// La storia. Si apre in sella: il manubrio al tramonto di Mallorca (ride.js); da sola la camera
+// si avvicina al ciclocomputer e lo schermo si accende con "LLEGASTE". Al gesto si entra nello
+// schermo e la mappa si apre sul globo, sull'Europa: scorrono le frasi, una per gesto, con il
+// globo che si avvicina pianissimo a Mallorca; poi il racconto finisce e l'Europa diventa
+// esplorabile: si gira, ci si avvicina, si toccano le mete. Ogni capitolo ha la sua batteria:
 // piena se completato, in carica (loading) se in arrivo.
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
@@ -14,17 +13,8 @@ import coachImg from '../assets/coach.webp';
 gsap.registerPlugin(SplitText);
 
 const $ = (s) => document.querySelector(s);
-const RAD = Math.PI / 180;
-/** punto a metà strada (frazione f) sull'arco di cerchio massimo tra due punti {lat, lon} */
-function slerpLL(a, b, f) {
-  const v = (p) => [Math.cos(p.lat * RAD) * Math.cos(p.lon * RAD), Math.sin(p.lat * RAD), Math.cos(p.lat * RAD) * Math.sin(p.lon * RAD)];
-  const A = v(a), B = v(b);
-  const w = Math.acos(Math.min(1, Math.max(-1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2]))), s = Math.sin(w) || 1;
-  const ka = Math.sin((1 - f) * w) / s, kb = Math.sin(f * w) / s;
-  const x = A[0] * ka + B[0] * kb, y = A[1] * ka + B[1] * kb, z = A[2] * ka + B[2] * kb;
-  return [Math.asin(y / Math.hypot(x, y, z)) / RAD, Math.atan2(z, x) / RAD];
-}
-const ORDER = ['start', 'ride', 'b', 'c', 'crew', 'coach', 'explore'];
+// pov: in sella · llegaste: vicino al ciclocomputer · poi le frasi sull'Europa · explore
+const ORDER = ['pov', 'llegaste', 'start', 'b', 'c', 'crew', 'coach', 'explore'];
 const PHOTOS = {
   crew: { src: crewImg, alt: 'Ciclistas de Nomads en una pausa de café' },
   coach: { src: coachImg, alt: 'Alfredo “Freddy” Cruz revisa la estrategia con un ciclista' },
@@ -80,13 +70,13 @@ export function createGlobeStory({ capture = false } = {}) {
   buildBeats();
   const G = CONFIG.globe;
   const V = [...G.views, G.explore];
-  const F = G.flight.duration;
-  const D = [F + 3.9, 2.6, 1.6, 1.6, 1.6, 2.4];
+  const D = [2.2, 2.8, 1.6, 1.6, 1.6, 1.6, 2.4];
   // stato: camera (lat, lon, distanza), rotte disegnate, pin. Durante il racconto lo anima la
   // timeline; durante l'esplorazione lo cambiano le dita (main.js)
   // low: quanto il globo sta in basso sotto i testi (1 nel racconto; esplorando torna quasi al centro)
-  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: G.progress[0], prog2: 0, soon: 0, mallorca: 0, low: 1,
-    ride: 0, rk: 0, screen: 0 }; // in sella: quanto si vede, inquadratura (0..3), mappa → LLEGASTE
+  // si parte in sella (ride 1, inquadratura 1); il globo intanto è su Mallorca, da vicino
+  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: 1, prog2: 0, soon: 0, mallorca: 1, low: 0,
+    ride: 1, rk: 1, screen: 0 }; // in sella: quanto si vede, inquadratura (0..3), mappa → LLEGASTE
 
   const lines = new Map();
   for (const el of document.querySelectorAll('[data-split]')) {
@@ -119,26 +109,14 @@ export function createGlobeStory({ capture = false } = {}) {
   let t = 0;
   for (let k = 1; k < ORDER.length; k++) {
     const d = D[k - 1], v = V[k], key = ORDER[k];
-    beatOut(`#b-${ORDER[k - 1]}`, key === 'ride' ? t + 0.2 : t);
-    if (key === 'ride') {
-      // un volo solo, lungo l'arco: la camera segue la rotta e la linea la precede di poco;
-      // a metà ci si allontana per vedere l'oceano, poi si scende su Mallorca
-      const fly = { f: 0 }, from = V[0];
-      tl.to(fly, { f: 1, duration: F, ease: 'sine.inOut', onUpdate: () => { [state.lat, state.lon] = slerpLL(from, v, fly.f); } }, t);
-      tl.to(state, { dist: G.flight.peak, duration: F * 0.45, ease: 'sine.inOut' }, t);
-      tl.to(state, { dist: v.dist, duration: F * 0.55, ease: 'sine.inOut' }, t + F * 0.45);
-      tl.to(state, { low: 0, duration: F * 0.5, ease: 'sine.inOut' }, t + F * 0.5);
-      tl.to(state, { prog: 1, duration: F * 0.86, ease: 'sine.inOut' }, t);
-      tl.to(state, { mallorca: 1, duration: 0.6 }, t + F * 0.8);
-      // la mappa diventa lo schermo del ciclocomputer: la camera si allontana e siamo in sella
-      tl.to(state, { ride: 1, duration: 0.55, ease: 'sine.inOut' }, t + F - 0.55);
-      tl.to(state, { rk: 1, duration: 1.9, ease: 'power2.inOut' }, t + F);
-      // poi ci si avvicina al ciclocomputer e lo schermo si accende: LLEGASTE
-      tl.to(state, { rk: 2, duration: 1.4, ease: 'power2.inOut' }, t + F + 2.4);
-      tl.to(state, { screen: 1, duration: 0.6, ease: 'sine.inOut' }, t + F + 3.0);
+    beatOut(`#b-${ORDER[k - 1]}`, t);
+    if (key === 'llegaste') {
+      // ci si avvicina al ciclocomputer e lo schermo si accende: LLEGASTE
+      tl.to(state, { rk: 2, duration: 1.6, ease: 'power2.inOut' }, t);
+      tl.to(state, { screen: 1, duration: 0.6, ease: 'sine.inOut' }, t + 0.9);
       // l'invito a scorrere: si va avanti col gesto
       tl.to('#cue', { autoAlpha: 1, duration: 0.5 }, t + d - 0.5);
-    } else if (key === 'b') {
+    } else if (key === 'start') {
       // si rientra nello schermo, la mappa si riapre: di nuovo il globo, sull'Europa
       tl.fromTo('#cue', { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.4, immediateRender: false }, t);
       tl.to(state, { screen: 0, duration: 0.5, ease: 'sine.inOut' }, t);
@@ -159,7 +137,7 @@ export function createGlobeStory({ capture = false } = {}) {
       tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false }, t + d * 0.7);
       tl.to('.rail', { autoAlpha: 0, duration: 0.5 }, t + d * 0.6);
     }
-    beatIn(`#b-${key}`, key === 'b' ? t + 1.4 : t + d * 0.4);
+    beatIn(`#b-${key}`, key === 'start' ? t + 1.5 : t + d * 0.4);
     t += d;
     labels.push(t);
   }
@@ -236,21 +214,18 @@ export function createGlobeStory({ capture = false } = {}) {
 
   let autoFly = null, homing = false;
   const intro = (instant = false) => {
-    const el = $('#b-start');
-    const { text, other } = partsOf(el);
-    gsap.set(el, { visibility: 'visible' });
     gsap.set('#veil', { opacity: 1 });
     gsap.set('#dock', { autoAlpha: 0 });
     setBar();
     gsap.set('#cue', { autoAlpha: 0 });
-    if (instant) { gsap.set([...text, ...other], { yPercent: 0, y: 0, opacity: 1 }); gsap.set('.rail', { autoAlpha: 1 }); return; }
-    gsap.fromTo(text, { yPercent: 115, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.09, ease: 'power3.out', delay: 0.2 });
+    if (instant) { gsap.set('.rail', { autoAlpha: 1 }); return; }
     gsap.fromTo('.rail', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, delay: 1.4 });
-    // il volo parte da solo (se nel frattempo c'è un pannello aperto, aspetta che si chiuda)
+    // dopo un attimo in sella la camera va da sola verso il ciclocomputer
+    // (se nel frattempo c'è un pannello aperto, aspetta che si chiuda)
     if (capture) return;
-    const fly = () => { if (step !== 0 || anim) return; if (locked || api.finalOpen) gsap.delayedCall(1, fly); else goTo(1); };
+    const go = () => { if (step !== 0 || anim) return; if (locked || api.finalOpen) gsap.delayedCall(1, go); else goTo(1); };
     autoFly?.kill();
-    autoFly = gsap.delayedCall(1.1 + G.flight.delay, fly);
+    autoFly = gsap.delayedCall(G.intro.delay, go);
   };
 
   // ── schermata finale (contatto)
@@ -305,7 +280,8 @@ export function createGlobeStory({ capture = false } = {}) {
     resume() { locked = false; anim?.resume(); root.classList.remove('is-locked'); },
     seek(p) {
       tl.progress(p);
-      step = labels.findIndex((x) => x >= tl.time() - 1e-3);
+      step = labels.findIndex((x) => x >= tl.time() - 0.01);
+      if (step < 0) step = LAST; // in fondo alla timeline (arrotondamenti)
       exploring = step === LAST;
       root.classList.toggle('is-exploring', exploring);
       setBar();
