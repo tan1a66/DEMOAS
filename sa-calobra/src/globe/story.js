@@ -1,8 +1,8 @@
-// La storia sul globo, a tappe: la linea arancione parte dalla Ciudad de México e attraversa
-// l'Atlantico; a ogni gesto (swipe, rotella, frecce) la camera vola alla tappa successiva e lì
-// si ferma, dove c'è un testo. Poi i capitoli, ognuno con la sua batteria: Mallorca (piena,
-// completato), marzo 2027 e le Dolomiti (in carica, loading); alla fine tutti insieme.
-// Un'unica timeline GSAP con un'etichetta per tappa, come nella Sa Calobra in 3D.
+// La storia sul globo: prima un racconto a tappe (la linea arancione parte dalla Ciudad de
+// México e attraversa l'Atlantico: a ogni gesto la camera vola alla tappa successiva e si
+// ferma dove c'è un testo); arrivati in Europa il racconto finisce e il mondo diventa
+// esplorabile: si gira, ci si avvicina, si toccano le mete. Ogni capitolo ha la sua batteria:
+// piena se completato, in carica (loading) se in arrivo.
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { CONFIG } from '../config.js';
@@ -12,7 +12,7 @@ import coachImg from '../assets/coach.webp';
 gsap.registerPlugin(SplitText);
 
 const $ = (s) => document.querySelector(s);
-const ORDER = ['start', 'b', 'c', 'crew', 'coach', 'cap1', 'cap2', 'cap3', 'next'];
+const ORDER = ['start', 'b', 'c', 'crew', 'coach', 'explore'];
 const PHOTOS = {
   crew: { src: crewImg, alt: 'Ciclistas de Nomads en una pausa de café' },
   coach: { src: coachImg, alt: 'Alfredo “Freddy” Cruz revisa la estrategia con un ciclista' },
@@ -26,47 +26,52 @@ export function battery(status) {
 
 function buildBeats() {
   const C = CONFIG.copy, G = CONFIG.globe;
-  const [ch1, ch2, ch3] = G.chapters;
-  const see = (n) => `<button class="cta" data-chapter="${n}" type="button">${G.copy.seeChapter} <span aria-hidden="true">→</span></button>`;
   const copy = {
     start: C.start, b: C.b, c: C.c, crew: C.port, coach: C.nus,
-    cap1: { kicker: `Capítulo ${ch1.n} · ${ch1.name} ${battery(ch1.status)}`, ...G.copy.cap1,
-      after: `<div class="end-actions">${see(ch1.n)}</div>` },
-    cap2: { kicker: `Capítulo ${ch2.n} · ${ch2.when} ${battery(ch2.status)}`, text: `${ch2.title}.`, sub: ch2.lead, after: `<div class="end-actions">${see(ch2.n)}</div>` },
-    cap3: { kicker: `Capítulo ${ch3.n} · ${ch3.when} ${battery(ch3.status)}`, text: `${ch3.title}.`, sub: ch3.lead, after: `<div class="end-actions">${see(ch3.n)}</div>` },
-    next: C.next,
+    explore: { kicker: G.copy.exploreKicker, text: C.next.text, sub: G.copy.exploreHint },
   };
   const host = $('#story');
   const end = $('#b-next');
+  const cta = $('#cta');
+  end.innerHTML = '';
   for (const key of ORDER) {
     const c = copy[key];
-    const el = key === 'next' ? end : host.insertBefore(document.createElement('div'), end);
+    const el = key === 'explore' ? end : host.insertBefore(document.createElement('div'), end);
     el.id = `b-${key}`;
     el.classList.add('beat');
+    if (key === 'explore') el.classList.remove('beat--end');
     const parts = [];
-    if (key === 'next') {
-      // tutti i capitoli, con la loro batteria
-      parts.push('<div class="chapters">' + G.chapters.map((ch) => `
-        <button class="chapter" type="button" data-chapter="${ch.n}"><b>Capítulo ${ch.n}${ch.name ? ` · ${ch.name}` : ''}</b><span>${ch.when}</span><i>${battery(ch.status)}</i></button>`).join('') + '</div>');
-    }
     if (c.kicker) parts.push(`<p class="kicker">${c.kicker}</p>`);
     const cls = c.size === 'lead' ? 'lead' : 'headline';
     const tag = key === 'start' ? 'h1' : 'p';
-    parts.push(`<${tag} class="${cls}" data-split>${c.text}</${tag}>`);
+    parts.push(`<${tag} class="${cls}${key === 'explore' ? ' headline--small' : ''}" data-split>${c.text}</${tag}>`);
     if (c.sub) parts.push(`<p class="sub">${c.sub}</p>`);
     if (c.photo) parts.push(`<figure class="beat__photo"><img src="${PHOTOS[c.photo].src}" alt="${PHOTOS[c.photo].alt}" decoding="async" /></figure>`);
-    if (c.after) parts.push(c.after);
     el.insertAdjacentHTML('afterbegin', parts.join(''));
   }
+  // in basso, durante l'esplorazione: i capitoli (con la batteria) e il contatto
+  const dock = document.createElement('nav');
+  dock.className = 'dock';
+  dock.id = 'dock';
+  dock.setAttribute('aria-label', 'Capítulos');
+  dock.innerHTML = `<div class="dock__chapters">${G.chapters.map((ch) => `
+      <button class="chapter" type="button" data-chapter="${ch.n}"><b>Capítulo ${ch.n}</b><i>${battery(ch.status)}</i><strong>${ch.name ?? ch.title}</strong><span>${ch.when}</span></button>`).join('')}
+    </div>`;
+  document.body.appendChild(dock);
+  cta.classList.add('dock__cta');
+  dock.appendChild(cta);
+  dock.insertAdjacentHTML('beforeend', '<p class="dock__credit">Tierra: NASA Blue Marble · Mapa: Natural Earth</p>');
 }
 
 export function createGlobeStory({ capture = false } = {}) {
   buildBeats();
   const G = CONFIG.globe;
-  const V = G.views;
-  const D = [3.4, 3.2, 3.2, 3.2, 3.8, 3.8, 3.8, 3.6];
-  // stato animato dalla timeline: camera (lat, lon, distanza), rotte disegnate, pin
-  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: G.progress[0], prog2: 0, soon: 0, mallorca: 0, mystery: 0 };
+  const V = [...G.views, G.explore];
+  const D = [3.4, 3.2, 3.2, 3.2, 3.8];
+  // stato: camera (lat, lon, distanza), rotte disegnate, pin. Durante il racconto lo anima la
+  // timeline; durante l'esplorazione lo cambiano le dita (main.js)
+  // low: quanto il globo sta in basso sotto i testi (1 nel racconto; esplorando torna quasi al centro)
+  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: G.progress[0], prog2: 0, soon: 0, mallorca: 0, low: 1 };
 
   const lines = new Map();
   for (const el of document.querySelectorAll('[data-split]')) {
@@ -99,17 +104,17 @@ export function createGlobeStory({ capture = false } = {}) {
     const d = D[k - 1], v = V[k];
     beatOut(`#b-${ORDER[k - 1]}`, t);
     if (k === 1) tl.to('#cue', { autoAlpha: 0, duration: 0.4 }, t);
-    // la camera vola sopra la rotta: lenta all'inizio e all'arrivo
     tl.to(state, { lat: v.lat, lon: v.lon, duration: d * 0.95, ease: 'sine.inOut' }, t);
-    // le zoomate (Mallorca, Dolomiti) rallentano a lungo prima di posarsi
-    tl.to(state, { dist: v.dist, duration: d * 0.95, ease: v.dist < 2 ? 'power2.inOut' : 'sine.inOut' }, t);
-    tl.to(state, { prog: G.progress[k], duration: d * 0.8, ease: 'sine.inOut' }, t + d * 0.05);
+    tl.to(state, { dist: v.dist, duration: d * 0.95, ease: 'sine.inOut' }, t);
+    tl.to(state, { prog: G.progress[k] ?? 1, duration: d * 0.8, ease: 'sine.inOut' }, t + d * 0.05);
     if (k === 4) tl.to(state, { mallorca: 1, duration: 0.6 }, t + d * 0.7);
-    if (k === 6) tl.to(state, { mystery: 1, duration: 0.6 }, t + d * 0.6);   // marzo: si riparte dal Messico
-    if (k === 7) {
-      tl.to(state, { mystery: 0, duration: 0.4 }, t);
-      tl.to(state, { prog2: 1, duration: d * 0.75, ease: 'sine.inOut' }, t + d * 0.1);
-      tl.to(state, { soon: 1, duration: 0.6 }, t + d * 0.7);
+    if (k === ORDER.length - 1) {
+      // l'Europa: partono le rotte dei prossimi capitoli, compaiono le mete e la barra in basso
+      tl.to(state, { prog2: 1, duration: d * 0.75, ease: 'sine.inOut' }, t + d * 0.15);
+      tl.to(state, { low: 0.15, duration: d * 0.95, ease: 'sine.inOut' }, t);
+      tl.to(state, { soon: 1, mallorca: 1, duration: 0.6 }, t + d * 0.6);
+      tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false }, t + d * 0.7);
+      tl.to('.rail', { autoAlpha: 0, duration: 0.5 }, t + d * 0.6);
     }
     beatIn(`#b-${ORDER[k]}`, t + d * 0.55);
     t += d;
@@ -117,41 +122,49 @@ export function createGlobeStory({ capture = false } = {}) {
   }
   tl.to({}, { duration: 0.001 }, t);
   const total = t;
+  const LAST = labels.length - 1;
 
-  // ── la linea come barra di avanzamento: un punto per tappa
+  // ── la linea come barra di avanzamento: un punto per tappa del racconto
   const railFill = $('#rail-fill'), dotsEl = $('#rail-dots');
   dotsEl.innerHTML = labels.map((x) => `<i style="top:${((x / total) * 100).toFixed(2)}%"></i>`).join('');
   const dots = [...dotsEl.children];
-  let step = 0, anim = null, locked = true;
+  let step = 0, anim = null, locked = true, exploring = false;
+  const root = document.documentElement;
   const setBar = () => {
     const now = tl.time();
     railFill.style.transform = `scaleY(${(now / total).toFixed(4)})`;
     dots.forEach((d, k) => { d.classList.toggle('on', labels[k] <= now + 1e-3); d.classList.toggle('now', k === step); });
   };
   const goTo = (k) => {
-    k = Math.max(0, Math.min(labels.length - 1, k));
+    k = Math.max(0, Math.min(LAST, k));
     if (k === step && !anim) return;
     const to = labels[k], dist = Math.abs(to - tl.time()), forward = to > tl.time();
     step = k;
     anim?.kill();
     anim = gsap.to(tl, {
       time: to, duration: forward ? dist : dist / 2.2, ease: forward ? 'none' : 'sine.inOut', onUpdate: setBar,
-      onComplete: () => { anim = null; api.onStep?.(k); },
+      onComplete: () => {
+        anim = null;
+        if (k === LAST) { exploring = true; root.classList.add('is-exploring'); }
+        api.onStep?.(k);
+      },
     });
     setBar();
   };
+  // durante l'esplorazione i gesti girano il mondo, non cambiano tappa
   const next = () => {
-    if (locked) return;
+    if (locked || exploring) return;
     if (anim && labels[step] > tl.time()) { anim.timeScale(3); return; }
     goTo(step + 1);
   };
-  const prev = () => { if (!locked) goTo(step - 1); };
+  const prev = () => { if (!locked && !exploring) goTo(step - 1); };
 
   if (!capture) {
     let acc = 0, busy = false, lastWheel = 0, fired = 0;
     addEventListener('wheel', (e) => {
       if (e.target.closest?.('.info, .final')) return;
       e.preventDefault();
+      if (exploring) return; // la rotella avvicina il globo (main.js)
       const now = performance.now();
       if (busy && now - lastWheel > 180 && now - fired > 450) busy = false;
       lastWheel = now;
@@ -161,10 +174,10 @@ export function createGlobeStory({ capture = false } = {}) {
     }, { passive: false });
     let tx = 0, ty = 0, tracking = false;
     addEventListener('touchstart', (e) => {
-      tracking = !e.target.closest('.info, .final') && e.touches.length === 1;
+      tracking = !e.target.closest('.info, .final, .dock') && e.touches.length === 1;
       if (tracking) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }
     }, { passive: true });
-    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll')) e.preventDefault(); }, { passive: false });
+    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll, .dock__chapters')) e.preventDefault(); }, { passive: false });
     addEventListener('touchend', (e) => {
       if (!tracking) return;
       tracking = false;
@@ -183,13 +196,14 @@ export function createGlobeStory({ capture = false } = {}) {
     const { text, other } = partsOf(el);
     gsap.set(el, { visibility: 'visible' });
     gsap.set('#veil', { opacity: 1 });
+    gsap.set('#dock', { autoAlpha: 0 });
     setBar();
     if (instant) { gsap.set([...text, ...other], { yPercent: 0, y: 0, opacity: 1 }); gsap.set(['#cue', '.rail'], { autoAlpha: 1 }); return; }
     gsap.fromTo(text, { yPercent: 115, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.09, ease: 'power3.out', delay: 0.2 });
     gsap.fromTo(['#cue', '.rail'], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, delay: 1.4 });
   };
 
-  // ── schermata finale
+  // ── schermata finale (contatto)
   const final = $('#final');
   const open = (e) => {
     const r = e?.currentTarget?.getBoundingClientRect?.();
@@ -212,15 +226,21 @@ export function createGlobeStory({ capture = false } = {}) {
   $('#cta').addEventListener('click', open);
   $('#back').addEventListener('click', close);
 
-  const root = document.documentElement;
   const api = {
     tl, total, state, intro, open, close, next, prev, goTo, finalOpen: false, onStep: null,
     get step() { return step; },
+    get exploring() { return exploring; },
     labels: labels.map((x) => x / total),
     order: ORDER,
     pause() { locked = true; anim?.pause(); root.classList.add('is-locked'); },
     resume() { locked = false; anim?.resume(); root.classList.remove('is-locked'); },
-    seek(p) { tl.progress(p); step = labels.findIndex((x) => x >= tl.time() - 1e-3); setBar(); },
+    seek(p) {
+      tl.progress(p);
+      step = labels.findIndex((x) => x >= tl.time() - 1e-3);
+      exploring = step === LAST;
+      root.classList.toggle('is-exploring', exploring);
+      setBar();
+    },
   };
   return api;
 }

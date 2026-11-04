@@ -250,19 +250,18 @@ export const CONFIG = {
         lead: 'Los puertos de montaña del norte de Italia, Patrimonio de la Humanidad por la UNESCO.',
         facts: [['Fechas', 'Verano 2027'], ['Itinerario', 'En preparación'], ['Precio', 'Próximamente']] },
     ],
-    // inquadratura per tappa: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
+    // inquadratura per tappa del racconto: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
     views: [
       { lat: 24, lon: -96, dist: 3.2 },       // 0 · la Ciudad de México
       { lat: 30, lon: -74, dist: 3.4 },       // 1 · quiénes somos: la linea lascia il Messico
       { lat: 35, lon: -48, dist: 3.5 },       // 2 · qué hacemos: sopra l'Atlantico
       { lat: 38, lon: -26, dist: 3.3 },       // 3 · the crew
       { lat: 41, lon: -4, dist: 2.5 },        // 4 · head coach: Spagna e Francia
-      { lat: 39.55, lon: 2.95, dist: 1.075 }, // 5 · Capítulo 01: Mallorca da vicino
-      { lat: 28, lon: -50, dist: 4.3 },       // 6 · Capítulo 02: si riparte dal Messico, destino da annunciare
-      { lat: 45.2, lon: 9, dist: 1.95 },      // 7 · Capítulo 03: le Dolomiti
-      { lat: 30, lon: -42, dist: 6.0 },       // 8 · tutti i capitoli
     ],
-    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1, 1, 1, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
+    // arrivati in Europa il racconto finisce: il mondo diventa esplorabile da qui
+    explore: { lat: 42, lon: 6, dist: 2.25 },
+    zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
+    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
     atmosphere: '#7fb8ff',
     // nomi sulla cartina, per orientarsi
@@ -275,8 +274,8 @@ export const CONFIG = {
       { t: 'Golfo de México', lat: 25, lon: -90, sea: true },
     ],
     copy: {
-      cap1: { text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
-      seeChapter: 'Ver el capítulo',
+      exploreKicker: 'Explora los capítulos',
+      exploreHint: 'Gira el mundo y toca un destino.',
       done: 'Completado',
       loading: 'Loading',
       promise: 'Tu única responsabilidad es pedalear. Nosotros nos encargamos de todo.',

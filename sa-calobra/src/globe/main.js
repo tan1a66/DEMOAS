@@ -68,13 +68,16 @@ async function start() {
   const pinsNext = placed.map((c) => addMark(c, 'pin pin--soon', `<i aria-hidden="true"></i><span><b>Capítulo ${c.n}</b>${c.name}</span>`, { tag: 'button' }));
 
   // ── dimensioni: sul telefono in verticale il globo sta più in basso, i testi in alto
-  let W = 1, H = 1;
+  let W = 1, H = 1, low = 1;
+  const place = () => {
+    camera.setViewOffset(W, H, 0, (W < H ? -H * 0.24 : -H * 0.1) * low, W, H);
+    camera.updateProjectionMatrix();
+  };
   const resize = () => {
     W = innerWidth; H = innerHeight;
     camera.aspect = W / H;
     camera.fov = W < H ? 50 : 36;
-    camera.setViewOffset(W, H, 0, W < H ? -H * 0.24 : -H * 0.1, W, H);
-    camera.updateProjectionMatrix();
+    place();
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(W, H, false);
     line.setResolution(W, H);
@@ -96,6 +99,7 @@ async function start() {
   };
 
   const frame = () => {
+    if (st.low !== low) { low = st.low; place(); }
     ll2v(st.lat, st.lon, st.dist, cam);
     camera.position.copy(cam);
     camera.up.set(0, 1, 0);
@@ -110,7 +114,6 @@ async function start() {
     nextLines.forEach((l) => { l.setProgress(st.prog2); l.setOpacity(lineVisible); });
     pin1.show = st.mallorca;
     pinsNext.forEach((p) => { p.show = st.soon; });
-    pinOrigin.el.classList.toggle('pin--mystery', st.mystery > 0.5); // marzo: si riparte da qui, destino da annunciare
     // prima i pin, poi i nomi (che si spengono vicino al bordo della Terra e vicino ai pin)
     for (const m of marks) {
       const facing = tmp.copy(m.pos).normalize().dot(v.copy(cam).sub(m.pos).normalize());
@@ -146,12 +149,72 @@ async function start() {
     const ch = G.chapters.find((c) => c.n === n);
     if (ch.status === 'done') info.open(); else panel.open(ch);
   };
+  // esplorando, il globo vola alla meta e poi si apre il capitolo (quelli senza luogo si aprono subito)
+  let fly = null;
+  const goChapter = (n) => {
+    const ch = G.chapters.find((c) => c.n === n);
+    if (!story.exploring || ch.lat == null) { openChapter(n); return; }
+    fly?.kill();
+    fly = gsap.to(st, { lat: ch.lat - 1.5, lon: ch.lon, dist: 1.7, duration: 1.5, ease: 'power2.inOut', onComplete: () => openChapter(n) });
+  };
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-chapter]');
-    if (b) openChapter(b.dataset.chapter);
+    if (b) goChapter(b.dataset.chapter);
   });
-  pin1.el.addEventListener('click', () => openChapter(ch1.n));
-  pinsNext.forEach((p, i) => p.el.addEventListener('click', () => openChapter(placed[i].n)));
+  pin1.el.addEventListener('click', () => goChapter(ch1.n));
+  pinsNext.forEach((p, i) => p.el.addEventListener('click', () => goChapter(placed[i].n)));
+
+  // ── esplorazione: trascinare gira il mondo (con inerzia), due dita o la rotella avvicinano
+  const touches = new Map();
+  let drag = null, pinch = null, vlat = 0, vlon = 0;
+  const clampLat = (x) => Math.min(Math.max(x, -65), 78);
+  const clampDist = (d) => Math.min(Math.max(d, G.zoom[0]), G.zoom[1]);
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!story.exploring || story.finalOpen) return;
+    fly?.kill();
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    canvas.setPointerCapture(e.pointerId);
+    if (touches.size === 2) {
+      const [a, b] = [...touches.values()];
+      pinch = { d0: Math.hypot(a.x - b.x, a.y - b.y), dist0: st.dist };
+      drag = null;
+    } else drag = { x: e.clientX, y: e.clientY };
+    vlat = vlon = 0;
+    document.documentElement.classList.add('is-dragging');
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!touches.has(e.pointerId)) return;
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && touches.size === 2) {
+      const [a, b] = [...touches.values()];
+      st.dist = clampDist(pinch.dist0 * pinch.d0 / Math.max(Math.hypot(a.x - b.x, a.y - b.y), 1));
+      return;
+    }
+    if (!drag) return;
+    const k = (st.dist - 1) * 0.1; // gradi per pixel: da vicino si gira più piano
+    vlon = -(e.clientX - drag.x) * k;
+    vlat = (e.clientY - drag.y) * k;
+    st.lon += vlon;
+    st.lat = clampLat(st.lat + vlat);
+    drag = { x: e.clientX, y: e.clientY };
+  });
+  const release = (e) => {
+    touches.delete(e.pointerId);
+    if (touches.size < 2) pinch = null;
+    if (touches.size === 0) { drag = null; document.documentElement.classList.remove('is-dragging'); }
+  };
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+  addEventListener('wheel', (e) => {
+    if (!story.exploring || e.target.closest?.('.info, .final, .dock')) return;
+    fly?.kill();
+    st.dist = clampDist(st.dist * Math.exp(e.deltaY * 0.0012));
+  }, { passive: true });
+  gsap.ticker.add(() => {
+    if (drag || !story.exploring) return;
+    st.lon += vlon; st.lat = clampLat(st.lat + vlat);
+    vlon *= 0.9; vlat *= 0.9;
+  });
 
   const audio = createAudio();
   const soundBtn = $('#sound');

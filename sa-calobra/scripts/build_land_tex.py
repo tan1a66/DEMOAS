@@ -46,7 +46,9 @@ def render(src, box, W, H):
     land = Image.new("L", (W * SS, H * SS), 0)
     d = ImageDraw.Draw(land)
     world = box[2] - box[0] >= 360
-    shifts = (-360, 0, 360) if world else (0,)
+    # sempre anche ±360°: l'anello di Eurasia-Africa parte da -180 e, reso continuo, finisce
+    # tutto spostato di un giro (senza le copie i riquadri regionali restavano senza continente)
+    shifts = (-360, 0, 360)
     for r in src["rings"]:
         if len(r["pts"]) < 3:
             continue
