@@ -100,8 +100,9 @@ const atmoFrag = /* glsl */ `
   varying vec3 vW;
   void main() {
     vec3 toCam = normalize(cameraPosition - vW);
-    float k = pow(clamp(1.0 + dot(normalize(vN), toCam) * 1.25, 0.0, 1.0), 2.4);
-    gl_FragColor = vec4(uHalo, k * 0.95);
+    // nitida sul bordo, poi sfuma morbida verso il cielo
+    float k = pow(clamp(1.0 + dot(normalize(vN), toCam) * 2.2, 0.0, 1.0), 2.6);
+    gl_FragColor = vec4(uHalo, k * 0.92);
     #include <colorspace_fragment>
   }
 `;
@@ -133,9 +134,9 @@ function createGlow([gold, orange, rose]) {
   const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
   gr.addColorStop(0, rgba(gold, 1));
   gr.addColorStop(0.42, rgba(gold, 0.95));
-  gr.addColorStop(0.5, rgba(orange, 0.62));
-  gr.addColorStop(0.64, rgba(orange, 0.26));
-  gr.addColorStop(0.8, rgba(rose, 0.1));
+  gr.addColorStop(0.5, rgba(orange, 0.64));
+  gr.addColorStop(0.65, rgba(orange, 0.28));
+  gr.addColorStop(0.82, rgba(rose, 0.1));
   gr.addColorStop(1, rgba(rose, 0));
   g.fillStyle = gr;
   g.fillRect(0, 0, 256, 256);
@@ -146,7 +147,7 @@ function createGlow([gold, orange, rose]) {
   return s;
 }
 
-export function createGlobe({ tex, meta }, { atmosphere, halo, glow, sunlight, ambient }) {
+export function createGlobe({ tex, meta }, { atmosphere, halo, haloWidth = 1.035, glow, sunlight, ambient }) {
   for (const t of [tex.world, tex.earth, tex.topo]) t.wrapS = RepeatWrapping;
   for (const t of [tex.med, tex.bal]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
   const box = (b) => new Vector4(b[0], b[1], b[2], b[3]);
@@ -167,7 +168,7 @@ export function createGlobe({ tex, meta }, { atmosphere, halo, glow, sunlight, a
   group.add(createGlow(glow));
   group.add(new Mesh(new SphereGeometry(1, 192, 112), new ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag })));
   group.add(new Mesh(
-    new SphereGeometry(1.1, 96, 48),
+    new SphereGeometry(haloWidth, 128, 64),
     new ShaderMaterial({
       uniforms: { uHalo: uniforms.uHalo }, vertexShader: atmoVert, fragmentShader: atmoFrag,
       side: BackSide, transparent: true, depthWrite: false,

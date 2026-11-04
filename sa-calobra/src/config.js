@@ -266,10 +266,11 @@ export const CONFIG = {
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
     progress: [0.1, 1, 1, 1, 1, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
-    // l'alba dorata: il sole sorge dietro la Terra
+    // l'alba color oro champagne: il sole sorge dietro la Terra
     atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra
-    halo: '#ffc58a',           // il bordo della Terra acceso dal sole
-    glow: ['#ffd9a3', '#ff9d5f', '#c86f8f'], // il bagliore intorno: oro, arancio, rosa
+    halo: '#f6e2b8',           // il filo champagne sul bordo della Terra
+    haloWidth: 1.07,           // fin dove arriva la luce del bordo (raggio della Terra = 1)
+    glow: ['#f6dfb0', '#dca06a', '#9a6f86'], // il bagliore intorno: champagne, ambra, malva
     sunlight: '#fff0da',       // la luce calda del mattino sulla Terra
     ambient: 0.52,             // quanto è chiara anche la parte meno illuminata
     // nomi sulla cartina, per orientarsi
