@@ -234,6 +234,7 @@ export function createGlobeStory({ capture = false } = {}) {
     });
   }
 
+  let autoFly = null, homing = false;
   const intro = (instant = false) => {
     const el = $('#b-start');
     const { text, other } = partsOf(el);
@@ -248,7 +249,8 @@ export function createGlobeStory({ capture = false } = {}) {
     // il volo parte da solo (se nel frattempo c'è un pannello aperto, aspetta che si chiuda)
     if (capture) return;
     const fly = () => { if (step !== 0 || anim) return; if (locked || api.finalOpen) gsap.delayedCall(1, fly); else goTo(1); };
-    gsap.delayedCall(1.1 + G.flight.delay, fly);
+    autoFly?.kill();
+    autoFly = gsap.delayedCall(1.1 + G.flight.delay, fly);
   };
 
   // ── schermata finale (contatto)
@@ -280,6 +282,25 @@ export function createGlobeStory({ capture = false } = {}) {
     get exploring() { return exploring; },
     labels: labels.map((x) => x / total),
     order: ORDER,
+    // torna all'inizio: dissolvenza, il racconto riparte dalla Ciudad de México
+    home() {
+      if (homing) return;
+      homing = true;
+      const fade = $('#fade');
+      gsap.to(fade, {
+        autoAlpha: 1, duration: 0.45, ease: 'sine.in',
+        onComplete: () => {
+          anim?.kill(); anim = null; autoFly?.kill();
+          if (api.finalOpen) { gsap.set(final, { visibility: 'hidden' }); final.setAttribute('aria-hidden', 'true'); api.finalOpen = false; }
+          locked = false; root.classList.remove('is-locked');
+          exploring = false; root.classList.remove('is-exploring');
+          tl.progress(0); step = 0;
+          document.querySelectorAll('#story .beat').forEach((el) => gsap.set(el, { visibility: 'hidden' }));
+          intro();
+          gsap.to(fade, { autoAlpha: 0, duration: 0.7, ease: 'sine.out', delay: 0.15, onComplete: () => { homing = false; } });
+        },
+      });
+    },
     pause() { locked = true; anim?.pause(); root.classList.add('is-locked'); },
     resume() { locked = false; anim?.resume(); root.classList.remove('is-locked'); },
     seek(p) {

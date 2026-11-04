@@ -18,7 +18,6 @@ import { createChapterPanel } from './chapter.js';
 import { createLoader } from '../ui/loader.js';
 import { createInfo } from '../ui/info.js';
 import { createLineOverlay } from '../ui/lineOverlay.js';
-import { createAudio } from '../ui/audio.js';
 
 const params = new URLSearchParams(location.search);
 const CAPTURE = params.has('capture');
@@ -287,9 +286,15 @@ async function start() {
     vlon *= 0.9; vlat *= 0.9;
   });
 
-  const audio = createAudio();
-  const soundBtn = $('#sound');
-  soundBtn.addEventListener('click', () => soundBtn.setAttribute('aria-pressed', String(audio.toggle())));
+  // il logo riporta all'inizio del racconto (senza ricaricare la pagina)
+  $('.logo-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    fly?.kill();
+    vlat = vlon = 0;
+    if (info.isOpen) info.close();
+    if (panel.isOpen) panel.close();
+    story.home();
+  });
 
   window.__globe = { story, camera, frame, info, panel, openChapter };
   if (CAPTURE) {
