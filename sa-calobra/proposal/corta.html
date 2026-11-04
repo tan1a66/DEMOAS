@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Alessia Studio × Nomads Cycling Club — Propuesta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Unbounded:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --ink: #2b2b2b; --paper: #f4f1ea; --cream: #ede8df; --blue: #7e93a6; --orange: #e8622c;
+    --pink: #ff3ea5; --neon: #c6ff3d; --line: rgba(43, 43, 43, 0.14); --muted: rgba(43, 43, 43, 0.66);
+    --display: 'Unbounded', 'Arial Black', sans-serif; --text: 'Manrope', 'Helvetica Neue', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #888; }
+  body { font-family: var(--text); color: var(--ink); font-size: 9.6pt; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; background: var(--paper); padding: 24mm 18mm 20mm; break-after: page; page-break-after: always; }
+  .page:last-child { break-after: auto; page-break-after: auto; }
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; margin: 0; letter-spacing: -0.02em; }
+  p { margin: 0; }
+  .logo { display: inline-block; width: 26mm; height: 6.4mm; background: url('img/nomads-logo.png') left center / contain no-repeat; }
+  .logo--dark { filter: brightness(0) invert(0.17); }
+
+  /* cabecera y pie de página */
+  .head { position: absolute; top: 9mm; left: 18mm; right: 18mm; display: flex; align-items: center; justify-content: space-between; padding-bottom: 3mm; border-bottom: 0.25mm solid var(--line); }
+  .head__brand { display: flex; align-items: center; gap: 2.4mm; font-family: var(--display); font-size: 6.6pt; letter-spacing: 0.18em; text-transform: uppercase; }
+  .head__brand .logo { width: 19mm; height: 4.6mm; }
+  .x { color: var(--orange); font-weight: 500; }
+  .head__sec { font-family: var(--display); font-size: 6.6pt; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+  .foot { position: absolute; bottom: 9mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; font-size: 6.8pt; color: var(--muted); letter-spacing: 0.04em; }
+  .foot b { font-family: var(--display); font-weight: 500; color: var(--ink); letter-spacing: 0.1em; }
+
+  /* titulares de sección */
+  .sec-n { font-family: var(--display); font-weight: 300; font-size: 26pt; line-height: 1; color: var(--orange); letter-spacing: -0.03em; }
+  .sec-k { font-family: var(--display); font-weight: 500; font-size: 6.8pt; letter-spacing: 0.24em; text-transform: uppercase; color: var(--orange); display: flex; align-items: center; gap: 2.6mm; }
+  .sec-k::before { content: ''; width: 7mm; height: 0.5mm; background: var(--orange); }
+  h2 { font-size: 21pt; line-height: 1.08; margin: 3mm 0 0; max-width: 150mm; }
+  .lead { font-size: 11.6pt; line-height: 1.45; margin-top: 5mm; max-width: 150mm; color: #383838; }
+  h3 { font-size: 10.4pt; font-weight: 500; letter-spacing: -0.005em; margin-bottom: 1.6mm; }
+  .label { font-family: var(--display); font-weight: 500; font-size: 6.4pt; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 2mm; }
+  .muted { color: var(--muted); }
+  .rule { height: 0.25mm; background: var(--line); margin: 7mm 0; }
+  .orange { color: var(--orange); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+  .card { background: #fff; border-radius: 2.4mm; padding: 5mm 5.2mm; box-shadow: 0 0.3mm 0 rgba(0,0,0,0.04); }
+  .card--ink { background: var(--ink); color: var(--cream); }
+  .quote { font-family: var(--display); font-weight: 300; font-size: 15pt; line-height: 1.2; letter-spacing: -0.02em; }
+  ul.clean { list-style: none; margin: 0; padding: 0; }
+  ul.clean li { position: relative; padding-left: 5mm; margin: 0 0 2mm; }
+  ul.clean li::before { content: ''; position: absolute; left: 0; top: 0.62em; width: 2.6mm; height: 0.45mm; background: var(--orange); }
+  ol.num { list-style: none; counter-reset: n; margin: 0; padding: 0; }
+  ol.num li { counter-increment: n; position: relative; padding: 0 0 3.6mm 10mm; }
+  ol.num li::before { content: counter(n, decimal-leading-zero); position: absolute; left: 0; top: 0.1mm; font-family: var(--display); font-weight: 500; font-size: 7.6pt; color: var(--orange); }
+  ol.num li b { display: block; font-weight: 700; font-size: 10pt; margin-bottom: 0.6mm; }
+  .phone { border-radius: 2.6mm; overflow: hidden; background: #111; box-shadow: 0 1.2mm 3mm rgba(0,0,0,0.18); }
+  .phone img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .fig { margin: 0; }
+  .fig figcaption { font-size: 7pt; color: var(--muted); margin-top: 2mm; line-height: 1.35; }
+
+  /* ── portada ── */
+  .cover { padding: 0; background: #1b1b1a; color: var(--cream); }
+  .cover__img { position: absolute; inset: 0; background: url('img/clean-6.jpg') center bottom / cover no-repeat; }
+  .cover__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,20,20,0.62) 0%, rgba(20,20,20,0.18) 42%, rgba(20,20,20,0) 60%, rgba(20,20,20,0.55) 100%); }
+  .cover__top { position: absolute; top: 16mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; align-items: flex-start; font-family: var(--display); font-size: 7pt; letter-spacing: 0.22em; text-transform: uppercase; }
+  .cover__title { position: absolute; top: 46mm; left: 18mm; right: 18mm; }
+  .cover__title .names { font-family: var(--display); font-weight: 300; font-size: 33pt; line-height: 1.03; letter-spacing: -0.035em; }
+  .cover__title .names .x { font-weight: 300; }
+  .cover__title .sub { margin-top: 7mm; font-size: 12.5pt; line-height: 1.4; max-width: 120mm; color: rgba(237,232,223,0.92); }
+  .cover__bottom { position: absolute; left: 18mm; right: 18mm; bottom: 14mm; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7pt; color: rgba(237,232,223,0.85); }
+  .cover__bottom .who { font-family: var(--display); font-size: 7pt; letter-spacing: 0.18em; text-transform: uppercase; line-height: 1.8; }
+  .cover .logo { width: 30mm; height: 7.4mm; }
+
+  /* ── resumen ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 10mm; border-top: 0.25mm solid var(--line); border-bottom: 0.25mm solid var(--line); }
+  .stats div { padding: 5mm 0 5mm 4mm; border-left: 0.25mm solid var(--line); }
+  .stats div:first-child { border-left: 0; padding-left: 0; }
+  .stats b { display: block; font-family: var(--display); font-weight: 300; font-size: 19pt; letter-spacing: -0.03em; line-height: 1.1; }
+  .stats span { font-size: 7.4pt; color: var(--muted); }
+  .toc { margin-top: 9mm; }
+  .toc li { display: grid; grid-template-columns: 11mm 1fr auto; align-items: baseline; padding: 2.8mm 0; border-bottom: 0.25mm solid var(--line); font-size: 10.4pt; }
+  .toc li::before { display: none; }
+  .toc .n { font-family: var(--display); font-weight: 500; font-size: 7.4pt; color: var(--orange); }
+  .toc .p { font-family: var(--display); font-size: 7.4pt; color: var(--muted); }
+
+  /* ── ruta 8 etapas ── */
+  .route { position: relative; margin-top: 8mm; display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 5mm; row-gap: 7mm; }
+  .stop { position: relative; z-index: 1; }
+  .stop .phone { height: 72mm; }
+  .stop .badge { position: absolute; top: -2.6mm; left: -2.2mm; width: 7mm; height: 7mm; border-radius: 50%; background: var(--orange); color: #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 500; font-size: 7pt; box-shadow: 0 0 0 1.2mm var(--paper); }
+  .stop h4 { font-family: var(--display); font-weight: 500; font-size: 8pt; letter-spacing: -0.005em; margin: 3mm 0 1mm; }
+  .stop p { font-size: 7.3pt; line-height: 1.38; color: #444; }
+  .stop .do { margin-top: 1.2mm; font-size: 6.9pt; color: var(--orange); font-weight: 700; letter-spacing: 0.02em; }
+
+  /* ── efectos ── */
+  .fx { display: grid; grid-template-columns: 1fr 1fr; gap: 4.2mm 7mm; align-content: start; }
+  .fx div { padding-top: 3mm; border-top: 0.25mm solid var(--line); }
+  .fx b { display: block; font-size: 9.2pt; margin-bottom: 0.6mm; }
+  .fx p { font-size: 8.2pt; line-height: 1.42; color: #444; }
+
+  /* ── paleta ── */
+  .swatches { display: grid; grid-template-columns: 1.4fr 1.2fr 1fr 1fr; gap: 4mm; margin-top: 9mm; }
+  .sw { border-radius: 2.4mm; overflow: hidden; background: #fff; }
+  .sw i { display: block; height: 42mm; }
+  .sw div { padding: 3.2mm 3.6mm; }
+  .sw b { display: block; font-family: var(--display); font-weight: 500; font-size: 8pt; }
+  .sw code { font-family: var(--display); font-size: 7pt; letter-spacing: 0.08em; color: var(--muted); }
+  .sw p { font-size: 7.4pt; color: #444; margin-top: 1.4mm; line-height: 1.38; }
+  .ratio { display: flex; height: 5mm; border-radius: 1mm; overflow: hidden; margin-top: 6mm; }
+  .type { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8mm; margin-top: 4mm; }
+  .type .big { font-family: var(--display); font-weight: 400; font-size: 25pt; line-height: 1.04; letter-spacing: -0.03em; }
+  .type .body { font-size: 11pt; line-height: 1.5; }
+
+  /* ── presupuesto ── */
+  .price { margin-top: 8mm; border-radius: 2.6mm; overflow: hidden; background: #fff; }
+  .price__row { display: grid; grid-template-columns: 9mm 1fr 30mm 30mm; align-items: center; gap: 4mm; padding: 5mm 6mm; border-bottom: 0.25mm solid var(--line); }
+  .price__row .n { font-family: var(--display); font-weight: 500; font-size: 8pt; color: var(--orange); }
+  .price__row h3 { margin: 0 0 0.8mm; }
+  .price__row p { font-size: 8pt; color: #4a4a4a; line-height: 1.4; }
+  .price__row .add { font-family: var(--display); font-size: 10.5pt; text-align: right; }
+  .price__row .sub { font-family: var(--display); font-size: 8pt; color: var(--muted); text-align: right; }
+  .price__total { display: flex; justify-content: space-between; align-items: center; padding: 6mm; background: var(--ink); color: var(--cream); }
+  .price__total .t { font-family: var(--display); font-weight: 300; font-size: 30pt; letter-spacing: -0.03em; line-height: 1; }
+  .incl { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 8mm; margin-top: 3mm; }
+  .incl li { margin: 0; font-size: 8.8pt; }
+
+  /* ── tiempos ── */
+  .timeline { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 9mm; }
+  .timeline::before { content: ''; position: absolute; left: 0; right: 0; top: 4.5mm; height: 0.7mm; background: var(--orange); }
+  .tl { position: relative; padding: 12mm 7mm 0 0; }
+  .tl::before { content: ''; position: absolute; left: 0; top: 2.4mm; width: 4.8mm; height: 4.8mm; border-radius: 50%; background: var(--paper); border: 0.7mm solid var(--orange); }
+  .tl:last-child::before { background: var(--orange); }
+  .tl .w { font-family: var(--display); font-weight: 500; font-size: 7pt; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); }
+  .tl h3 { margin: 1.6mm 0 1.6mm; font-size: 12pt; }
+
+  /* ── Alessia Studio ── */
+  .studio { background: #141413; color: var(--cream); padding: 0; }
+  .studio__img { position: absolute; left: 0; right: 0; top: 0; height: 128mm; background: url('img/clean-7.jpg') center 40% / cover no-repeat; }
+  .studio__img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,20,19,0.15) 0%, rgba(20,20,19,0.35) 60%, #141413 100%); }
+  .studio__body { position: absolute; left: 18mm; right: 18mm; top: 104mm; }
+  .studio .name { font-family: var(--display); font-weight: 300; font-size: 30pt; letter-spacing: -0.035em; line-height: 1.02; }
+  .studio .tag { font-family: var(--display); font-weight: 500; font-size: 7.4pt; letter-spacing: 0.26em; text-transform: uppercase; color: var(--neon); margin-top: 3.4mm; }
+  .studio .neonline { height: 0.7mm; width: 46mm; margin: 7mm 0; background: linear-gradient(90deg, var(--pink), var(--neon)); box-shadow: 0 0 3mm rgba(255, 62, 165, 0.55); }
+  .studio p { color: rgba(237,232,223,0.88); }
+  .contact { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 9mm; }
+  .contact div { border-top: 0.3mm solid rgba(237,232,223,0.25); padding-top: 3mm; }
+  .contact .label { color: rgba(237,232,223,0.6); }
+  .contact b { font-family: var(--display); font-weight: 400; font-size: 11.5pt; letter-spacing: -0.01em; }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 9mm; }
+  .steps div { padding: 4mm; border-radius: 2mm; background: rgba(237,232,223,0.06); font-size: 8pt; line-height: 1.38; }
+  .steps b { display: block; font-family: var(--display); font-weight: 500; font-size: 7pt; color: var(--pink); letter-spacing: 0.12em; margin-bottom: 1.6mm; }
+
+  /* ── versión corta (5 páginas) ── */
+  .page { padding: 23mm 16mm 17mm; }
+  .head { left: 16mm; right: 16mm; }
+  .foot { left: 16mm; right: 16mm; }
+  h2.s { font-size: 17pt; max-width: 170mm; }
+  .lead.s { font-size: 10pt; margin-top: 3mm; max-width: 172mm; }
+  .label { margin-bottom: 1.6mm; }
+  .cover__stats { position: absolute; left: 16mm; right: 16mm; bottom: 26mm; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 0.3mm solid rgba(237,232,223,0.35); }
+  .cover__stats div { padding: 3.6mm 0 0 3.4mm; border-left: 0.3mm solid rgba(237,232,223,0.25); }
+  .cover__stats div:first-child { border-left: 0; padding-left: 0; }
+  .cover__stats b { display: block; font-family: var(--display); font-weight: 300; font-size: 17pt; letter-spacing: -0.03em; line-height: 1.1; color: var(--cream); }
+  .cover__stats span { font-size: 7pt; color: rgba(237,232,223,0.8); }
+  .cover__vision { margin-top: 7mm; max-width: 150mm; padding-left: 4mm; border-left: 0.7mm solid var(--orange); font-size: 11.4pt; line-height: 1.45; color: rgba(237,232,223,0.95); }
+  .cover__vision b { color: #fff; font-weight: 700; }
+  .cover__bottom { bottom: 10mm; }
+  .obj { list-style: none; margin: 0; padding: 0; counter-reset: n; }
+  .obj li { counter-increment: n; position: relative; padding: 0 0 2.4mm 8mm; font-size: 8.4pt; line-height: 1.4; }
+  .obj li::before { content: counter(n, decimal-leading-zero); position: absolute; left: 0; top: 0.2mm; font-family: var(--display); font-weight: 500; font-size: 7pt; color: var(--orange); }
+  .obj li b { font-weight: 700; }
+  .prof { display: grid; grid-template-columns: 1fr 1fr; gap: 2.6mm; }
+  .prof div { background: #fff; border-radius: 2mm; padding: 3mm 3.4mm; font-size: 7.8pt; line-height: 1.38; }
+  .prof b { display: block; font-family: var(--display); font-weight: 500; font-size: 7.6pt; margin-bottom: 0.8mm; letter-spacing: -0.005em; }
+  .prof .ink { background: var(--ink); color: rgba(237,232,223,0.88); }
+  .prof .ink b { color: var(--cream); }
+  .route.c { margin-top: 6mm; column-gap: 4.4mm; row-gap: 6mm; }
+  .route.c .stop .phone { height: 60mm; }
+  .route.c .stop h4 { margin: 2.4mm 0 0.8mm; font-size: 7.6pt; }
+  .route.c .stop p { font-size: 7pt; }
+  .route.c .stop .do { font-size: 6.6pt; margin-top: 0.8mm; }
+  .rules { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; margin-top: 6mm; }
+  .rules div { background: var(--ink); color: rgba(237,232,223,0.88); border-radius: 2mm; padding: 3.2mm; font-size: 7.4pt; line-height: 1.38; }
+  .rules b { display: block; color: var(--cream); font-family: var(--display); font-weight: 500; font-size: 7.4pt; margin-bottom: 1mm; letter-spacing: -0.005em; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.6mm; }
+  .strip .phone { height: 40mm; }
+  .fx.c { gap: 2.6mm 6mm; }
+  .fx.c div { padding-top: 2.2mm; }
+  .fx.c b { font-size: 8.4pt; }
+  .fx.c p { font-size: 7.6pt; line-height: 1.38; }
+  .chips { display: grid; grid-template-columns: 1.4fr 1.2fr 1fr 1fr; gap: 3mm; }
+  .chips div { border-radius: 2mm; padding: 3mm; height: 20mm; display: flex; flex-direction: column; justify-content: flex-end; font-size: 7pt; }
+  .chips b { font-family: var(--display); font-weight: 500; font-size: 7.4pt; }
+  .price.c { margin-top: 5mm; }
+  .price.c .price__row { padding: 3.4mm 5mm; }
+  .price.c .price__row p { font-size: 7.6pt; }
+  .price.c .price__total { padding: 4.4mm 5mm; }
+  .price.c .price__total .t { font-size: 25pt; }
+  .incl.c li { font-size: 8pt; margin-bottom: 1.2mm; }
+  .box { background: #fff; border-radius: 2.2mm; padding: 3.6mm 4.4mm; }
+  .band { position: absolute; left: 0; right: 0; bottom: 0; height: 58mm; background: #141413; color: var(--cream); padding: 8mm 16mm 0; }
+  .band .name { font-family: var(--display); font-weight: 300; font-size: 19pt; letter-spacing: -0.03em; line-height: 1; }
+  .band .tag { font-family: var(--display); font-weight: 500; font-size: 6.6pt; letter-spacing: 0.26em; text-transform: uppercase; color: var(--neon); margin-top: 2mm; }
+  .band .neonline { height: 0.6mm; width: 34mm; margin: 4mm 0; background: linear-gradient(90deg, var(--pink), var(--neon)); }
+  /* più respiro dove c'è spazio */
+  .p2 h2.s { font-size: 21pt; }
+  .p2 .lead.s { font-size: 11pt; }
+  .p2 .grid2 { margin-top: 8mm !important; }
+  .p2 .quote { font-size: 16pt !important; }
+  .p2 p:not(.label):not(.lead):not(.quote):not(.sec-k) { font-size: 9.4pt !important; line-height: 1.5; }
+  .p2 .phone { height: 54mm !important; }
+  .p2 .fig figcaption { font-size: 7.6pt; }
+  .p2 .obj li { font-size: 9.4pt; padding-bottom: 3.4mm; }
+  .p2 .prof div { font-size: 8.6pt; padding: 3.6mm 4mm; }
+  .p2 .prof b { font-size: 8.2pt; }
+  .p2 .box { margin-top: 6mm !important; }
+  .p2 .label { margin-top: 0; }
+  .p5 h2.s { font-size: 21pt; }
+  .p5 .price.c { margin-top: 7mm; }
+  .p5 .price.c .price__row { padding: 4.6mm 5mm; }
+  .p5 .price.c .price__row p { font-size: 8.4pt; }
+  .p5 .incl.c li { font-size: 9pt; margin-bottom: 1.8mm; }
+  .p5 .box span, .p5 .box p:not(.label) { font-size: 8.8pt !important; }
+  .p5 > div[style*="grid-template-columns:1.1fr 1fr"] { margin-top: 7mm !important; }
+  .p5 > div[style*="grid-template-columns:1fr 1fr 1fr"] { margin-top: 7mm !important; }
+</style>
+</head>
+<body>
+
+<!-- 1 · PORTADA Y VISIÓN -->
+<section class="page cover">
+  <div class="cover__img"></div>
+  <div class="cover__shade" style="background:linear-gradient(180deg, rgba(20,20,20,0.7) 0%, rgba(20,20,20,0.3) 44%, rgba(20,20,20,0) 58%, rgba(20,20,20,0.75) 100%)"></div>
+  <div class="cover__top" style="left:16mm; right:16mm">
+    <span class="logo"></span>
+    <span>Propuesta · Noviembre 2026</span>
+  </div>
+  <div class="cover__title" style="top:40mm; left:16mm; right:16mm">
+    <p class="names">Alessia Studio<br /><span class="x">×</span> Nomads<br />Cycling Club</p>
+    <p class="cover__vision"><b>La visión:</b> Nomads no vende viajes, vende la conquista de una ruta. Su sitio debería funcionar igual: una experiencia 3D sobre una carretera real que se recorre por etapas. Cada etapa cuenta algo esencial de la marca y la última invita al próximo capítulo.</p>
+  </div>
+  <div class="cover__stats">
+    <div><b>8</b><span>etapas, un mensaje en cada una</span></div>
+    <div><b>≈ 1 min</b><span>para conocer Nomads</span></div>
+    <div><b>2 semanas</b><span>de la confirmación a la entrega</span></div>
+    <div><b>2.000 €</b><span>5 páginas, 2 idiomas, 3D</span></div>
+  </div>
+  <div class="cover__bottom" style="left:16mm; right:16mm">
+    <p class="who">Alessia Studio · 3D web experience</p>
+    <p style="text-align:right">Imagen: la subida de Sa Calobra, de la demo 3D.<br />Terreno IGN España · AWS Terrain Tiles · © OpenStreetMap contributors</p>
+  </div>
+</section>
+
+<!-- 2 · VISIÓN Y PROPÓSITO -->
+<section class="page p2">
+  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">01 · Visión y propósito</span></div>
+  <p class="sec-k">01 · Visión y propósito</p>
+  <h2 class="s">La marca es el viaje.</h2>
+  <p class="lead s">Por eso el sitio no empieza hablando de Mallorca: empieza hablando de Nomads. Mallorca es el <b>Capítulo 01</b>, y el sitio queda listo para sumar los siguientes.</p>
+  <div class="grid2" style="margin-top:6mm; gap:7mm">
+    <div>
+      <p class="label">Lo que entendimos de Nomads</p>
+      <p class="quote" style="font-size:13pt">“El mundo no se visita, se conquista pedaleando.”</p>
+      <p style="margin-top:3mm; font-size:8.6pt">Nacieron en México con una visión audaz: consolidarse como la empresa líder en viajes recreativos bajo un concepto de emociones puras. Su misión: ofrecer experiencias únicas a quienes ven en la bicicleta una forma de libertad.</p>
+      <p style="margin-top:2.4mm; font-size:8.6pt"><b>La promesa:</b> “Tu única responsabilidad es pedalear. Nosotros nos encargamos de todo.”</p>
+      <div class="grid2" style="gap:3mm; margin-top:4mm">
+        <figure class="fig"><div class="phone" style="height:38mm"><img src="img/crew.webp" alt="" /></div><figcaption>The crew: Daniel Moreno, Sócrates Carpio y Jesús Serrano.</figcaption></figure>
+        <figure class="fig"><div class="phone" style="height:38mm"><img src="img/coach.webp" alt="" /></div><figcaption>Head coach: Alfredo “Freddy” Cruz, UCI Coach Nivel 3.</figcaption></figure>
+      </div>
+      <div class="box" style="margin-top:4mm">
+        <p class="label">Capítulo 01 · Mallorca</p>
+        <p style="font-size:8pt; line-height:1.45">19–28 octubre 2026 · 8 días de ruta, de fácil a difícil · final en Sa Calobra · inversión €2,750, apartado €350 · cupos limitados.</p>
+      </div>
+    </div>
+    <div>
+      <p class="label">Para qué sirve el sitio</p>
+      <ol class="obj">
+        <li><b>Hacer sentir un viaje Nomads.</b> Emoción antes que información: se vive la ruta, no se lee un folleto.</li>
+        <li><b>Explicar quiénes son en un minuto.</b> Un mensaje por etapa, sin ruido.</li>
+        <li><b>Llevar a la acción.</b> Cada recorrido termina en WhatsApp y en el viaje completo.</li>
+        <li><b>Crecer por capítulos.</b> Cada nuevo destino se suma sin rehacer el sitio.</li>
+        <li><b>Hacerse compartir.</b> “Comparte tu cima” crea una imagen lista para Instagram.</li>
+      </ol>
+      <p class="label" style="margin-top:4mm">A quién le hablamos</p>
+      <div class="prof">
+        <div><b>Busca un reto</b>Quiere subidas míticas en Europa. Necesita ver la ruta, el desnivel, la dificultad.</div>
+        <div><b>Lo quiere todo resuelto</b>Valora staff, vehículo de apoyo, hotel, coach. Necesita confianza y personas reales.</div>
+        <div><b>Duda de su nivel</b>Necesita ver que hay días fáciles, intermedios y difíciles: “¿Cuál es tu nivel?”.</div>
+        <div class="ink"><b>Llega desde el celular</b>Por Instagram o WhatsApp. Todo se diseña primero para el celular.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Fuente: material “Nomads Cycling Club × Mallorca”. Fotos: material de Nomads.</span><b>02</b></div>
+</section>
+
+<!-- 3 · LA EXPERIENCIA -->
+<section class="page">
+  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">02 · La experiencia</span></div>
+  <p class="sec-k">02 · La experiencia</p>
+  <h2 class="s">Un sitio que no se lee: se recorre.</h2>
+  <p class="lead s">El corazón del sitio es la carretera real de Sa Calobra en 3D: 9,4 km y 660 m de desnivel. Una línea naranja, el hilo de la marca, avanza por ella. El visitante recorre 8 etapas; cada una se detiene donde hay algo importante que contar.</p>
+  <div class="route c">
+    <div class="stop"><span class="badge">0</span><div class="phone"><img src="img/etapa-0.jpg" alt="" /></div><h4>Nomads Cycling Club</h4><p>“El mundo no se visita, se conquista pedaleando.”</p><p class="do">Desliza para empezar</p></div>
+    <div class="stop"><span class="badge">1</span><div class="phone"><img src="img/etapa-1.jpg" alt="" /></div><h4>Quiénes somos</h4><p>La línea baja entre las curvas.</p><p class="do">Desliza</p></div>
+    <div class="stop"><span class="badge">2</span><div class="phone"><img src="img/etapa-2.jpg" alt="" /></div><h4>Qué hacemos</h4><p>La línea llega al mar.</p><p class="do">Desliza</p></div>
+    <div class="stop"><span class="badge">3</span><div class="phone"><img src="img/etapa-3.jpg" alt="" /></div><h4>The crew</h4><p>Foto real del equipo sobre la cala.</p><p class="do">Mira alrededor (360°)</p></div>
+    <div class="stop"><span class="badge">4</span><div class="phone"><img src="img/etapa-4.jpg" alt="" /></div><h4>Ahora, sube</h4><p>El ciclista sube mientras se presiona; el perfil real se llena.</p><p class="do">Mantén presionado</p></div>
+    <div class="stop"><span class="badge">5</span><div class="phone"><img src="img/etapa-5.jpg" alt="" /></div><h4>Head coach</h4><p>Freddy Cruz, foto y logros, en el Nus de sa Corbata.</p><p class="do">Mira alrededor (360°)</p></div>
+    <div class="stop"><span class="badge">6</span><div class="phone"><img src="img/etapa-6.jpg" alt="" /></div><h4>La cima</h4><p>Toda la subida y el mar al atardecer.</p><p class="do">Comparte tu cima</p></div>
+    <div class="stop"><span class="badge">7</span><div class="phone"><img src="img/etapa-7.jpg" alt="" /></div><h4>Próximo capítulo</h4><p>La línea sigue al horizonte: “Capítulo 02”.</p><p class="do">Quiero el próximo capítulo</p></div>
+  </div>
+  <p class="label" style="margin-top:6mm">Por qué nadie se pierde</p>
+  <div class="rules" style="margin-top:0">
+    <div><b>Un gesto, una etapa</b>Deslizar lleva a la siguiente y ahí se detiene. Nunca minutos de scroll.</div>
+    <div><b>Siempre se sabe dónde se está</b>Una línea naranja a la derecha, un punto por etapa.</div>
+    <div><b>Corto</b>Ocho etapas, alrededor de un minuto. Un mensaje en cada una.</div>
+    <div><b>Sin mareos</b>La cámara casi no se mueve: lo que avanza es la línea.</div>
+    <div><b>El viaje a un toque</b>Botón “Cap. 01 · Mallorca”: días, niveles y qué incluye.</div>
+  </div>
+  <div class="foot"><span>Capturas de la demo funcional · iPhone 15</span><b>03</b></div>
+</section>
+
+<!-- 4 · 3D E IDENTIDAD -->
+<section class="page">
+  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">03 · 3D e identidad</span></div>
+  <p class="sec-k">03 · 3D e identidad</p>
+  <h2 class="s">Cada efecto tiene una función: emocionar, explicar o llevar a la acción.</h2>
+  <p class="label" style="margin-top:5mm">La entrada: la “M” de Nomads se convierte en carretera</p>
+  <div class="strip">
+    <figure class="fig"><div class="phone"><img src="img/intro-0.jpg" alt="" /></div><figcaption><b>1 · Entrar.</b> El logo sobre las curvas de nivel reales.</figcaption></figure>
+    <figure class="fig"><div class="phone"><img src="img/intro-1.jpg" alt="" /></div><figcaption><b>2 · La M se suelta</b> como una cuerda.</figcaption></figure>
+    <figure class="fig"><div class="phone"><img src="img/intro-2.jpg" alt="" /></div><figcaption><b>3 · Se vuelve asfalto,</b> con el sonido de un cambio.</figcaption></figure>
+    <figure class="fig"><div class="phone"><img src="img/intro-3.jpg" alt="" /></div><figcaption><b>4 · Se posa</b> sobre las curvas reales.</figcaption></figure>
+  </div>
+  <div class="fx c" style="margin-top:5mm">
+    <div><b>Terreno y carretera reales</b><p>Datos geográficos oficiales: cada curva está donde está en la realidad.</p></div>
+    <div><b>La línea naranja</b><p>Baja al mar, sube a la cima, se vuelve línea del tiempo y apunta al próximo capítulo.</p></div>
+    <div><b>Cámara de dron estable</b><p>Encuadres casi quietos, al atardecer. Cómodo de ver.</p></div>
+    <div><b>Vista de 360°</b><p>En el puerto y en el Nus de sa Corbata, con el dedo o el giroscopio.</p></div>
+    <div><b>Mantén presionado para subir</b><p>La subida cuesta un pequeño esfuerzo, como en la bici.</p></div>
+    <div><b>Perfil de la subida</b><p>Altimetría real, con km y metros que suben junto al ciclista.</p></div>
+    <div><b>Comparte tu cima</b><p>Imagen 1080×1920 con la vista 3D, el logo y los datos, lista para Instagram.</p></div>
+    <div><b>El viaje como línea del tiempo</b><p>Los días del viaje, con filtro por nivel: “¿Cuál es tu nivel?”.</p></div>
+  </div>
+  <div class="grid2" style="margin-top:5mm; gap:6mm; align-items:start">
+    <div>
+      <p class="label">Paleta de Nomads</p>
+      <div class="chips">
+        <div style="background:#2B2B2B; color:#EDE8DF"><b>Antracita</b>#2B2B2B</div>
+        <div style="background:#EDE8DF; color:#2B2B2B; outline:0.25mm solid rgba(0,0,0,0.08)"><b>Crema</b>#EDE8DF</div>
+        <div style="background:#7E93A6; color:#fff"><b>Gris azulado</b>#7E93A6</div>
+        <div style="background:#E8622C; color:#fff"><b>Naranja</b>#E8622C</div>
+      </div>
+      <p class="muted" style="font-size:7.2pt; margin-top:1.8mm">El naranja se usa poco, a propósito: cada vez que aparece, señala algo importante.</p>
+    </div>
+    <div>
+      <p class="label">Tipografía</p>
+      <p style="font-family:var(--display); font-size:14pt; line-height:1.05; letter-spacing:-0.03em">Unbounded para titulares</p>
+      <p style="font-size:10pt; margin-top:1.6mm">Manrope para textos, cómodos en el celular.</p>
+    </div>
+  </div>
+  <div class="card card--ink" style="margin-top:5mm; padding:4mm 5mm">
+    <div class="grid3" style="gap:5mm; font-size:7.8pt; color:rgba(237,232,223,0.88)">
+      <p><b style="color:var(--cream)">Se abre con un enlace.</b> Sin apps ni descargas, en cualquier navegador moderno.</p>
+      <p><b style="color:var(--cream)">Ligero.</b> Unos 3 MB en total. Objetivo: 60 fps en iPhone.</p>
+      <p><b style="color:var(--cream)">Para todos.</b> Versión de reserva para celulares sin 3D; respeta “reducir movimiento”.</p>
+    </div>
+  </div>
+  <div class="foot"><span>Datos: IGN España (terreno 5 m), AWS Terrain Tiles, © OpenStreetMap contributors · Three.js, GSAP</span><b>04</b></div>
+</section>
+
+<!-- 5 · PROPUESTA -->
+<section class="page p5">
+  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">04 · Propuesta</span></div>
+  <p class="sec-k">04 · Propuesta y presupuesto</p>
+  <h2 class="s">Una sola propuesta, completa.</h2>
+  <div class="price c">
+    <div class="price__row"><span class="n">01</span><div><h3>Sitio base · 1 página</h3><p>Diseño a medida con la información esencial de Nomads y contacto por WhatsApp.</p></div><span class="add">1.000 €</span><span class="sub">1.000 €</span></div>
+    <div class="price__row"><span class="n">02</span><div><h3>Experiencia 3D</h3><p>La ruta en 8 etapas, la entrada con la M, 360°, subida, perfil, “Comparte tu cima”, sonido.</p></div><span class="add">+ 500 €</span><span class="sub">1.500 €</span></div>
+    <div class="price__row" style="border-bottom:0"><span class="n">03</span><div><h3>5 páginas · español e inglés</h3><p>Inicio 3D · Capítulos · Nosotros / The crew · Galería · Contacto. Selector de idioma.</p></div><span class="add">+ 500 €</span><span class="sub">2.000 €</span></div>
+    <div class="price__total"><div><p class="label" style="color:rgba(237,232,223,0.65); margin:0 0 1mm">Total de la propuesta</p><p style="font-size:7.8pt; color:rgba(237,232,223,0.8)">Sitio + experiencia 3D + 5 páginas en 2 idiomas</p></div><p class="t">2.000 €</p></div>
+  </div>
+  <div style="display:grid; grid-template-columns:1.1fr 1fr; gap:6mm; margin-top:5mm">
+    <div>
+      <p class="label">Incluido</p>
+      <ul class="clean incl c" style="display:block">
+        <li>Dominio y hosting durante el primer año</li>
+        <li>Certificado de seguridad (https)</li>
+        <li>SEO base y vista previa del enlace en WhatsApp e Instagram</li>
+        <li>Diseño para celular, tablet y computadora</li>
+        <li>Versión de reserva para celulares sin 3D</li>
+        <li>2 rondas de cambios · publicación en línea</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box" style="margin-bottom:2.6mm; display:flex; justify-content:space-between; align-items:baseline; gap:3mm"><span style="font-size:7.8pt"><b>Desde el segundo año</b><br />dominio, hosting y asistencia básica</span><b style="font-family:var(--display); font-weight:400; font-size:11pt; white-space:nowrap">200 € / año</b></div>
+      <div class="box" style="display:flex; justify-content:space-between; align-items:baseline; gap:3mm"><span style="font-size:7.8pt"><b>Extra opcional · Kit social</b><br />imágenes y animaciones del 3D para Instagram</span><b style="font-family:var(--display); font-weight:400; font-size:11pt; white-space:nowrap">250 €</b></div>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4mm; margin-top:5mm">
+    <div class="box"><p class="label">Tiempos</p><p style="font-size:8pt"><b>Semana 1:</b> desarrollo.<br /><b>Semana 2:</b> revisión y entrega.</p></div>
+    <div class="box"><p class="label">Pago</p><p style="font-size:8pt"><b>50%</b> al confirmar.<br /><b>50%</b> a la entrega.</p></div>
+    <div class="box"><p class="label">Qué necesitamos</p><p style="font-size:8pt">Textos, fotos con permiso de uso, WhatsApp y dominio.</p></div>
+  </div>
+  <div class="band">
+    <div style="display:grid; grid-template-columns:1.1fr 1fr; gap:8mm">
+      <div>
+        <p class="name">Alessia Studio</p>
+        <p class="tag">3D web experience</p>
+        <div class="neonline"></div>
+        <p style="font-size:8.4pt; line-height:1.45; color:rgba(237,232,223,0.85)">Diseñamos experiencias web en 3D: sitios que no se leen, se recorren. La demo de Sa Calobra ya existe: la pueden abrir hoy en su celular.</p>
+      </div>
+      <div>
+        <p class="label" style="color:rgba(237,232,223,0.6)">Contacto</p>
+        <p style="font-family:var(--display); font-size:10.5pt; line-height:1.6">www.alessia.studio<br />WhatsApp +39 346 175 8562</p>
+        <p class="label" style="color:rgba(237,232,223,0.6); margin-top:3.4mm">Próximo paso</p>
+        <p style="font-size:8pt; color:rgba(237,232,223,0.85)">Revisamos juntos la propuesta → confirmación y 50% → en dos semanas, el sitio en línea.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot" style="color:rgba(237,232,223,0.5); z-index:2"><span>Importes en euros.</span><b style="color:var(--cream)">05</b></div>
+</section>
+
+</body>
+</html>
