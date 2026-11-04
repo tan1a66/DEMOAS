@@ -4,10 +4,11 @@
 // mondo nasce dentro quello schermo e si allarga a tutta la pagina (main.js). Il manubrio è in codice.
 //
 // Coordinate in metri: centro della piega nell'origine, x a destra, y in alto, -z avanti.
+import gsap from 'gsap';
 import {
   Scene, PerspectiveCamera, OrthographicCamera, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
   MeshBasicMaterial, ShaderMaterial, TubeGeometry, CatmullRomCurve3, CylinderGeometry, CapsuleGeometry,
-  PlaneGeometry, BoxGeometry, TorusGeometry, CanvasTexture, TextureLoader, SRGBColorSpace, RepeatWrapping, DirectionalLight,
+  PlaneGeometry, BoxGeometry, TorusGeometry, LatheGeometry, CanvasTexture, TextureLoader, SRGBColorSpace, RepeatWrapping, DirectionalLight,
   HemisphereLight, PMREMGenerator, WebGLRenderTarget, HalfFloatType, Vector2, Vector3, Vector4,
   Quaternion, Color, MathUtils,
 } from 'three';
@@ -138,57 +139,69 @@ export function createRide({ renderer }) {
   const bike = new Group();
   scene.add(bike);
 
-  // ── la piega: al centro il carbonio piatto (aerodinamico), ai lati il nastro crema
+  // ── la piega da corsa: al centro il tubo tondo da 31,8 mm in carbonio a vista, poi il nastro
+  // crema dalle prese alte fino alle basse, chiuso dai tappi
   const half = [
-    [0.07, 0, 0], [0.12, 0, -0.001], [0.17, 0, -0.005], [0.203, -0.004, -0.033], [0.214, -0.013, -0.074],
-    [0.217, -0.03, -0.104], [0.218, -0.068, -0.121], [0.218, -0.112, -0.1], [0.218, -0.134, -0.05], [0.218, -0.138, 0.02],
+    [0.056, 0, 0], [0.12, 0, -0.002], [0.17, 0.001, -0.008], [0.2, -0.002, -0.032], [0.213, -0.01, -0.07],
+    [0.217, -0.026, -0.1], [0.218, -0.064, -0.12], [0.218, -0.108, -0.103], [0.218, -0.132, -0.055], [0.218, -0.137, 0.015],
   ];
   const bump = tapeBump();
-  bump.repeat.set(17, 1);
-  const tape = new MeshPhysicalMaterial({ color: '#e4d9c6', roughness: 0.66, sheen: 0.7, sheenColor: new Color('#fff4e0'), sheenRoughness: 0.45, bumpMap: bump, bumpScale: 1.4 });
-  for (const sx of [-1, 1]) {
-    const c = new CatmullRomCurve3(half.map(([x, y, z]) => V(sx * x, y, z)), false, 'centripetal');
-    bike.add(new Mesh(new TubeGeometry(c, 260, 0.0148, 24, false), tape));
-  }
+  bump.repeat.set(19, 1);
+  const tape = new MeshPhysicalMaterial({ color: '#e6dccb', roughness: 0.68, sheen: 0.7, sheenColor: new Color('#fff4e0'), sheenRoughness: 0.45, bumpMap: bump, bumpScale: 1.6 });
   const carbon = carbonMap();
-  carbon.repeat.set(12, 2);
+  carbon.repeat.set(8, 2);
   const carbonMat = new MeshPhysicalMaterial({ color: '#ffffff', map: carbon, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.06 });
-  const aero = new TubeGeometry(new CatmullRomCurve3([V(-0.09, 0, 0), V(0, 0, 0), V(0.09, 0, 0)]), 40, 0.0165, 40, false);
-  aero.scale(1, 0.62, 1.45); // il profilo piatto e largo delle pieghe aero
-  bike.add(new Mesh(aero, carbonMat));
+  const plugMat = new MeshStandardMaterial({ color: '#111', roughness: 0.5 });
   const ringMat = new MeshStandardMaterial({ color: '#0c0c0d', roughness: 0.35 });
   for (const sx of [-1, 1]) {
-    const ring = new Mesh(new CylinderGeometry(0.0158, 0.0158, 0.007, 32), ringMat);
+    const c = new CatmullRomCurve3(half.map(([x, y, z]) => V(sx * x, y, z)), false, 'centripetal');
+    bike.add(new Mesh(new TubeGeometry(c, 300, 0.0146, 28, false), tape));
+    // il tappo in fondo alla presa bassa
+    const end = c.getPoint(1), dir = c.getTangent(1);
+    const plug = new Mesh(new CylinderGeometry(0.0146, 0.0146, 0.004, 28), plugMat);
+    plug.position.copy(end).addScaledVector(dir, 0.002);
+    plug.quaternion.setFromUnitVectors(V(0, 1, 0), dir);
+    bike.add(plug);
+    // il nastro finisce con un giro di nastro nero
+    const ring = new Mesh(new CylinderGeometry(0.0155, 0.0155, 0.008, 32), ringMat);
     ring.rotation.z = Math.PI / 2;
-    ring.position.set(sx * 0.074, 0, 0);
+    ring.position.set(sx * 0.06, 0, 0);
     bike.add(ring);
   }
+  bike.add(new Mesh(new TubeGeometry(new CatmullRomCurve3([V(-0.064, 0, 0), V(0, 0, 0), V(0.064, 0, 0)]), 30, 0.0159, 40, false), carbonMat));
 
-  // ── le leve con le gomme dei comandi
-  const rubber = new MeshPhysicalMaterial({ color: '#19191a', roughness: 0.8, sheen: 0.3, sheenColor: new Color('#555') });
-  const blade = new MeshPhysicalMaterial({ color: '#151515', roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.08 });
+  // ── le leve: la gomma del comando (lunga, con la punta in avanti) e la leva che scende
+  const rubber = new MeshPhysicalMaterial({ color: '#19191a', roughness: 0.82, sheen: 0.35, sheenColor: new Color('#5a5a5a') });
+  const blade = new MeshPhysicalMaterial({ color: '#151515', roughness: 0.26, clearcoat: 1, clearcoatRoughness: 0.08 });
+  const hoodGeo = new LatheGeometry([[0, 0], [0.011, 0.002], [0.0158, 0.012], [0.0168, 0.03], [0.0152, 0.052], [0.0158, 0.064], [0.0168, 0.072], [0.0125, 0.083], [0.004, 0.088], [0, 0.089]].map(([r, y]) => new Vector2(r, y)), 36);
+  const leverGeo = new TubeGeometry(new CatmullRomCurve3([V(0, -0.004, -0.162), V(0, -0.045, -0.173), V(0, -0.095, -0.16), V(0, -0.128, -0.137)]), 48, 0.0058, 14, false);
+  leverGeo.scale(0.6, 1, 1); // la leva è piatta, non tonda
   for (const sx of [-1, 1]) {
-    const hood = new Mesh(new CapsuleGeometry(0.0175, 0.05, 8, 24), rubber);
-    hood.position.set(sx * 0.218, 0.002, -0.128);
-    hood.rotation.x = Math.PI / 2 - 0.42;
-    hood.scale.set(0.9, 1, 1.1);
+    const start = V(sx * 0.217, -0.006, -0.086), tip = V(sx * 0.219, 0.013, -0.172);
+    const hood = new Mesh(hoodGeo, rubber);
+    hood.position.copy(start);
+    hood.quaternion.setFromUnitVectors(V(0, 1, 0), tip.clone().sub(start).normalize());
+    hood.scale.set(0.8, 1, 1.08);
     bike.add(hood);
-    const lever = new CatmullRomCurve3([V(sx * 0.218, -0.012, -0.16), V(sx * 0.218, -0.05, -0.168), V(sx * 0.216, -0.1, -0.15), V(sx * 0.214, -0.13, -0.13)]);
-    bike.add(new Mesh(new TubeGeometry(lever, 40, 0.0065, 12, false), blade));
+    const lever = new Mesh(leverGeo, blade);
+    lever.position.x = sx * 0.219;
+    bike.add(lever);
   }
 
   // ── l'attacco integrato, la serie sterzo e il telaio che scende
   const satin = new MeshPhysicalMaterial({ color: '#111214', roughness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.35 });
-  const stem = new Mesh(new RoundedBoxGeometry(0.038, 0.032, 0.125, 5, 0.012), satin);
-  stem.position.set(0, -0.006, 0.06);
-  stem.rotation.x = -0.12;
+  // l'attacco finisce dentro il collarino dello sterzo; il collarino sta più in alto e il tappo
+  // arancione lo chiude in cima (niente pezzi che si compenetrano)
+  const stem = new Mesh(new RoundedBoxGeometry(0.036, 0.032, 0.115, 5, 0.012), satin);
+  stem.position.set(0, -0.009, 0.0525);
+  stem.rotation.x = 0.05;
   bike.add(stem);
-  const cap = new Mesh(new CylinderGeometry(0.021, 0.021, 0.045, 40), satin);
-  cap.position.set(0, -0.014, 0.118);
+  const cap = new Mesh(new CylinderGeometry(0.021, 0.021, 0.049, 40), satin);
+  cap.position.set(0, -0.0135, 0.118);
   bike.add(cap);
   // il tappo dello sterzo in alluminio anodizzato arancione: il dettaglio Nomads
   const topcap = new Mesh(new CylinderGeometry(0.0165, 0.019, 0.005, 40), new MeshPhysicalMaterial({ color: '#e8622c', metalness: 0.75, roughness: 0.3, clearcoat: 0.6 }));
-  topcap.position.set(0, 0.0105, 0.118);
+  topcap.position.set(0, 0.0135, 0.118);
   bike.add(topcap);
   // ── il telaio, la forcella e la ruota davanti: da qui si capisce subito che è una bici
   const frame = new MeshPhysicalMaterial({ color: '#1c1d20', roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.1 });
@@ -221,18 +234,44 @@ export function createRide({ renderer }) {
   unit.position.set(0, 0.013, -0.1);
   unit.rotation.x = tilt;
   bike.add(unit);
-  unit.add(new Mesh(new RoundedBoxGeometry(0.058, 0.017, 0.09, 6, 0.0075), new MeshPhysicalMaterial({ color: '#17181a', roughness: 0.38, clearcoat: 0.9, clearcoatRoughness: 0.18 })));
+  unit.add(new Mesh(new RoundedBoxGeometry(0.058, 0.017, 0.104, 6, 0.0075), new MeshPhysicalMaterial({ color: '#17181a', roughness: 0.38, clearcoat: 0.9, clearcoatRoughness: 0.18 })));
   // un filo di luce arancione Nomads sul bordo davanti
   const led = new Mesh(new BoxGeometry(0.012, 0.0008, 0.0012), new MeshStandardMaterial({ color: '#e8622c', emissive: '#e8622c', emissiveIntensity: 0.9 }));
-  led.position.set(0, 0.0086, -0.0405);
+  led.position.set(0, 0.0086, -0.0475);
   unit.add(led);
+  // il pulsante sotto lo schermo, arancione, con la scritta ENTRA: si tocca per entrare nel mondo
+  const btnMat = new MeshStandardMaterial({ color: '#e8622c', emissive: '#e8622c', emissiveIntensity: 0.6, roughness: 0.42 });
+  const button = new Mesh(new RoundedBoxGeometry(0.03, 0.004, 0.0088, 3, 0.0019), btnMat);
+  button.position.set(0, 0.0094, 0.0385);
+  unit.add(button);
+  const lbl = document.createElement('canvas');
+  lbl.width = 360; lbl.height = 100;
+  const lblTex = new CanvasTexture(lbl);
+  lblTex.colorSpace = SRGBColorSpace;
+  const drawLabel = () => {
+    const g = lbl.getContext('2d');
+    g.clearRect(0, 0, lbl.width, lbl.height);
+    g.font = '500 46px Unbounded, sans-serif';
+    g.letterSpacing = '8px';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillStyle = '#231f1c';
+    g.fillText('ENTRA', lbl.width / 2 + 4, lbl.height / 2 + 2);
+    lblTex.needsUpdate = true;
+  };
+  drawLabel();
+  document.fonts?.load('500 46px Unbounded').then(drawLabel).catch(() => {});
+  const label = new Mesh(new PlaneGeometry(0.027, 0.0075), new MeshBasicMaterial({ map: lblTex, transparent: true, depthWrite: false, toneMapped: false }));
+  label.rotation.x = -Math.PI / 2;
+  label.position.set(0, 0.01145, 0.0385);
+  unit.add(label);
   const screenMat = new ShaderMaterial({
     uniforms: { tUI: { value: null } },
     vertexShader: screenVert, fragmentShader: screenFrag,
   });
   const screen = new Mesh(new PlaneGeometry(0.046, 0.07), screenMat);
   screen.rotation.x = -Math.PI / 2;
-  screen.position.y = 0.0087;
+  screen.position.set(0, 0.0087, -0.009);
   unit.add(screen);
   bike.updateMatrixWorld(true);
 
@@ -286,14 +325,31 @@ export function createRide({ renderer }) {
   const keys = [
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
     POV,
-    { pos: S.clone().addScaledVector(N, 0.17).addScaledVector(F, -0.02), at: S.clone().addScaledVector(F, 0.004), up: F.clone(), fov: 50 },
+    { pos: S.clone().addScaledVector(N, 0.19).addScaledVector(F, -0.03), at: S.clone().addScaledVector(F, -0.014), up: F.clone(), fov: 50 },
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
   ];
   let aspect = 1, W = 1, H = 1;
   const api = { scene, camera };
+  const pv = new Vector3();
   // gli angoli dello schermo nel mondo: servono per sapere dove sta sulla pagina
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => V(x * 0.023, y * 0.035, 0).applyMatrix4(screen.matrixWorld));
-  const pv = new Vector3();
+  const btnCorners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => V(x * 0.015, 0.0115, 0.0385 + z * 0.0044).applyMatrix4(unit.matrixWorld));
+  /** il pulsante sulla pagina, in pixel dall'alto a sinistra: [x, y, larghezza, altezza] */
+  api.buttonRect = (W, H) => {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const c of btnCorners) {
+      pv.copy(c).project(camera);
+      const x = (pv.x * 0.5 + 0.5) * W, y = (-pv.y * 0.5 + 0.5) * H;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return [x0, y0, x1 - x0, y1 - y0];
+  };
+  /** il pulsante si abbassa e si illumina quando lo si tocca */
+  api.press = () => {
+    gsap.fromTo(button.position, { y: 0.0094 - 0.0012 }, { y: 0.0094, duration: 0.35, ease: 'power2.out' });
+    gsap.fromTo(label.position, { y: 0.01145 - 0.0012 }, { y: 0.01145, duration: 0.35, ease: 'power2.out' });
+    gsap.fromTo(btnMat, { emissiveIntensity: 2.2 }, { emissiveIntensity: 0.6, duration: 0.6, ease: 'power2.out' });
+  };
   /** il rettangolo dello schermo sulla pagina, in coordinate 0..1 (origine in basso a sinistra) */
   api.screenRect = () => {
     let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
@@ -331,6 +387,7 @@ export function createRide({ renderer }) {
     camera.position.x += Math.sin(time * 1.7) * 0.006 * ride;
     camera.position.y += Math.abs(Math.sin(time * 1.7)) * 0.004 * ride;
     camera.lookAt(tmp);
+    if (!gsap.isTweening(btnMat)) btnMat.emissiveIntensity = 0.45 + 0.5 * (0.5 + 0.5 * Math.sin(time * 3.4));
     // lo sfondo segue lo sguardo: in avanti il sole e l'orizzonte, verso il ciclocomputer la terra
     const pitch = Math.asin(MathUtils.clamp(camera.getWorldDirection(tmp).y, -1, 1));
     const top = MathUtils.clamp(MathUtils.mapLinear(pitch, -0.3, -1.25, 0.16, 0.26), 0.12, 0.26);

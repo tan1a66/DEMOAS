@@ -254,9 +254,9 @@ export const CONFIG = {
     views: [{ lat: 39.62, lon: 2.98, dist: 1.25 }],
     // si esce dallo schermo sull'Europa, già esplorabile da qui
     explore: { lat: 42, lon: 6, dist: 2.25 },
-    // l'intro in sella: dopo `delay` secondi la camera va da sola verso il ciclocomputer;
-    // LLEGASTE resta sullo schermo `hold` secondi, poi si entra nell'Europa (un gesto anticipa)
-    intro: { delay: 1.8, hold: 1.0 },
+    // l'intro in sella: dopo `delay` secondi la camera va da sola verso il ciclocomputer
+    // (in `approach` secondi); poi si entra nel mondo con il pulsante ENTRA sotto lo schermo
+    intro: { delay: 0.7, approach: 2.4, open: 2.5 },
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
     // l'alba color oro champagne: il sole sorge dietro la Terra
     atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra

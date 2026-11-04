@@ -1,7 +1,8 @@
 // La storia, in breve. Si apre in sella: il manubrio al tramonto di Mallorca (ride.js), il
-// ciclocomputer acceso, nero, con il logo e "LLEGASTE"; da sola la camera gli si avvicina. Poco
-// dopo (o al primo gesto) il mondo compare dentro lo schermo piccolo e si allarga, senza stacchi,
-// fino a tutta la pagina: l'Europa, già esplorabile: si gira, ci si avvicina, si toccano le mete. Ogni capitolo ha la sua batteria: piena se completato, in
+// ciclocomputer acceso, nero, con il logo e "LLEGASTE"; da sola la camera gli si avvicina. Si
+// tocca il pulsante ENTRA sotto lo schermo: il mondo compare dentro lo schermo piccolo e si
+// allarga, senza stacchi, fino a tutta la pagina: l'Europa, già esplorabile: si gira, ci si
+// avvicina, si toccano le mete. Ogni capitolo ha la sua batteria: piena se completato, in
 // carica (loading) se in arrivo.
 import gsap from 'gsap';
 import { CONFIG } from '../config.js';
@@ -46,21 +47,21 @@ export function createGlobeStory({ capture = false } = {}) {
   const tl = gsap.timeline({ paused: true, defaults: { ease: 'none' } });
   const labels = [0];
   let t = 0;
-  // 1 · ci si avvicina al ciclocomputer: LLEGASTE
-  tl.to(state, { rk: 2, duration: 1.6, ease: 'power2.inOut' }, t);
-  t += 1.8;
+  // 1 · ci si avvicina al ciclocomputer: LLEGASTE, e sotto il pulsante ENTRA
+  tl.to(state, { rk: 2, duration: G.intro.approach, ease: 'power2.inOut' }, t);
+  t += G.intro.approach;
   labels.push(t);
   // 2 · il mondo compare nello schermo e, in un solo movimento, si allarga a tutta la pagina
   // mentre il globo si apre da Mallorca sull'Europa; poi le mete e la barra dei capitoli
-  const d = 1.9;
-  tl.to(state, { portalA: 1, duration: 0.3, ease: 'sine.inOut' }, t);
-  tl.to(state, { rk: 3, duration: 1.1, ease: 'power1.in' }, t + 0.05);
-  tl.to(state, { portal: 1, duration: 1.05, ease: 'power2.inOut' }, t + 0.15);
-  tl.to(state, { lat: E.lat, lon: E.lon, dist: E.dist, duration: 1.6, ease: 'power2.inOut' }, t + 0.15);
-  tl.to(state, { low: 0.15, duration: 1.5, ease: 'sine.inOut' }, t + 0.15);
-  tl.set(state, { ride: 0 }, t + 1.25);
-  tl.to(state, { soon: 1, duration: 0.5 }, t + 1.2);
-  tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', immediateRender: false }, t + 1.3);
+  const d = G.intro.open; // 2,5 s
+  tl.to(state, { portalA: 1, duration: 0.35, ease: 'sine.inOut' }, t + 0.1);
+  tl.to(state, { rk: 3, duration: 1.5, ease: 'power1.in' }, t + 0.15);
+  tl.to(state, { portal: 1, duration: 1.4, ease: 'power2.inOut' }, t + 0.25);
+  tl.to(state, { lat: E.lat, lon: E.lon, dist: E.dist, duration: 2.2, ease: 'power2.inOut' }, t + 0.25);
+  tl.to(state, { low: 0.15, duration: 2.0, ease: 'sine.inOut' }, t + 0.25);
+  tl.set(state, { ride: 0 }, t + 1.7);
+  tl.to(state, { soon: 1, duration: 0.5 }, t + 1.7);
+  tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out', immediateRender: false }, t + 1.85);
   t += d;
   labels.push(t);
   tl.to({}, { duration: 0.001 }, t);
@@ -81,8 +82,6 @@ export function createGlobeStory({ capture = false } = {}) {
       onComplete: () => {
         anim = null;
         if (k === LAST) { exploring = true; root.classList.add('is-exploring'); }
-        // LLEGASTE resta un attimo sullo schermo, poi si entra da soli nell'Europa
-        if (k === 1 && !capture) later(G.intro.hold, 2);
         api.onStep?.(k);
       },
     });

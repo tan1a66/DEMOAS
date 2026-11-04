@@ -15,6 +15,7 @@ import { createGlobeStory } from './story.js';
 import { createRide } from './ride.js';
 import { createChapterPanel } from './chapter.js';
 import { createPages } from './pages.js';
+import { createPool } from '../ui/pool.js';
 import { createLoader } from '../ui/loader.js';
 import { createInfo } from '../ui/info.js';
 import { createLineOverlay } from '../ui/lineOverlay.js';
@@ -79,6 +80,12 @@ async function start() {
 
   // pin e nomi: elementi DOM sopra il globo (nitidi, cliccabili), nascosti dietro la Terra
   const pinsEl = $('#pins');
+  // il pulsante ENTRA del ciclocomputer: un bottone vero (toccabile, accessibile) sopra quello in 3D
+  const enterBtn = document.createElement('button');
+  enterBtn.type = 'button';
+  enterBtn.className = 'enter';
+  enterBtn.setAttribute('aria-label', 'Entra');
+  document.body.appendChild(enterBtn);
   const veil = $('#veil');
   const root = document.documentElement;
   const marks = [];
@@ -174,9 +181,16 @@ async function start() {
     // in sella niente velo scuro: sul tramonto spegnerebbe la luce
     veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
     root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
-    if (r <= 0) { renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
+    if (r <= 0) { enterBtn.hidden = true; renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
     ride.update(st.rk, performance.now() / 1000);
     ride.render(rideRT);
+    // il bottone segue il pulsante 3D (almeno 48 px per il dito); si può toccare finché non si entra
+    const [bx, by, bw, bh] = ride.buttonRect(W, H);
+    const tw = Math.max(bw + 16, 64), th = Math.max(bh + 16, 48);
+    enterBtn.hidden = story.step === 2 || P > 0;
+    enterBtn.style.transform = `translate3d(${(bx + bw / 2 - tw / 2).toFixed(1)}px, ${(by + bh / 2 - th / 2).toFixed(1)}px, 0)`;
+    enterBtn.style.width = `${tw.toFixed(0)}px`;
+    enterBtn.style.height = `${th.toFixed(0)}px`;
     const u = comp.material.uniforms;
     u.uK.value = st.portalA;
     if (st.portalA > 0) {
@@ -196,6 +210,9 @@ async function start() {
   // 02 e 03 con quello che si sa già
   const info = createInfo({ overlay, story, setLineVisible: (on) => { lineVisible = on ? 1 : 0; }, source: pinOnScreen });
   const panel = createChapterPanel({ story });
+  // Mallorca: sotto il viaggio giorno per giorno, l'acqua cristallina che si muove
+  createPool($('#info .info__pool'), $('#info'));
+  const seaEl = $('#info .info__pool');
   const openChapter = (n) => {
     const ch = G.chapters.find((c) => c.n === n);
     if (ch.status === 'done') info.open(); else panel.open(ch);
@@ -212,6 +229,8 @@ async function start() {
     const b = e.target.closest('[data-chapter]');
     if (b) goChapter(b.dataset.chapter);
   });
+
+  enterBtn.addEventListener('click', () => { ride.press(); story.goTo(2); });
 
   // il menu sotto il logo: Nosotros e Viajes sono pagine leggere, Contacto la schermata con WhatsApp
   const pages = createPages({ story, onChapter: goChapter });
@@ -298,7 +317,11 @@ async function start() {
     return;
   }
 
-  gsap.ticker.add(() => { if (!story.finalOpen) frame(); });
+  // il globo non si disegna quando è coperto (schermata finale, pagine, pannelli già aperti)
+  gsap.ticker.add(() => {
+    if (story.finalOpen || pages.isOpen || panel.isOpen || (info.isOpen && seaEl.style.opacity === '1')) return;
+    frame();
+  });
   document.body.classList.add('ready');
 
   // a dati pronti la barra arancione sfuma e si scopre la Terra
