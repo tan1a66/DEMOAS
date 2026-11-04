@@ -236,33 +236,51 @@ export const CONFIG = {
     card: { kicker: 'Capítulo 01 · Mallorca', title: 'Conquisté\nSa Calobra.', stats: '9.41 KM · 660 M' }, // \n = a capo
   },
 
-  // ── Il globo (home): dalla Ciudad de México ai capitoli. lat/lon in gradi.
-  //    Le mete senza luogo (ancora da decidere) non hanno pin: solo la carta "Próximamente".
+  // ── Il globo (home): la Terra vera (NASA Blue Marble) nello spazio; dalla Ciudad de México
+  //    ai capitoli. lat/lon in gradi. status: 'done' = batteria piena, 'loading' = in carica.
+  //    Le mete senza luogo (ancora da decidere) non hanno pin.
   globe: {
     origin: { name: 'Ciudad de México', lat: 19.4326, lon: -99.1332 },
     chapters: [
-      { n: '01', name: 'Mallorca', when: '19–28 octubre 2026', lat: 39.62, lon: 2.98, open: true },
-      { n: '02', name: null, when: 'Marzo 2027' },
-      { n: '03', name: 'Dolomitas', when: 'Verano 2027', lat: 46.5, lon: 11.85 },
+      { n: '01', name: 'Mallorca', when: '19–28 octubre 2026', lat: 39.62, lon: 2.98, status: 'done', open: true },
+      { n: '02', name: null, title: 'Destino por anunciar', when: 'Marzo 2027', status: 'loading',
+        lead: 'La próxima ruta ya está en preparación.',
+        facts: [['Fechas', 'Marzo 2027'], ['Destino', 'Por anunciar'], ['Itinerario', 'En preparación']] },
+      { n: '03', name: 'Dolomitas', title: 'Dolomitas', when: 'Verano 2027', lat: 46.5, lon: 11.85, status: 'loading',
+        lead: 'Los puertos de montaña del norte de Italia, Patrimonio de la Humanidad por la UNESCO.',
+        facts: [['Fechas', 'Verano 2027'], ['Itinerario', 'En preparación'], ['Precio', 'Próximamente']] },
     ],
     // inquadratura per tappa: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
     views: [
-      { lat: 24, lon: -94, dist: 3.9 },    // 0 · la Ciudad de México
-      { lat: 30, lon: -74, dist: 4.1 },    // 1 · quiénes somos: la linea lascia il Messico
-      { lat: 34, lon: -50, dist: 4.2 },    // 2 · qué hacemos: sopra l'Atlantico
-      { lat: 37, lon: -28, dist: 4.1 },    // 3 · the crew
-      { lat: 38, lon: -10, dist: 3.5 },    // 4 · head coach: arriva in Europa
-      { lat: 39.55, lon: 2.95, dist: 1.075 }, // 5 · Mallorca da vicino
-      { lat: 30, lon: -40, dist: 5.3 },    // 6 · i prossimi capitoli: Messico, Mallorca e Dolomiti insieme
+      { lat: 24, lon: -96, dist: 3.2 },       // 0 · la Ciudad de México
+      { lat: 30, lon: -74, dist: 3.4 },       // 1 · quiénes somos: la linea lascia il Messico
+      { lat: 35, lon: -48, dist: 3.5 },       // 2 · qué hacemos: sopra l'Atlantico
+      { lat: 38, lon: -26, dist: 3.3 },       // 3 · the crew
+      { lat: 41, lon: -4, dist: 2.5 },        // 4 · head coach: Spagna e Francia
+      { lat: 39.55, lon: 2.95, dist: 1.075 }, // 5 · Capítulo 01: Mallorca da vicino
+      { lat: 28, lon: -50, dist: 4.3 },       // 6 · Capítulo 02: si riparte dal Messico, destino da annunciare
+      { lat: 45.2, lon: 9, dist: 1.95 },      // 7 · Capítulo 03: le Dolomiti
+      { lat: 30, lon: -42, dist: 6.0 },       // 8 · tutti i capitoli
     ],
-    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1, 1], // quanto è disegnata la rotta a ogni tappa (la M dell'intro si posa sul primo tratto)
+    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1, 1, 1, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
-    colors: { ocean: '#24292d', oceanDeep: '#16191b', land: '#e0d9cc', landShade: '#a39a8b', coast: '#c9bda9', border: '#9d9486', grid: '#7e93a6', rim: '#7e93a6' },
+    atmosphere: '#7fb8ff',
+    // nomi sulla cartina, per orientarsi
+    labels: [
+      { t: 'México', lat: 23.6, lon: -102.5 }, { t: 'Estados Unidos', lat: 39, lon: -98 },
+      { t: 'España', lat: 40.2, lon: -3.7 }, { t: 'Francia', lat: 46.6, lon: 2.4 }, { t: 'Italia', lat: 42.6, lon: 12.6 },
+      { t: 'Portugal', lat: 39.7, lon: -8.1 }, { t: 'Marruecos', lat: 31.6, lon: -6.6 }, { t: 'Reino Unido', lat: 53, lon: -1.8 },
+      { t: 'Alemania', lat: 51, lon: 10.3 },
+      { t: 'Océano Atlántico', lat: 31, lon: -42, sea: true }, { t: 'Mar Mediterráneo', lat: 37.6, lon: 17, sea: true },
+      { t: 'Golfo de México', lat: 25, lon: -90, sea: true },
+    ],
     copy: {
-      mallorca: { kicker: 'Capítulo 01 · Mallorca', text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
+      cap1: { text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
       seeChapter: 'Ver el capítulo',
-      sacalobra: 'Sa Calobra en 3D',
-      soon: 'Próximamente',
+      done: 'Completado',
+      loading: 'Loading',
+      promise: 'Tu única responsabilidad es pedalear. Nosotros nos encargamos de todo.',
+      notify: 'Quiero saberlo primero',
     },
   },
 

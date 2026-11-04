@@ -1,6 +1,6 @@
-// La home: un globo. La linea arancione parte dalla Ciudad de México e vola ai capitoli di
-// Nomads: Mallorca (Capítulo 01, con il pannello del viaggio e la Sa Calobra in 3D), poi i
-// prossimi (con il luogo solo se è deciso).
+// Il sito: la Terra vista dallo spazio. La linea arancione parte dalla Ciudad de México e vola
+// ai capitoli di Nomads: Mallorca (Capítulo 01, completato: il pannello del viaggio), poi
+// marzo 2027 e le Dolomiti (in carica). Nomi di paesi e mari per orientarsi.
 //   ?capture   anteprime: la storia si posiziona con window.__globe.seek(p)
 import gsap from 'gsap';
 import { WebGLRenderer, Scene, PerspectiveCamera, LoadingManager, Vector3 } from 'three';
@@ -10,7 +10,8 @@ import { createGlobe } from './globe.js';
 import { ll2v, arcPoints } from './geo.js';
 import { makeLine } from '../road/road.js';
 import { createGlobeStory } from './story.js';
-import { createIntro } from '../ui/intro.js';
+import { createChapterPanel } from './chapter.js';
+import { createLoader } from '../ui/loader.js';
 import { createInfo } from '../ui/info.js';
 import { createLineOverlay } from '../ui/lineOverlay.js';
 import { createAudio } from '../ui/audio.js';
@@ -25,46 +26,46 @@ async function start() {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x000000, 0);
   const scene = new Scene();
-  const camera = new PerspectiveCamera(45, 1, 0.005, 50);
+  const camera = new PerspectiveCamera(45, 1, 0.005, 100);
 
   const manager = new LoadingManager();
-  const intro = CAPTURE ? null : createIntro();
-  if (CAPTURE) $('#intro').remove();
-  manager.onProgress = (_, loaded, total) => intro?.setProgress((loaded / total) * 0.9);
+  const loader = CAPTURE ? null : createLoader();
+  if (CAPTURE) $('#loader').remove();
+  manager.onProgress = (_, loaded, total) => loader?.setProgress((loaded / total) * 0.95);
   const data = await loadGlobeData(manager);
 
-  const globe = createGlobe(data, G.colors);
+  const globe = createGlobe(data, G);
   scene.add(globe.group);
 
-  // le rotte: Capítulo 01 (Mallorca) e i prossimi capitoli con un luogo
-  const mall = G.chapters.find((c) => c.open);
-  const route = arcPoints(G.origin, mall, 260, G.arcHeight);
+  // le rotte: Capítulo 01 (Mallorca) e i capitoli in arrivo che hanno già un luogo
+  const [ch1] = G.chapters;
+  const route = arcPoints(G.origin, ch1, 260, G.arcHeight);
   const line = makeLine(route.flat, CONFIG.line);
   scene.add(line.line);
-  const nextPlaces = G.chapters.filter((c) => !c.open && c.lat != null);
-  const nextLines = nextPlaces.map((c) => {
-    const r = arcPoints(G.origin, c, 260, G.arcHeight * 1.15);
-    const l = makeLine(r.flat, { ...CONFIG.line, width: CONFIG.line.width * 0.75, glow: CONFIG.line.glow * 0.75 });
+  const placed = G.chapters.filter((c) => c.status !== 'done' && c.lat != null);
+  const nextLines = placed.map((c) => {
+    const l = makeLine(arcPoints(G.origin, c, 260, G.arcHeight * 1.15).flat, { ...CONFIG.line, width: CONFIG.line.width * 0.8 });
     scene.add(l.line);
     return l;
   });
 
-  // i pin: segnaposto DOM sopra il globo (nitidi, cliccabili)
+  // pin e nomi: elementi DOM sopra il globo (nitidi, cliccabili), nascosti dietro la Terra
   const pinsEl = $('#pins');
-  const pins = [];
-  const addPin = (place, cls, html, tag = 'div') => {
+  const marks = [];
+  const addMark = (place, cls, html, { tag = 'div', r = 1.003, near = 0, far = 99 } = {}) => {
     const el = document.createElement(tag);
-    el.className = `pin ${cls}`;
+    el.className = cls;
     if (tag === 'button') el.type = 'button';
-    el.innerHTML = `<i aria-hidden="true"></i><span>${html}</span>`;
+    el.innerHTML = html;
     pinsEl.appendChild(el);
-    const p = { el, pos: ll2v(place.lat, place.lon, 1.003), show: 1 };
-    pins.push(p);
-    return p;
+    const m = { el, pos: ll2v(place.lat, place.lon, r), show: 1, near, far, pin: cls.startsWith('pin') };
+    marks.push(m);
+    return m;
   };
-  addPin(G.origin, 'pin--origin', G.origin.name);
-  const pinMall = addPin(mall, 'pin--chapter', `<b>Capítulo ${mall.n}</b>${mall.name}`, 'button');
-  const pinsNext = nextPlaces.map((c) => addPin(c, 'pin--soon', `<b>Capítulo ${c.n}</b>${c.name} · ${c.when}`));
+  for (const l of G.labels) addMark(l, `place${l.sea ? ' place--sea' : ''}`, l.t, { near: 1.25, far: 4.6 });
+  const pinOrigin = addMark(G.origin, 'pin pin--origin', `<i aria-hidden="true"></i><span>${G.origin.name}</span>`);
+  const pin1 = addMark(ch1, 'pin pin--chapter', `<i aria-hidden="true"></i><span><b>Capítulo ${ch1.n}</b>${ch1.name}</span>`, { tag: 'button' });
+  const pinsNext = placed.map((c) => addMark(c, 'pin pin--soon', `<i aria-hidden="true"></i><span><b>Capítulo ${c.n}</b>${c.name}</span>`, { tag: 'button' }));
 
   // ── dimensioni: sul telefono in verticale il globo sta più in basso, i testi in alto
   let W = 1, H = 1;
@@ -72,7 +73,7 @@ async function start() {
     W = innerWidth; H = innerHeight;
     camera.aspect = W / H;
     camera.fov = W < H ? 50 : 36;
-    camera.setViewOffset(W, H, 0, W < H ? -H * 0.24 : -H * 0.1, W, H); // il globo in basso, i testi in alto
+    camera.setViewOffset(W, H, 0, W < H ? -H * 0.24 : -H * 0.1, W, H);
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(W, H, false);
@@ -85,54 +86,78 @@ async function start() {
   const story = createGlobeStory({ capture: CAPTURE });
   const st = story.state;
   const overlay = createLineOverlay();
-  let lineVisible = CAPTURE ? 1 : 0;
+  let lineVisible = 1;
 
-  const v = new Vector3(), cam = new Vector3(), right = new Vector3(), up = new Vector3(0, 1, 0);
-  /** punti della rotta disegnata, proiettati sullo schermo (per l'intro e per il pannello) */
-  const routeOnScreen = (from = 0, to = st.prog) => {
-    const a = Math.floor(from * (route.pts.length - 1)), b = Math.max(a + 2, Math.round(to * (route.pts.length - 1)));
-    return route.pts.slice(a, b + 1).map((p) => { v.copy(p).project(camera); return [(v.x * 0.5 + 0.5) * W, (-v.y * 0.5 + 0.5) * H]; });
+  const v = new Vector3(), cam = new Vector3(), right = new Vector3(), up = new Vector3(0, 1, 0), tmp = new Vector3();
+  /** la rotta disegnata, proiettata sullo schermo (il pannello di Mallorca ci fa partire la sua linea) */
+  const routeOnScreen = () => {
+    const b = Math.max(2, Math.round(st.prog * (route.pts.length - 1)));
+    return route.pts.slice(0, b + 1).map((p) => { v.copy(p).project(camera); return [(v.x * 0.5 + 0.5) * W, (-v.y * 0.5 + 0.5) * H]; });
   };
 
   const frame = () => {
-    // camera: guarda il centro del globo dal punto (lat, lon), alla distanza data
     ll2v(st.lat, st.lon, st.dist, cam);
     camera.position.copy(cam);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, 0);
     camera.updateMatrixWorld();
-    // luce dall'alto a sinistra rispetto a chi guarda: il lato visibile è sempre illuminato
+    // il sole alle spalle di chi guarda, un po' in alto a sinistra: la Terra visibile è illuminata
     right.crossVectors(cam, up).normalize();
-    globe.uniforms.uLight.value.copy(cam).normalize().addScaledVector(up, 0.55).addScaledVector(right, 0.35).normalize();
+    globe.uniforms.uLight.value.copy(cam).normalize().addScaledVector(up, 0.5).addScaledVector(right, 0.3).normalize();
+    globe.uniforms.uCamDist.value = st.dist;
     line.setProgress(st.prog);
     line.setOpacity(lineVisible);
-    nextLines.forEach((l) => { l.setProgress(st.prog2); l.setOpacity(0.85 * lineVisible); });
-    pinMall.show = st.mallorca;
+    nextLines.forEach((l) => { l.setProgress(st.prog2); l.setOpacity(lineVisible); });
+    pin1.show = st.mallorca;
     pinsNext.forEach((p) => { p.show = st.soon; });
-    for (const p of pins) {
-      // nascosti dietro il globo
-      const facing = v.copy(p.pos).normalize().dot(cam.clone().sub(p.pos).normalize());
-      v.copy(p.pos).project(camera);
-      const o = Math.min(Math.max((facing - 0.05) / 0.2, 0), 1) * p.show * lineVisible;
-      const px = (v.x * 0.5 + 0.5) * W;
-      p.el.style.transform = `translate3d(${px.toFixed(1)}px, ${((-v.y * 0.5 + 0.5) * H).toFixed(1)}px, 0)`;
-      p.el.classList.toggle('pin--left', px > W * 0.6); // vicino al bordo destro l'etichetta va a sinistra
-      p.el.style.opacity = o.toFixed(3);
-      p.el.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
+    pinOrigin.el.classList.toggle('pin--mystery', st.mystery > 0.5); // marzo: si riparte da qui, destino da annunciare
+    // prima i pin, poi i nomi (che si spengono vicino al bordo della Terra e vicino ai pin)
+    for (const m of marks) {
+      const facing = tmp.copy(m.pos).normalize().dot(v.copy(cam).sub(m.pos).normalize());
+      v.copy(m.pos).project(camera);
+      m.x = (v.x * 0.5 + 0.5) * W;
+      m.y = (-v.y * 0.5 + 0.5) * H;
+      const zoom = m.pin ? 1 : Math.min(Math.max((st.dist - m.near) / 0.25, 0), 1) * Math.min(Math.max((m.far - st.dist) / 0.4, 0), 1);
+      const edge = m.pin ? (facing - 0.08) / 0.2 : (facing - 0.3) / 0.25;
+      m.o = Math.min(Math.max(edge, 0), 1) * m.show * zoom * lineVisible;
+    }
+    const shown = marks.filter((m) => m.pin && m.o > 0.3);
+    for (const m of marks) {
+      let o = m.o;
+      if (!m.pin) for (const p of shown) {
+        const d = Math.hypot(m.x - p.x - (p.el.classList.contains('pin--left') ? -60 : 60), m.y - p.y);
+        o *= Math.min(Math.max((d - 60) / 40, 0), 1);
+      }
+      m.el.style.transform = `translate3d(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`;
+      m.el.style.opacity = o.toFixed(3);
+      if (m.pin) {
+        m.el.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
+        m.el.classList.toggle('pin--left', m.x > W * 0.6);
+      }
     }
     renderer.render(scene, camera);
   };
 
-  // il pannello del Capítulo 01 (giorni, livelli, cosa include, sul mare cristallino)
-  const info = createInfo({ overlay, story, setLineVisible: (on) => { lineVisible = on ? 1 : 0; }, source: () => routeOnScreen() });
-  $('#see-chapter').addEventListener('click', () => info.open());
-  pinMall.el.addEventListener('click', () => info.open());
+  // i pannelli dei capitoli: 01 completo (giorni, livelli, cosa include, sul mare cristallino),
+  // 02 e 03 con quello che si sa già
+  const info = createInfo({ overlay, story, setLineVisible: (on) => { lineVisible = on ? 1 : 0; }, source: routeOnScreen });
+  const panel = createChapterPanel({ story });
+  const openChapter = (n) => {
+    const ch = G.chapters.find((c) => c.n === n);
+    if (ch.status === 'done') info.open(); else panel.open(ch);
+  };
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-chapter]');
+    if (b) openChapter(b.dataset.chapter);
+  });
+  pin1.el.addEventListener('click', () => openChapter(ch1.n));
+  pinsNext.forEach((p, i) => p.el.addEventListener('click', () => openChapter(placed[i].n)));
 
   const audio = createAudio();
   const soundBtn = $('#sound');
   soundBtn.addEventListener('click', () => soundBtn.setAttribute('aria-pressed', String(audio.toggle())));
 
-  window.__globe = { story, camera, frame, info };
+  window.__globe = { story, camera, frame, info, panel, openChapter };
   if (CAPTURE) {
     window.__globe.seek = (p) => { story.seek(p); frame(); };
     story.intro(true);
@@ -141,22 +166,12 @@ async function start() {
     return;
   }
 
-  let drawn = 0;
-  gsap.ticker.add(() => {
-    if (story.finalOpen) return;
-    if (intro?.covering && drawn > 3) return;
-    drawn++;
-    frame();
-  });
+  gsap.ticker.add(() => { if (!story.finalOpen) frame(); });
   document.body.classList.add('ready');
 
-  // ENTRAR: la M del logo si posa sulla rotta che lascia il Messico
+  // a dati pronti la barra arancione sfuma e si scopre la Terra
   story.pause();
-  intro.setProgress(1);
-  await intro.ready();
-  audio.unlock();
-  frame();
-  await intro.play({ camera, overlay, target: routeOnScreen(0, G.progress[0]), onReveal: () => { lineVisible = 1; }, onShift: () => audio.shift() });
+  await loader.done();
   story.resume();
   story.intro();
 }

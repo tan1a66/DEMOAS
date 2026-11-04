@@ -43,11 +43,11 @@ async function loadImageTexture(manager, file, { srgb = false, flipY = false } =
 /** foto aerea → texture sRGB; la riga 0 dell'immagine è il nord (zMin), come le heightmap */
 const loadOrtho = (manager, meta) => loadImageTexture(manager, meta.file, { srgb: true });
 
-/** il globo: maschere di terra, costa e confini su tre livelli (mondo, Mediterraneo, Baleari) */
+/** il globo: la Terra (colori e rilievo) e le maschere di terra, costa e confini su tre livelli */
 export async function loadGlobeData(manager) {
   const meta = await loadFile(manager, BASE + 'globe.json', 'json');
-  const names = ['world', 'med', 'bal'];
-  const tex = await Promise.all(names.map((n) => loadImageTexture(manager, meta[n].file, { flipY: true })));
+  const names = ['world', 'med', 'bal', 'earth', 'topo'];
+  const tex = await Promise.all(names.map((n) => loadImageTexture(manager, meta[n].file, { flipY: true, srgb: n === 'earth' })));
   return { meta, tex: Object.fromEntries(names.map((n, i) => [n, tex[i]])) };
 }
 

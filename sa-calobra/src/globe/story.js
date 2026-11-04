@@ -1,6 +1,7 @@
 // La storia sul globo, a tappe: la linea arancione parte dalla Ciudad de México e attraversa
 // l'Atlantico; a ogni gesto (swipe, rotella, frecce) la camera vola alla tappa successiva e lì
-// si ferma, dove c'è un testo. All'arrivo, Mallorca (Capítulo 01); alla fine i prossimi capitoli.
+// si ferma, dove c'è un testo. Poi i capitoli, ognuno con la sua batteria: Mallorca (piena,
+// completato), marzo 2027 e le Dolomiti (in carica, loading); alla fine tutti insieme.
 // Un'unica timeline GSAP con un'etichetta per tappa, come nella Sa Calobra in 3D.
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
@@ -11,15 +12,30 @@ import coachImg from '../assets/coach.webp';
 gsap.registerPlugin(SplitText);
 
 const $ = (s) => document.querySelector(s);
-const ORDER = ['start', 'b', 'c', 'crew', 'coach', 'mallorca', 'next'];
+const ORDER = ['start', 'b', 'c', 'crew', 'coach', 'cap1', 'cap2', 'cap3', 'next'];
 const PHOTOS = {
   crew: { src: crewImg, alt: 'Ciclistas de Nomads en una pausa de café' },
   coach: { src: coachImg, alt: 'Alfredo “Freddy” Cruz revisa la estrategia con un ciclista' },
 };
 
+/** la batteria del capitolo: piena se completato, in carica se in arrivo */
+export function battery(status) {
+  const G = CONFIG.globe;
+  return `<span class="battery battery--${status}" aria-hidden="true"><i></i></span><em class="battery__t">${status === 'done' ? G.copy.done : G.copy.loading}</em>`;
+}
+
 function buildBeats() {
   const C = CONFIG.copy, G = CONFIG.globe;
-  const copy = { start: C.start, b: C.b, c: C.c, crew: C.port, coach: C.nus, mallorca: G.copy.mallorca, next: C.next };
+  const [ch1, ch2, ch3] = G.chapters;
+  const see = (n) => `<button class="cta" data-chapter="${n}" type="button">${G.copy.seeChapter} <span aria-hidden="true">→</span></button>`;
+  const copy = {
+    start: C.start, b: C.b, c: C.c, crew: C.port, coach: C.nus,
+    cap1: { kicker: `Capítulo ${ch1.n} · ${ch1.name} ${battery(ch1.status)}`, ...G.copy.cap1,
+      after: `<div class="end-actions">${see(ch1.n)}</div>` },
+    cap2: { kicker: `Capítulo ${ch2.n} · ${ch2.when} ${battery(ch2.status)}`, text: `${ch2.title}.`, sub: ch2.lead, after: `<div class="end-actions">${see(ch2.n)}</div>` },
+    cap3: { kicker: `Capítulo ${ch3.n} · ${ch3.when} ${battery(ch3.status)}`, text: `${ch3.title}.`, sub: ch3.lead, after: `<div class="end-actions">${see(ch3.n)}</div>` },
+    next: C.next,
+  };
   const host = $('#story');
   const end = $('#b-next');
   for (const key of ORDER) {
@@ -29,19 +45,17 @@ function buildBeats() {
     el.classList.add('beat');
     const parts = [];
     if (key === 'next') {
-      // i prossimi capitoli: con il luogo se c'è, altrimenti solo la data
-      parts.push('<div class="chapters">' + G.chapters.filter((ch) => !ch.open).map((ch) => `
-        <div class="chapter"><b>Capítulo ${ch.n}${ch.name ? ` · ${ch.name}` : ''}</b><span>${ch.when}</span><i>${G.copy.soon}</i></div>`).join('') + '</div>');
+      // tutti i capitoli, con la loro batteria
+      parts.push('<div class="chapters">' + G.chapters.map((ch) => `
+        <button class="chapter" type="button" data-chapter="${ch.n}"><b>Capítulo ${ch.n}${ch.name ? ` · ${ch.name}` : ''}</b><span>${ch.when}</span><i>${battery(ch.status)}</i></button>`).join('') + '</div>');
     }
     if (c.kicker) parts.push(`<p class="kicker">${c.kicker}</p>`);
     const cls = c.size === 'lead' ? 'lead' : 'headline';
-    parts.push(`<${key === 'start' ? 'h1' : 'p'} class="${cls}" data-split>${c.text}</${key === 'start' ? 'h1' : 'p'}>`);
+    const tag = key === 'start' ? 'h1' : 'p';
+    parts.push(`<${tag} class="${cls}" data-split>${c.text}</${tag}>`);
     if (c.sub) parts.push(`<p class="sub">${c.sub}</p>`);
     if (c.photo) parts.push(`<figure class="beat__photo"><img src="${PHOTOS[c.photo].src}" alt="${PHOTOS[c.photo].alt}" decoding="async" /></figure>`);
-    if (key === 'mallorca') {
-      parts.push(`<div class="end-actions"><button class="cta" id="see-chapter" type="button">${G.copy.seeChapter} <span aria-hidden="true">→</span></button>
-        <a class="cta cta--ghost" id="go-3d" href="sacalobra.html">${G.copy.sacalobra}</a></div>`);
-    }
+    if (c.after) parts.push(c.after);
     el.insertAdjacentHTML('afterbegin', parts.join(''));
   }
 }
@@ -50,9 +64,9 @@ export function createGlobeStory({ capture = false } = {}) {
   buildBeats();
   const G = CONFIG.globe;
   const V = G.views;
-  const D = [3.4, 3.2, 3.2, 3.2, 3.8, 3.8];
-  // stato animato dalla timeline: camera (lat, lon, distanza), rotta disegnata, prossimi capitoli
-  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: G.progress[0], prog2: 0, soon: 0, mallorca: 0 };
+  const D = [3.4, 3.2, 3.2, 3.2, 3.8, 3.8, 3.8, 3.6];
+  // stato animato dalla timeline: camera (lat, lon, distanza), rotte disegnate, pin
+  const state = { lat: V[0].lat, lon: V[0].lon, dist: V[0].dist, prog: G.progress[0], prog2: 0, soon: 0, mallorca: 0, mystery: 0 };
 
   const lines = new Map();
   for (const el of document.querySelectorAll('[data-split]')) {
@@ -87,11 +101,14 @@ export function createGlobeStory({ capture = false } = {}) {
     if (k === 1) tl.to('#cue', { autoAlpha: 0, duration: 0.4 }, t);
     // la camera vola sopra la rotta: lenta all'inizio e all'arrivo
     tl.to(state, { lat: v.lat, lon: v.lon, duration: d * 0.95, ease: 'sine.inOut' }, t);
-    tl.to(state, { dist: v.dist, duration: d * 0.95, ease: k === 5 ? 'power2.inOut' : 'sine.inOut' }, t);
+    // le zoomate (Mallorca, Dolomiti) rallentano a lungo prima di posarsi
+    tl.to(state, { dist: v.dist, duration: d * 0.95, ease: v.dist < 2 ? 'power2.inOut' : 'sine.inOut' }, t);
     tl.to(state, { prog: G.progress[k], duration: d * 0.8, ease: 'sine.inOut' }, t + d * 0.05);
     if (k === 4) tl.to(state, { mallorca: 1, duration: 0.6 }, t + d * 0.7);
-    if (k === 6) {
-      tl.to(state, { prog2: 1, duration: d * 0.7, ease: 'sine.inOut' }, t + d * 0.25);
+    if (k === 6) tl.to(state, { mystery: 1, duration: 0.6 }, t + d * 0.6);   // marzo: si riparte dal Messico
+    if (k === 7) {
+      tl.to(state, { mystery: 0, duration: 0.4 }, t);
+      tl.to(state, { prog2: 1, duration: d * 0.75, ease: 'sine.inOut' }, t + d * 0.1);
       tl.to(state, { soon: 1, duration: 0.6 }, t + d * 0.7);
     }
     beatIn(`#b-${ORDER[k]}`, t + d * 0.55);

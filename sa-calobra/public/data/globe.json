@@ -32,5 +32,15 @@
   "width": 1680,
   "height": 840
  },
- "source": "Natural Earth (dominio pubblico) via world-atlas"
+ "earth": {
+  "file": "globe_earth.webp",
+  "width": 4096,
+  "height": 2048
+ },
+ "topo": {
+  "file": "globe_topo.webp",
+  "width": 2048,
+  "height": 1024
+ },
+ "source": "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico)"
 }

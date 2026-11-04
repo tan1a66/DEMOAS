@@ -25,4 +25,9 @@ if (process.env.INFO) {
   await page.waitForTimeout(3500);
   await page.screenshot({ path: `${outDir}/g-info.png`, timeout: 120000 });
 }
+if (process.env.CH) {
+  await page.evaluate((n) => window.__globe.openChapter(n), process.env.CH);
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: `${outDir}/g-cap${process.env.CH}.png`, timeout: 120000 });
+}
 await browser.close();

@@ -13,7 +13,7 @@ const norm = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCa
 function build() {
   const t = CONFIG.trip;
   const past = t.status === 'past';
-  for (const id of ['info-open', 'info-open-end']) document.getElementById(id).textContent = t.button;
+  for (const id of ['info-open', 'info-open-end']) { const el = document.getElementById(id); if (el) el.textContent = t.button; }
   document.getElementById('info-dates').textContent = `${t.chapter} · ${t.dates}`;
   document.getElementById('info-title').textContent = t.name;
   document.getElementById('info-lead').textContent = past ? 'Así fue el primer capítulo.' : t.price.note;
@@ -128,7 +128,7 @@ export function createInfo({ camera, road, rig, overlay, story, setLineVisible, 
     gsap.to(items(), { opacity: 0, y: -10, duration: 0.35, stagger: 0.02, ease: 'power2.in', onComplete: done });
   }
 
-  for (const id of ['info-open', 'info-open-end']) document.getElementById(id).addEventListener('click', open);
+  for (const id of ['info-open', 'info-open-end']) document.getElementById(id)?.addEventListener('click', open);
   document.getElementById('info-close').addEventListener('click', close);
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   document.getElementById('cta-info').addEventListener('click', (e) => { close(); setTimeout(() => story.open(e), 1300); });

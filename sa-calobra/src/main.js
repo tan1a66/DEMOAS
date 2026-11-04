@@ -27,7 +27,7 @@ import { CameraRig } from './camera/rig.js';
 import { createStory } from './story/story.js';
 import { createLook } from './ui/look.js';
 import { createAudio } from './ui/audio.js';
-import { createIntro } from './ui/intro.js';
+import { createLoader } from './ui/loader.js';
 import { createInfo } from './ui/info.js';
 import { createLineOverlay } from './ui/lineOverlay.js';
 import { createShare } from './ui/share.js';
@@ -89,10 +89,10 @@ async function buildWorld(canvas, manager) {
 async function start() {
   const canvas = document.getElementById('gl');
   const manager = new LoadingManager();
-  // l'intro compare subito; la linea sotto il logo segue il caricamento
+  // il caricamento: solo una barra arancione
   const dev = CAPTURE || params.has('view') || params.has('pos') || params.has('orbit');
-  const intro = dev ? null : createIntro();
-  if (dev) document.getElementById('intro').remove();
+  const intro = dev ? null : createLoader();
+  if (dev) document.getElementById('loader').remove();
   manager.onProgress = (_, loaded, total) => intro?.setProgress((loaded / total) * 0.75);
   const w = await buildWorld(canvas, manager);
   intro?.setProgress(0.9);
@@ -134,7 +134,7 @@ async function start() {
   const story = createStory({ rig, road, camera, capture: CAPTURE });
   const st = rig.state;
   const overlay = createLineOverlay();
-  let lineVisible = dev ? 1 : 0; // la linea 3D compare quando la "M" dell'intro si posa sulla strada
+  let lineVisible = dev ? 1 : 0; // la linea 3D compare quando sparisce il caricamento
   const info = createInfo({ camera, road, rig, overlay, story, setLineVisible: (v) => { lineVisible = v ? 1 : 0; } });
   // "Comparte tu cima": l'immagine si prepara quando si arriva in cima
   const share = createShare({ canvas, road, render: () => post.composer.render(0) });
@@ -198,7 +198,7 @@ async function start() {
   let drawn = 0;
   gsap.ticker.add((time, deltaMs) => {
     if (story.finalOpen) return; // la schermata finale copre tutto: niente 3D
-    // dietro lo schermo crema dell'intro basta qualche fotogramma (per preparare gli shader):
+    // dietro il caricamento basta qualche fotogramma (per preparare gli shader):
     // poi il telefono lavora solo per l'animazione della M
     if (intro?.covering && drawn > 3) return;
     drawn++;
@@ -216,12 +216,10 @@ async function start() {
   console.log('[sa-calobra]', JSON.stringify(w.info));
   document.body.classList.add('ready');
 
-  // ── ENTRAR: sblocca audio e giroscopio (serve un gesto), poi lo zoom nella M
+  // ── a dati pronti la barra sfuma e la scena si scopre (audio e giroscopio si attivano dai loro bottoni)
   story.pause();
-  await intro.ready();
-  audio.unlock();
-  if (look.gyroAvailable) look.enableGyro().then((ok) => ok && gyroBtn.classList.add('on'));
-  await intro.play({ camera, road, overlay, lineS: st.lineS, onReveal: () => { lineVisible = 1; }, onShift: () => audio.shift() });
+  lineVisible = 1;
+  await intro.done();
   story.resume();
   story.intro();
 }

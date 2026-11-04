@@ -7,7 +7,10 @@ Tre livelli, in proiezione equirettangolare (riga 0 = nord):
   bal    — Baleari, coste 1:10m (per lo zoom su Mallorca)
 Canali: R = terra (antialias), G = linea di costa, B = confini tra stati.
 Uscita: public/data/globe_{world,med,bal}.webp e public/data/globe.json (riquadri).
+In più la Terra vera: NASA Blue Marble (colori) e il rilievo, dominio pubblico, presi dal
+mirror jsDelivr degli esempi di three-globe → public/data/globe_earth.webp, globe_topo.webp.
 """
+import urllib.request
 import json
 from pathlib import Path
 
@@ -74,6 +77,24 @@ def render(src, box, W, H):
     return Image.merge("RGB", ch)
 
 
+EARTH = "https://cdn.jsdelivr.net/gh/vasturiano/three-globe@master/example/img/"
+
+
+def earth(meta):
+    """Blue Marble (colori, 4096×2048) e rilievo (2048×1024) in WebP"""
+    cache = ROOT / ".cache" / "earth"
+    cache.mkdir(parents=True, exist_ok=True)
+    for src, name, q in (("earth-blue-marble.jpg", "earth", 82), ("earth-topology.png", "topo", 80)):
+        f = cache / src
+        if not f.exists():
+            f.write_bytes(urllib.request.urlopen(EARTH + src, timeout=120).read())
+        im = Image.open(f).convert("RGB" if name == "earth" else "L")
+        out = DATA / f"globe_{name}.webp"
+        im.save(out, "WEBP", quality=q, method=6)
+        meta[name] = {"file": out.name, "width": im.width, "height": im.height}
+        print(f"{name}: {im.width}x{im.height} → {out.name} {out.stat().st_size // 1024} KB")
+
+
 def main():
     meta = {}
     cache = {}
@@ -88,7 +109,8 @@ def main():
         img.save(f, "WEBP", quality=L["q"], method=6)
         meta[name] = {"file": f.name, "box": L["box"], "width": W, "height": H}
         print(f"{name}: {W}x{H} → {f.name} {f.stat().st_size // 1024} KB")
-    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas"
+    earth(meta)
+    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico)"
     (DATA / "globe.json").write_text(json.dumps(meta, indent=1))
 
 
