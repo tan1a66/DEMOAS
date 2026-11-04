@@ -199,6 +199,9 @@
   .band .name { font-family: var(--display); font-weight: 300; font-size: 19pt; letter-spacing: -0.03em; line-height: 1; }
   .band .tag { font-family: var(--display); font-weight: 500; font-size: 6.6pt; letter-spacing: 0.26em; text-transform: uppercase; color: var(--neon); margin-top: 2.4mm; }
   .band .neonline { height: 0.6mm; width: 30mm; margin-top: 4mm; background: linear-gradient(90deg, var(--pink), var(--neon)); }
+  .tariff { margin-top: 9mm; background: var(--ink); color: var(--cream); border-radius: 2.6mm; padding: 10mm 9mm 9mm; }
+  .tariff__price { font-family: var(--display); font-weight: 300; font-size: 58pt; line-height: 0.95; letter-spacing: -0.045em; }
+  .tariff__what { margin-top: 5mm; font-size: 12pt; line-height: 1.45; max-width: 120mm; color: rgba(237,232,223,0.88); padding-left: 4mm; border-left: 0.8mm solid var(--orange); }
 </style>
 </head>
 <body>
@@ -303,34 +306,38 @@
   <div class="foot"><span>Terreno IGN España · AWS Terrain Tiles · © OpenStreetMap contributors</span><b>04</b></div>
 </section>
 
-<!-- 5 · PROPUESTA -->
+<!-- 5 · INVERSIÓN -->
 <section class="page">
-  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">04 · Propuesta</span></div>
-  <p class="sec-k">04 · Propuesta</p>
-  <h2 class="s">Una sola propuesta, clara.</h2>
-  <div class="price l">
-    <div class="price__row"><span class="n">01</span><div><h3>Sitio base</h3><p>Diseño a medida, una página, contacto por WhatsApp.</p></div><span class="add">1.000 €</span><span class="sub">1.000 €</span></div>
-    <div class="price__row" style="border-bottom:0"><span class="n">02</span><div><h3>Experiencia 3D</h3><p>La ruta en 7 etapas.</p></div><span class="add">+ 500 €</span><span class="sub">1.500 €</span></div>
-    <div class="price__total"><p class="label" style="color:rgba(237,232,223,0.7); margin:0">Total</p><p class="t">1.500 €</p></div>
+  <div class="head"><span class="head__brand"><span class="logo logo--dark"></span><span class="x">×</span>Alessia Studio</span><span class="head__sec">04 · Inversión</span></div>
+  <p class="sec-k">04 · Inversión</p>
+  <h2 class="s">Tarifa única.</h2>
+  <div class="tariff">
+    <p class="tariff__price">1.500 €</p>
+    <p class="tariff__what">Sitio a medida + experiencia 3D, publicado y listo para recibir clientes.</p>
   </div>
-  <p class="label" style="margin-top:8mm">Incluido</p>
-  <ul class="incl2">
-    <li>Dominio y hosting, primer año</li>
-    <li>https y SEO base</li>
-    <li>Celular, tablet y computadora</li>
-    <li>Versión de reserva sin 3D</li>
-    <li>2 rondas de cambios</li>
-    <li>Publicación en línea</li>
-  </ul>
-  <p class="label" style="margin-top:8mm">Extras opcionales</p>
-  <ul class="incl2">
-    <li style="display:flex; justify-content:space-between"><span>5 páginas · español e inglés</span><b>+ 500 €</b></li>
-    <li style="display:flex; justify-content:space-between"><span>Kit social para Instagram</span><b>+ 250 €</b></li>
-  </ul>
-  <div class="facts" style="grid-template-columns:repeat(3, 1fr)">
-    <div><p class="label">Tiempos</p><b>2 semanas</b><span>desarrollo + revisión</span></div>
-    <div><p class="label">Pago</p><b>50% · 50%</b><span>inicio · entrega</span></div>
-    <div><p class="label">Desde el 2º año</p><b>200 € / año</b><span>dominio y hosting</span></div>
+  <div class="grid2" style="margin-top:10mm; gap:12mm">
+    <div>
+      <p class="label">Incluye</p>
+      <ul class="plain">
+        <li>Diseño a medida</li>
+        <li>Experiencia 3D: la ruta en 7 etapas</li>
+        <li>Dominio y hosting el primer año</li>
+        <li>https y SEO base</li>
+        <li>Celular, tablet y computadora</li>
+        <li>Versión de reserva sin 3D</li>
+        <li>2 rondas de cambios</li>
+      </ul>
+    </div>
+    <div>
+      <p class="label">Condiciones</p>
+      <ul class="plain">
+        <li><b>2 semanas</b> de la confirmación a la entrega</li>
+        <li><b>50%</b> al confirmar · <b>50%</b> a la entrega</li>
+        <li>Desde el 2º año: <b>200 € / año</b>, dominio y hosting</li>
+      </ul>
+      <p class="label" style="margin-top:9mm">Ampliaciones</p>
+      <p style="font-size:9pt; color:#555; line-height:1.55">5 páginas en español e inglés: +500 €<br />Kit social para Instagram: +250 €</p>
+    </div>
   </div>
   <div class="band">
     <div><p class="name">Alessia Studio</p><p class="tag">3D web experience</p><div class="neonline"></div></div>
