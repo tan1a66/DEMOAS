@@ -3,13 +3,17 @@
 // marzo 2027 e le Dolomiti (in carica). Nomi di paesi e mari per orientarsi.
 //   ?capture   anteprime: la storia si posiziona con window.__globe.seek(p)
 import gsap from 'gsap';
-import { WebGLRenderer, Scene, PerspectiveCamera, LoadingManager, Vector3 } from 'three';
+import {
+  WebGLRenderer, Scene, PerspectiveCamera, OrthographicCamera, LoadingManager, Vector3, WebGLRenderTarget, HalfFloatType,
+  Mesh, PlaneGeometry, ShaderMaterial,
+} from 'three';
 import { CONFIG } from '../config.js';
 import { loadGlobeData } from '../data/load.js';
 import { createGlobe } from './globe.js';
 import { ll2v, arcPoints } from './geo.js';
 import { makeLine } from '../road/road.js';
 import { createGlobeStory } from './story.js';
+import { createRide } from './ride.js';
 import { createChapterPanel } from './chapter.js';
 import { createLoader } from '../ui/loader.js';
 import { createInfo } from '../ui/info.js';
@@ -49,8 +53,43 @@ async function start() {
     return l;
   });
 
+  // ── in sella (ride.js): il manubrio all'alba. Lo schermo del ciclocomputer mostra il globo
+  // visto da sopra Mallorca (una seconda ripresa in una texture), poi "LLEGASTE" con la distanza
+  // vera da Città del Messico (arco di cerchio massimo)
+  const R = Math.PI / 180, o = G.origin;
+  const km = Math.round(6371 * Math.acos(Math.sin(o.lat * R) * Math.sin(ch1.lat * R) + Math.cos(o.lat * R) * Math.cos(ch1.lat * R) * Math.cos((ch1.lon - o.lon) * R)));
+  const ride = createRide({ renderer, km, from: o.name, place: ch1.name, chapter: ch1.n });
+  const screenRT = new WebGLRenderTarget(640, 974, { samples: 4 });
+  ride.screen.uniforms.tMap.value = screenRT.texture;
+  // la ripresa per lo schermo è la stessa del globo alla fine del volo: il passaggio non si vede
+  const arrive = G.views[1];
+  const mapCam = new PerspectiveCamera(40, 640 / 974, 0.005, 100);
+  ll2v(arrive.lat, arrive.lon, arrive.dist, mapCam.position);
+  mapCam.lookAt(0, 0, 0);
+  mapCam.updateMatrixWorld();
+  const mapRight = new Vector3().crossVectors(mapCam.position, new Vector3(0, 1, 0)).normalize();
+  const mapLight = new Vector3().copy(mapCam.position).normalize().addScaledVector(new Vector3(0, 1, 0), 0.5).addScaledVector(mapRight, 0.3).normalize();
+  // la scena in sella si disegna a parte e si posa sopra il globo con una dissolvenza
+  const rideRT = new WebGLRenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
+  const comp = new Mesh(new PlaneGeometry(2, 2), new ShaderMaterial({
+    uniforms: { tScene: { value: rideRT.texture }, uOpacity: { value: 0 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `uniform sampler2D tScene; uniform float uOpacity; varying vec2 vUv;
+      vec3 aces(vec3 x) { return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+      void main() { gl_FragColor = vec4(aces(texture2D(tScene, vUv).rgb * 1.1), uOpacity);
+      #include <colorspace_fragment>
+      }`,
+    transparent: true, depthTest: false, depthWrite: false,
+  }));
+  comp.frustumCulled = false;
+  const compScene = new Scene();
+  compScene.add(comp);
+  const compCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
   // pin e nomi: elementi DOM sopra il globo (nitidi, cliccabili), nascosti dietro la Terra
   const pinsEl = $('#pins');
+  const veil = $('#veil');
+  const root = document.documentElement;
   const marks = [];
   const addMark = (place, cls, html, { tag = 'div', r = 1.003, near = 0, far = 99 } = {}) => {
     const el = document.createElement(tag);
@@ -82,6 +121,11 @@ async function start() {
     renderer.setSize(W, H, false);
     line.setResolution(W, H);
     nextLines.forEach((l) => l.setResolution(W, H));
+    const dpr = renderer.getPixelRatio();
+    rideRT.setSize(Math.round(W * dpr), Math.round(H * dpr));
+    ride.resize(W, H);
+    mapCam.fov = 2 * Math.atan(ride.screenFrac * Math.tan((camera.fov * Math.PI) / 360)) * (180 / Math.PI);
+    mapCam.updateProjectionMatrix();
   };
   addEventListener('resize', resize);
   resize();
@@ -138,7 +182,34 @@ async function start() {
         m.el.classList.toggle('pin--left', m.x > W * 0.6);
       }
     }
-    renderer.render(scene, camera);
+    const r = st.ride;
+    pinsEl.style.opacity = String(1 - r);
+    // in sella niente velo scuro: è lì per leggere i testi sul globo, sul tramonto spegnerebbe la luce
+    veil.style.visibility = r > 0.98 ? 'hidden' : '';
+    veil.style.filter = r > 0 ? `opacity(${(1 - r).toFixed(3)})` : '';
+    root.classList.toggle('is-riding', r > 0.5); // sul cielo chiaro il logo e i pulsanti diventano scuri
+    if (r < 1) renderer.render(scene, camera);
+    else { renderer.setRenderTarget(null); renderer.clear(); }
+    if (r > 0) {
+      ride.update(st.rk, performance.now() / 1000);
+      ride.screen.uniforms.uMix.value = st.screen;
+      if (st.screen < 1) {
+        // lo schermo: il globo da sopra Mallorca, con la luce giusta per quella ripresa
+        const keep = globe.uniforms.uLight.value.clone(), keepD = globe.uniforms.uCamDist.value;
+        globe.uniforms.uLight.value.copy(mapLight);
+        globe.uniforms.uCamDist.value = arrive.dist;
+        renderer.setRenderTarget(screenRT);
+        renderer.render(scene, mapCam);
+        globe.uniforms.uLight.value.copy(keep);
+        globe.uniforms.uCamDist.value = keepD;
+      }
+      ride.render(rideRT);
+      renderer.setRenderTarget(null);
+      comp.material.uniforms.uOpacity.value = r;
+      renderer.autoClear = false;
+      renderer.render(compScene, compCam);
+      renderer.autoClear = true;
+    }
   };
 
   // i pannelli dei capitoli: 01 completo (giorni, livelli, cosa include, sul mare cristallino),

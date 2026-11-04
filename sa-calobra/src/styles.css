@@ -366,3 +366,10 @@ html.is-exploring .credit { display: none; }
 @media (min-width: 720px) { .dock { left: 50%; right: auto; transform: translateX(-50%); width: min(680px, 100%); } }
 .dock__cta { margin-top: 0; justify-self: start; padding: 14px 20px 13px; }
 .dock__credit { margin: 0; font-size: 8.5px; opacity: 0.5; }
+
+/* in sella: il cielo del tramonto è chiaro, logo e pulsanti diventano scuri */
+.top .logo, .info-btn, .sound svg, .credit { transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, stroke 0.5s ease; }
+html.is-riding .top .logo { background: var(--anthracite); }
+html.is-riding .info-btn { color: var(--anthracite); border-color: rgba(43, 43, 43, 0.4); }
+html.is-riding .sound svg { stroke: var(--anthracite); }
+html.is-riding .credit { color: rgba(43, 43, 43, 0.6); }
