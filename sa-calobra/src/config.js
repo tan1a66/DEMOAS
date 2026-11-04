@@ -253,15 +253,18 @@ export const CONFIG = {
     // inquadratura per tappa del racconto: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
     views: [
       { lat: 24, lon: -96, dist: 3.2 },       // 0 · la Ciudad de México
-      { lat: 30, lon: -74, dist: 3.4 },       // 1 · quiénes somos: la linea lascia il Messico
-      { lat: 35, lon: -48, dist: 3.5 },       // 2 · qué hacemos: sopra l'Atlantico
-      { lat: 38, lon: -26, dist: 3.3 },       // 3 · the crew
-      { lat: 41, lon: -4, dist: 2.5 },        // 4 · head coach: Spagna e Francia
+      { lat: 43, lon: -3, dist: 2.7 },        // 1 · arrivati in Europa: quiénes somos
+      { lat: 42.2, lon: -1.5, dist: 2.58 },   // 2 · qué hacemos (a ogni frase un poco più vicino a Mallorca)
+      { lat: 41.4, lon: 0, dist: 2.46 },      // 3 · the crew
+      { lat: 40.6, lon: 1.5, dist: 2.34 },    // 4 · head coach
     ],
+    // il volo unico Messico → Europa: parte da solo dopo `delay` secondi, dura `duration`,
+    // a metà la camera si allontana fino a `peak` per vedere l'Atlantico
+    flight: { delay: 1.6, duration: 4.2, peak: 3.9 },
     // arrivati in Europa il racconto finisce: il mondo diventa esplorabile da qui
     explore: { lat: 42, lon: 6, dist: 2.25 },
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
-    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
+    progress: [0.1, 1, 1, 1, 1, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
     // l'alba dorata: il sole sorge dietro la Terra
     atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra

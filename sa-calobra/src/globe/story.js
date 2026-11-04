@@ -1,7 +1,7 @@
-// La storia sul globo: prima un racconto a tappe (la linea arancione parte dalla Ciudad de
-// México e attraversa l'Atlantico: a ogni gesto la camera vola alla tappa successiva e si
-// ferma dove c'è un testo); arrivati in Europa il racconto finisce e il mondo diventa
-// esplorabile: si gira, ci si avvicina, si toccano le mete. Ogni capitolo ha la sua batteria:
+// La storia sul globo: dalla Ciudad de México un solo volo, che parte da solo, fino in Europa
+// (la linea arancione si disegna mentre la camera la segue); in Europa scorrono le frasi, una
+// per gesto, con il globo che si avvicina pianissimo a Mallorca; poi il racconto finisce e il
+// mondo diventa esplorabile: si gira, ci si avvicina, si toccano le mete. Ogni capitolo ha la sua batteria:
 // piena se completato, in carica (loading) se in arrivo.
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
@@ -12,6 +12,16 @@ import coachImg from '../assets/coach.webp';
 gsap.registerPlugin(SplitText);
 
 const $ = (s) => document.querySelector(s);
+const RAD = Math.PI / 180;
+/** punto a metà strada (frazione f) sull'arco di cerchio massimo tra due punti {lat, lon} */
+function slerpLL(a, b, f) {
+  const v = (p) => [Math.cos(p.lat * RAD) * Math.cos(p.lon * RAD), Math.sin(p.lat * RAD), Math.cos(p.lat * RAD) * Math.sin(p.lon * RAD)];
+  const A = v(a), B = v(b);
+  const w = Math.acos(Math.min(1, Math.max(-1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2]))), s = Math.sin(w) || 1;
+  const ka = Math.sin((1 - f) * w) / s, kb = Math.sin(f * w) / s;
+  const x = A[0] * ka + B[0] * kb, y = A[1] * ka + B[1] * kb, z = A[2] * ka + B[2] * kb;
+  return [Math.asin(y / Math.hypot(x, y, z)) / RAD, Math.atan2(z, x) / RAD];
+}
 const ORDER = ['start', 'b', 'c', 'crew', 'coach', 'explore'];
 const PHOTOS = {
   crew: { src: crewImg, alt: 'Ciclistas de Nomads en una pausa de café' },
@@ -67,7 +77,7 @@ export function createGlobeStory({ capture = false } = {}) {
   buildBeats();
   const G = CONFIG.globe;
   const V = [...G.views, G.explore];
-  const D = [3.4, 3.2, 3.2, 3.2, 3.8];
+  const D = [G.flight.duration, 1.6, 1.6, 1.6, 2.4];
   // stato: camera (lat, lon, distanza), rotte disegnate, pin. Durante il racconto lo anima la
   // timeline; durante l'esplorazione lo cambiano le dita (main.js)
   // low: quanto il globo sta in basso sotto i testi (1 nel racconto; esplorando torna quasi al centro)
@@ -101,13 +111,25 @@ export function createGlobeStory({ capture = false } = {}) {
   const labels = [0];
   let t = 0;
   for (let k = 1; k < ORDER.length; k++) {
-    const d = D[k - 1], v = V[k];
-    beatOut(`#b-${ORDER[k - 1]}`, t);
-    if (k === 1) tl.to('#cue', { autoAlpha: 0, duration: 0.4 }, t);
-    tl.to(state, { lat: v.lat, lon: v.lon, duration: d * 0.95, ease: 'sine.inOut' }, t);
-    tl.to(state, { dist: v.dist, duration: d * 0.95, ease: 'sine.inOut' }, t);
-    tl.to(state, { prog: G.progress[k] ?? 1, duration: d * 0.8, ease: 'sine.inOut' }, t + d * 0.05);
-    if (k === 4) tl.to(state, { mallorca: 1, duration: 0.6 }, t + d * 0.7);
+    const d = D[k - 1], v = V[k], flight = k === 1;
+    beatOut(`#b-${ORDER[k - 1]}`, flight ? t + 0.2 : t);
+    if (flight) {
+      // un volo solo, lungo l'arco: la camera segue la rotta e la linea la precede di poco;
+      // a metà ci si allontana per vedere l'oceano, poi si scende sull'Europa
+      const fly = { f: 0 }, from = V[0];
+      tl.to(fly, { f: 1, duration: d, ease: 'sine.inOut', onUpdate: () => { [state.lat, state.lon] = slerpLL(from, v, fly.f); } }, t);
+      tl.to(state, { dist: G.flight.peak, duration: d * 0.45, ease: 'sine.inOut' }, t);
+      tl.to(state, { dist: v.dist, duration: d * 0.55, ease: 'sine.inOut' }, t + d * 0.45);
+      tl.to(state, { prog: 1, duration: d * 0.86, ease: 'sine.inOut' }, t);
+      tl.to(state, { mallorca: 1, duration: 0.6 }, t + d * 0.82);
+      // l'invito a scorrere torna quando si arriva: ora le frasi vanno avanti col gesto
+      tl.to('#cue', { autoAlpha: 1, duration: 0.5 }, t + d - 0.5);
+    } else {
+      if (k === 2) tl.fromTo('#cue', { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.4, immediateRender: false }, t);
+      tl.to(state, { lat: v.lat, lon: v.lon, duration: d * 0.95, ease: 'sine.inOut' }, t);
+      tl.to(state, { dist: v.dist, duration: d * 0.95, ease: 'sine.inOut' }, t);
+      tl.to(state, { prog: G.progress[k] ?? 1, duration: d * 0.8, ease: 'sine.inOut' }, t + d * 0.05);
+    }
     if (k === ORDER.length - 1) {
       // l'Europa: partono le rotte dei prossimi capitoli, compaiono le mete e la barra in basso
       tl.to(state, { prog2: 1, duration: d * 0.75, ease: 'sine.inOut' }, t + d * 0.15);
@@ -116,7 +138,7 @@ export function createGlobeStory({ capture = false } = {}) {
       tl.fromTo('#dock', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out', immediateRender: false }, t + d * 0.7);
       tl.to('.rail', { autoAlpha: 0, duration: 0.5 }, t + d * 0.6);
     }
-    beatIn(`#b-${ORDER[k]}`, t + d * 0.55);
+    beatIn(`#b-${ORDER[k]}`, t + d * (flight ? 0.84 : 0.4));
     t += d;
     labels.push(t);
   }
@@ -198,9 +220,14 @@ export function createGlobeStory({ capture = false } = {}) {
     gsap.set('#veil', { opacity: 1 });
     gsap.set('#dock', { autoAlpha: 0 });
     setBar();
-    if (instant) { gsap.set([...text, ...other], { yPercent: 0, y: 0, opacity: 1 }); gsap.set(['#cue', '.rail'], { autoAlpha: 1 }); return; }
+    gsap.set('#cue', { autoAlpha: 0 });
+    if (instant) { gsap.set([...text, ...other], { yPercent: 0, y: 0, opacity: 1 }); gsap.set('.rail', { autoAlpha: 1 }); return; }
     gsap.fromTo(text, { yPercent: 115, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.09, ease: 'power3.out', delay: 0.2 });
-    gsap.fromTo(['#cue', '.rail'], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, delay: 1.4 });
+    gsap.fromTo('.rail', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8, delay: 1.4 });
+    // il volo parte da solo (se nel frattempo c'è un pannello aperto, aspetta che si chiuda)
+    if (capture) return;
+    const fly = () => { if (step !== 0 || anim) return; if (locked || api.finalOpen) gsap.delayedCall(1, fly); else goTo(1); };
+    gsap.delayedCall(1.1 + G.flight.delay, fly);
   };
 
   // ── schermata finale (contatto)
