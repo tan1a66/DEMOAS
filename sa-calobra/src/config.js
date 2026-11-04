@@ -263,7 +263,12 @@ export const CONFIG = {
     zoom: [1.15, 4.6],         // quanto ci si può avvicinare e allontanare esplorando
     progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1], // quanto è disegnata la rotta di Mallorca a ogni tappa
     arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
-    atmosphere: '#7fb8ff',
+    // l'alba dorata: il sole sorge dietro la Terra
+    atmosphere: '#9cc8ff',     // l'aria azzurra sulla faccia della Terra
+    halo: '#ffc58a',           // il bordo della Terra acceso dal sole
+    glow: ['#ffd9a3', '#ff9d5f', '#c86f8f'], // il bagliore intorno: oro, arancio, rosa
+    sunlight: '#fff0da',       // la luce calda del mattino sulla Terra
+    ambient: 0.52,             // quanto è chiara anche la parte meno illuminata
     // nomi sulla cartina, per orientarsi
     labels: [
       { t: 'México', lat: 23.6, lon: -102.5 }, { t: 'Estados Unidos', lat: 39, lon: -98 },

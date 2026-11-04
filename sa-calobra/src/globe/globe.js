@@ -1,10 +1,11 @@
 // Il globo: la Terra vera (NASA Blue Marble, dominio pubblico) con il rilievo, il riflesso del
-// sole sul mare, confini e coste sottili (Natural Earth), atmosfera azzurra sul bordo, e un
-// cielo di piccole stelle intorno. Vicino a Mallorca la costa viene da maschere più nitide
+// sole sul mare, confini e coste sottili (Natural Earth), il bordo acceso dall'alba con un
+// bagliore dorato intorno, e un cielo di piccole stelle. Vicino a Mallorca la costa viene da maschere più nitide
 // (Mediterraneo, Baleari), così l'isola resta definita anche da vicino.
 import {
-  Mesh, Group, SphereGeometry, ShaderMaterial, Color, Vector3, Vector4, BackSide, AdditiveBlending,
+  Mesh, Group, SphereGeometry, ShaderMaterial, Color, Vector3, Vector4, BackSide,
   RepeatWrapping, ClampToEdgeWrapping, BufferGeometry, Float32BufferAttribute, Points, PointsMaterial,
+  Sprite, SpriteMaterial, CanvasTexture, SRGBColorSpace,
 } from 'three';
 
 const vert = /* glsl */ `
@@ -21,8 +22,8 @@ const vert = /* glsl */ `
 const frag = /* glsl */ `
   uniform sampler2D tEarth, tTopo, tWorld, tMed, tBal;
   uniform vec4 uMedBox, uBalBox;          // lonMin, latMin, lonMax, latMax
-  uniform vec3 uLight, uAtmo;
-  uniform float uBump, uCamDist;
+  uniform vec3 uLight, uAtmo, uSun;
+  uniform float uBump, uCamDist, uAmbient;
   varying vec3 vP;
   varying vec3 vW;
   const float PI = 3.14159265;
@@ -57,6 +58,9 @@ const frag = /* glsl */ `
     vec3 seaCol = mix(earth, seaAround * 0.85, smoothstep(0.2, 0.8, m.r));
     earth = mix(earth, mix(seaCol, landCol, land), region);
 
+    // il mare un po' più chiaro e turchese: la foto della NASA ha oceani molto scuri
+    earth = mix(earth, earth * vec3(1.1, 1.38, 1.5) + vec3(0.0, 0.008, 0.016), 1.0 - land);
+
     // rilievo: le montagne prendono luce e ombra
     float e = 1.0 / 2048.0;
     float hx = texture2D(tTopo, uv + vec2(e, 0.0)).r - texture2D(tTopo, uv - vec2(e, 0.0)).r;
@@ -67,10 +71,7 @@ const frag = /* glsl */ `
 
     vec3 toCam = normalize(cameraPosition - vW);
     float ndl = max(dot(n, uLight), 0.0);
-    vec3 col = earth * (0.42 + 1.05 * ndl);
-    // il sole che brilla sul mare
-    vec3 h = normalize(uLight + toCam);
-    col += vec3(1.0, 0.95, 0.86) * pow(max(dot(p, h), 0.0), 420.0) * (1.0 - land) * 0.22;
+    vec3 col = earth * (uAmbient + 1.0 * ndl) * uSun;
     // confini e coste, sottili
     col = mix(col, vec3(0.95), border * 0.5 * land);
     col = mix(col, vec3(0.92, 0.95, 1.0), coast * 0.28);
@@ -94,13 +95,13 @@ const atmoVert = /* glsl */ `
   }
 `;
 const atmoFrag = /* glsl */ `
-  uniform vec3 uAtmo;
+  uniform vec3 uHalo;
   varying vec3 vN;
   varying vec3 vW;
   void main() {
     vec3 toCam = normalize(cameraPosition - vW);
     float k = pow(clamp(1.0 + dot(normalize(vN), toCam) * 1.25, 0.0, 1.0), 2.4);
-    gl_FragColor = vec4(uAtmo * k * 0.9, 1.0);
+    gl_FragColor = vec4(uHalo, k * 0.95);
     #include <colorspace_fragment>
   }
 `;
@@ -122,7 +123,30 @@ function createStars(n = 2600) {
   return new Points(g, new PointsMaterial({ size: 1.3, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false }));
 }
 
-export function createGlobe({ tex, meta }, { atmosphere }) {
+/** il bagliore dell'alba dietro la Terra: un disco sfumato oro → arancio → rosa, sempre rivolto
+ *  alla camera; la Terra davanti ne copre il centro, si vede solo intorno al bordo */
+function createGlow([gold, orange, rose]) {
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 256;
+  const g = cv.getContext('2d');
+  const rgba = (hex, a) => { const c = new Color(hex); return `rgba(${c.r * 255 | 0},${c.g * 255 | 0},${c.b * 255 | 0},${a})`; };
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, rgba(gold, 1));
+  gr.addColorStop(0.42, rgba(gold, 0.95));
+  gr.addColorStop(0.5, rgba(orange, 0.62));
+  gr.addColorStop(0.64, rgba(orange, 0.26));
+  gr.addColorStop(0.8, rgba(rose, 0.1));
+  gr.addColorStop(1, rgba(rose, 0));
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 256, 256);
+  const map = new CanvasTexture(cv);
+  map.colorSpace = SRGBColorSpace;
+  const s = new Sprite(new SpriteMaterial({ map, transparent: true, depthWrite: false }));
+  s.scale.set(5, 5, 1);
+  return s;
+}
+
+export function createGlobe({ tex, meta }, { atmosphere, halo, glow, sunlight, ambient }) {
   for (const t of [tex.world, tex.earth, tex.topo]) t.wrapS = RepeatWrapping;
   for (const t of [tex.med, tex.bal]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
   const box = (b) => new Vector4(b[0], b[1], b[2], b[3]);
@@ -134,15 +158,19 @@ export function createGlobe({ tex, meta }, { atmosphere }) {
     uAtmo: { value: new Color(atmosphere) },
     uBump: { value: 9.0 },
     uCamDist: { value: 3 },
+    uSun: { value: new Color(sunlight).multiplyScalar(1.08) },
+    uAmbient: { value: ambient },
+    uHalo: { value: new Color(halo) },
   };
   const group = new Group();
   group.add(createStars());
+  group.add(createGlow(glow));
   group.add(new Mesh(new SphereGeometry(1, 192, 112), new ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag })));
   group.add(new Mesh(
     new SphereGeometry(1.1, 96, 48),
     new ShaderMaterial({
-      uniforms: { uAtmo: uniforms.uAtmo }, vertexShader: atmoVert, fragmentShader: atmoFrag,
-      side: BackSide, transparent: true, depthWrite: false, blending: AdditiveBlending,
+      uniforms: { uHalo: uniforms.uHalo }, vertexShader: atmoVert, fragmentShader: atmoFrag,
+      side: BackSide, transparent: true, depthWrite: false,
     }),
   ));
   return { group, uniforms };
