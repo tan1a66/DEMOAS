@@ -7,7 +7,7 @@
 import {
   Scene, PerspectiveCamera, OrthographicCamera, Group, Mesh, MeshPhysicalMaterial, MeshStandardMaterial,
   MeshBasicMaterial, ShaderMaterial, TubeGeometry, CatmullRomCurve3, CylinderGeometry, CapsuleGeometry,
-  PlaneGeometry, BoxGeometry, CanvasTexture, TextureLoader, SRGBColorSpace, RepeatWrapping, DirectionalLight,
+  PlaneGeometry, BoxGeometry, TorusGeometry, CanvasTexture, TextureLoader, SRGBColorSpace, RepeatWrapping, DirectionalLight,
   HemisphereLight, PMREMGenerator, WebGLRenderTarget, HalfFloatType, Vector2, Vector3, Vector4,
   Quaternion, Color, MathUtils,
 } from 'three';
@@ -190,10 +190,27 @@ export function createRide({ renderer }) {
   const topcap = new Mesh(new CylinderGeometry(0.0165, 0.019, 0.005, 40), new MeshPhysicalMaterial({ color: '#e8622c', metalness: 0.75, roughness: 0.3, clearcoat: 0.6 }));
   topcap.position.set(0, 0.0105, 0.118);
   bike.add(topcap);
-  const head = new Mesh(new CylinderGeometry(0.025, 0.031, 0.42, 40), new MeshPhysicalMaterial({ color: '#1e2023', roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.1 }));
-  head.position.set(0, -0.25, 0.14);
-  head.rotation.x = 0.28;
-  bike.add(head);
+  // ── il telaio, la forcella e la ruota davanti: da qui si capisce subito che è una bici
+  const frame = new MeshPhysicalMaterial({ color: '#1c1d20', roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.1 });
+  /** un tubo dritto da a a b, raggio r0 in a e r1 in b */
+  const tube = (a, b, r0, r1, mat) => {
+    const d = new Vector3().subVectors(b, a);
+    const m = new Mesh(new CylinderGeometry(r1, r0, d.length(), 32), mat);
+    m.position.copy(a).addScaledVector(d, 0.5);
+    m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize());
+    bike.add(m);
+    return m;
+  };
+  const headTop = V(0, -0.035, 0.118), headLow = V(0, -0.2, 0.068); // l'asse dello sterzo, inclinato
+  tube(headTop, headLow, 0.026, 0.031, frame);
+  tube(V(0, -0.06, 0.12), V(0, -0.13, 0.7), 0.024, 0.02, frame);   // tubo orizzontale, verso la sella
+  tube(V(0, -0.17, 0.08), V(0, -0.63, 0.6), 0.03, 0.03, frame);    // tubo obliquo, verso i pedali
+  const axle = V(0, -0.565, -0.08);
+  for (const sx of [-1, 1]) tube(V(sx * 0.028, -0.21, 0.062), V(sx * 0.05, axle.y, axle.z), 0.016, 0.011, frame); // la forcella
+  const tire = new Mesh(new TorusGeometry(0.334, 0.0135, 18, 180), new MeshPhysicalMaterial({ color: '#141414', roughness: 0.85 }));
+  const rim = new Mesh(new TorusGeometry(0.302, 0.022, 18, 180), carbonMat);
+  for (const w of [tire, rim]) { w.rotation.y = Math.PI / 2; w.position.copy(axle); bike.add(w); }
+  rim.scale.set(1, 1, 0.55);
 
   // ── il supporto e il ciclocomputer
   const mount = new Mesh(new RoundedBoxGeometry(0.022, 0.01, 0.08, 3, 0.004), satin);
@@ -264,7 +281,8 @@ export function createRide({ renderer }) {
 
   // ── le inquadrature: 0 lo schermo intero · 1 in sella · 2 vicino al ciclocomputer · 3 di nuovo lo schermo
   // in sella, un po' a sinistra: la piega attraversa l'inquadratura fino alla leva destra
-  const POV = { pos: V(-0.075, 0.3, 0.3), at: V(0.035, -0.05, -0.3), up: V(0, 1, 0), fov: 58 };
+  // gli occhi di chi pedala: la piega intera, sotto la ruota davanti, il telaio che scende
+  const POV = { pos: V(0, 0.52, 0.6), at: V(0, -0.25, -0.32), up: V(0, 1, 0), fov: 56 };
   const keys = [
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
     POV,
@@ -292,7 +310,7 @@ export function createRide({ renderer }) {
     // 0 e 3: lo schermo occupa tutta la larghezza (o l'altezza): la mappa del globo ci entra dentro
     const dFit = Math.max(0.023 / (f * aspect), 0.035 / f);
     for (const k of [0, 3]) keys[k].pos.copy(S).addScaledVector(N, dFit);
-    POV.fov = aspect < 1 ? 58 : 42;
+    POV.fov = aspect < 1 ? 56 : 40;
     const dpr = Math.min(renderer.getPixelRatio(), 2);
     rtA.setSize(Math.max(2, Math.round(w * dpr / 4)), Math.max(2, Math.round(h * dpr / 4)));
     rtB.setSize(rtA.width, rtA.height);
