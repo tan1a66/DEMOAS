@@ -38,20 +38,20 @@ const frag = `
     vec2 uv = gl_FragCoord.xy / uRes.y;
     float t = uTime;
     // l'acqua ondeggia: la rete si deforma piano
-    vec2 p = uv * 5.2;
-    vec2 pa = p + warp(p, t) * 1.15;
-    vec2 pb = p * 1.31 + vec2(3.1, 1.7) + warp(p * 1.31 + 7.0, t * 1.1) * 1.15;
-    float a = net(pa, t * 0.45);
-    float b = net(pb, t * 0.55 + 1.3);
-    // linee curve e morbide: la luce sfuma ai lati (gaussiana), come quella rifratta sul fondo
-    float light = exp(-pow(a / 0.075, 2.0)) * 0.6 + exp(-pow(b / 0.06, 2.0)) * 0.42;
+    vec2 p = uv * 4.0;
+    vec2 pa = p + warp(p * 0.85, t * 0.8) * 1.3;
+    vec2 pb = p * 1.27 + vec2(3.1, 1.7) + warp(p * 1.1 + 7.0, t * 0.9) * 1.3;
+    float a = net(pa, t * 0.32);
+    float b = net(pb, t * 0.4 + 1.3);
+    // linee curve, larghe e sfumate: la luce si scioglie ai lati, come quella rifratta sul fondo
+    float light = exp(-pow(a / 0.13, 2.0)) * 0.5 + exp(-pow(b / 0.11, 2.0)) * 0.34;
     // turchese in alto, verde acqua in basso, appena più profondo ai bordi
     float y = gl_FragCoord.y / uRes.y;
     vec3 green = vec3(0.40, 0.85, 0.70), aqua = vec3(0.33, 0.83, 0.86), teal = vec3(0.16, 0.66, 0.72);
     vec3 col = mix(green, aqua, smoothstep(0.05, 0.75, y));
     col = mix(col, teal, smoothstep(0.82, 1.0, y) * 0.45);
     col += 0.035 * sin(uv.x * 2.3 + t * 0.35) + 0.025 * sin(uv.y * 3.7 - t * 0.27);
-    col += vec3(0.86, 1.0, 0.97) * light * 0.22;
+    col += vec3(0.86, 1.0, 0.97) * light * 0.2;
     float vig = smoothstep(1.35, 0.45, length((gl_FragCoord.xy / uRes - 0.5) * vec2(uRes.x / uRes.y, 1.0)));
     gl_FragColor = vec4(col * (0.9 + 0.1 * vig), 1.0);
   }
@@ -74,7 +74,7 @@ export function createPool(canvas, host) {
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const uRes = gl.getUniformLocation(prog, 'uRes'), uTime = gl.getUniformLocation(prog, 'uTime');
   // morbida per natura: basta poca risoluzione, e il telefono lavora poco
-  const scale = Math.min(devicePixelRatio, 2) * 0.5;
+  const scale = Math.min(devicePixelRatio, 2) * 0.4;
   const draw = (time) => {
     const w = Math.max(2, Math.round(canvas.clientWidth * scale)), h = Math.max(2, Math.round(canvas.clientHeight * scale));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; gl.viewport(0, 0, w, h); }
