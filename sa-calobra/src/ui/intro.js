@@ -82,7 +82,7 @@ export function createIntro() {
      * zoom nella M → strada → linea sulla carretera 3D.
      * onReveal: chiamata quando la scena è scoperta (la linea 3D deve comparire lì).
      */
-    play({ camera, road, overlay, lineS, onReveal, onShift }) {
+    play({ camera, road, overlay, lineS, onReveal, onShift, target = null }) {
       el.classList.add('is-leaving');
       for (const t of entrance) t.progress(1).kill(); // un tocco veloce non deve trovare l'entrata ancora in corso
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -96,7 +96,8 @@ export function createIntro() {
       const mScreen = resample(M_PTS.map(toScreen), N);
       const c = toScreen(M_CENTER);
       const W = innerWidth, H = innerHeight;
-      const roadPts = resample(projectRoad(camera, road, 0, lineS, N, W, H), N);
+      // dove si posa la M: i primi metri della strada, oppure punti già pronti (il globo)
+      const roadPts = resample(target || projectRoad(camera, road, 0, lineS, N, W, H), N);
       const s = { zoom: 1, morph: 0, asphalt: 0, line: 0, slack: 0, wave: 0, phase: 0 };
       const ZMAX = 12;
       const render = () => {

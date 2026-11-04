@@ -165,7 +165,7 @@ function buildWalls(road, hf, cfg) {
 // ── linee arancioni ──────────────────────────────────────────────────────────
 // Line2 a spessore costante in pixel (come il tratto sopra le loro foto) + un alone morbido.
 // setProgress disegna la linea fino a una frazione del percorso (instanceCount dei segmenti).
-function makeLine(points, { width, glow, haloWidth, haloOpacity }) {
+export function makeLine(points, { width, glow, haloWidth, haloOpacity }) {
   const geo = new LineGeometry();
   geo.setPositions(points);
   const mat = new LineMaterial({

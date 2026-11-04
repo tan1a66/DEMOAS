@@ -236,6 +236,36 @@ export const CONFIG = {
     card: { kicker: 'Capítulo 01 · Mallorca', title: 'Conquisté\nSa Calobra.', stats: '9.41 KM · 660 M' }, // \n = a capo
   },
 
+  // ── Il globo (home): dalla Ciudad de México ai capitoli. lat/lon in gradi.
+  //    Le mete senza luogo (ancora da decidere) non hanno pin: solo la carta "Próximamente".
+  globe: {
+    origin: { name: 'Ciudad de México', lat: 19.4326, lon: -99.1332 },
+    chapters: [
+      { n: '01', name: 'Mallorca', when: '19–28 octubre 2026', lat: 39.62, lon: 2.98, open: true },
+      { n: '02', name: null, when: 'Marzo 2027' },
+      { n: '03', name: 'Dolomitas', when: 'Verano 2027', lat: 46.5, lon: 11.85 },
+    ],
+    // inquadratura per tappa: punto guardato (lat, lon) e distanza dal centro (raggio = 1)
+    views: [
+      { lat: 24, lon: -94, dist: 3.9 },    // 0 · la Ciudad de México
+      { lat: 30, lon: -74, dist: 4.1 },    // 1 · quiénes somos: la linea lascia il Messico
+      { lat: 34, lon: -50, dist: 4.2 },    // 2 · qué hacemos: sopra l'Atlantico
+      { lat: 37, lon: -28, dist: 4.1 },    // 3 · the crew
+      { lat: 38, lon: -10, dist: 3.5 },    // 4 · head coach: arriva in Europa
+      { lat: 39.55, lon: 2.95, dist: 1.075 }, // 5 · Mallorca da vicino
+      { lat: 30, lon: -40, dist: 5.3 },    // 6 · i prossimi capitoli: Messico, Mallorca e Dolomiti insieme
+    ],
+    progress: [0.1, 0.32, 0.58, 0.8, 0.96, 1, 1], // quanto è disegnata la rotta a ogni tappa (la M dell'intro si posa sul primo tratto)
+    arcHeight: 0.16,           // quanto si alza la rotta sopra il globo (raggio = 1)
+    colors: { ocean: '#24292d', oceanDeep: '#16191b', land: '#e0d9cc', landShade: '#a39a8b', coast: '#c9bda9', border: '#9d9486', grid: '#7e93a6', rim: '#7e93a6' },
+    copy: {
+      mallorca: { kicker: 'Capítulo 01 · Mallorca', text: 'Queremos que cada ruta sea una historia que valga la pena contar.', size: 'lead' },
+      seeChapter: 'Ver el capítulo',
+      sacalobra: 'Sa Calobra en 3D',
+      soon: 'Próximamente',
+    },
+  },
+
   // ── Il viaggio: Capítulo 01 · Mallorca (bottone in alto e alla fine). La linea si raddrizza
   //    in una linea del tempo con i giorni. status: 'past' = viaggio già fatto (si racconta
   //    com'è stato e si chiede il prossimo capitolo); 'open' = in vendita (prezzo e apartado).

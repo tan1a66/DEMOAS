@@ -1,0 +1,36 @@
+{
+ "world": {
+  "file": "globe_world.webp",
+  "box": [
+   -180,
+   -90,
+   180,
+   90
+  ],
+  "width": 4096,
+  "height": 2048
+ },
+ "med": {
+  "file": "globe_med.webp",
+  "box": [
+   -8,
+   33,
+   20,
+   51
+  ],
+  "width": 2016,
+  "height": 1296
+ },
+ "bal": {
+  "file": "globe_bal.webp",
+  "box": [
+   0.8,
+   38.4,
+   4.8,
+   40.4
+  ],
+  "width": 1680,
+  "height": 840
+ },
+ "source": "Natural Earth (dominio pubblico) via world-atlas"
+}

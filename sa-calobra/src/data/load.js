@@ -23,21 +23,32 @@ async function loadHeightLevel(manager, meta) {
   return { ...meta, data: h };
 }
 
-/** foto aerea (WebP) → texture sRGB; la riga 0 dell'immagine è il nord (zMin), come le heightmap */
-async function loadOrtho(manager, meta) {
-  const buf = await loadFile(manager, BASE + meta.file, 'arraybuffer');
+/** immagine WebP → texture (srgb: colore; altrimenti dati, come le maschere del globo) */
+async function loadImageTexture(manager, file, { srgb = false, flipY = false } = {}) {
+  const buf = await loadFile(manager, BASE + file, 'arraybuffer');
   const url = URL.createObjectURL(new Blob([buf], { type: 'image/webp' }));
   const img = new Image();
   img.src = url;
   await img.decode();
   URL.revokeObjectURL(url);
   const t = new Texture(img);
-  t.colorSpace = SRGBColorSpace;
-  t.flipY = false;
+  if (srgb) t.colorSpace = SRGBColorSpace;
+  t.flipY = flipY;
   t.minFilter = LinearMipmapLinearFilter;
   t.magFilter = LinearFilter;
   t.needsUpdate = true;
   return t;
+}
+
+/** foto aerea → texture sRGB; la riga 0 dell'immagine è il nord (zMin), come le heightmap */
+const loadOrtho = (manager, meta) => loadImageTexture(manager, meta.file, { srgb: true });
+
+/** il globo: maschere di terra, costa e confini su tre livelli (mondo, Mediterraneo, Baleari) */
+export async function loadGlobeData(manager) {
+  const meta = await loadFile(manager, BASE + 'globe.json', 'json');
+  const names = ['world', 'med', 'bal'];
+  const tex = await Promise.all(names.map((n) => loadImageTexture(manager, meta[n].file, { flipY: true })));
+  return { meta, tex: Object.fromEntries(names.map((n, i) => [n, tex[i]])) };
 }
 
 /** pini riconosciuti nella foto: x·2, z·2 (int16) e grandezza 0…255 */

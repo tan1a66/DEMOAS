@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#2B2B2B" />
+    <title>Nomads Cycling Club</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Unbounded:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <canvas id="gl" aria-label="Nomads Cycling Club: una carretera de montaña hacia el mar, en 3D"></canvas>
+    <div class="veil" id="veil" aria-hidden="true"></div>
+    <div class="veil veil--bottom" id="veil-b" aria-hidden="true"></div>
+    <div class="cut" id="cut" aria-hidden="true"></div>
+    <svg class="morph" id="morph" aria-hidden="true"><polyline class="morph__road" /><polyline class="morph__dash" /><polyline class="morph__glow" /><polyline class="morph__line" /></svg>
+
+    <header class="top">
+      <a class="logo" href="index.html" aria-label="Nomads Cycling Club: volver al mapa"></a>
+      <div class="top__right">
+        <button class="info-btn" id="info-open" type="button">Cap. 01 · Mallorca</button>
+        <button class="sound" id="sound" type="button" aria-label="Sonido" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" /><path class="wave w1" d="M15.5 9.5a3.5 3.5 0 0 1 0 5" /><path class="wave w2" d="M18 7a7 7 0 0 1 0 10" /><path class="mute" d="M16 9.5l5 5m0-5l-5 5" /></svg>
+        </button>
+      </div>
+    </header>
+    <!-- la linea arancione è anche la barra di avanzamento: un punto per tappa -->
+    <div class="rail" aria-hidden="true"><span class="rail__fill" id="rail-fill"></span><span class="rail__dots" id="rail-dots"></span></div>
+
+    <!-- testi delle tappe: generati da config.js → copy (il finale ha i bottoni) -->
+    <section class="story" id="story" aria-live="polite">
+      <div class="beat beat--end" id="b-next">
+        <div class="end-actions">
+          <button class="cta" id="cta" type="button">Quiero el próximo capítulo <span aria-hidden="true">→</span></button>
+          <button class="cta cta--ghost" id="info-open-end" type="button">Cap. 01 · Mallorca</button>
+        </div>
+      </div>
+    </section>
+    <div class="cue" id="cue" aria-hidden="true"><span></span></div>
+    <!-- fine: la linea prosegue verso l'orizzonte, il prossimo capitolo -->
+    <svg class="next" id="next" aria-hidden="true"><path class="next__glow" id="next-glow" /><path class="next__line" id="next-line" /><circle class="next__dot" id="next-dot" r="5" /></svg>
+    <p class="next__label" id="next-label" aria-hidden="true"></p>
+
+    <div class="hint" id="hint">
+      <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M6 12h36M6 12l5-5M6 12l5 5M42 12l-5-5M42 12l-5 5" /></svg>
+      <span>Desliza para mirar alrededor</span>
+      <button class="gyro" id="gyro" type="button" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M3 9a9 9 0 0 0 0 6M21 9a9 9 0 0 1 0 6" /></svg>
+        <span class="sr-only">Giroscopio</span>
+      </button>
+    </div>
+
+    <div class="counter" id="counter" aria-label="Subida">
+      <p class="counter__head"><span class="counter__label">Subida</span><span class="counter__nums"><b id="c-km">0.0</b> km<i>·</i><b id="c-m">0</b> m</span></p>
+      <div class="profile">
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <defs><clipPath id="profile-clip"><rect id="profile-cut" x="0" y="-10" width="0" height="120" /></clipPath></defs>
+          <path class="profile__area" id="profile-area" />
+          <path class="profile__base" id="profile-base" />
+          <path class="profile__done" id="profile-done" clip-path="url(#profile-clip)" />
+        </svg>
+        <i class="profile__dot" id="profile-dot"></i>
+      </div>
+    </div>
+
+    <p class="credit">© OpenStreetMap contributors · Terreno y ortofoto PNOA: © IGN España (CC BY 4.0) · AWS Terrain Tiles</p>
+
+
+    <section class="final" id="final" aria-hidden="true">
+      <div class="final__inner">
+        <span class="logo logo--dark" role="img" aria-label="Nomads Cycling Club"></span>
+        <h2 class="final__title">Esta parte la construimos juntos.</h2>
+        <a class="wa" href="https://wa.me/393461758562" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.2 21.8l5.1-1.3A9.7 9.7 0 1 0 12 2.2zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.2z" /></svg>
+          WhatsApp
+        </a>
+        <p class="sign">Alessia Studio — 3D web experience<br /><a href="https://www.alessia.studio" target="_blank" rel="noopener">www.alessia.studio</a></p>
+        <button class="back" id="back" type="button"><span aria-hidden="true">←</span> Volver</button>
+      </div>
+    </section>
+
+    <!-- INFO MALLORCA: la linea si raddrizza nella linea del tempo del viaggio -->
+    <section class="info" id="info" aria-hidden="true" aria-label="Capítulo 01, Mallorca: el viaje día a día">
+      <div class="info__sea" aria-hidden="true"></div>
+      <div class="info__scroll" id="info-scroll">
+        <header class="info__head">
+          <p class="kicker" id="info-dates"></p>
+          <h2 class="info__title" id="info-title"></h2>
+          <p class="info__lead" id="info-lead"></p>
+          <div class="levels" id="levels" role="group" aria-label="¿Cuál es tu nivel?"></div>
+        </header>
+        <ol class="days" id="days"></ol>
+        <section class="incl" id="incl"></section>
+        <div class="info__next">
+          <button class="cta" id="cta-info" type="button"></button>
+        </div>
+      </div>
+      <button class="info__close" id="info-close" type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>
+    </section>
+
+    <!-- intro: schermo crema, filigrana (curve di livello reali), logo, ENTRAR -->
+    <section class="intro" id="intro">
+      <div class="intro__contours" id="intro-contours" aria-hidden="true"></div>
+      <div class="intro__center">
+        <div class="intro__logo" id="intro-logo"><span class="logo logo--dark logo--big" role="img" aria-label="Nomads Cycling Club"></span></div>
+        <div class="intro__bar" aria-hidden="true"><span id="intro-bar"></span></div>
+        <button class="intro__enter" id="enter" type="button" disabled>Entrar</button>
+        <p class="intro__meta">Viajes en bicicleta · Desde México</p>
+      </div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

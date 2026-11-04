@@ -51,7 +51,7 @@ function bindLevels() {
   });
 }
 
-export function createInfo({ camera, road, rig, overlay, story, setLineVisible }) {
+export function createInfo({ camera, road, rig, overlay, story, setLineVisible, source = null }) {
   build();
   bindLevels();
   const el = document.getElementById('info');
@@ -63,6 +63,7 @@ export function createInfo({ camera, road, rig, overlay, story, setLineVisible }
 
   // la parte di linea visibile adesso: in discesa fin dove è disegnata, poi tutta
   const sourcePts = () => {
+    if (source) return resample(source(), N); // il globo: la rotta disegnata
     const st = rig.state;
     const s1 = st.dir > 0 ? Math.max(st.lineS, 60) : road.length;
     return resample(projectRoad(camera, road, 0, s1, N, innerWidth, innerHeight), N);

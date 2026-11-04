@@ -11,10 +11,9 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
-    <canvas id="gl" aria-label="Nomads Cycling Club: una carretera de montaña hacia el mar, en 3D"></canvas>
+    <canvas id="globe" aria-label="Nomads Cycling Club: de la Ciudad de México a sus destinos, en un globo"></canvas>
+    <div class="pins" id="pins"></div>
     <div class="veil" id="veil" aria-hidden="true"></div>
-    <div class="veil veil--bottom" id="veil-b" aria-hidden="true"></div>
-    <div class="cut" id="cut" aria-hidden="true"></div>
     <svg class="morph" id="morph" aria-hidden="true"><polyline class="morph__road" /><polyline class="morph__dash" /><polyline class="morph__glow" /><polyline class="morph__line" /></svg>
 
     <header class="top">
@@ -39,33 +38,7 @@
       </div>
     </section>
     <div class="cue" id="cue" aria-hidden="true"><span></span></div>
-    <!-- fine: la linea prosegue verso l'orizzonte, il prossimo capitolo -->
-    <svg class="next" id="next" aria-hidden="true"><path class="next__glow" id="next-glow" /><path class="next__line" id="next-line" /><circle class="next__dot" id="next-dot" r="5" /></svg>
-    <p class="next__label" id="next-label" aria-hidden="true"></p>
-
-    <div class="hint" id="hint">
-      <svg viewBox="0 0 48 24" aria-hidden="true"><path d="M6 12h36M6 12l5-5M6 12l5 5M42 12l-5-5M42 12l-5 5" /></svg>
-      <span>Desliza para mirar alrededor</span>
-      <button class="gyro" id="gyro" type="button" hidden>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M3 9a9 9 0 0 0 0 6M21 9a9 9 0 0 1 0 6" /></svg>
-        <span class="sr-only">Giroscopio</span>
-      </button>
-    </div>
-
-    <div class="counter" id="counter" aria-label="Subida">
-      <p class="counter__head"><span class="counter__label">Subida</span><span class="counter__nums"><b id="c-km">0.0</b> km<i>·</i><b id="c-m">0</b> m</span></p>
-      <div class="profile">
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
-          <defs><clipPath id="profile-clip"><rect id="profile-cut" x="0" y="-10" width="0" height="120" /></clipPath></defs>
-          <path class="profile__area" id="profile-area" />
-          <path class="profile__base" id="profile-base" />
-          <path class="profile__done" id="profile-done" clip-path="url(#profile-clip)" />
-        </svg>
-        <i class="profile__dot" id="profile-dot"></i>
-      </div>
-    </div>
-
-    <p class="credit">© OpenStreetMap contributors · Terreno y ortofoto PNOA: © IGN España (CC BY 4.0) · AWS Terrain Tiles</p>
+    <p class="credit">Mapa: Natural Earth</p>
 
 
     <section class="final" id="final" aria-hidden="true">
@@ -111,6 +84,6 @@
       </div>
     </section>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/globe/main.js"></script>
   </body>
 </html>

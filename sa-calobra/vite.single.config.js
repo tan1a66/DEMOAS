@@ -9,7 +9,10 @@ const DATA_DIR = 'public/data';
 /** i file di public/data diventano data URI dentro load.js (fetch li legge anche da file://) */
 function inlineData() {
   const map = {};
+  // solo i dati della pagina che si costruisce (il globo non ha bisogno del rilievo, e viceversa)
+  const globe = (process.env.PAGE || 'index') === 'index';
   for (const f of readdirSync(DATA_DIR)) {
+    if (f.startsWith('globe') !== globe) continue;
     const mime = { '.png': 'image/png', '.webp': 'image/webp', '.bin': 'application/octet-stream' }[extname(f)] || 'application/json';
     map[f] = `data:${mime};base64,${readFileSync(join(DATA_DIR, f)).toString('base64')}`;
   }
@@ -52,10 +55,12 @@ export default defineConfig({
   publicDir: false, // i dati sono già dentro il JS
   plugins: [inlineData(), singleFile()],
   build: {
+    // una pagina per volta: PAGE=index (il globo) o PAGE=sacalobra (la Sa Calobra in 3D)
     outDir: 'dist-single',
+    emptyOutDir: false,
     target: 'es2022',
     assetsInlineLimit: 100_000_000,
     chunkSizeWarningLimit: 5000,
-    rollupOptions: { output: { inlineDynamicImports: true } },
+    rollupOptions: { input: `${process.env.PAGE || 'index'}.html`, output: { inlineDynamicImports: true } },
   },
 });

@@ -1,8 +1,13 @@
 import { defineConfig } from 'vite';
 
+// due pagine: il globo (home) e la Sa Calobra in 3D (approfondimento del Capítulo 01)
 export default defineConfig({
   base: './',
   resolve: { dedupe: ['three'] },
   server: { host: '127.0.0.1', port: 5174 },
-  build: { target: 'es2022', chunkSizeWarningLimit: 1200 },
+  build: {
+    target: 'es2022',
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: { input: { index: 'index.html', sacalobra: 'sacalobra.html' } },
+  },
 });
