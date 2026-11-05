@@ -430,44 +430,34 @@ body:has(#globe) #info .cta { background: #0f2e30; color: #eaf8f5; }
   .dock__credit { display: none; }
 }
 
-/* ── Nosotros: una pagina vera, chiara come una rivista, con la testata del sito sopra ── */
-.pg { position: fixed; inset: 0; z-index: 15; visibility: hidden; background: #efe9df; color: var(--anthracite); }
+/* ── Nosotros: sopra la bici una pagina trasparente da scorrere (comanda camera e schermate);
+   sotto, chiari, gli spazi per le foto dei viaggi e i pulsanti ─────────────────────────────── */
+.pg { position: fixed; inset: 0; z-index: 15; visibility: hidden; background: transparent; color: var(--anthracite); }
 .pg__scroll { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
-.pg__hero { position: relative; height: 84svh; overflow: hidden; background: #0b1226; color: var(--cream); }
-.pg__cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; display: block; transform-origin: 50% 0; }
-.pg__hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 11, 24, 0.45) 0%, rgba(6, 11, 24, 0) 28%, rgba(6, 11, 24, 0) 48%, rgba(6, 11, 24, 0.78) 100%); }
-.pg__heroText { position: absolute; z-index: 1; left: var(--gutter); right: var(--gutter); bottom: 7svh; }
-.pg__heroText .kicker { margin-bottom: 16px; }
-.pg__title { margin: 0; max-width: 11ch; font-family: var(--display); font-weight: 400; font-size: clamp(36px, 10.5vw, 78px); line-height: 1.02; letter-spacing: -0.025em; }
-.pg__body { padding: 0 var(--gutter); }
-.pg__sec { padding-top: 13svh; max-width: 30ch; }
-.pg__n { display: block; margin-bottom: 14px; font-family: var(--display); font-weight: 500; font-size: 11px; letter-spacing: 0.22em; color: var(--orange); }
-.pg__label { margin: 0 0 12px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.6; }
-.pg__big { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(25px, 7vw, 46px); line-height: 1.12; letter-spacing: -0.012em; }
-.pg__person { margin: 14svh 0 0; display: grid; gap: 24px; }
-.pg__photo { width: min(78%, 340px); aspect-ratio: 4 / 5; overflow: hidden; border-radius: 3px; box-shadow: 0 30px 60px -28px rgba(43, 30, 20, 0.45); }
-.pg__person--right .pg__photo { justify-self: end; }
-.pg__person--right figcaption { justify-self: end; max-width: 30ch; }
-.pg__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.pg__sub { margin: 12px 0 0; max-width: 34ch; font-size: 14px; line-height: 1.55; opacity: 0.72; }
-.pg__foot { margin-top: 16svh; padding: 9svh var(--gutter) calc(var(--safe-b) + 9svh); border-top: 1px solid rgba(43, 43, 43, 0.12); }
+.pg__track { height: 560svh; }
+.pg__gallery { background: #efe9df; padding: 14svh var(--gutter) 4svh; border-radius: 18px 18px 0 0; box-shadow: 0 -30px 60px -30px rgba(43, 30, 20, 0.35); }
+.pg__label { margin: 0 0 18px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.6; }
+/* gli spazi per le foto: ben visibili come segnaposto, in attesa delle foto di Nomads */
+.ph { position: relative; margin: 0; display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: 4px; border: 1.5px dashed rgba(43, 43, 43, 0.28);
+  background: repeating-linear-gradient(135deg, rgba(43, 43, 43, 0.035) 0 10px, transparent 10px 20px), #e7e0d4; }
+.ph--wide { aspect-ratio: 16 / 10; margin-bottom: 14px; }
+.ph__tag { font-family: var(--display); font-weight: 500; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(43, 43, 43, 0.45); }
+.ph figcaption { position: absolute; left: 12px; right: 12px; bottom: 12px; font-size: 12px; line-height: 1.35; color: rgba(43, 43, 43, 0.62); }
+.ph__strip { display: grid; grid-auto-flow: column; grid-auto-columns: 62%; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) 6px; }
+.ph__strip::-webkit-scrollbar { display: none; }
+.ph__strip .ph { scroll-snap-align: start; }
+.pg__foot { background: #efe9df; padding: 10svh var(--gutter) calc(var(--safe-b) + 9svh); }
 .pg__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .pg .cta { margin-top: 0; background: var(--anthracite); color: var(--cream); text-decoration: none; }
 .pg .cta--line { background: transparent; color: var(--anthracite); border: 1px solid rgba(43, 43, 43, 0.35); }
-/* la testata del sito sopra la pagina: chiara sulla copertina, scura (con fondo) sotto */
+/* la testata del sito sopra la pagina: scura sul cielo del tramonto, con fondo chiaro sulla galleria */
 html.in-page .top { z-index: 25; padding-bottom: 12px; transition: background-color 0.4s ease; }
-html.in-page.pg-moved .top { background: rgba(8, 13, 28, 0.55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 html.in-page.pg-scrolled .top { background: rgba(239, 233, 223, 0.94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 html.in-page.pg-scrolled .top .logo { background: var(--anthracite); }
 html.in-page.pg-scrolled .menu button { color: var(--anthracite); }
 html.in-page.pg-scrolled .wa-top { color: var(--anthracite); border-color: rgba(43, 43, 43, 0.4); }
-.menu button[aria-current='page'] { opacity: 1; color: var(--orange); }
-html.in-page.pg-scrolled .menu button[aria-current='page'] { color: var(--orange); }
+.menu button[aria-current='page'], html.in-page .menu button[aria-current='page'] { opacity: 1; color: var(--orange); }
 @media (min-width: 900px) {
-  .pg__body, .pg__foot { padding-left: 8vw; padding-right: 8vw; }
-  .pg__heroText { left: 8vw; }
-  .pg__person { grid-template-columns: 340px 1fr; align-items: end; gap: 56px; }
-  .pg__person--right { grid-template-columns: 1fr 340px; }
-  .pg__person--right .pg__photo { order: 2; }
-  .pg__photo { width: 340px; }
+  .pg__gallery, .pg__foot { padding-left: 8vw; padding-right: 8vw; }
+  .ph__strip { grid-auto-columns: 26%; }
 }

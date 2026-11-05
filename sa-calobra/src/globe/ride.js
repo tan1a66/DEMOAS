@@ -14,6 +14,9 @@ import {
 } from 'three';
 import sunsetUrl from '../assets/ride-bg.webp';
 import logoUrl from '../assets/nomads-logo.png';
+import crewUrl from '../assets/crew.webp';
+import coachUrl from '../assets/coach.webp';
+import { CONFIG } from '../config.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -92,13 +95,18 @@ const screenVert = /* glsl */ `
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `;
-// lo schermo: il logo e la scritta, più il riflesso del vetro
+// lo schermo: una schermata, o il passaggio alla successiva che entra di lato e spinge via la
+// precedente (come le pagine di un GPS), più il riflesso del vetro
 const screenFrag = /* glsl */ `
-  uniform sampler2D tUI;
+  uniform sampler2D tA, tB;
+  uniform float uMix;
   varying vec2 vUv;
   void main() {
     float g = smoothstep(0.3, 0.0, abs(vUv.x * 0.8 + vUv.y - 1.3)) * 0.05;
-    gl_FragColor = vec4(texture2D(tUI, vUv).rgb + g, 1.0);
+    float x = vUv.x + uMix;
+    vec3 c = x < 1.0 ? texture2D(tA, vec2(x, vUv.y)).rgb : texture2D(tB, vec2(x - 1.0, vUv.y)).rgb;
+    c *= 1.0 - 0.6 * smoothstep(0.012, 0.0, abs(x - 1.0)) * step(0.001, uMix) * step(uMix, 0.999); // la cucitura tra le due
+    gl_FragColor = vec4(c + g, 1.0);
   }
 `;
 
@@ -266,7 +274,7 @@ export function createRide({ renderer }) {
   label.position.set(0, 0.01145, 0.0385);
   unit.add(label);
   const screenMat = new ShaderMaterial({
-    uniforms: { tUI: { value: null } },
+    uniforms: { tA: { value: null }, tB: { value: null }, uMix: { value: 0 } },
     vertexShader: screenVert, fragmentShader: screenFrag,
   });
   const screen = new Mesh(new PlaneGeometry(0.046, 0.07), screenMat);
@@ -281,42 +289,116 @@ export function createRide({ renderer }) {
   const N = V(0, 0, 1).applyQuaternion(q);
   const F = V(0, 1, 0).applyQuaternion(q);
 
-  // ── lo schermo acceso: il logo Nomads e "LLEGASTE" (ridisegnato quando logo e caratteri sono pronti)
-  const ui = document.createElement('canvas');
-  ui.width = 460; ui.height = 700;
-  const uiTex = new CanvasTexture(ui);
-  uiTex.colorSpace = SRGBColorSpace;
-  screenMat.uniforms.tUI.value = uiTex;
-  const logo = new Image();
-  const drawUI = () => {
-    const g = ui.getContext('2d');
-    const W = ui.width, H = ui.height;
-    const bg = g.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#16181c'); bg.addColorStop(1, '#0a0b0d');
-    g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    // il logo Nomads (quello originale), color crema
-    if (logo.complete && logo.naturalWidth) {
-      const w = 270, h = (w * logo.naturalHeight) / logo.naturalWidth;
-      const tint = document.createElement('canvas');
-      tint.width = w; tint.height = Math.ceil(h);
-      const t = tint.getContext('2d');
-      t.drawImage(logo, 0, 0, w, h);
-      t.globalCompositeOperation = 'source-in';
-      t.fillStyle = '#ede8df'; t.fillRect(0, 0, w, h);
-      g.drawImage(tint, (W - w) / 2, 236 - h / 2);
-    }
-    g.fillStyle = '#e8622c'; g.fillRect(W / 2 - 28, 318, 56, 4);
-    g.font = '500 58px Unbounded, sans-serif';
-    g.letterSpacing = '-1px';
-    g.textAlign = 'center';
-    g.fillStyle = '#ede8df';
-    g.fillText('LLEGASTE', W / 2, 420);
-    uiTex.needsUpdate = true;
+  // ── le schermate del ciclocomputer (460 × 700, come un GPS): LLEGASTE per l'intro, poi le
+  // pagine di Nosotros con i testi di Nomads (config.js → copy) e le loro foto
+  const C = CONFIG.copy;
+  const logo = new Image(), crew = new Image(), coach = new Image();
+  const slides = {};
+  const slide = (name, draw) => {
+    const c = document.createElement('canvas');
+    c.width = 460; c.height = 700;
+    const t = new CanvasTexture(c);
+    t.colorSpace = SRGBColorSpace;
+    slides[name] = { c, t, draw };
   };
-  logo.onload = drawUI;
-  logo.src = logoUrl;
-  drawUI();
-  document.fonts?.load('500 58px Unbounded').then(drawUI).catch(() => {});
+  const cream = '#ede8df', orange = '#e8622c';
+  const bg = (g, W, H) => {
+    const gr = g.createLinearGradient(0, 0, 0, H);
+    gr.addColorStop(0, '#16181c'); gr.addColorStop(1, '#0a0b0d');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  };
+  const drawLogo = (g, cx, cy, w) => {
+    if (!logo.complete || !logo.naturalWidth) return;
+    const h = (w * logo.naturalHeight) / logo.naturalWidth;
+    const tint = document.createElement('canvas');
+    tint.width = w; tint.height = Math.ceil(h);
+    const t = tint.getContext('2d');
+    t.drawImage(logo, 0, 0, w, h);
+    t.globalCompositeOperation = 'source-in';
+    t.fillStyle = cream; t.fillRect(0, 0, w, h);
+    g.drawImage(tint, cx - w / 2, cy - h / 2);
+  };
+  const text = (g, t, x, y, font, color, spacing = 0, align = 'left') => {
+    g.font = font; g.fillStyle = color; g.letterSpacing = `${spacing}px`; g.textAlign = align; g.fillText(t, x, y);
+  };
+  /** testo a capo dentro una larghezza; restituisce la y dopo l'ultima riga */
+  const wrap = (g, t, x, y, maxW, lineH, font, color) => {
+    g.font = font; g.fillStyle = color; g.letterSpacing = '0px'; g.textAlign = 'left';
+    let line = '';
+    for (const word of t.split(' ')) {
+      const test = line ? `${line} ${word}` : word;
+      if (g.measureText(test).width > maxW && line) { g.fillText(line, x, y); y += lineH; line = word; } else line = test;
+    }
+    if (line) { g.fillText(line, x, y); y += lineH; }
+    return y;
+  };
+  /** la barra in alto di ogni pagina: il marchio, i puntini delle pagine, la batteria */
+  const chrome = (g, W, page, pages) => {
+    text(g, 'NOMADS', 40, 62, '500 16px Unbounded, sans-serif', 'rgba(237,232,223,0.75)', 5);
+    for (let k = 0; k < pages; k++) {
+      g.fillStyle = k === page ? orange : 'rgba(237,232,223,0.25)';
+      g.beginPath(); g.arc(W / 2 - (pages - 1) * 9 + k * 18, 56, k === page ? 4.5 : 3.5, 0, Math.PI * 2); g.fill();
+    }
+    g.strokeStyle = cream; g.lineWidth = 3; g.strokeRect(W - 84, 44, 38, 18);
+    g.fillStyle = cream; g.fillRect(W - 45, 49, 4, 8);
+    g.fillStyle = orange; g.fillRect(W - 80, 48, 30, 10);
+    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(40, 86, W - 80, 2);
+  };
+  /** una foto ritagliata come object-fit: cover */
+  const photoBox = (g, img, x, y, w, h) => {
+    if (!img.complete || !img.naturalWidth) { g.fillStyle = '#22252a'; g.fillRect(x, y, w, h); return; }
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / s, sh = h / s;
+    g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, x, y, w, h);
+  };
+  slide('llegaste', (g, W, H) => {
+    bg(g, W, H);
+    drawLogo(g, W / 2, 236, 270);
+    g.fillStyle = orange; g.fillRect(W / 2 - 28, 318, 56, 4);
+    text(g, 'LLEGASTE', W / 2, 420, '500 58px Unbounded, sans-serif', cream, -1, 'center');
+  });
+  slide('nos0', (g, W, H) => {
+    bg(g, W, H);
+    drawLogo(g, W / 2, 230, 250);
+    g.fillStyle = orange; g.fillRect(W / 2 - 28, 304, 56, 4);
+    text(g, 'NOSOTROS', W / 2, 398, '500 52px Unbounded, sans-serif', cream, 0, 'center');
+    text(g, 'Desde México', W / 2, 450, '400 24px Manrope, sans-serif', 'rgba(237,232,223,0.7)', 0, 'center');
+    text(g, 'DESLIZA  ↓', W / 2, 640, '500 15px Unbounded, sans-serif', orange, 4, 'center');
+  });
+  const page = (name, n, label, body) => slide(name, (g, W, H) => {
+    bg(g, W, H);
+    chrome(g, W, n, 4);
+    text(g, label, 40, 196, '500 15px Unbounded, sans-serif', orange, 4);
+    wrap(g, body, 40, 262, W - 80, 50, '400 38px Unbounded, sans-serif', cream);
+  });
+  page('nos1', 0, C.b.kicker.toUpperCase(), C.b.text);
+  page('nos2', 1, C.c.kicker.toUpperCase(), C.c.text);
+  slide('nos3', (g, W, H) => {
+    bg(g, W, H);
+    chrome(g, W, 2, 4);
+    photoBox(g, crew, 40, 112, W - 80, 290);
+    text(g, C.port.kicker.toUpperCase(), 40, 452, '500 15px Unbounded, sans-serif', orange, 4);
+    const y = wrap(g, C.port.text, 40, 500, W - 80, 38, '400 29px Unbounded, sans-serif', cream);
+    wrap(g, C.port.sub, 40, y + 8, W - 80, 28, '400 20px Manrope, sans-serif', 'rgba(237,232,223,0.7)');
+  });
+  slide('nos4', (g, W, H) => {
+    bg(g, W, H);
+    chrome(g, W, 3, 4);
+    photoBox(g, coach, 40, 112, W - 80, 290);
+    text(g, 'HEAD COACH', 40, 452, '500 15px Unbounded, sans-serif', orange, 4);
+    text(g, 'Alfredo “Freddy” Cruz', 40, 500, '400 29px Unbounded, sans-serif', cream);
+    wrap(g, C.nus.sub, 40, 546, W - 80, 28, '400 20px Manrope, sans-serif', 'rgba(237,232,223,0.7)');
+  });
+  slide('nos5', (g, W, H) => {
+    bg(g, W, H);
+    drawLogo(g, W / 2, 260, 250);
+    g.fillStyle = orange; g.fillRect(W / 2 - 28, 334, 56, 4);
+    wrap(g, C.nus.text, 52, 410, W - 104, 40, '400 30px Unbounded, sans-serif', cream);
+  });
+  const redraw = () => { for (const sl of Object.values(slides)) { sl.draw(sl.c.getContext('2d'), sl.c.width, sl.c.height); sl.t.needsUpdate = true; } };
+  for (const [img, url] of [[logo, logoUrl], [crew, crewUrl], [coach, coachUrl]]) { img.onload = redraw; img.src = url; }
+  redraw();
+  document.fonts?.load('500 58px Unbounded').then(() => document.fonts.load('400 38px Unbounded')).then(() => document.fonts.load('400 24px Manrope')).then(redraw).catch(() => {});
+  screenMat.uniforms.tA.value = screenMat.uniforms.tB.value = slides.llegaste.t;
 
   // ── le inquadrature: 0 lo schermo intero · 1 in sella · 2 vicino al ciclocomputer · 3 di nuovo lo schermo
   // in sella, un po' a sinistra: la piega attraversa l'inquadratura fino alla leva destra
@@ -328,8 +410,32 @@ export function createRide({ renderer }) {
     { pos: S.clone().addScaledVector(N, 0.19).addScaledVector(F, -0.03), at: S.clone().addScaledVector(F, -0.014), up: F.clone(), fov: 50 },
     { pos: S.clone(), at: S.clone(), up: F.clone(), fov: 50 },
   ];
+  // Nosotros: una stazione per schermata, girando intorno al ciclocomputer; l'ultima larga sulla bici
+  const R = new Vector3().crossVectors(F, N).normalize();
+  const near = (n, r, f, roll = 0) => ({
+    pos: S.clone().addScaledVector(N, n).addScaledVector(R, r).addScaledVector(F, f),
+    at: S.clone().addScaledVector(F, -0.01),
+    up: F.clone().addScaledVector(R, roll).normalize(),
+    fov: 50,
+  });
+  const pageKeys = [
+    keys[2],
+    near(0.175, 0.075, -0.025, -0.06),
+    near(0.18, -0.085, -0.015, 0.07),
+    near(0.2, 0.03, -0.07, -0.03),
+    near(0.172, -0.05, 0.03, 0.05),
+    { pos: V(0.44, 0.36, 0.46), at: V(0, -0.1, -0.06), up: V(0, 1, 0), fov: 44 },
+  ];
   let aspect = 1, W = 1, H = 1;
   const api = { scene, camera };
+  /** il pulsante ENTRA c'è solo nell'intro */
+  api.showButton = (on) => { button.visible = label.visible = on; };
+  /** lo schermo mostra la schermata a, o il passaggio verso b (mix 0..1) */
+  api.setScreen = (a, b = a, mix = 0) => {
+    screenMat.uniforms.tA.value = slides[a].t;
+    screenMat.uniforms.tB.value = slides[b].t;
+    screenMat.uniforms.uMix.value = mix;
+  };
   const pv = new Vector3();
   // gli angoli dello schermo nel mondo: servono per sapere dove sta sulla pagina
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => V(x * 0.023, y * 0.035, 0).applyMatrix4(screen.matrixWorld));
@@ -373,17 +479,17 @@ export function createRide({ renderer }) {
   };
   const tmp = new Vector3(), up = new Vector3();
   /** k: inquadratura (0..3, frazionaria); time: secondi (la pedalata, la strada che scorre) */
-  const update = (k, time) => {
-    const i = Math.min(Math.floor(k), keys.length - 2), f = MathUtils.clamp(k - i, 0, 1);
-    const A = keys[i], B = keys[i + 1];
+  const update = (k, time, list = keys) => {
+    const i = Math.min(Math.floor(k), list.length - 2), f = MathUtils.clamp(k - i, 0, 1);
+    const A = list[i], B = list[i + 1];
     camera.position.lerpVectors(A.pos, B.pos, f);
     tmp.lerpVectors(A.at, B.at, f);
     camera.up.copy(up.lerpVectors(A.up, B.up, f).normalize());
     camera.fov = MathUtils.lerp(A.fov, B.fov, f);
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
-    // si pedala: un'oscillazione leggera, solo in sella
-    const ride = Math.max(0, 1 - Math.abs(k - 1) * 1.4);
+    // si pedala: un'oscillazione leggera, solo in sella (o nella vista larga di Nosotros)
+    const ride = list === keys ? Math.max(0, 1 - Math.abs(k - 1) * 1.4) : Math.max(0, k - 4) * 0.6;
     camera.position.x += Math.sin(time * 1.7) * 0.006 * ride;
     camera.position.y += Math.abs(Math.sin(time * 1.7)) * 0.004 * ride;
     camera.lookAt(tmp);
@@ -415,6 +521,8 @@ export function createRide({ renderer }) {
     renderer.setRenderTarget(target);
     renderer.render(scene, camera);
   };
-  Object.assign(api, { resize, update, render, keys });
+  /** Nosotros: k da 0 a 5, una stazione per schermata */
+  const updatePage = (k, time) => update(k, time, pageKeys);
+  Object.assign(api, { resize, update, updatePage, render, keys });
   return api;
 }

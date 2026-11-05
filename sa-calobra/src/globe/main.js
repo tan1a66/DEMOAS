@@ -81,6 +81,7 @@ async function start() {
   // pin e nomi: elementi DOM sopra il globo (nitidi, cliccabili), nascosti dietro la Terra
   const pinsEl = $('#pins');
   let pinsShown = 1; // le mete si nascondono sotto la pagina Nosotros
+  const scr = { a: 'llegaste', b: 'llegaste', mix: 0 }; // cosa mostra lo schermo del ciclocomputer
   // il pulsante ENTRA del ciclocomputer: un bottone vero (toccabile, accessibile) sopra quello in 3D
   const enterBtn = document.createElement('button');
   enterBtn.type = 'button';
@@ -135,6 +136,7 @@ async function start() {
   resize();
 
   const story = createGlobeStory({ capture: CAPTURE });
+  story.state.pk = -1; // Nosotros: la stazione intorno al ciclocomputer (−1 = fuori dalla pagina)
   measureFit();
   place();
   const st = story.state;
@@ -193,12 +195,15 @@ async function start() {
     veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
     root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
     if (r <= 0) { enterBtn.hidden = true; renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
-    ride.update(st.rk, performance.now() / 1000);
+    if (st.pk >= 0) ride.updatePage(st.pk, performance.now() / 1000);
+    else ride.update(st.rk, performance.now() / 1000);
+    ride.setScreen(scr.a, scr.b, scr.mix);
+    ride.showButton(st.pk < 0 && !pages.isOpen);
     ride.render(rideRT);
     // il bottone segue il pulsante 3D (almeno 48 px per il dito); si può toccare finché non si entra
     const [bx, by, bw, bh] = ride.buttonRect(W, H);
     const tw = Math.max(bw + 16, 64), th = Math.max(bh + 16, 48);
-    enterBtn.hidden = story.step === 2 || P > 0;
+    enterBtn.hidden = story.step === 2 || P > 0 || st.pk >= 0 || pages.isOpen;
     enterBtn.style.transform = `translate3d(${(bx + bw / 2 - tw / 2).toFixed(1)}px, ${(by + bh / 2 - th / 2).toFixed(1)}px, 0)`;
     enterBtn.style.width = `${tw.toFixed(0)}px`;
     enterBtn.style.height = `${th.toFixed(0)}px`;
@@ -244,9 +249,11 @@ async function start() {
   enterBtn.addEventListener('click', () => { ride.press(); story.goTo(2); });
 
   // il menu sotto il logo: Nosotros e Viajes sono pagine leggere, Contacto la schermata con WhatsApp
-  // Nosotros: il globo vola su Città del Messico; arrivato, la sua immagine diventa la copertina
-  // della pagina (si disegna e si fotografa nello stesso istante). Chiudendo torna sull'Europa.
-  const HOME = { lat: G.origin.lat - 2.2, lon: G.origin.lon, dist: 1.22 };
+  // Nosotros la racconta il ciclocomputer: il mondo rientra nello schermo della bici (l'intro al
+  // contrario), poi lo scorrimento della pagina comanda camera (st.pk, 0..5) e schermate (scr);
+  // chiudendo, il mondo esce di nuovo dallo schermo, come nell'intro
+  const SLIDES = ['nos0', 'nos1', 'nos2', 'nos3', 'nos4', 'nos5'];
+  const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
   const pages = createPages({
     story, onChapter: goChapter,
     onOpen: (id) => {
@@ -258,19 +265,31 @@ async function start() {
         gsap.killTweensOf(st);
         gsap.to('#dock', { autoAlpha: 0, duration: 0.4 });
         pinsShown = 0;
-        gsap.to(st, {
-          ...HOME, low: 0, duration: 1.7, ease: 'power2.inOut',
-          onComplete: () => { frame(); resolve(canvas.toDataURL('image/jpeg', 0.9)); },
-        });
+        Object.assign(scr, { a: 'nos0', b: 'nos0', mix: 0 });
+        Object.assign(st, { ride: 1, rk: 3, portal: 1, portalA: 1, pk: -1 });
+        gsap.timeline({ onComplete: () => { st.pk = 0; resolve(); } })
+          .to(st, { portal: 0, duration: 1.3, ease: 'power2.inOut' }, 0)
+          .to(st, { rk: 2, duration: 1.4, ease: 'power2.out' }, 0)
+          .to(st, { portalA: 0, duration: 0.4, ease: 'sine.inOut' }, 1.0);
       });
+    },
+    onScroll: (id, p) => {
+      if (st.pk < 0) return;
+      const x = p * 5, i = Math.min(Math.floor(x), 4), f = x - i;
+      st.pk = i + smooth(0.3, 0.8, f);
+      Object.assign(scr, { a: SLIDES[i], b: SLIDES[i + 1], mix: smooth(0.4, 0.75, f) });
     },
     onClose: (id) => {
       if (id !== 'nosotros') return;
-      const E = G.explore;
       gsap.killTweensOf(st);
-      gsap.to(st, { lat: E.lat, lon: E.lon, dist: E.dist, low: 1, duration: 1.6, ease: 'power2.inOut', delay: 0.4 });
-      gsap.to('#dock', { autoAlpha: 1, duration: 0.6, delay: 1.5 });
-      gsap.delayedCall(1.7, () => { pinsShown = 1; });
+      gsap.timeline()
+        .to(st, { pk: 0, duration: 0.6, ease: 'power2.inOut', onComplete: () => { st.pk = -1; st.rk = 2; } })
+        .to(st, { portalA: 1, duration: 0.3, ease: 'sine.inOut' }, 0.65)
+        .to(st, { rk: 3, duration: 1.4, ease: 'power1.in' }, 0.7)
+        .to(st, { portal: 1, duration: 1.3, ease: 'power2.inOut' }, 0.8)
+        .set(st, { ride: 0 }, 2.15)
+        .to('#dock', { autoAlpha: 1, duration: 0.6 }, 2.1)
+        .add(() => { pinsShown = 1; Object.assign(scr, { a: 'llegaste', b: 'llegaste', mix: 0 }); }, 2.2);
     },
   });
   for (const b of document.querySelectorAll('[data-page]')) {
