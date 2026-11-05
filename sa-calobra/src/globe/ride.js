@@ -371,23 +371,26 @@ export function createRide({ renderer }) {
     g.fillStyle = orange; g.fillRect(W / 2 - 28, 318, 56, 4);
     text(g, 'LLEGASTE', W / 2, 420, '500 58px Unbounded, sans-serif', cream, -1, 'center');
   });
-  // il menu: NOSOTROS, VIAJES, CONTACTO; la voce scelta in arancione (una schermata per bici)
-  const MENU = ['NOSOTROS', 'VIAJES', 'CONTACTO'];
-  const menuRows = MENU.map((_, k) => [28, 236 + k * 112 - 50, 432, 236 + k * 112 + 50]); // x0, y0, x1, y1 nel canvas
-  MENU.forEach((_, sel) => slide(`menu${sel}`, (g, W, H) => {
+  // il menu: NOSOTROS, VIAJES, CONTACTO (una bici per voce, la voce scelta in arancione) e, sotto un
+  // filo, MAPAS per tornare al globo
+  const MENU = ['NOSOTROS', 'VIAJES', 'CONTACTO', 'MAPAS'];
+  const rowY = (k) => 214 + k * 98 + (k === 3 ? 22 : 0);
+  const menuRows = MENU.map((_, k) => [20, rowY(k) - 46, 440, rowY(k) + 46]); // x0, y0, x1, y1 nel canvas
+  [0, 1, 2].forEach((sel) => slide(`menu${sel}`, (g, W, H) => {
     bg(g, W, H);
     chrome(g, W, -1, 0);
-    text(g, 'MENÚ', 40, 160, '500 15px Unbounded, sans-serif', 'rgba(237,232,223,0.5)', 5);
+    text(g, 'MENÚ', 40, 150, '500 15px Unbounded, sans-serif', 'rgba(237,232,223,0.5)', 5);
+    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(40, rowY(3) - 66, W - 80, 2);
     MENU.forEach((m, k) => {
-      const y = 236 + k * 112;
+      const y = rowY(k);
       if (k === sel) {
-        g.fillStyle = 'rgba(232,98,44,0.14)'; g.fillRect(28, y - 50, W - 56, 100);
-        g.fillStyle = orange; g.fillRect(28, y - 50, 6, 100);
+        g.fillStyle = 'rgba(232,98,44,0.14)'; g.fillRect(28, y - 44, W - 56, 88);
+        g.fillStyle = orange; g.fillRect(28, y - 44, 6, 88);
       }
-      text(g, m, 56, y + 14, '500 38px Unbounded, sans-serif', k === sel ? cream : 'rgba(237,232,223,0.42)', 1);
-      if (k === sel) text(g, '›', W - 52, y + 16, '400 44px Manrope, sans-serif', orange, 0, 'right');
+      text(g, m, 56, y + 13, '500 35px Unbounded, sans-serif', k === sel ? cream : 'rgba(237,232,223,0.42)', 1);
+      if (k === sel) text(g, '›', W - 52, y + 15, '400 42px Manrope, sans-serif', orange, 0, 'right');
     });
-    drawLogo(g, W / 2, 630, 150);
+    drawLogo(g, W / 2, 646, 140);
   }));
   const redraw = () => { for (const sl of Object.values(slides)) { sl.draw(sl.c.getContext('2d'), sl.c.width, sl.c.height); sl.t.needsUpdate = true; } };
   logo.onload = redraw;
@@ -497,11 +500,11 @@ export function createRide({ renderer }) {
     // la stazione del menu: il ciclocomputer (corto) alto il 60% della finestra a sinistra (computer),
     // o un terzo della finestra in alto (telefono in verticale)
     const t2 = 2 * Math.tan(MathUtils.degToRad(25));
-    const d = aspect >= 1 ? 0.088 / (0.58 * t2) : Math.max(0.088 / (0.31 * t2), 0.06 / (0.44 * t2 * aspect));
+    const d = aspect >= 1 ? 0.088 / (0.6 * t2) : Math.max(0.088 / (0.36 * t2), 0.06 / (0.5 * t2 * aspect));
     MENU_AT.pos.copy(S).addScaledVector(N, d).addScaledVector(R, d * 0.2).addScaledVector(F, -d * 0.06);
     MENU_AT.up.copy(F).addScaledVector(R, -0.04).normalize();
     menuShift[0] = aspect >= 1 ? 0.22 : 0;
-    menuShift[1] = aspect >= 1 ? 0 : 0.17;
+    menuShift[1] = aspect >= 1 ? 0 : 0.2;
     const dpr = Math.min(renderer.getPixelRatio(), 2);
     rtA.setSize(Math.max(2, Math.round(w * dpr / 4)), Math.max(2, Math.round(h * dpr / 4)));
     rtB.setSize(rtA.width, rtA.height);

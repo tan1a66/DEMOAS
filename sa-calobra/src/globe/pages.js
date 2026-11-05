@@ -5,7 +5,8 @@
 //   Nosotros — i testi di Nomads, la crew, il head coach e gli spazi per le foto dei viaggi (FOTO)
 //   Viajes   — i capitoli con la batteria; toccandone uno si torna sul globo e si apre il capitolo
 //   Contacto — WhatsApp
-// Si esce con il "indietro" del telefono, con "Mapa" o con il logo: il mondo esce dallo schermo.
+// Si esce con MAPAS sullo schermo, con il "indietro" del telefono o con il logo: il mondo esce dallo
+// schermo. Nelle bici il menu sotto il logo si nasconde: c'è già nello schermo.
 import gsap from 'gsap';
 import { CONFIG } from '../config.js';
 import { battery } from './story.js';
@@ -41,20 +42,56 @@ function nosotros() {
     </div>`;
 }
 
+/** Viajes: informazioni, non le schede della mappa. I numeri sono somme delle tappe del PDF di
+ *  Nomads (config.js → trip.days); il grafico mostra il dislivello di ogni tappa */
 function viajes() {
-  const G = CONFIG.globe;
+  const T = CONFIG.trip, G = CONFIG.globe;
+  const fmt = (n) => n.toLocaleString('en-US'); // 10,651 come nel PDF
+  const stages = T.days.filter((d) => d.stats).map((d) => {
+    const [km, hrs, m] = d.stats.split(' · ');
+    const [h, min] = hrs.split(' ')[0].split(':').map(Number);
+    return { day: d.day, name: d.name, km: parseFloat(km), min: h * 60 + min, m: parseInt(m.replace(/\D/g, ''), 10), level: d.level };
+  });
+  const km = stages.reduce((a, s) => a + s.km, 0), m = stages.reduce((a, s) => a + s.m, 0);
+  const hours = Math.round(stages.reduce((a, s) => a + s.min, 0) / 60);
+  const maxM = Math.max(...stages.map((s) => s.m));
+  const cols = stages.map((s) => `
+      <button class="elev__col" type="button" style="--h:${((s.m / maxM) * 100).toFixed(1)}%" aria-label="Día ${s.day}, ${s.name}: ${fmt(s.m)} m de desnivel, ${s.km} km">
+        ${s.m === maxM ? `<em class="elev__val">${fmt(s.m)} m</em>` : ''}<i></i><span class="elev__day">${s.day}</span>
+        <span class="elev__tip" role="tooltip"><b>Día ${s.day}</b>${s.name}<br />${fmt(s.m)} m · ${s.km} km · ${s.level}</span>
+      </button>`).join('');
+  const next = G.chapters.map((ch) => `
+      <li><button class="chap" type="button" data-trip="${ch.n}">
+        <span class="chap__when">${ch.when}</span>
+        <span class="chap__body"><b>Capítulo ${ch.n} · ${ch.name ?? ch.title}</b><span class="chap__status">${battery(ch.status)}</span>${ch.lead ? `<span class="chap__lead">${ch.lead}</span>` : ''}</span>
+      </button></li>`).join('');
   return `
-    <p class="kicker">Capítulos</p>
-    <h2 class="bk__title">Viajes</h2>
-    <ul class="trips">${G.chapters.map((ch) => `
-      <li><button class="trip" type="button" data-trip="${ch.n}">
-        <span class="trip__top"><b>Capítulo ${ch.n}</b><i>${battery(ch.status)}</i></span>
-        <strong>${ch.name ?? ch.title}</strong>
-        <span class="trip__when">${ch.when}</span>
-        ${ch.lead ? `<span class="trip__lead">${ch.lead}</span>` : ''}
-        <span class="trip__go" aria-hidden="true">→</span>
-      </button></li>`).join('')}
-    </ul>`;
+    <p class="kicker">Viajes</p>
+    <h2 class="bk__title">${T.chapter} · ${T.name}</h2>
+    <p class="bk__meta">${battery('done')} · ${T.dates}</p>
+    <dl class="stats">
+      <div><dt>Etapas</dt><dd>${stages.length}</dd></div>
+      <div><dt>Kilómetros</dt><dd>${fmt(Math.round(km))}</dd></div>
+      <div><dt>Desnivel</dt><dd>${fmt(m)} m</dd></div>
+      <div><dt>Horas en bici</dt><dd>${hours}</dd></div>
+    </dl>
+    <p class="bk__note">Totales de las ${stages.length} etapas, con la del día 6 (opcional). Tres niveles: ${T.levels.join(', ').toLowerCase()}.</p>
+    <figure class="elev">
+      <figcaption class="bk__label">Desnivel por etapa</figcaption>
+      <div class="elev__plot">${cols}</div>
+      <p class="elev__axis">Día</p>
+      <table class="sr-only"><caption>Desnivel por etapa, Capítulo 01 · Mallorca</caption><tr><th>Día</th><th>Etapa</th><th>Desnivel</th><th>Km</th></tr>${stages.map((s) => `<tr><td>${s.day}</td><td>${s.name}</td><td>${fmt(s.m)} m</td><td>${s.km}</td></tr>`).join('')}</table>
+    </figure>
+    <div class="bk__block">
+      <p class="bk__label">Lo que incluía</p>
+      <ul class="incl-list">${T.includes.map((x) => `<li>${x}</li>`).join('')}</ul>
+      <button class="cta" type="button" data-trip="01">El viaje día a día <span aria-hidden="true">→</span></button>
+    </div>
+    <div class="bk__block">
+      <p class="bk__label">Los capítulos</p>
+      <ol class="chaps">${next}</ol>
+    </div>
+    <div class="promise"><p class="label">La promesa Nomads</p><p class="promise__t">${G.copy.promise}</p></div>`;
 }
 
 function contacto() {
@@ -71,9 +108,8 @@ export function createPages({ story, onChapter, onOpen, onSection, onClose }) {
   el.id = 'pages';
   el.setAttribute('aria-hidden', 'true');
   el.innerHTML = `
-    <nav class="bk__hits" aria-label="Menú del ciclocomputador">${SECTIONS.map((id) => `<button type="button" data-hit="${id}" aria-label="${id}"></button>`).join('')}</nav>
+    <nav class="bk__hits" aria-label="Menú del ciclocomputador">${[...SECTIONS, 'mapas'].map((id) => `<button type="button" data-hit="${id}" aria-label="${id}"></button>`).join('')}</nav>
     <div class="bk__panel">
-      <button class="bk__back" type="button"><span aria-hidden="true">←</span> Mapa</button>
       <section class="bk__sec" data-sec="nosotros">${nosotros()}</section>
       <section class="bk__sec" data-sec="viajes">${viajes()}</section>
       <section class="bk__sec" data-sec="contacto">${contacto()}</section>
@@ -93,7 +129,7 @@ export function createPages({ story, onChapter, onOpen, onSection, onClose }) {
     for (const [k, s] of Object.entries(secs)) s.hidden = k !== id;
     panel.scrollTop = 0;
   };
-  const textIn = (id, delay = 0) => gsap.fromTo([el.querySelector('.bk__back'), ...secs[id].children], { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65, stagger: 0.05, ease: 'power3.out', delay });
+  const textIn = (id, delay = 0) => gsap.fromTo(secs[id].children, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65, stagger: 0.05, ease: 'power3.out', delay });
 
   /** apre le pagine sulla voce id; se sono già aperte, gira la giostra fino a quella voce */
   const open = (id) => {
@@ -158,9 +194,8 @@ export function createPages({ story, onChapter, onOpen, onSection, onClose }) {
   };
   addEventListener('popstate', () => { if (current && !busy) finish(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  el.querySelector('.bk__back').addEventListener('click', () => close());
-  // le voci del menu toccate sullo schermo del ciclocomputer
-  for (const b of el.querySelectorAll('[data-hit]')) b.addEventListener('click', () => open(b.dataset.hit));
+  // le voci del menu toccate sullo schermo del ciclocomputer; MAPAS riporta al globo
+  for (const b of el.querySelectorAll('[data-hit]')) b.addEventListener('click', () => (b.dataset.hit === 'mapas' ? close() : open(b.dataset.hit)));
   // un capitolo: si torna sul globo e si apre il suo pannello
   secs.viajes.addEventListener('click', (e) => {
     const b = e.target.closest('[data-trip]');
