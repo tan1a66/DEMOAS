@@ -472,7 +472,11 @@ export function createRide({ renderer }) {
     // 0 e 3: lo schermo occupa tutta la larghezza (o l'altezza): la mappa del globo ci entra dentro
     const dFit = Math.max(0.023 / (f * aspect), 0.035 / f);
     for (const k of [0, 3]) keys[k].pos.copy(S).addScaledVector(N, dFit);
-    POV.fov = aspect < 1 ? 56 : 40;
+    // l'apertura cambia in modo continuo con la forma della finestra (niente salto al quadrato):
+    // più è stretta e alta, più si apre, così la piega intera entra sempre
+    const fit = (atSquare) => 2 * MathUtils.radToDeg(Math.atan(Math.tan(MathUtils.degToRad(atSquare / 2)) / Math.pow(aspect, 0.35)));
+    POV.fov = MathUtils.clamp(fit(47.8), 32, 70);
+    pageKeys[pageKeys.length - 1].fov = MathUtils.clamp(fit(44), 30, 66);
     const dpr = Math.min(renderer.getPixelRatio(), 2);
     rtA.setSize(Math.max(2, Math.round(w * dpr / 4)), Math.max(2, Math.round(h * dpr / 4)));
     rtB.setSize(rtA.width, rtA.height);

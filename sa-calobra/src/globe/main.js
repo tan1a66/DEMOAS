@@ -347,7 +347,7 @@ async function start() {
   canvas.addEventListener('pointerup', release);
   canvas.addEventListener('pointercancel', release);
   addEventListener('wheel', (e) => {
-    if (!story.exploring || e.target.closest?.('.info, .final, .dock')) return;
+    if (!story.exploring || pages.isOpen || e.target.closest?.('.info, .final, .dock, .pg')) return;
     fly?.kill();
     st.dist = clampDist(st.dist * Math.exp(e.deltaY * 0.0012));
   }, { passive: true });

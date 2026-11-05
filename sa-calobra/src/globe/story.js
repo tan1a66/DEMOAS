@@ -99,7 +99,7 @@ export function createGlobeStory({ capture = false } = {}) {
   if (!capture) {
     let acc = 0, busy = false, lastWheel = 0, fired = 0;
     addEventListener('wheel', (e) => {
-      if (e.target.closest?.('.info, .final')) return;
+      if (e.target.closest?.('.info, .final, .pg')) return;
       e.preventDefault();
       if (exploring) return; // la rotella avvicina il globo (main.js)
       const now = performance.now();
@@ -111,10 +111,10 @@ export function createGlobeStory({ capture = false } = {}) {
     }, { passive: false });
     let tx = 0, ty = 0, tracking = false;
     addEventListener('touchstart', (e) => {
-      tracking = !e.target.closest('.info, .final, .dock') && e.touches.length === 1;
+      tracking = !e.target.closest('.info, .final, .dock, .pg') && e.touches.length === 1;
       if (tracking) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }
     }, { passive: true });
-    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll, .dock__chapters')) e.preventDefault(); }, { passive: false });
+    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll, .dock__chapters, .pg__scroll')) e.preventDefault(); }, { passive: false });
     addEventListener('touchend', (e) => {
       if (!tracking) return;
       tracking = false;
@@ -122,7 +122,7 @@ export function createGlobeStory({ capture = false } = {}) {
       if (Math.abs(dy) > 36 && Math.abs(dy) > Math.abs(dx) * 1.2) (dy < 0 ? next : prev)();
     }, { passive: true });
     addEventListener('keydown', (e) => {
-      if (e.target.closest?.('.info, .final')) return;
+      if (e.target.closest?.('.info, .final, .pg')) return;
       if (['ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && !e.target.closest?.('button, a'))) { e.preventDefault(); next(); }
       else if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
     });
