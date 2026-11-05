@@ -21,8 +21,8 @@ const vert = /* glsl */ `
 `;
 
 const frag = /* glsl */ `
-  uniform sampler2D tEarth, tTopo, tWorld, tMed, tBal, tEu;
-  uniform vec4 uMedBox, uBalBox;          // lonMin, latMin, lonMax, latMax
+  uniform sampler2D tEarth, tTopo, tWorld, tMed, tBal, tEu, tMx;
+  uniform vec4 uMedBox, uBalBox, uMxBox;  // lonMin, latMin, lonMax, latMax
   uniform vec3 uLight, uAtmo, uSun;
   uniform float uBump, uCamDist, uAmbient;
   varying vec3 vP;
@@ -55,6 +55,9 @@ const frag = /* glsl */ `
     // Europa e Mediterraneo: la foto nitida (stesso riquadro della maschera fine)
     vec2 euv = clamp((ll - uMedBox.xy) / (uMedBox.zw - uMedBox.xy), 0.0, 1.0);
     earth = mix(earth, texture2D(tEu, euv).rgb, r1.a);
+    // il Messico centrale (da dove parte Nomads): anche lui con la foto nitida
+    vec4 mx = regional(tMx, uMxBox, ll);
+    earth = mix(earth, mx.rgb, mx.a);
 
     // il mare un po' più chiaro e turchese: la foto della NASA ha oceani molto scuri
     earth = mix(earth, earth * vec3(1.1, 1.38, 1.5) + vec3(0.0, 0.008, 0.016), 1.0 - land);
@@ -72,7 +75,7 @@ const frag = /* glsl */ `
     vec3 col = earth * (uAmbient + 1.0 * ndl) * uSun;
     // confini e coste, sottili
     col = mix(col, vec3(0.95), border * 0.22 * land);
-    col = mix(col, vec3(0.92, 0.95, 1.0), coast * 0.28);
+    col = mix(col, vec3(0.92, 0.95, 1.0), coast * 0.28 * (1.0 - mx.a)); // in Messico la costa è già nella foto
     // l'atmosfera sul bordo
     // (solo da lontano: da vicino l'aria è trasparente e la costa resta nitida)
     float fres = pow(1.0 - max(dot(p, toCam), 0.0), 2.6) * smoothstep(1.3, 2.4, uCamDist);
@@ -147,14 +150,14 @@ function createGlow([gold, orange, rose]) {
 
 export function createGlobe({ tex, meta }, { atmosphere, halo, haloWidth = 1.035, glow, sunlight, ambient }, anisotropy = 1) {
   for (const t of [tex.world, tex.earth, tex.topo]) t.wrapS = RepeatWrapping;
-  for (const t of [tex.med, tex.bal, tex.eu]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
+  for (const t of [tex.med, tex.bal, tex.eu, tex.mx]) { t.wrapS = ClampToEdgeWrapping; t.wrapT = ClampToEdgeWrapping; }
   // nitide anche di sbieco, verso il bordo della Terra
-  for (const t of [tex.earth, tex.eu]) t.anisotropy = anisotropy;
+  for (const t of [tex.earth, tex.eu, tex.mx]) t.anisotropy = anisotropy;
   const box = (b) => new Vector4(b[0], b[1], b[2], b[3]);
   const uniforms = {
     tEarth: { value: tex.earth }, tTopo: { value: tex.topo },
-    tWorld: { value: tex.world }, tMed: { value: tex.med }, tBal: { value: tex.bal }, tEu: { value: tex.eu },
-    uMedBox: { value: box(meta.med.box) }, uBalBox: { value: box(meta.bal.box) },
+    tWorld: { value: tex.world }, tMed: { value: tex.med }, tBal: { value: tex.bal }, tEu: { value: tex.eu }, tMx: { value: tex.mx },
+    uMedBox: { value: box(meta.med.box) }, uBalBox: { value: box(meta.bal.box) }, uMxBox: { value: box(meta.mx.box) },
     uLight: { value: new Vector3(0, 0, 1) },
     uAtmo: { value: new Color(atmosphere) },
     uBump: { value: 9.0 },

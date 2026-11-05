@@ -53,5 +53,16 @@
   "width": 3564,
   "height": 2376
  },
- "source": "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa: NASA Blue Marble Next Generation via GIBS"
+ "mx": {
+  "file": "globe_mx.webp",
+  "box": [
+   -110,
+   12,
+   -88,
+   28
+  ],
+  "width": 2640,
+  "height": 1920
+ },
+ "source": "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa e Messico: NASA Blue Marble Next Generation via GIBS"
 }

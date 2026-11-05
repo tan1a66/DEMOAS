@@ -104,13 +104,14 @@ GIBS = ("https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&R
         "&VERSION=1.3.0&LAYERS=BlueMarble_NextGeneration&STYLES=&CRS=EPSG:4326&FORMAT=image/jpeg")
 
 
-def europe(meta, mask):
-    """la foto nitida dell'Europa (stesso riquadro e risoluzione della maschera med), con i
-    colori del mare e della terra portati a quelli della texture del mondo"""
+def photo(meta, name, box, mask):
+    """la foto nitida di una zona (NASA Blue Marble NG via GIBS), stesso riquadro e risoluzione
+    della maschera `mask`, con i colori della terra portati a quelli della texture del mondo e il
+    mare del globo (sfumato)"""
     import numpy as np
-    x0, y0, x1, y1 = LEVELS["med"]["box"]
+    x0, y0, x1, y1 = box
     W, H = mask.size
-    f = ROOT / ".cache" / "earth" / f"gibs-eu-{W}x{H}.jpg"
+    f = ROOT / ".cache" / "earth" / f"gibs-{name}-{W}x{H}.jpg"
     if not f.exists():
         url = f"{GIBS}&BBOX={y0},{x0},{y1},{x1}&WIDTH={W}&HEIGHT={H}"
         f.write_bytes(urllib.request.urlopen(url, timeout=600).read())
@@ -119,8 +120,8 @@ def europe(meta, mask):
     # la stessa zona nella texture del mondo, alla stessa scala
     w = Image.open(DATA / "globe_earth.webp").convert("RGB")
     WW, WH = w.size
-    box = ((x0 + 180) / 360 * WW, (90 - y1) / 180 * WH, (x1 + 180) / 360 * WW, (90 - y0) / 180 * WH)
-    ref = np.asarray(w.transform((W, H), Image.EXTENT, box, Image.BICUBIC), dtype=np.float32) / 255
+    crop = ((x0 + 180) / 360 * WW, (90 - y1) / 180 * WH, (x1 + 180) / 360 * WW, (90 - y0) / 180 * WH)
+    ref = np.asarray(w.transform((W, H), Image.EXTENT, crop, Image.BICUBIC), dtype=np.float32) / 255
     lin = lambda c: np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
     srgb = lambda c: np.where(c <= 0.0031308, c * 12.92, 1.055 * np.clip(c, 0, None) ** (1 / 2.4) - 0.055)
     # la terra: la foto nitida, con i colori portati a quelli del globo
@@ -130,22 +131,26 @@ def europe(meta, mask):
     # il mare: il colore del globo, sfumato e senza la terra che vi sbava vicino alle coste
     # (nella foto NASA il mare è quasi nero: schiarirlo tirerebbe fuori il rumore)
     sea = 1 - land
-    def box(a, r, axis):
+    def run(a, r, axis):  # media mobile lungo un asse
         c = np.cumsum(np.pad(a, [(r + 1, r) if i == axis else (0, 0) for i in range(a.ndim)], mode="edge"), axis=axis)
         hi = np.take(c, range(2 * r + 1, c.shape[axis]), axis=axis)
         lo = np.take(c, range(0, c.shape[axis] - 2 * r - 1), axis=axis)
         return (hi - lo) / (2 * r + 1)
     def blur(a):  # tre passate di media mobile ≈ gaussiana
         for _ in range(3):
-            a = box(box(a, 14, 0), 14, 1)
+            a = run(run(a, 14, 0), 14, 1)
         return a
     sea_col = blur(lin(ref) * sea) / np.maximum(blur(sea), 1e-3)
     out = land * lin(eu) * g_land + sea * sea_col
     img = Image.fromarray((np.clip(srgb(out), 0, 1) * 255 + 0.5).astype("uint8"))
-    o = DATA / "globe_eu.webp"
+    o = DATA / f"globe_{name}.webp"
     img.save(o, "WEBP", quality=76, method=6)
-    meta["eu"] = {"file": o.name, "box": LEVELS["med"]["box"], "width": W, "height": H}
-    print(f"eu: {W}x{H} → {o.name} {o.stat().st_size // 1024} KB")
+    meta[name] = {"file": o.name, "box": list(box), "width": W, "height": H}
+    print(f"{name}: {W}x{H} → {o.name} {o.stat().st_size // 1024} KB")
+
+
+# il Messico centrale, da Città del Messico (dove parte Nomads): la pagina Nosotros ci vola sopra
+MX = {"box": [-110, 12, -88, 28], "ppd": 120}
 
 
 def main():
@@ -165,8 +170,11 @@ def main():
         meta[name] = {"file": f.name, "box": L["box"], "width": W, "height": H}
         print(f"{name}: {W}x{H} → {f.name} {f.stat().st_size // 1024} KB")
     earth(meta)
-    europe(meta, med_mask)
-    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa: NASA Blue Marble Next Generation via GIBS"
+    photo(meta, "eu", LEVELS["med"]["box"], med_mask)
+    x0, y0, x1, y1 = MX["box"]
+    W = int(round((x1 - x0) * MX["ppd"])); H = int(round(W * (y1 - y0) / (x1 - x0)))
+    photo(meta, "mx", MX["box"], render(cache["10m"], MX["box"], W, H))
+    meta["source"] = "Natural Earth (dominio pubblico) via world-atlas; Terra: NASA Blue Marble (dominio pubblico), Europa e Messico: NASA Blue Marble Next Generation via GIBS"
     (DATA / "globe.json").write_text(json.dumps(meta, indent=1))
 
 

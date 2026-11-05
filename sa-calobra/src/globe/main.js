@@ -80,6 +80,7 @@ async function start() {
 
   // pin e nomi: elementi DOM sopra il globo (nitidi, cliccabili), nascosti dietro la Terra
   const pinsEl = $('#pins');
+  let pinsShown = 1; // le mete si nascondono sotto la pagina Nosotros
   // il pulsante ENTRA del ciclocomputer: un bottone vero (toccabile, accessibile) sopra quello in 3D
   const enterBtn = document.createElement('button');
   enterBtn.type = 'button';
@@ -187,7 +188,7 @@ async function start() {
     }
     const r = st.ride, P = st.portal;
     // pin e nomi solo quando il mondo ha riempito la pagina
-    pinsEl.style.opacity = String(r > 0 ? Math.min(Math.max((P - 0.85) / 0.15, 0), 1) : 1);
+    pinsEl.style.opacity = String((r > 0 ? Math.min(Math.max((P - 0.85) / 0.15, 0), 1) : 1) * pinsShown);
     // in sella niente velo scuro: sul tramonto spegnerebbe la luce
     veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
     root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
@@ -243,13 +244,43 @@ async function start() {
   enterBtn.addEventListener('click', () => { ride.press(); story.goTo(2); });
 
   // il menu sotto il logo: Nosotros e Viajes sono pagine leggere, Contacto la schermata con WhatsApp
-  const pages = createPages({ story, onChapter: goChapter });
+  // Nosotros: il globo vola su Città del Messico; arrivato, la sua immagine diventa la copertina
+  // della pagina (si disegna e si fotografa nello stesso istante). Chiudendo torna sull'Europa.
+  const HOME = { lat: G.origin.lat - 2.2, lon: G.origin.lon, dist: 1.22 };
+  const pages = createPages({
+    story, onChapter: goChapter,
+    onOpen: (id) => {
+      if (id !== 'nosotros') return null;
+      return new Promise((resolve) => {
+        if (!story.exploring) story.seek(1); // dall'intro: si salta direttamente al mondo
+        fly?.kill();
+        vlat = vlon = 0;
+        gsap.killTweensOf(st);
+        gsap.to('#dock', { autoAlpha: 0, duration: 0.4 });
+        pinsShown = 0;
+        gsap.to(st, {
+          ...HOME, low: 0, duration: 1.7, ease: 'power2.inOut',
+          onComplete: () => { frame(); resolve(canvas.toDataURL('image/jpeg', 0.9)); },
+        });
+      });
+    },
+    onClose: (id) => {
+      if (id !== 'nosotros') return;
+      const E = G.explore;
+      gsap.killTweensOf(st);
+      gsap.to(st, { lat: E.lat, lon: E.lon, dist: E.dist, low: 1, duration: 1.6, ease: 'power2.inOut', delay: 0.4 });
+      gsap.to('#dock', { autoAlpha: 1, duration: 0.6, delay: 1.5 });
+      gsap.delayedCall(1.7, () => { pinsShown = 1; });
+    },
+  });
   for (const b of document.querySelectorAll('[data-page]')) {
     b.addEventListener('click', () => {
       if (info.isOpen) info.close();
       if (panel.isOpen) panel.close();
-      if (b.dataset.page === 'contacto') story.open({ currentTarget: b });
-      else pages.open(b.dataset.page);
+      if (b.dataset.page === 'contacto') {
+        if (pages.isOpen) pages.close(() => story.open({ currentTarget: b }));
+        else story.open({ currentTarget: b });
+      } else pages.open(b.dataset.page);
     });
   }
   pin1.el.addEventListener('click', () => goChapter(ch1.n));
@@ -329,7 +360,7 @@ async function start() {
 
   // il globo non si disegna quando è coperto (schermata finale, pagine, pannelli già aperti)
   gsap.ticker.add(() => {
-    if (story.finalOpen || pages.isOpen || panel.isOpen || (info.isOpen && seaEl.style.opacity === '1')) return;
+    if (story.finalOpen || pages.covers || panel.isOpen || (info.isOpen && seaEl.style.opacity === '1')) return;
     frame();
   });
   document.body.classList.add('ready');
