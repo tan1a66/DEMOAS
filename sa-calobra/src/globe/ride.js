@@ -141,16 +141,8 @@ export function createRide({ renderer }) {
   top.position.set(-0.5, 1.6, 1.4);
   scene.add(sun, top, new HemisphereLight('#f3dcc0', '#5a4636', 0.55));
 
-  // la giostra: tre bici in cerchio, una per voce del menu (la prima è quella dell'intro). Il
-  // centro sta davanti, verso la strada; ogni bici guarda fuori dal cerchio
-  const RING = 1.25;
-  const carousel = new Group();
-  carousel.position.set(0, 0, -RING);
-  scene.add(carousel);
-  const holders = [0, 1, 2].map((i) => { const h = new Group(); h.rotation.y = (i * 2 * Math.PI) / 3; carousel.add(h); return h; });
   const bike = new Group();
-  bike.position.set(0, 0, RING);
-  holders[0].add(bike);
+  scene.add(bike);
 
   // ── la piega da corsa: al centro il tubo tondo da 31,8 mm in carbonio a vista, poi il nastro
   // crema dalle prese alte fino alle basse, chiuso dai tappi
@@ -297,7 +289,7 @@ export function createRide({ renderer }) {
   screen.position.set(0, 0.0087, -0.009);
   unit.add(screen);
   scene.updateMatrixWorld(true);
-  const screenM0 = screen.matrixWorld.clone(); // lo schermo della bici davanti (giostra ferma)
+  const screenM0 = screen.matrixWorld.clone();
 
   // lo schermo nel mondo: centro, normale (verso chi pedala) e alto della scritta (verso la strada)
   const S = screen.getWorldPosition(new Vector3());
@@ -348,12 +340,19 @@ export function createRide({ renderer }) {
     return y;
   };
   /** la barra in alto di ogni pagina: il marchio, i puntini delle pagine, la batteria */
-  const chrome = (g, W, page, pages) => {
-    text(g, 'NOMADS', 40, 62, '500 16px Unbounded, sans-serif', 'rgba(237,232,223,0.75)', 5);
-    for (let k = 0; k < pages; k++) {
-      g.fillStyle = k === page ? orange : 'rgba(237,232,223,0.25)';
-      g.beginPath(); g.arc(W / 2 - (pages - 1) * 9 + k * 18, 56, k === page ? 4.5 : 3.5, 0, Math.PI * 2); g.fill();
-    }
+  /** la barra di stato, come uno smartwatch: rete, wifi e GPS a sinistra, la batteria a destra */
+  const chrome = (g, W) => {
+    const ink = 'rgba(237,232,223,0.8)';
+    // la rete: quattro tacche
+    g.fillStyle = ink;
+    for (let k = 0; k < 4; k++) { const h = 6 + k * 4; g.fillRect(40 + k * 8, 62 - h, 5, h); }
+    // il wifi: tre archi e un punto
+    g.strokeStyle = ink; g.lineWidth = 3.2; g.lineCap = 'round';
+    for (const r of [7, 13, 19]) { g.beginPath(); g.arc(98, 62, r, -Math.PI * 0.75, -Math.PI * 0.25); g.stroke(); }
+    g.beginPath(); g.arc(98, 62, 2.6, 0, Math.PI * 2); g.fill();
+    // il GPS: la freccia della navigazione
+    g.beginPath(); g.moveTo(144, 42); g.lineTo(132, 64); g.lineTo(143, 58); g.lineTo(154, 64); g.closePath();
+    g.fillStyle = orange; g.fill();
     g.strokeStyle = cream; g.lineWidth = 3; g.strokeRect(W - 84, 44, 38, 18);
     g.fillStyle = cream; g.fillRect(W - 45, 49, 4, 8);
     g.fillStyle = orange; g.fillRect(W - 80, 48, 30, 10);
@@ -371,26 +370,25 @@ export function createRide({ renderer }) {
     g.fillStyle = orange; g.fillRect(W / 2 - 28, 318, 56, 4);
     text(g, 'LLEGASTE', W / 2, 420, '500 58px Unbounded, sans-serif', cream, -1, 'center');
   });
-  // il menu: NOSOTROS, VIAJES, CONTACTO (una bici per voce, la voce scelta in arancione) e, sotto un
-  // filo, MAPAS per tornare al globo
-  const MENU = ['NOSOTROS', 'VIAJES', 'CONTACTO', 'MAPAS'];
-  const rowY = (k) => 214 + k * 98 + (k === 3 ? 22 : 0);
+  // il menu: MAPAS in cima (torna al globo), un filo, poi NOSOTROS, VIAJES, CONTACTO (la voce
+  // scelta in arancione); il logo in fondo
+  const MENU = ['MAPAS', 'NOSOTROS', 'VIAJES', 'CONTACTO'];
+  const rowY = (k) => 188 + k * 98 + (k > 0 ? 24 : 0);
   const menuRows = MENU.map((_, k) => [20, rowY(k) - 46, 440, rowY(k) + 46]); // x0, y0, x1, y1 nel canvas
-  [0, 1, 2].forEach((sel) => slide(`menu${sel}`, (g, W, H) => {
+  [0, 1, 2].forEach((sec) => slide(`menu${sec}`, (g, W, H) => {
     bg(g, W, H);
-    chrome(g, W, -1, 0);
-    text(g, 'MENÚ', 40, 150, '500 15px Unbounded, sans-serif', 'rgba(237,232,223,0.5)', 5);
-    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(40, rowY(3) - 66, W - 80, 2);
+    chrome(g, W);
+    g.fillStyle = 'rgba(237,232,223,0.14)'; g.fillRect(40, rowY(1) - 70, W - 80, 2);
     MENU.forEach((m, k) => {
-      const y = rowY(k);
-      if (k === sel) {
+      const y = rowY(k), on = k === sec + 1;
+      if (on) {
         g.fillStyle = 'rgba(232,98,44,0.14)'; g.fillRect(28, y - 44, W - 56, 88);
         g.fillStyle = orange; g.fillRect(28, y - 44, 6, 88);
       }
-      text(g, m, 56, y + 13, '500 35px Unbounded, sans-serif', k === sel ? cream : 'rgba(237,232,223,0.42)', 1);
-      if (k === sel) text(g, '›', W - 52, y + 15, '400 42px Manrope, sans-serif', orange, 0, 'right');
+      text(g, m, 56, y + 13, '500 35px Unbounded, sans-serif', on ? cream : 'rgba(237,232,223,0.42)', 1);
+      if (on) text(g, '›', W - 52, y + 15, '400 42px Manrope, sans-serif', orange, 0, 'right');
     });
-    drawLogo(g, W / 2, 646, 140);
+    drawLogo(g, W / 2, 640, 150);
   }));
   const redraw = () => { for (const sl of Object.values(slides)) { sl.draw(sl.c.getContext('2d'), sl.c.width, sl.c.height); sl.t.needsUpdate = true; } };
   logo.onload = redraw;
@@ -398,21 +396,6 @@ export function createRide({ renderer }) {
   redraw();
   document.fonts?.load('500 58px Unbounded').then(() => document.fonts.load('400 24px Manrope')).then(redraw).catch(() => {});
   screenMat.uniforms.tA.value = screenMat.uniforms.tB.value = slides.llegaste.t;
-  const others = [1, 2].map((i) => {
-    const b = bike.clone(true);
-    b.traverse((o) => {
-      if (o.name === 'screen') {
-        o.material = screenMat.clone();
-        o.material.uniforms.tA.value = o.material.uniforms.tB.value = slides[`menu${i}`].t;
-        o.material.uniforms.uMix.value = 0;
-      }
-      if (o.name === 'btn' || o.name === 'btnLabel' || o.name === 'bodyLong') o.visible = false;
-      if (o.name === 'bodyShort') o.visible = true;
-    });
-    holders[i].add(b);
-    holders[i].visible = false;
-    return b;
-  });
 
   // ── le inquadrature: 0 lo schermo intero · 1 in sella · 2 vicino al ciclocomputer · 3 di nuovo lo schermo
   // in sella, un po' a sinistra: la piega attraversa l'inquadratura fino alla leva destra
@@ -434,13 +417,6 @@ export function createRide({ renderer }) {
   const api = { scene, camera };
   /** il pulsante ENTRA c'è solo nell'intro (e con lui il corpo lungo) */
   api.showButton = (on) => { button.visible = label.visible = longBody.visible = on; shortBody.visible = !on; };
-  /** la giostra: c = 0, 1, 2 (anche frazionario, gira) è la bici davanti; le altre si vedono solo
-   *  nelle pagine */
-  api.setCarousel = (c, showOthers) => {
-    carousel.rotation.y = (-c * 2 * Math.PI) / 3;
-    const front = ((Math.round(c) % 3) + 3) % 3;
-    holders.forEach((h, i) => { h.visible = showOthers || i === front; });
-  };
   /** un rettangolo del canvas dello schermo (460 × 700) sulla pagina, in pixel: [x, y, w, h] */
   api.canvasRect = ([cx0, cy0, cx1, cy1], W, H) => {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -523,12 +499,11 @@ export function createRide({ renderer }) {
     camera.updateProjectionMatrix();
     // si pedala: un'oscillazione leggera, solo in sella (o nella vista larga di Nosotros)
     const ride = list === keys ? Math.max(0, 1 - Math.abs(k - 1) * 1.4) : 0;
-    // cambiando bici la camera si allontana un attimo e sale: si vede la giostra che gira
-    if (swing > 0) {
+    // cambiando voce la camera fa un piccolo movimento intorno al ciclocomputer (swing −1..1: il lato)
+    if (swing) {
       up.subVectors(camera.position, tmp).normalize();
-      camera.position.addScaledVector(up, swing * 1.1);
-      camera.position.y += swing * 0.35;
-      camera.up.set(0, 1, 0).lerp(F, 1 - swing).normalize();
+      camera.position.addScaledVector(up, Math.abs(swing) * 0.025);
+      camera.position.addScaledVector(R, swing * 0.02);
     }
     camera.position.x += Math.sin(time * 1.7) * 0.006 * ride;
     camera.position.y += Math.abs(Math.sin(time * 1.7)) * 0.004 * ride;

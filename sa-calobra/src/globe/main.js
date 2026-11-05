@@ -136,8 +136,8 @@ async function start() {
   resize();
 
   const story = createGlobeStory({ capture: CAPTURE });
-  // le pagine: stazione del menu (pk, −1 = fuori), giostra (car), allontanamento cambiando bici (swing)
-  Object.assign(story.state, { pk: -1, car: 0, swing: 0 });
+  // le pagine: stazione del menu (pk, −1 = fuori), piccolo movimento cambiando voce (swing)
+  Object.assign(story.state, { pk: -1, swing: 0 });
   measureFit();
   place();
   const st = story.state;
@@ -196,7 +196,6 @@ async function start() {
     veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
     root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
     if (r <= 0) { enterBtn.hidden = true; renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
-    ride.setCarousel(st.car, carouselOn && st.swing > 0); // le altre bici si vedono solo mentre si gira
     if (st.pk >= 0) ride.updatePage(st.pk, performance.now() / 1000, st.swing);
     else ride.update(st.rk, performance.now() / 1000);
     ride.setScreen(scr.a, scr.b, scr.mix);
@@ -258,14 +257,14 @@ async function start() {
 
   enterBtn.addEventListener('click', () => { ride.press(); story.goTo(2); });
 
-  // ── le pagine interne: la giostra delle bici (ride.js, pages.js). Toccando una voce del menu il
-  // mondo rientra nello schermo della bici (l'intro al contrario), poi il ciclocomputer va di lato
-  // (st.pk 0 → 1); cambiando voce la giostra gira (st.car) e la camera si allontana un attimo
-  // (st.swing); chiudendo, il mondo esce di nuovo dallo schermo come nell'intro
+  // ── le pagine interne: la bici (ride.js, pages.js). Toccando una voce del menu il mondo rientra
+  // nello schermo della bici (l'intro al contrario), poi il ciclocomputer va di lato (st.pk 0 → 1)
+  // con il menu sullo schermo; cambiando voce lo schermo scorre alla voce nuova, come un GPS, e la
+  // camera fa un piccolo movimento (st.swing); chiudendo, il mondo esce di nuovo dallo schermo
   let pageTl = null, carouselOn = false;
   const SEC = ['nosotros', 'viajes', 'contacto'];
   const pages = createPages({
-    story, onChapter: (n) => gsap.delayedCall(0.2, () => goChapter(n)),
+    story,
     onOpen: (id) => new Promise((resolve) => {
       if (!story.exploring) story.seek(1); // dall'intro: si salta direttamente al mondo
       fly?.kill();
@@ -274,8 +273,9 @@ async function start() {
       gsap.to('#dock', { autoAlpha: 0, duration: 0.4 });
       pinsShown = 0;
       carouselOn = true;
-      Object.assign(scr, { a: 'menu0', b: 'menu0', mix: 0 });
-      Object.assign(st, { ride: 1, rk: 3, portal: 1, portalA: 1, pk: -1, car: SEC.indexOf(id), swing: 0 });
+      const m = `menu${SEC.indexOf(id)}`;
+      Object.assign(scr, { a: m, b: m, mix: 0 });
+      Object.assign(st, { ride: 1, rk: 3, portal: 1, portalA: 1, pk: -1, swing: 0 });
       pageTl = gsap.timeline({ onComplete: resolve })
         .to(st, { portal: 0, duration: 1.2, ease: 'power2.inOut' }, 0)
         .to(st, { rk: 2, duration: 1.3, ease: 'power2.out' }, 0)
@@ -284,13 +284,14 @@ async function start() {
         .to(st, { pk: 1, duration: 0.9, ease: 'power2.inOut' }, 1.3);
     }),
     onSection: (from, to) => new Promise((resolve) => {
-      let d = (SEC.indexOf(to) - SEC.indexOf(from) + 3) % 3;
-      if (d === 2) d = -1;
+      const a = `menu${SEC.indexOf(from)}`, b = `menu${SEC.indexOf(to)}`;
+      const side = SEC.indexOf(to) > SEC.indexOf(from) ? 1 : -1;
       pageTl?.kill();
-      pageTl = gsap.timeline({ onComplete: () => { st.car = ((Math.round(st.car) % 3) + 3) % 3; resolve(); } })
-        .to(st, { car: st.car + d, duration: 1.5, ease: 'power2.inOut' }, 0)
-        .to(st, { swing: 1, duration: 0.75, ease: 'power2.out' }, 0)
-        .to(st, { swing: 0, duration: 0.75, ease: 'power2.in' }, 0.75);
+      Object.assign(scr, { a, b, mix: 0 });
+      pageTl = gsap.timeline({ onComplete: () => { Object.assign(scr, { a: b, b, mix: 0 }); st.swing = 0; resolve(); } })
+        .to(scr, { mix: 1, duration: 0.7, ease: 'power2.inOut' }, 0)
+        .to(st, { swing: side, duration: 0.35, ease: 'power2.out' }, 0)
+        .to(st, { swing: 0, duration: 0.45, ease: 'power2.inOut' }, 0.35);
     }),
     onClose: () => new Promise((resolve) => {
       pageTl?.kill();
@@ -307,7 +308,7 @@ async function start() {
   /** la bici torna com'è nell'intro: prima bici davanti, LLEGASTE sullo schermo */
   const resetRide = () => {
     carouselOn = false;
-    Object.assign(st, { pk: -1, car: 0, swing: 0 });
+    Object.assign(st, { pk: -1, swing: 0 });
     Object.assign(scr, { a: 'llegaste', b: 'llegaste', mix: 0 });
   };
   for (const b of document.querySelectorAll('[data-page]')) {
