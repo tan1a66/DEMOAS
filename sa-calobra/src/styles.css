@@ -274,7 +274,9 @@ html, body { overflow: hidden; height: 100%; } /* niente scroll nativo: la stori
 
 /* ── il globo (home) ─────────────────────────────────────────── */
 body:has(#globe) { background: radial-gradient(120% 80% at 50% 70%, #2a2c2d 0%, #1b1c1c 55%, #121313 100%); }
-#globe { position: fixed; inset: 0; width: 100vw; height: 100lvh; display: block; z-index: 0; }
+/* il globo occupa esattamente la parte visibile (su iPhone 100lvh scende sotto la barra di Safari e
+   il disegno si allungava: i pulsanti toccabili non stavano più sopra quelli disegnati) */
+#globe { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
 .pins { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
 .pin { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 8px; margin: 0; padding: 0; opacity: 0; will-change: transform, opacity; font-family: var(--display); font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cream); white-space: nowrap; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
 .pin i { position: relative; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--cream); box-shadow: 0 0 0 3px rgba(237, 232, 223, 0.25); flex: none; }

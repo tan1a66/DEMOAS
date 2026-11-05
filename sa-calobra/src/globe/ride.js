@@ -392,7 +392,8 @@ export function createRide({ renderer }) {
   // scelta in arancione); il logo in fondo
   const MENU = ['MAPAS', 'NOSOTROS', 'VIAJES', 'CONTACTO'];
   const rowY = (k) => 188 + k * 98 + (k > 0 ? 24 : 0);
-  const menuRows = MENU.map((_, k) => [20, rowY(k) - 46, 440, rowY(k) + 46]); // x0, y0, x1, y1 nel canvas
+  // la zona toccabile di ogni voce arriva fino a metà strada dalla voce vicina (righe senza buchi)
+  const menuRows = MENU.map((_, k) => [8, k ? (rowY(k - 1) + rowY(k)) / 2 : rowY(0) - 60, 452, k < MENU.length - 1 ? (rowY(k) + rowY(k + 1)) / 2 : rowY(k) + 70]);
   [0, 1, 2].forEach((sec) => slide(`menu${sec}`, (g, W, H) => {
     bg(g, W, H);
     chrome(g, W);

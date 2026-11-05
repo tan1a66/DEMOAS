@@ -118,8 +118,13 @@ async function start() {
     camera.setViewOffset(W, H, 0, fitShift * low, W, H);
     camera.updateProjectionMatrix();
   };
+  // la misura vera del canvas: il disegno e i pulsanti toccabili sopra (ENTRA, le voci dello schermo,
+  // i pin) usano la stessa, così il dito cade sempre dove si vede il pulsante
+  let ox = 0, oy = 0; // dove sta il canvas nella pagina
   const resize = () => {
-    W = innerWidth; H = innerHeight;
+    const r = canvas.getBoundingClientRect();
+    W = Math.round(r.width) || innerWidth; H = Math.round(r.height) || innerHeight;
+    ox = r.left; oy = r.top;
     camera.aspect = W / H;
     camera.fov = W < H ? 50 : 36;
     place();
@@ -133,6 +138,9 @@ async function start() {
     measureFit();
   };
   addEventListener('resize', resize);
+  addEventListener('orientationchange', () => setTimeout(resize, 300));
+  visualViewport?.addEventListener('resize', resize);
+  new ResizeObserver(() => { const r = canvas.getBoundingClientRect(); if (Math.round(r.width) !== W || Math.round(r.height) !== H) resize(); }).observe(canvas);
   resize();
 
   const story = createGlobeStory({ capture: CAPTURE });
@@ -182,7 +190,7 @@ async function start() {
         const d = Math.hypot(m.x - p.x - (p.el.classList.contains('pin--left') ? -60 : 60), m.y - p.y);
         o *= Math.min(Math.max((d - 60) / 40, 0), 1);
       }
-      m.el.style.transform = `translate3d(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`;
+      m.el.style.transform = `translate3d(${(m.x + ox).toFixed(1)}px, ${(m.y + oy).toFixed(1)}px, 0)`;
       m.el.style.opacity = o.toFixed(3);
       if (m.pin) {
         m.el.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
@@ -206,14 +214,18 @@ async function start() {
       if (h.hidden !== !hitsOn) { h.hidden = !hitsOn; if (!hitsOn) ride.hoverRow(-1); }
       if (!hitsOn) return;
       const [x, y, w, hh] = ride.canvasRect(ride.menuRows[k], W, H);
-      Object.assign(h.style, { transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`, width: `${w.toFixed(0)}px`, height: `${hh.toFixed(0)}px` });
+      Object.assign(h.style, { transform: `translate3d(${(x + ox).toFixed(1)}px, ${(y + oy).toFixed(1)}px, 0)`, width: `${w.toFixed(0)}px`, height: `${hh.toFixed(0)}px` });
     });
     ride.render(rideRT);
     // il bottone segue il pulsante 3D (almeno 48 px per il dito); si può toccare finché non si entra
+    // ENTRA: si può toccare tutto il ciclocomputer (schermo e pulsante), con un margine intorno
     const [bx, by, bw, bh] = ride.buttonRect(W, H);
-    const tw = Math.max(bw + 16, 64), th = Math.max(bh + 16, 48);
+    const [sx0, sy0, sx1, sy1] = ride.screenRect();
+    const ex0 = Math.min(bx, sx0 * W) - 14, ex1 = Math.max(bx + bw, sx1 * W) + 14;
+    const ey0 = Math.min(by, (1 - sy1) * H) - 14, ey1 = Math.max(by + bh, (1 - sy0) * H) + 18;
+    const tw = Math.max(ex1 - ex0, 88), th = Math.max(ey1 - ey0, 64);
     enterBtn.hidden = story.step === 2 || P > 0 || carouselOn || pages.isOpen;
-    enterBtn.style.transform = `translate3d(${(bx + bw / 2 - tw / 2).toFixed(1)}px, ${(by + bh / 2 - th / 2).toFixed(1)}px, 0)`;
+    enterBtn.style.transform = `translate3d(${((ex0 + ex1) / 2 - tw / 2 + ox).toFixed(1)}px, ${((ey0 + ey1) / 2 - th / 2 + oy).toFixed(1)}px, 0)`;
     enterBtn.style.width = `${tw.toFixed(0)}px`;
     enterBtn.style.height = `${th.toFixed(0)}px`;
     const u = comp.material.uniforms;
