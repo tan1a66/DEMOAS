@@ -136,7 +136,8 @@ async function start() {
   resize();
 
   const story = createGlobeStory({ capture: CAPTURE });
-  story.state.pk = -1; // Nosotros: la stazione intorno al ciclocomputer (−1 = fuori dalla pagina)
+  // le pagine: stazione del menu (pk, −1 = fuori), giostra (car), allontanamento cambiando bici (swing)
+  Object.assign(story.state, { pk: -1, car: 0, swing: 0 });
   measureFit();
   place();
   const st = story.state;
@@ -195,15 +196,24 @@ async function start() {
     veil.style.visibility = r > 0 && P < 0.9 ? 'hidden' : '';
     root.classList.toggle('is-riding', r > 0 && P < 0.5); // sul cielo chiaro logo e WhatsApp scuri
     if (r <= 0) { enterBtn.hidden = true; renderer.setRenderTarget(null); renderer.render(scene, camera); return; }
-    if (st.pk >= 0) ride.updatePage(st.pk, performance.now() / 1000);
+    ride.setCarousel(st.car, carouselOn && st.swing > 0); // le altre bici si vedono solo mentre si gira
+    if (st.pk >= 0) ride.updatePage(st.pk, performance.now() / 1000, st.swing);
     else ride.update(st.rk, performance.now() / 1000);
     ride.setScreen(scr.a, scr.b, scr.mix);
-    ride.showButton(st.pk < 0 && !pages.isOpen);
+    ride.showButton(!carouselOn);
+    // le voci del menu sullo schermo: bottoni veri sopra le righe, quando la giostra è ferma
+    const hitsOn = pages.isOpen && !pages.busy && st.pk > 0.98 && st.swing === 0;
+    pages.hits.forEach((h, k) => {
+      h.hidden = !hitsOn;
+      if (!hitsOn) return;
+      const [x, y, w, hh] = ride.canvasRect(ride.menuRows[k], W, H);
+      Object.assign(h.style, { transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`, width: `${w.toFixed(0)}px`, height: `${hh.toFixed(0)}px` });
+    });
     ride.render(rideRT);
     // il bottone segue il pulsante 3D (almeno 48 px per il dito); si può toccare finché non si entra
     const [bx, by, bw, bh] = ride.buttonRect(W, H);
     const tw = Math.max(bw + 16, 64), th = Math.max(bh + 16, 48);
-    enterBtn.hidden = story.step === 2 || P > 0 || st.pk >= 0 || pages.isOpen;
+    enterBtn.hidden = story.step === 2 || P > 0 || carouselOn || pages.isOpen;
     enterBtn.style.transform = `translate3d(${(bx + bw / 2 - tw / 2).toFixed(1)}px, ${(by + bh / 2 - th / 2).toFixed(1)}px, 0)`;
     enterBtn.style.width = `${tw.toFixed(0)}px`;
     enterBtn.style.height = `${th.toFixed(0)}px`;
@@ -248,58 +258,63 @@ async function start() {
 
   enterBtn.addEventListener('click', () => { ride.press(); story.goTo(2); });
 
-  // il menu sotto il logo: Nosotros e Viajes sono pagine leggere, Contacto la schermata con WhatsApp
-  // Nosotros la racconta il ciclocomputer: il mondo rientra nello schermo della bici (l'intro al
-  // contrario), poi lo scorrimento della pagina comanda camera (st.pk, 0..5) e schermate (scr);
-  // chiudendo, il mondo esce di nuovo dallo schermo, come nell'intro
-  const SLIDES = ['nos0', 'nos1', 'nos2', 'nos3', 'nos4', 'nos5'];
-  const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+  // ── le pagine interne: la giostra delle bici (ride.js, pages.js). Toccando una voce del menu il
+  // mondo rientra nello schermo della bici (l'intro al contrario), poi il ciclocomputer va di lato
+  // (st.pk 0 → 1); cambiando voce la giostra gira (st.car) e la camera si allontana un attimo
+  // (st.swing); chiudendo, il mondo esce di nuovo dallo schermo come nell'intro
+  let pageTl = null, carouselOn = false;
+  const SEC = ['nosotros', 'viajes', 'contacto'];
   const pages = createPages({
-    story, onChapter: goChapter,
-    onOpen: (id) => {
-      if (id !== 'nosotros') return null;
-      return new Promise((resolve) => {
-        if (!story.exploring) story.seek(1); // dall'intro: si salta direttamente al mondo
-        fly?.kill();
-        vlat = vlon = 0;
-        gsap.killTweensOf(st);
-        gsap.to('#dock', { autoAlpha: 0, duration: 0.4 });
-        pinsShown = 0;
-        Object.assign(scr, { a: 'nos0', b: 'nos0', mix: 0 });
-        Object.assign(st, { ride: 1, rk: 3, portal: 1, portalA: 1, pk: -1 });
-        gsap.timeline({ onComplete: () => { st.pk = 0; resolve(); } })
-          .to(st, { portal: 0, duration: 1.3, ease: 'power2.inOut' }, 0)
-          .to(st, { rk: 2, duration: 1.4, ease: 'power2.out' }, 0)
-          .to(st, { portalA: 0, duration: 0.4, ease: 'sine.inOut' }, 1.0);
-      });
-    },
-    onScroll: (id, p) => {
-      if (st.pk < 0) return;
-      const x = p * 5, i = Math.min(Math.floor(x), 4), f = x - i;
-      st.pk = i + smooth(0.3, 0.8, f);
-      Object.assign(scr, { a: SLIDES[i], b: SLIDES[i + 1], mix: smooth(0.4, 0.75, f) });
-    },
-    onClose: (id) => {
-      if (id !== 'nosotros') return;
-      gsap.killTweensOf(st);
-      gsap.timeline()
-        .to(st, { pk: 0, duration: 0.6, ease: 'power2.inOut', onComplete: () => { st.pk = -1; st.rk = 2; } })
+    story, onChapter: (n) => gsap.delayedCall(0.2, () => goChapter(n)),
+    onOpen: (id) => new Promise((resolve) => {
+      if (!story.exploring) story.seek(1); // dall'intro: si salta direttamente al mondo
+      fly?.kill();
+      vlat = vlon = 0;
+      pageTl?.kill();
+      gsap.to('#dock', { autoAlpha: 0, duration: 0.4 });
+      pinsShown = 0;
+      carouselOn = true;
+      Object.assign(scr, { a: 'menu0', b: 'menu0', mix: 0 });
+      Object.assign(st, { ride: 1, rk: 3, portal: 1, portalA: 1, pk: -1, car: SEC.indexOf(id), swing: 0 });
+      pageTl = gsap.timeline({ onComplete: resolve })
+        .to(st, { portal: 0, duration: 1.2, ease: 'power2.inOut' }, 0)
+        .to(st, { rk: 2, duration: 1.3, ease: 'power2.out' }, 0)
+        .to(st, { portalA: 0, duration: 0.35, ease: 'sine.inOut' }, 0.95)
+        .add(() => { st.pk = 0; }, 1.3)
+        .to(st, { pk: 1, duration: 0.9, ease: 'power2.inOut' }, 1.3);
+    }),
+    onSection: (from, to) => new Promise((resolve) => {
+      let d = (SEC.indexOf(to) - SEC.indexOf(from) + 3) % 3;
+      if (d === 2) d = -1;
+      pageTl?.kill();
+      pageTl = gsap.timeline({ onComplete: () => { st.car = ((Math.round(st.car) % 3) + 3) % 3; resolve(); } })
+        .to(st, { car: st.car + d, duration: 1.5, ease: 'power2.inOut' }, 0)
+        .to(st, { swing: 1, duration: 0.75, ease: 'power2.out' }, 0)
+        .to(st, { swing: 0, duration: 0.75, ease: 'power2.in' }, 0.75);
+    }),
+    onClose: () => new Promise((resolve) => {
+      pageTl?.kill();
+      pageTl = gsap.timeline({ onComplete: resolve })
+        .to(st, { pk: 0, swing: 0, duration: 0.6, ease: 'power2.inOut', onComplete: () => { st.pk = -1; st.rk = 2; } })
         .to(st, { portalA: 1, duration: 0.3, ease: 'sine.inOut' }, 0.65)
         .to(st, { rk: 3, duration: 1.4, ease: 'power1.in' }, 0.7)
         .to(st, { portal: 1, duration: 1.3, ease: 'power2.inOut' }, 0.8)
-        .set(st, { ride: 0 }, 2.15)
+        .add(() => { st.ride = 0; }, 2.15)
         .to('#dock', { autoAlpha: 1, duration: 0.6 }, 2.1)
-        .add(() => { pinsShown = 1; Object.assign(scr, { a: 'llegaste', b: 'llegaste', mix: 0 }); }, 2.2);
-    },
+        .add(() => { pinsShown = 1; resetRide(); }, 2.2);
+    }),
   });
+  /** la bici torna com'è nell'intro: prima bici davanti, LLEGASTE sullo schermo */
+  const resetRide = () => {
+    carouselOn = false;
+    Object.assign(st, { pk: -1, car: 0, swing: 0 });
+    Object.assign(scr, { a: 'llegaste', b: 'llegaste', mix: 0 });
+  };
   for (const b of document.querySelectorAll('[data-page]')) {
     b.addEventListener('click', () => {
       if (info.isOpen) info.close();
       if (panel.isOpen) panel.close();
-      if (b.dataset.page === 'contacto') {
-        if (pages.isOpen) pages.close(() => story.open({ currentTarget: b }));
-        else story.open({ currentTarget: b });
-      } else pages.open(b.dataset.page);
+      pages.open(b.dataset.page);
     });
   }
   pin1.el.addEventListener('click', () => goChapter(ch1.n));
@@ -364,7 +379,11 @@ async function start() {
     vlat = vlon = 0;
     if (info.isOpen) info.close();
     if (panel.isOpen) panel.close();
-    if (pages.isOpen) pages.close();
+    if (pages.isOpen) {
+      // dalle pagine: la dissolvenza copre tutto, sotto si rimette a posto la bici
+      pageTl?.kill();
+      gsap.delayedCall(0.46, () => { pages.reset(); resetRide(); pinsShown = 1; });
+    }
     story.home();
   });
 

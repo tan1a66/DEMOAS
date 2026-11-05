@@ -430,34 +430,44 @@ body:has(#globe) #info .cta { background: #0f2e30; color: #eaf8f5; }
   .dock__credit { display: none; }
 }
 
-/* ── Nosotros: sopra la bici una pagina trasparente da scorrere (comanda camera e schermate);
-   sotto, chiari, gli spazi per le foto dei viaggi e i pulsanti ─────────────────────────────── */
-.pg { position: fixed; inset: 0; z-index: 15; visibility: hidden; background: transparent; color: var(--anthracite); }
-.pg__scroll { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
-.pg__track { height: 560svh; }
-.pg__gallery { background: #efe9df; padding: 14svh var(--gutter) 4svh; border-radius: 18px 18px 0 0; box-shadow: 0 -30px 60px -30px rgba(43, 30, 20, 0.35); }
-.pg__label { margin: 0 0 18px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.6; }
+/* ── le pagine interne: la giostra delle bici. Il ciclocomputer a sinistra (in alto sul telefono),
+   il contenuto accanto su un vetro chiaro; le voci del menu sullo schermo sono bottoni veri ─────── */
+.pg { position: fixed; inset: 0; z-index: 15; visibility: hidden; pointer-events: none; color: var(--anthracite); }
+.bk__hits button { all: unset; position: fixed; left: 0; top: 0; cursor: pointer; pointer-events: auto; border-radius: 6px; -webkit-tap-highlight-color: transparent; }
+.bk__hits button[hidden] { display: none; }
+.bk__hits button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.bk__panel { position: fixed; pointer-events: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;
+  top: calc(var(--safe-t) + 104px); bottom: 5vh; right: 5vw; left: 50%; padding: 34px 38px 40px; border-radius: 10px;
+  background: rgba(244, 239, 230, 0.86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 30px 70px -30px rgba(60, 30, 15, 0.45); }
+.bk__back { all: unset; cursor: pointer; display: inline-flex; gap: 8px; margin-bottom: 26px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(43, 43, 43, 0.65); }
+.bk__back:hover, .bk__back:focus-visible { color: var(--orange); }
+.bk__sec[hidden] { display: none; }
+.bk__sec .kicker { text-shadow: none; }
+.bk__title { margin: 0 0 8px; font-family: var(--display); font-weight: 400; font-size: clamp(28px, 3.4vw, 52px); line-height: 1.06; letter-spacing: -0.02em; }
+.bk__block { margin-top: 40px; }
+.bk__label { margin: 0 0 10px; font-family: var(--display); font-weight: 500; font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--orange); }
+.bk__text { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(19px, 1.7vw, 26px); line-height: 1.22; letter-spacing: -0.005em; }
+.bk__sub { margin: 10px 0 0; font-size: 14px; line-height: 1.55; opacity: 0.72; }
+.bk__person { margin: 44px 0 0; display: grid; grid-template-columns: 132px 1fr; gap: 20px; align-items: start; }
+.bk__person img { width: 132px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; display: block; }
+.bk__sec .trips { margin: 26px 0 0; }
+.bk__sec .cta { margin-top: 30px; background: var(--anthracite); color: var(--cream); text-decoration: none; }
+/* telefono in verticale: il ciclocomputer in alto, il contenuto sotto */
+@media (max-aspect-ratio: 1/1) {
+  .bk__panel { left: 10px; right: 10px; top: 51svh; bottom: calc(var(--safe-b) + 10px); padding: 24px 22px 32px; }
+  .bk__title { font-size: clamp(26px, 7.4vw, 40px); }
+  .bk__text { font-size: clamp(18px, 5vw, 24px); }
+  .bk__person { grid-template-columns: 104px 1fr; gap: 16px; }
+  .bk__person img { width: 104px; }
+}
 /* gli spazi per le foto: ben visibili come segnaposto, in attesa delle foto di Nomads */
 .ph { position: relative; margin: 0; display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: 4px; border: 1.5px dashed rgba(43, 43, 43, 0.28);
   background: repeating-linear-gradient(135deg, rgba(43, 43, 43, 0.035) 0 10px, transparent 10px 20px), #e7e0d4; }
-.ph--wide { aspect-ratio: 16 / 10; margin-bottom: 14px; }
+.ph--wide { aspect-ratio: 16 / 10; margin-bottom: 12px; }
 .ph__tag { font-family: var(--display); font-weight: 500; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(43, 43, 43, 0.45); }
 .ph figcaption { position: absolute; left: 12px; right: 12px; bottom: 12px; font-size: 12px; line-height: 1.35; color: rgba(43, 43, 43, 0.62); }
-.ph__strip { display: grid; grid-auto-flow: column; grid-auto-columns: 62%; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter) 6px; }
+.ph__strip { display: grid; grid-auto-flow: column; grid-auto-columns: 46%; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 6px; }
 .ph__strip::-webkit-scrollbar { display: none; }
 .ph__strip .ph { scroll-snap-align: start; }
-.pg__foot { background: #efe9df; padding: 10svh var(--gutter) calc(var(--safe-b) + 9svh); }
-.pg__actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.pg .cta { margin-top: 0; background: var(--anthracite); color: var(--cream); text-decoration: none; }
-.pg .cta--line { background: transparent; color: var(--anthracite); border: 1px solid rgba(43, 43, 43, 0.35); }
-/* la testata del sito sopra la pagina: scura sul cielo del tramonto, con fondo chiaro sulla galleria */
-html.in-page .top { z-index: 25; padding-bottom: 12px; transition: background-color 0.4s ease; }
-html.in-page.pg-scrolled .top { background: rgba(239, 233, 223, 0.94); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
-html.in-page.pg-scrolled .top .logo { background: var(--anthracite); }
-html.in-page.pg-scrolled .menu button { color: var(--anthracite); }
-html.in-page.pg-scrolled .wa-top { color: var(--anthracite); border-color: rgba(43, 43, 43, 0.4); }
+html.in-page .top { z-index: 25; }
 .menu button[aria-current='page'], html.in-page .menu button[aria-current='page'] { opacity: 1; color: var(--orange); }
-@media (min-width: 900px) {
-  .pg__gallery, .pg__foot { padding-left: 8vw; padding-right: 8vw; }
-  .ph__strip { grid-auto-columns: 26%; }
-}

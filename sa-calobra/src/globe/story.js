@@ -114,7 +114,7 @@ export function createGlobeStory({ capture = false } = {}) {
       tracking = !e.target.closest('.info, .final, .dock, .pg') && e.touches.length === 1;
       if (tracking) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }
     }, { passive: true });
-    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll, .dock__chapters, .pg__scroll')) e.preventDefault(); }, { passive: false });
+    addEventListener('touchmove', (e) => { if (!e.target.closest('.info__scroll, .dock__chapters, .bk__panel')) e.preventDefault(); }, { passive: false });
     addEventListener('touchend', (e) => {
       if (!tracking) return;
       tracking = false;
