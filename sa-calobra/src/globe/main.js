@@ -203,7 +203,7 @@ async function start() {
     // le voci del menu sullo schermo: bottoni veri sopra le righe, quando la giostra è ferma
     const hitsOn = pages.isOpen && !pages.busy && st.pk > 0.98 && st.swing === 0;
     pages.hits.forEach((h, k) => {
-      h.hidden = !hitsOn;
+      if (h.hidden !== !hitsOn) { h.hidden = !hitsOn; if (!hitsOn) ride.hoverRow(-1); }
       if (!hitsOn) return;
       const [x, y, w, hh] = ride.canvasRect(ride.menuRows[k], W, H);
       Object.assign(h.style, { transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`, width: `${w.toFixed(0)}px`, height: `${hh.toFixed(0)}px` });
@@ -289,9 +289,9 @@ async function start() {
       pageTl?.kill();
       Object.assign(scr, { a, b, mix: 0 });
       pageTl = gsap.timeline({ onComplete: () => { Object.assign(scr, { a: b, b, mix: 0 }); st.swing = 0; resolve(); } })
-        .to(scr, { mix: 1, duration: 0.7, ease: 'power2.inOut' }, 0)
-        .to(st, { swing: side, duration: 0.35, ease: 'power2.out' }, 0)
-        .to(st, { swing: 0, duration: 0.45, ease: 'power2.inOut' }, 0.35);
+        .to(scr, { mix: 1, duration: 0.7, ease: 'power2.inOut' }, 0.18)
+        .to(st, { swing: side, duration: 0.35, ease: 'power2.out' }, 0.18)
+        .to(st, { swing: 0, duration: 0.45, ease: 'power2.inOut' }, 0.53);
     }),
     onClose: () => new Promise((resolve) => {
       pageTl?.kill();
@@ -311,6 +311,17 @@ async function start() {
     Object.assign(st, { pk: -1, swing: 0 });
     Object.assign(scr, { a: 'llegaste', b: 'llegaste', mix: 0 });
   };
+  // il tocco sulle voci dello schermo si vede (e sui telefoni che lo permettono si sente)
+  pages.hits.forEach((h, k) => {
+    h.addEventListener('pointerdown', (e) => {
+      const r = h.getBoundingClientRect();
+      ride.pressRow(k, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+      navigator.vibrate?.(8);
+    });
+    h.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') ride.pressRow(k); });
+    h.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') ride.hoverRow(k); });
+    h.addEventListener('pointerleave', () => ride.hoverRow(-1));
+  });
   for (const b of document.querySelectorAll('[data-page]')) {
     b.addEventListener('click', () => {
       if (info.isOpen) info.close();

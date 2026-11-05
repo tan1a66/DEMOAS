@@ -97,12 +97,26 @@ const screenVert = /* glsl */ `
 const screenFrag = /* glsl */ `
   uniform sampler2D tA, tB;
   uniform float uMix;
+  uniform vec4 uRow, uHoverRow;       // la riga toccata e quella sotto il mouse (uv: u0, v0, u1, v1)
+  uniform vec2 uTap;                  // dove è arrivato il dito (uv)
+  uniform float uPress, uRipple, uHover;
   varying vec2 vUv;
+  float inside(vec4 r) { return step(r.x, vUv.x) * step(vUv.x, r.z) * step(r.y, vUv.y) * step(vUv.y, r.w); }
   void main() {
     float g = smoothstep(0.3, 0.0, abs(vUv.x * 0.8 + vUv.y - 1.3)) * 0.05;
     float x = vUv.x + uMix;
     vec3 c = x < 1.0 ? texture2D(tA, vec2(x, vUv.y)).rgb : texture2D(tB, vec2(x - 1.0, vUv.y)).rgb;
     c *= 1.0 - 0.6 * smoothstep(0.012, 0.0, abs(x - 1.0)) * step(0.001, uMix) * step(uMix, 0.999); // la cucitura tra le due
+    // il mouse sopra una voce: la riga si schiarisce appena
+    c += vec3(0.85, 0.8, 0.72) * 0.025 * uHover * inside(uHoverRow);
+    // il tocco: la riga diventa arancione piena con la scritta bianca, un'onda parte dal dito
+    // (colori lineari: l'arancione Nomads #e8622c è 0.807, 0.122, 0.025)
+    float row = inside(uRow);
+    float txt = smoothstep(0.03, 0.1, dot(c, vec3(0.333)));
+    vec3 lit = mix(vec3(0.807, 0.122, 0.025), vec3(1.0, 0.95, 0.88), txt);
+    c = mix(c, lit, row * uPress);
+    float d = length((vUv - uTap) * vec2(460.0, 700.0));
+    c += vec3(1.0, 0.6, 0.35) * smoothstep(16.0, 0.0, abs(d - uRipple * 300.0)) * (1.0 - uRipple) * row * 0.6;
     gl_FragColor = vec4(c + g, 1.0);
   }
 `;
@@ -280,7 +294,11 @@ export function createRide({ renderer }) {
   label.position.set(0, 0.01145, 0.0385);
   unit.add(label);
   const screenMat = new ShaderMaterial({
-    uniforms: { tA: { value: null }, tB: { value: null }, uMix: { value: 0 } },
+    uniforms: {
+      tA: { value: null }, tB: { value: null }, uMix: { value: 0 },
+      uRow: { value: new Vector4() }, uHoverRow: { value: new Vector4() }, uTap: { value: new Vector2() },
+      uPress: { value: 0 }, uRipple: { value: 1 }, uHover: { value: 0 },
+    },
     vertexShader: screenVert, fragmentShader: screenFrag,
   });
   const screen = new Mesh(new PlaneGeometry(0.046, 0.07), screenMat);
@@ -417,6 +435,22 @@ export function createRide({ renderer }) {
   const api = { scene, camera };
   /** il pulsante ENTRA c'è solo nell'intro (e con lui il corpo lungo) */
   api.showButton = (on) => { button.visible = label.visible = longBody.visible = on; shortBody.visible = !on; };
+  const rowUv = (k, out) => { const [x0, y0, x1, y1] = menuRows[k]; return out.set(x0 / 460, 1 - y1 / 700, x1 / 460, 1 - y0 / 700); };
+  /** il tocco su una voce del menu (k), nel punto fx, fy (0..1 dentro la riga) */
+  api.pressRow = (k, fx = 0.5, fy = 0.5) => {
+    const u = screenMat.uniforms, [x0, y0, x1, y1] = menuRows[k];
+    rowUv(k, u.uRow.value);
+    u.uTap.value.set((x0 + fx * (x1 - x0)) / 460, 1 - (y0 + fy * (y1 - y0)) / 700);
+    gsap.killTweensOf([u.uPress, u.uRipple]);
+    gsap.fromTo(u.uPress, { value: 1 }, { value: 0, duration: 0.55, ease: 'power2.in', delay: 0.22 });
+    gsap.fromTo(u.uRipple, { value: 0 }, { value: 1, duration: 0.55, ease: 'power2.out' });
+  };
+  /** il mouse sopra una voce del menu (k), o −1 */
+  api.hoverRow = (k) => {
+    const u = screenMat.uniforms;
+    if (k >= 0) rowUv(k, u.uHoverRow.value);
+    gsap.to(u.uHover, { value: k >= 0 ? 1 : 0, duration: 0.2, overwrite: true });
+  };
   /** un rettangolo del canvas dello schermo (460 × 700) sulla pagina, in pixel: [x, y, w, h] */
   api.canvasRect = ([cx0, cy0, cx1, cy1], W, H) => {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
