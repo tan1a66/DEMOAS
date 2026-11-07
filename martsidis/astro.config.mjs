@@ -8,6 +8,10 @@ import reportSegnaposti from './integrations/report-segnaposti.mjs';
 // quello impostato come principale su Netlify/Cloudflare (l'altro va in redirect 301).
 const SITE = 'https://www.ginecologiacagliari.com';
 
+// Build di anteprima (npm run build:anteprima): un solo file HTML apribile con doppio clic.
+// Niente CSP (gli script diventano data: URL) e niente modulepreload; esce in dist-anteprima/.
+const ANTEPRIMA = process.env.ANTEPRIMA === '1';
+
 // Statistiche (facoltative): se attive, la loro origine va autorizzata nella Content Security Policy.
 const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
 const statistiche =
@@ -18,6 +22,7 @@ const origineStatistiche = statistiche ? [statistiche] : [];
 
 export default defineConfig({
   site: SITE,
+  outDir: ANTEPRIMA ? './dist-anteprima' : './dist',
   // Tutte le URL finiscono con "/" (es. /uroginecologia/): canonici e sitemap coerenti.
   trailingSlash: 'always',
   build: { format: 'directory' },
@@ -87,23 +92,25 @@ export default defineConfig({
 
   // Content Security Policy con hash generati da Astro (meta tag in ogni pagina).
   // Nessuna risorsa esterna al caricamento: solo la mappa OpenStreetMap, e solo se la paziente la attiva.
-  security: {
-    csp: {
-      directives: [
-        "default-src 'self'",
-        "img-src 'self' data: blob:",
-        "font-src 'self'",
-        /** @type {`connect-src${string}`} */ (`connect-src 'self'${origineStatistiche.map((o) => ` ${o}`).join('')}`),
-        'frame-src https://www.openstreetmap.org',
-        "worker-src 'self' blob:",
-        "object-src 'none'",
-        "base-uri 'self'",
-        "form-action 'self'",
-      ],
-      // 'wasm-unsafe-eval' serve solo ai decoder Meshopt/Draco se si usa un modello .glb compresso.
-      scriptDirective: { resources: ["'self'", "'wasm-unsafe-eval'", ...origineStatistiche] },
-    },
-  },
+  security: ANTEPRIMA
+    ? {}
+    : {
+        csp: {
+          directives: [
+            "default-src 'self'",
+            "img-src 'self' data: blob:",
+            "font-src 'self'",
+            /** @type {`connect-src${string}`} */ (`connect-src 'self'${origineStatistiche.map((o) => ` ${o}`).join('')}`),
+            'frame-src https://www.openstreetmap.org',
+            "worker-src 'self' blob:",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+          ],
+          // 'wasm-unsafe-eval' serve solo ai decoder Meshopt/Draco se si usa un modello .glb compresso.
+          scriptDirective: { resources: ["'self'", "'wasm-unsafe-eval'", ...origineStatistiche] },
+        },
+      },
 
   // Niente evidenziazione del codice (Shiki usa stili inline incompatibili con la CSP; il sito non ha blocchi di codice).
   markdown: { syntaxHighlight: false },
@@ -112,6 +119,7 @@ export default defineConfig({
 
   vite: {
     build: {
+      modulePreload: ANTEPRIMA ? false : undefined,
       // Three.js da solo supera i 500 kB (≈130 kB gzip): è caricato solo on demand, quindi l'avviso non serve.
       chunkSizeWarningLimit: 700,
     },

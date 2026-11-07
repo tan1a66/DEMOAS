@@ -62,12 +62,11 @@ export const sito = {
   geo: { lat: 39.2228841, lon: 9.1061653 },
 
   /**
-   * Orari di ricevimento. Lista vuota = si mostra solo "Si riceve su appuntamento"
-   * più il segnaposto. Esempio:
+   * Orari di ricevimento. Su indicazione dello studio NON vengono pubblicati: si mostra solo
+   * "Si riceve su appuntamento". Per pubblicarli in futuro, ad esempio:
    *   [{ giorni: 'Lunedì e Mercoledì', orario: '15:30 – 19:30' }]
    */
-  orari: [] as FasciaOraria[], // [DA INSERIRE: orari dal medico]
-  orariSegnaposto: '[DA INSERIRE: orari di ricevimento]',
+  orari: [] as FasciaOraria[],
   suAppuntamento: true,
 
   piva: '03309520326',
@@ -84,12 +83,11 @@ export const sito = {
     indicazioni: 'https://www.google.com/maps/dir/?api=1&destination=Via+Edmondo+De+Magistris+29%2C+09123+Cagliari',
   },
 
-  /**
-   * Scheda Google del medico (recensioni).
-   * [DA VERIFICARE: sostituire con il link diretto alla scheda Google Business Profile
-   *  (es. https://g.page/r/…); quello attuale è una ricerca su Google Maps.]
-   */
-  googleRecensioni: 'https://www.google.com/maps/search/?api=1&query=Dott.+Konstantinos+Martsidis+ginecologo+Cagliari',
+  /** Scheda Google del medico (recensioni). */
+  googleRecensioni: 'https://share.google/fMzeuEML8Mg22ftJs',
+
+  /** Profilo MioDottore (recensioni). Link pulito, senza parametri di tracciamento pubblicitario. */
+  mioDottore: 'https://www.miodottore.it/profilo/konstantinos-martsidis',
 
   /** Titolare dei dati per privacy e cookie. */
   titolareTrattamento: {

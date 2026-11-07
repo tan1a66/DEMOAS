@@ -46,6 +46,12 @@ const classeRatio = `foto--r${ratio.replace(/[^0-9]/g, '')}`;
 const trovata = Object.entries(foto).find(([percorso]) =>
   new RegExp(`/${nome}\\.(jpe?g|png|webp|avif)$`, 'i').test(percorso),
 )?.[1].default;
+// Solo larghezze non superiori all'originale (niente ingrandimenti); foto piccole: la loro misura reale.
+const larghezze = trovata
+  ? widths.filter((w) => w <= trovata.width).length
+    ? widths.filter((w) => w <= trovata.width)
+    : [trovata.width]
+  : [];
 ---
 
 {
@@ -54,7 +60,7 @@ const trovata = Object.entries(foto).find(([percorso]) =>
       src={trovata}
       alt={alt}
       formats={['avif', 'webp']}
-      widths={widths.filter((w) => w <= trovata.width)}
+      widths={larghezze}
       sizes={sizes}
       loading={loading}
       class:list={['foto', classeRatio, className]}

@@ -99,7 +99,8 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
     const subToggles = header.querySelectorAll<HTMLButtonElement>('[data-submenu-toggle]');
     const setSub = (btn: HTMLButtonElement, open: boolean) => {
       btn.setAttribute('aria-expanded', String(open));
-      const sub = document.getElementById(btn.getAttribute('aria-controls') ?? '');
+      // Ricerca limitata alla voce di menu del pulsante (non per id sul documento)
+      const sub = btn.parentElement?.querySelector<HTMLElement>('[data-submenu]');
       if (sub) sub.hidden = !open;
     };
     subToggles.forEach((btn) => {

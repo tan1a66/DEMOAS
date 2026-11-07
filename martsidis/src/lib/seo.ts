@@ -103,6 +103,7 @@ export function schemaStudio(site: URL) {
             recognizedBy: { '@type': 'Organization', name: f.ente },
           })),
         workLocation: { '@id': `${url}#studio` },
+        sameAs: [sito.mioDottore, sito.googleRecensioni],
         isAcceptingNewPatients: true,
       },
     ],

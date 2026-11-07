@@ -1,6 +1,6 @@
 ---
 # [DA VERIFICARE] La Dott.ssa Manuela Frau collabora ancora con lo studio? Ha dato il consenso a nome e foto?
-# Numero di iscrizione all'Ordine Nazionale dei Biologi (obbligatorio nell'informazione sanitaria).
+# Numero di iscrizione all'Ordine Nazionale dei Biologi: su indicazione dello studio NON viene pubblicato.
 # Come si prenota: stesso numero del Dott. Martsidis o un suo recapito?
 # Il vecchio sito parlava di "Pacchetti": qui sono "percorsi", senza prezzi (informazione non promozionale).
 titolo: 'Consulenza nutrizionale con la Dott.ssa Manuela Frau'
@@ -37,8 +37,6 @@ correlati:
     href: '/ginecologia/'
     testo: 'Menopausa e ovaio policistico.'
 ---
-
-La Dott.ssa Manuela Frau è biologa nutrizionista, iscritta all’Ordine Nazionale dei Biologi, n. [DA INSERIRE: numero di iscrizione].
 
 ## A chi si rivolge
 

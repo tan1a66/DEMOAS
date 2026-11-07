@@ -32,12 +32,17 @@ const formatoData = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'num
   <div class="recensioni__google">
     <Icon name="users" size={28} />
     <p>
-      Le opinioni delle pazienti sono pubblicate sulla scheda Google del Dottore. Le può leggere lì, e se lo desidera
-      può lasciare anche la Sua.
+      Le opinioni delle pazienti sono pubblicate sulla scheda Google del Dottore e su MioDottore. Le può leggere lì e, se
+      lo desidera, lasciare anche la Sua.
     </p>
-    <Button href={sito.googleRecensioni} variant="secondary" iconRight="external-link" external>
-      Leggi le recensioni su Google
-    </Button>
+    <div class="recensioni__link">
+      <Button href={sito.googleRecensioni} variant="secondary" iconRight="external-link" external>
+        Leggi le recensioni su Google
+      </Button>
+      <Button href={sito.mioDottore} variant="secondary" iconRight="external-link" external>
+        Leggi le recensioni su MioDottore
+      </Button>
+    </div>
   </div>
 </div>
 
@@ -75,7 +80,7 @@ const formatoData = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'num
     display: grid;
     gap: var(--space-4);
     justify-items: start;
-    max-width: 40rem;
+    max-width: 46rem;
     padding: var(--space-6);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
@@ -86,5 +91,10 @@ const formatoData = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'num
   }
   .recensioni__google p {
     margin: 0;
+  }
+  .recensioni__link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
   }
 </style>

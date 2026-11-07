@@ -9,13 +9,16 @@ Come usare questo file: spuntare `[x]` ogni voce approvata, oppure annotare acca
 
 ## 1. Dati da fornire (mancano)
 
-- [ ] **Orari di ricevimento**: giorni e fasce orarie. Vanno in `src/data/sito.ts` → `orari`. Finché mancano, in tutte le pagine compare "[DA INSERIRE: orari di ricevimento]".
-- [ ] **Foto del medico** (ritratto, verticale, almeno 1200 px sul lato lungo). → `src/assets/foto/ritratto.jpg`
+- [x] **Orari di ricevimento**: per decisione dello studio **non si pubblicano**. Compare solo "Si riceve su appuntamento".
+- [ ] **Foto del medico**: ricevute in chat due foto (ritratto e sala operatoria), servono **come file**. → `src/assets/foto/ritratto.jpg`
+  - Il ritratto ricevuto è piccolo (circa 370×490 px): se esiste un originale più grande, meglio usare quello.
+  - Nella foto in sala operatoria si riconosce il volto di una collega sullo sfondo: serve il suo consenso, oppure si usa la foto ritagliata in modo che non sia riconoscibile.
 - [ ] **Foto dello studio**: sala d'attesa (`studio-1.jpg`) e ambulatorio (`studio-2.jpg`), orizzontali.
 - [ ] **Foto dell'ecografo** Samsung HM70A Plus (`ecografo.jpg`).
-- [ ] **Link alla scheda Google** del medico (Google Business Profile), per il pulsante "Leggi le recensioni su Google". Oggi il link è una ricerca su Google Maps.
+- [x] **Link alla scheda Google**: https://share.google/fMzeuEML8Mg22ftJs
+- [x] **Profilo MioDottore** (recensioni): https://www.miodottore.it/profilo/konstantinos-martsidis (link ripulito dai parametri di tracciamento pubblicitario).
 - [ ] **Elenco dei vecchi URL** del sito attuale, per completare i redirect 301 (`public/_redirects`). Si ricava da Google Search Console → Pagine, o dalla sitemap del vecchio sito.
-- [ ] **Dott.ssa Manuela Frau**: numero di iscrizione all'Ordine Nazionale dei Biologi, foto (`nutrizionista.jpg`) e consenso scritto alla pubblicazione di nome e foto.
+- [ ] **Dott.ssa Manuela Frau**: foto (`nutrizionista.jpg`) e consenso scritto alla pubblicazione di nome e foto. Il numero di iscrizione all'Ordine dei Biologi, per decisione dello studio, **non si pubblica**.
 - [ ] **Recensioni** (facoltativo): solo recensioni reali, già pubblicate, con il consenso scritto della paziente. Vanno in `src/data/recensioni.ts`; finché la lista è vuota il sito mostra solo il rimando a Google.
 
 ## 2. Dati anagrafici e professionali

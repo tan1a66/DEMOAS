@@ -1,5 +1,5 @@
 ---
-/** Orari di ricevimento da src/data/sito.ts. Se non sono ancora stati inseriti mostra il segnaposto. */
+/** Orari di ricevimento da src/data/sito.ts. Se la lista è vuota si mostra solo "Si riceve su appuntamento". */
 import { sito } from '@/data/sito';
 import { useTranslations } from '@/i18n';
 
@@ -14,7 +14,7 @@ const t = useTranslations();
 <div class:list={['orari', `orari--${tone}`, { 'orari--compatto': compatto }]}>
   {sito.suAppuntamento && <p class="orari__app">{t('footer.appuntamento')}</p>}
   {
-    sito.orari.length > 0 ? (
+    sito.orari.length > 0 && (
       <dl class="orari__lista">
         {sito.orari.map((f) => (
           <div class="orari__riga">
@@ -23,10 +23,6 @@ const t = useTranslations();
           </div>
         ))}
       </dl>
-    ) : (
-      <p class="orari__segnaposto">
-        <span class="segnaposto">{sito.orariSegnaposto}</span>
-      </p>
     )
   }
 </div>
@@ -37,9 +33,6 @@ const t = useTranslations();
   }
   .orari__app {
     font-weight: 600;
-  }
-  .orari__segnaposto {
-    margin-top: 0.35rem !important;
   }
   .orari__lista {
     margin: 0.35rem 0 0;
@@ -54,10 +47,5 @@ const t = useTranslations();
   }
   .orari__riga dd {
     margin: 0;
-  }
-  .orari--dark .segnaposto {
-    background: transparent;
-    color: var(--c-white);
-    border-color: var(--c-plum-300);
   }
 </style>

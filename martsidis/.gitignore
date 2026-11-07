@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-anteprima
+anteprima
 .astro
 .env
 .env.*

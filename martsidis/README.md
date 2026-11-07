@@ -37,7 +37,10 @@ npm run dev        # sito in sviluppo su http://localhost:4321
 npm run build      # sito pronto in dist/
 npm run preview    # anteprima della build
 npm run check      # controllo dei tipi TypeScript/Astro
+npm run build:anteprima   # anteprima in UN file HTML: anteprima/ginecologiacagliari-anteprima.html
 ```
+
+L'**anteprima in un file** si apre con doppio clic, senza server, e si può mandare al cliente. Contiene tutte le pagine (navigazione con `#/pagina/`), i font, le immagini e il 3D. Serve solo per far vedere il sito: non va pubblicata.
 
 A fine build compare un **promemoria dei segnaposti** ancora da compilare (orari, foto…) e il numero di note `[DA VERIFICARE]` nel codice. Non blocca la build.
 
@@ -96,7 +99,7 @@ orari: [
 ],
 ```
 
-Finché la lista è vuota compare il segnaposto "[DA INSERIRE: orari di ricevimento]". Gli orari vengono aggiunti anche ai dati strutturati di Google (`openingHoursSpecification`).
+Oggi la lista è **vuota per scelta dello studio**: si vede solo "Si riceve su appuntamento". Se in futuro si compila, gli orari compaiono in footer, contatti e prenotazione, e anche nei dati strutturati di Google (`openingHoursSpecification`).
 
 Il messaggio WhatsApp precompilato (`whatsapp.messaggio`) deve restare **neutro**, senza riferimenti a sintomi (privacy).
 
