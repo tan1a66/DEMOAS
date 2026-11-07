@@ -1,0 +1,31 @@
+# Redirect 301 dai vecchi indirizzi del sito ai nuovi (Netlify e Cloudflare usano lo stesso formato).
+# Formato:  /vecchio-indirizzo   /nuovo-indirizzo/   301
+#
+# [DA VERIFICARE] Alessia: sostituire/integrare con l'elenco REALE dei vecchi URL
+# (da Google Search Console → Pagine, oppure dalla sitemap del vecchio sito).
+# Le righe attive qui sotto sono ipotesi basate sulle voci del vecchio menu: se un indirizzo
+# non esisteva, la riga è innocua.
+
+# Voci del vecchio menu
+/curriculum-vitae            /chi-sono/                    301
+/curriculum                  /chi-sono/                    301
+/cv                          /chi-sono/                    301
+/studio                      /lo-studio/                   301
+/prenota                     /prenota-una-visita/          301
+/prenotazioni                /prenota-una-visita/          301
+/contact                     /contatti/                    301
+/contatto                    /contatti/                    301
+
+# Vecchie pagine dei servizi ("Sezione dedicata")
+/visita-ginecologica         /ginecologia/                 301
+/visita-ostetrica            /ostetricia/                  301
+/gravidanza                  /ostetricia/                  301
+/ecografia                   /ecografia-3d-4d/             301
+/ecografie                   /ecografia-3d-4d/             301
+/visita-uroginecologica      /uroginecologia/              301
+/trattamento-laser           /laser/                       301
+/nutrizionista               /consulenza-nutrizionale/     301
+
+# Esempi da completare:
+# /vecchia-pagina            /nuova-pagina/                301
+# /blog/titolo-articolo      /uroginecologia/              301

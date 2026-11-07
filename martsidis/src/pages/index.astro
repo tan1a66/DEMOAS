@@ -82,11 +82,13 @@ const passi = [
         <ul class="hero__rassicura">
           <li><Icon name="shield-check" size={20} /> Riservatezza e ascolto, senza fretta</li>
           <li><Icon name="map-pin" size={20} /> {sito.indirizzo.via}, Cagliari</li>
-          <li><Icon name="languages" size={20} /> Italiano, English, Ελληνικά</li>
+          <li>
+            <Icon name="languages" size={20} /> Italiano, <span lang="en">English</span>, <span lang="el">Ελληνικά</span>
+          </li>
         </ul>
       </div>
       <div class="hero__visual">
-        <ThreeIsland scena="hero" soloDesktop class="hero__island">
+        <ThreeIsland scena="hero" soloDesktop avvio="interazione" class="hero__island">
           <HeroBlob />
         </ThreeIsland>
       </div>

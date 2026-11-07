@@ -126,7 +126,10 @@ const iniziale = statoPerId(STATO_INIZIALE);
         if (!annuncia) requestAnimationFrame(() => live.setAttribute('aria-live', 'polite'));
       }
       aggiornaEtichettaModello(id);
-      radice.dispatchEvent(new CustomEvent('pelvi:stato', { detail: id }));
+      // Il 3D parte dopo il prossimo disegno della pagina: pulsante e testo rispondono subito.
+      requestAnimationFrame(() =>
+        setTimeout(() => radice.dispatchEvent(new CustomEvent('pelvi:stato', { detail: id })), 0),
+      );
     };
 
     pulsanti.forEach((b) =>

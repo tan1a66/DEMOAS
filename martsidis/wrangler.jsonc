@@ -1,0 +1,14 @@
+// Cloudflare (Workers con asset statici), alternativa a Cloudflare Pages:
+//   npm run build && npx wrangler deploy
+// Con Cloudflare Pages collegato a Git non serve: basta impostare nel pannello
+//   Root directory = martsidis · Build command = npm run build · Output = dist · NODE_VERSION = 22
+// _headers e _redirects in public/ valgono in entrambi i casi.
+{
+  "name": "ginecologiacagliari",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "force-trailing-slash"
+  }
+}

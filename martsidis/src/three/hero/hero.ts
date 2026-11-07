@@ -5,6 +5,7 @@
  */
 import { IcosahedronGeometry, Mesh, ShaderMaterial, Group } from 'three';
 import { creaStage } from '../shared/stage';
+import { cedi } from '../shared/capacita';
 import { paletteBrand } from '../shared/palette';
 import { simplexNoise3D } from '../shared/noise-glsl';
 
@@ -121,6 +122,9 @@ export async function monta(host: HTMLElement) {
     gruppo.position.y = -obiettivo.scroll * 0.25;
   });
 
+  // Compilazione degli shader in parallelo dove il browser lo consente (KHR_parallel_shader_compile).
+  await cedi();
+  await stage.compila();
   stage.renderOnce();
 
   return {

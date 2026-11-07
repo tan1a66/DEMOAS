@@ -1,0 +1,18 @@
+# Intestazioni HTTP — valide sia su Netlify sia su Cloudflare Pages/Workers (stesso formato).
+# La Content Security Policy è nel <meta> di ogni pagina (generata da Astro con gli hash).
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
+  Cross-Origin-Opener-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# File con hash nel nome: si possono tenere in cache per sempre
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/models/*
+  Cache-Control: public, max-age=604800

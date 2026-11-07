@@ -19,8 +19,8 @@ interface Props {
   alt: string;
   /** Testo del segnaposto */
   descrizione: string;
-  /** Rapporto d'aspetto, es. "4 / 5" */
-  ratio?: string;
+  /** Rapporto d'aspetto (classi CSS, niente style inline per la Content Security Policy) */
+  ratio?: '4 / 5' | '4 / 3' | '3 / 2' | '1 / 1' | '16 / 9';
   /** Larghezze per srcset */
   widths?: number[];
   sizes?: string;
@@ -42,6 +42,7 @@ const {
 const foto = import.meta.glob<{ default: ImageMetadata }>('/src/assets/foto/*.{jpg,jpeg,png,webp,avif}', {
   eager: true,
 });
+const classeRatio = `foto--r${ratio.replace(/[^0-9]/g, '')}`;
 const trovata = Object.entries(foto).find(([percorso]) =>
   new RegExp(`/${nome}\\.(jpe?g|png|webp|avif)$`, 'i').test(percorso),
 )?.[1].default;
@@ -56,11 +57,10 @@ const trovata = Object.entries(foto).find(([percorso]) =>
       widths={widths.filter((w) => w <= trovata.width)}
       sizes={sizes}
       loading={loading}
-      class:list={['foto', className]}
-      style={`aspect-ratio: ${ratio}`}
+      class:list={['foto', classeRatio, className]}
     />
   ) : (
-    <div class:list={['foto', 'foto--segnaposto', className]} style={`aspect-ratio: ${ratio}`} role="img" aria-label={alt}>
+    <div class:list={['foto', 'foto--segnaposto', classeRatio, className]} role="img" aria-label={alt}>
       <svg viewBox="0 0 200 200" aria-hidden="true" class="foto__forma">
         <circle cx="70" cy="80" r="70" fill="var(--c-plum-100)" />
         <circle cx="140" cy="130" r="60" fill="var(--c-sage-100)" />
@@ -78,6 +78,21 @@ const trovata = Object.entries(foto).find(([percorso]) =>
     object-fit: cover;
     border-radius: var(--radius-lg);
     background: var(--color-bg-alt);
+  }
+  .foto--r45 {
+    aspect-ratio: 4 / 5;
+  }
+  .foto--r43 {
+    aspect-ratio: 4 / 3;
+  }
+  .foto--r32 {
+    aspect-ratio: 3 / 2;
+  }
+  .foto--r11 {
+    aspect-ratio: 1 / 1;
+  }
+  .foto--r169 {
+    aspect-ratio: 16 / 9;
   }
   .foto--segnaposto {
     position: relative;

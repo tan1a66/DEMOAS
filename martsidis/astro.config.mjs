@@ -1,11 +1,20 @@
 // @ts-check
 import { defineConfig, envField, fontProviders } from 'astro/config';
+import { loadEnv } from 'vite';
 import sitemap from '@astrojs/sitemap';
 import reportSegnaposti from './integrations/report-segnaposti.mjs';
 
 // [DA VERIFICARE] dominio definitivo: con o senza "www"? Deve coincidere con
 // quello impostato come principale su Netlify/Cloudflare (l'altro va in redirect 301).
 const SITE = 'https://www.ginecologiacagliari.com';
+
+// Statistiche (facoltative): se attive, la loro origine va autorizzata nella Content Security Policy.
+const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+const statistiche =
+  env.PUBLIC_ANALYTICS_PROVIDER && env.PUBLIC_ANALYTICS_PROVIDER !== 'none' && env.PUBLIC_ANALYTICS_SCRIPT_URL
+    ? new URL(env.PUBLIC_ANALYTICS_SCRIPT_URL).origin
+    : null;
+const origineStatistiche = statistiche ? [statistiche] : [];
 
 export default defineConfig({
   site: SITE,
@@ -75,6 +84,26 @@ export default defineConfig({
     }),
     reportSegnaposti(),
   ],
+
+  // Content Security Policy con hash generati da Astro (meta tag in ogni pagina).
+  // Nessuna risorsa esterna al caricamento: solo la mappa OpenStreetMap, e solo se la paziente la attiva.
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' data: blob:",
+        "font-src 'self'",
+        `connect-src 'self' ${origineStatistiche.join(' ')}`.trim(),
+        'frame-src https://www.openstreetmap.org',
+        "worker-src 'self' blob:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ],
+      // 'wasm-unsafe-eval' serve solo ai decoder Meshopt/Draco se si usa un modello .glb compresso.
+      scriptDirective: { resources: ["'self'", "'wasm-unsafe-eval'", ...origineStatistiche] },
+    },
+  },
 
   devToolbar: { enabled: false },
 

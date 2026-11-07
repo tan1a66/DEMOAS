@@ -7,10 +7,15 @@ export type Stage = {
   scene: Scene;
   camera: PerspectiveCamera;
   canvas: HTMLCanvasElement;
-  /** Registra una funzione chiamata a ogni fotogramma (dt e tempo in secondi). */
-  onFrame: (fn: (dt: number, t: number) => void) => void;
+  /**
+   * Registra una funzione chiamata a ogni fotogramma (dt e tempo in secondi).
+   * Se restituisce `false` il fotogramma non viene ridisegnato (utile per animazioni d'ambiente a 30 fps).
+   */
+  onFrame: (fn: (dt: number, t: number) => void | boolean) => void;
   /** Disegna un solo fotogramma (es. dopo un cambio di stato con animazioni spente). */
   renderOnce: () => void;
+  /** Compila gli shader in parallelo se il browser lo supporta, altrimenti in modo classico (senza avvisi in console). */
+  compila: () => Promise<void>;
   /** Tiene attivo il ciclo per `ms` millisecondi (es. durante una transizione), anche se la scena è "ferma". */
   sveglia: (ms?: number) => void;
   dispose: () => void;
@@ -42,7 +47,7 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
   const scene = new Scene();
   const camera = new PerspectiveCamera(fov, 1, 0.1, 100);
 
-  const callbacks: Array<(dt: number, t: number) => void> = [];
+  const callbacks: Array<(dt: number, t: number) => void | boolean> = [];
   let visibile = false;
   let paginaVisibile = !document.hidden;
   let attivoFinoA = 0;
@@ -56,8 +61,9 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
     const dt = Math.min((adesso - ultimo) / 1000, 1 / 20);
     ultimo = adesso;
     tempo += dt;
-    for (const fn of callbacks) fn(dt, tempo);
-    disegna();
+    let ridisegna = false;
+    for (const fn of callbacks) if (fn(dt, tempo) !== false) ridisegna = true;
+    if (ridisegna || callbacks.length === 0) disegna();
     if (!continuo && performance.now() > attivoFinoA) {
       renderer.setAnimationLoop(null);
       inEsecuzione = false;
@@ -112,6 +118,10 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
     canvas,
     onFrame: (fn) => callbacks.push(fn),
     renderOnce: disegna,
+    compila: async () => {
+      if (renderer.extensions.has('KHR_parallel_shader_compile')) await renderer.compileAsync(scene, camera);
+      else renderer.compile(scene, camera);
+    },
     sveglia: (ms = 2500) => {
       attivoFinoA = Math.max(attivoFinoA, performance.now() + ms);
       if (!inEsecuzione) aggiornaCiclo();

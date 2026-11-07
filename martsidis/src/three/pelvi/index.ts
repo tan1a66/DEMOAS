@@ -25,7 +25,7 @@ import {
 } from 'three';
 import { creaStage } from '../shared/stage';
 import { paletteBrand } from '../shared/palette';
-import { isMobile } from '../shared/capacita';
+import { isMobile, cedi } from '../shared/capacita';
 import { config } from '@/config';
 import { STATI, STATO_INIZIALE, isIdStato, statoPerId, type IdStato, type ParametriStato } from './stati';
 import { creaModelloProcedurale } from './procedurale';
@@ -114,8 +114,10 @@ export async function monta(host: HTMLElement) {
   controluce.position.set(-3, 2, -3);
   scene.add(sole, controluce);
 
+  await cedi();
   const modello = await caricaModello();
   scene.add(modello.radice);
+  await cedi();
   scene.add(ombraContatto());
 
   // — Frecce e goccia —
@@ -157,15 +159,26 @@ export async function monta(host: HTMLElement) {
     ...etichette,
     { el: etichettaPressione, ancora: pressione.coda as Object3D },
   ];
+  // Dimensioni delle etichette misurate una volta (e al resize): niente letture di layout a ogni fotogramma.
+  let misure = new Map<HTMLElement, { w: number; h: number; visibile: boolean }>();
+  const misuraEtichette = () => {
+    misure = new Map(
+      tutte.map(({ el }) => [el, { w: el.offsetWidth, h: el.offsetHeight, visibile: el.offsetParent !== null }]),
+    );
+  };
+  misuraEtichette();
+  document.fonts?.ready.then(misuraEtichette);
+
   const aggiornaEtichette = () => {
     const w = host.clientWidth;
     const h = host.clientHeight;
     const piazzate: Array<{ x: number; y: number; w: number; h: number }> = [];
     const pos = tutte
-      .filter(({ el }) => el.offsetParent !== null && el.style.opacity !== '0')
+      .filter(({ el }) => misure.get(el)?.visibile && el.style.opacity !== '0')
       .map(({ el, ancora }) => {
         ancora.getWorldPosition(v).project(camera);
-        return { el, x: ((v.x + 1) / 2) * w, y: ((1 - v.y) / 2) * h, lw: el.offsetWidth, lh: el.offsetHeight };
+        const m = misure.get(el)!;
+        return { el, x: ((v.x + 1) / 2) * w, y: ((1 - v.y) / 2) * h, lw: m.w, lh: m.h };
       })
       .sort((a, b) => b.y - a.y);
     for (const p of pos) {
@@ -178,7 +191,7 @@ export async function monta(host: HTMLElement) {
         y = urto.y - (urto.h + p.lh) / 2 - 3;
       }
       piazzate.push({ x: p.x, y, w: p.lw, h: p.lh });
-      p.el.style.transform = `translate(${p.x}px, ${y}px)`;
+      p.el.style.transform = `translate(${p.x.toFixed(1)}px, ${y.toFixed(1)}px)`;
     }
   };
 
@@ -218,6 +231,8 @@ export async function monta(host: HTMLElement) {
   const obiettivo = { ...VISTA_INIZIALE };
   const mobile = isMobile();
   let interagito = false;
+  let fotogramma = 0;
+  let trascina: { x: number; y: number; id: number; tipo: string } | null = null;
 
   // Su contenitori più stretti la camera si allontana, così il modello resta tutto inquadrato.
   let fattoreAspetto = 1;
@@ -264,13 +279,24 @@ export async function monta(host: HTMLElement) {
       attuale.frecciaPressione > 0.01 ||
       attuale.goccia > 0.01;
     if (inMoto) stage.sveglia(200);
+
+    // Solo animazioni d'ambiente (frecce che oscillano, goccia): bastano 30 fps.
+    const soloAmbiente =
+      interagito &&
+      progresso >= 1 &&
+      !trascina &&
+      Math.abs(obiettivo.azimut - vista.azimut) < 0.001 &&
+      Math.abs(obiettivo.elevazione - vista.elevazione) < 0.001 &&
+      Math.abs(obiettivo.distanza - vista.distanza) < 0.002;
+    fotogramma++;
+    return !soloAmbiente || fotogramma % 2 === 0;
   });
 
-  // L'oscillazione iniziale dura al massimo 15 secondi.
+  // L’oscillazione iniziale dura al massimo 8 secondi (poi il ciclo si ferma se nulla si muove).
   const fineOscillazione = window.setTimeout(() => {
     interagito = true;
     stage.sveglia(1500);
-  }, 15000);
+  }, 8000);
 
   const interazione = () => {
     if (!interagito) {
@@ -281,7 +307,6 @@ export async function monta(host: HTMLElement) {
   };
 
   // Trascinamento (mouse/penna: entrambi gli assi; touch: solo orizzontale, il verticale scorre la pagina)
-  let trascina: { x: number; y: number; id: number; tipo: string } | null = null;
   const suGiu = (e: PointerEvent) => {
     if (e.button !== 0) return;
     trascina = { x: e.clientX, y: e.clientY, id: e.pointerId, tipo: e.pointerType };
@@ -353,6 +378,7 @@ export async function monta(host: HTMLElement) {
 
   const ro = new ResizeObserver(() => {
     calcolaFattore();
+    misuraEtichette();
     stage.sveglia(300);
   });
   ro.observe(host);
@@ -365,6 +391,8 @@ export async function monta(host: HTMLElement) {
   }
   aggiornaCamera();
   applicaVisivi(attuale, 0);
+  await cedi();
+  await stage.compila();
   aggiornaEtichette();
   stage.renderOnce();
   stage.sveglia(1000);

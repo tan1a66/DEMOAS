@@ -3,18 +3,16 @@
  * Restano in questo file piccolo così il bundle di Three.js parte solo se serve.
  */
 
-/** true se il browser può creare un contesto WebGL. Il contesto di prova viene subito rilasciato. */
+/**
+ * Controllo leggero: il browser conosce WebGL? Non crea contesti di prova (costerebbe centinaia di ms
+ * sul thread principale). Se poi la creazione del renderer fallisce, l'isola torna al fallback statico.
+ */
 export function webglDisponibile(): boolean {
-  try {
-    const canvas = document.createElement('canvas');
-    const gl = (canvas.getContext('webgl2') || canvas.getContext('webgl')) as WebGLRenderingContext | null;
-    if (!gl) return false;
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-    return true;
-  } catch {
-    return false;
-  }
+  return typeof window !== 'undefined' && ('WebGL2RenderingContext' in window || 'WebGLRenderingContext' in window);
 }
+
+/** Cede il thread principale (spezza i lavori lunghi in più task brevi: meglio per INP/TBT). */
+export const cedi = () => new Promise<void>((r) => setTimeout(r, 0));
 
 export const riduciMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

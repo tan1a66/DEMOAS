@@ -10,17 +10,24 @@ import { config } from '@/config';
 interface Props {
   scena: 'hero' | 'pelvi';
   soloDesktop?: boolean;
+  /**
+   * 'visibile' (default): parte quando il blocco si avvicina allo schermo.
+   * 'interazione': parte alla prima interazione (mouse, scroll, tasto) o dopo qualche secondo di quiete;
+   *  per elementi decorativi già visibili all'apertura (hero), così non competono con il primo caricamento.
+   */
+  avvio?: 'visibile' | 'interazione';
   class?: string;
   /** Etichetta per il contenitore (il canvas è aria-hidden; la descrizione testuale sta fuori). */
   label?: string;
 }
-const { scena, soloDesktop = false, class: className, label } = Astro.props;
+const { scena, soloDesktop = false, avvio = 'visibile', class: className, label } = Astro.props;
 const soloDesk = soloDesktop && !config.hero3dSuMobile;
 ---
 
 <three-island
   data-scena={scena}
   data-solo-desktop={soloDesk ? '' : undefined}
+  data-avvio={avvio}
   class:list={['three-island', className]}
   aria-label={label}
 >
@@ -63,16 +70,34 @@ const soloDesk = soloDesktop && !config.hero3dSuMobile;
           (entries) => {
             if (entries.some((e) => e.isIntersecting)) {
               this.io?.disconnect();
-              this.avvia();
+              quandoLibero(() => this.avvia());
             }
           },
           { rootMargin: '250px 0px' },
         );
         this.io.observe(this);
       };
-      // Mai prima del load: il 3D non deve competere con il primo caricamento.
-      if (document.readyState === 'complete') quandoLibero(osserva);
-      else window.addEventListener('load', () => quandoLibero(osserva), { once: true });
+      const dopoIlLoad = (fn: () => void) => {
+        if (document.readyState === 'complete') fn();
+        else window.addEventListener('load', fn, { once: true });
+      };
+
+      if (this.dataset.avvio === 'interazione') {
+        // Prima interazione o, in mancanza, qualche secondo dopo il caricamento.
+        const eventi = ['pointermove', 'pointerdown', 'scroll', 'keydown', 'touchstart'] as const;
+        let partito = false;
+        const parti = () => {
+          if (partito) return;
+          partito = true;
+          eventi.forEach((ev) => window.removeEventListener(ev, parti));
+          quandoLibero(osserva);
+        };
+        eventi.forEach((ev) => window.addEventListener(ev, parti, { passive: true, once: true }));
+        dopoIlLoad(() => window.setTimeout(parti, 4000));
+      } else {
+        // Mai prima del load: il 3D non deve competere con il primo caricamento.
+        dopoIlLoad(() => quandoLibero(osserva));
+      }
     }
 
     disconnectedCallback() {

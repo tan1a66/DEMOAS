@@ -1,0 +1,9 @@
+# Netlify: impostare "Base directory" = martsidis (il sito è in una sottocartella del repository).
+# Redirect e intestazioni sono in public/_redirects e public/_headers.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  ASTRO_TELEMETRY_DISABLED = "1"

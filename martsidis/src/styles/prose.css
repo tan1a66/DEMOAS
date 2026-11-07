@@ -99,6 +99,9 @@
   border-collapse: collapse;
   margin: var(--space-5) 0;
   font-size: 1rem;
+  table-layout: fixed;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 .prose th,
 .prose td {
@@ -110,4 +113,13 @@
 .prose th {
   font-weight: 650;
   color: var(--color-heading);
+}
+@media (max-width: 30rem) {
+  .prose table {
+    font-size: 0.875rem;
+  }
+  .prose th,
+  .prose td {
+    padding: 0.45rem 0.3rem;
+  }
 }

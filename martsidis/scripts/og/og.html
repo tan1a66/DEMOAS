@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Fraunces'; src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-standard-normal.woff2') format('woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'Figtree'; src: url('../../node_modules/@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2') format('woff2'); font-weight: 300 900; }
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; position: relative;
+    font-family: 'Figtree', sans-serif; color: #2a2430;
+    background:
+      radial-gradient(55% 75% at 88% 30%, rgba(236,227,242,1), transparent 70%),
+      radial-gradient(45% 60% at 0% 100%, rgba(229,237,230,0.9), transparent 70%),
+      #fbf8f3;
+  }
+  .testo { position: absolute; left: 80px; top: 80px; width: 700px; }
+  .logo { display: flex; align-items: center; gap: 18px; margin-bottom: 56px; }
+  .logo svg { width: 64px; height: 64px; }
+  .logo span { font-size: 22px; font-weight: 650; letter-spacing: 0.04em; color: #486654; }
+  .eyebrow { font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #486654; margin: 0 0 18px; }
+  h1 { font-family: 'Fraunces', serif; font-weight: 450; font-size: 76px; line-height: 1.02; letter-spacing: -0.02em; color: #3e2955; margin: 0 0 24px; }
+  p.sotto { font-size: 30px; line-height: 1.35; margin: 0; color: #2a2430; }
+  .piede { position: absolute; left: 80px; bottom: 56px; font-size: 24px; font-weight: 600; color: #553872; }
+  .blob { position: absolute; right: -40px; top: 90px; width: 470px; height: 470px; }
+</style>
+</head>
+<body>
+  <div class="testo">
+    <div class="logo">
+      <svg viewBox="0 0 40 40"><rect width="40" height="40" rx="12" fill="#553872"/><path d="M12 26.5V13.5l8 9 8-9v13" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.5 31Q20 33.6 29.5 31" fill="none" stroke="#cbdbcf" stroke-width="2.4" stroke-linecap="round"/></svg>
+      <span>Uroginecologia · Ginecologia · Ostetricia</span>
+    </div>
+    <p class="eyebrow">Uroginecologo a Cagliari</p>
+    <h1>Dott. Konstantinos Martsidis</h1>
+    <p class="sotto">Incontinenza, prolasso e disturbi del pavimento pelvico: problemi comuni, che si possono curare.</p>
+  </div>
+  <div class="piede">www.ginecologiacagliari.com · 320 79 03 754</div>
+  <svg class="blob" viewBox="0 0 400 400">
+    <defs>
+      <radialGradient id="c" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#efe8f5"/><stop offset="0.38" stop-color="#bba3cf"/><stop offset="1" stop-color="#8559a0"/></radialGradient>
+      <radialGradient id="s" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#cbdbcf" stop-opacity="0.95"/><stop offset="1" stop-color="#cbdbcf" stop-opacity="0"/></radialGradient>
+    </defs>
+    <path id="forma" fill="url(#c)"/>
+    <ellipse cx="160" cy="150" rx="78" ry="70" fill="url(#s)"/>
+  </svg>
+  <script>
+    // stesso contorno della forma dell'hero (src/components/HeroBlob.astro)
+    const r = [150,162,146,170,152,160,144,166,156], n = 9, cx = 200, cy = 200;
+    const p = Array.from({length:n}, (_,i) => { const a = i/n*Math.PI*2 - Math.PI/2; return [cx+Math.cos(a)*r[i], cy+Math.sin(a)*r[i]]; });
+    const P = i => p[(i+n)%n];
+    let d = `M${P(0)[0]} ${P(0)[1]}`;
+    for (let i=0;i<n;i++){ const [x0,y0]=P(i-1),[x1,y1]=P(i),[x2,y2]=P(i+1),[x3,y3]=P(i+2);
+      d += ` C${x1+(x2-x0)/6} ${y1+(y2-y0)/6} ${x2-(x3-x1)/6} ${y2-(y3-y1)/6} ${x2} ${y2}`; }
+    document.getElementById('forma').setAttribute('d', d + 'Z');
+  </script>
+</body>
+</html>

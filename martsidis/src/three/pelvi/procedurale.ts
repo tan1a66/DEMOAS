@@ -15,7 +15,7 @@ import {
   Group,
   LatheGeometry,
   Mesh,
-  MeshPhysicalMaterial,
+  MeshStandardMaterial,
   Object3D,
   RepeatWrapping,
   SphereGeometry,
@@ -34,15 +34,12 @@ const BORDO_Y = 0.26;
 /** Cedimento di riferimento dello stato "normale". */
 const CEDIMENTO_BASE = 0.16;
 
-function materialeArgilla(colore: Color, extra: Partial<ConstructorParameters<typeof MeshPhysicalMaterial>[0]> = {}) {
-  return new MeshPhysicalMaterial({
+/** Materiale "argilla": opaco e morbido. MeshStandardMaterial è più leggero di Physical (meglio per i fotogrammi). */
+function materialeArgilla(colore: Color, extra: Partial<ConstructorParameters<typeof MeshStandardMaterial>[0]> = {}) {
+  return new MeshStandardMaterial({
     color: colore,
-    roughness: 0.62,
+    roughness: 0.68,
     metalness: 0,
-    sheen: 0.6,
-    sheenRoughness: 0.55,
-    sheenColor: new Color('#ffffff'),
-    clearcoat: 0.08,
     ...extra,
   });
 }
@@ -362,7 +359,7 @@ export function creaModelloProcedurale(): ModelloPelvi {
       radice.traverse((o) => {
         if (o instanceof Mesh) {
           o.geometry.dispose();
-          const m = o.material as MeshPhysicalMaterial;
+          const m = o.material as MeshStandardMaterial;
           m.map?.dispose();
           m.dispose();
         }
