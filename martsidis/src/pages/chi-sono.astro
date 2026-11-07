@@ -1,0 +1,345 @@
+---
+/**
+ * Chi sono / Curriculum Vitae. Dati in src/data/medico.ts (fonte: CV del medico).
+ * [DA VERIFICARE CON IL MEDICO] testo in prima persona dell'introduzione.
+ */
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import Foto from '@/components/Foto.astro';
+import Icon from '@/components/Icon.astro';
+import CTA from '@/components/CTA.astro';
+import ContactButtons from '@/components/ContactButtons.astro';
+import {
+  formazione,
+  esperienze,
+  societa,
+  premi,
+  pubblicazioni,
+  attiCongressuali,
+  corsi,
+  interessi,
+  strumentazione,
+} from '@/data/medico';
+import { sito } from '@/data/sito';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  { label: 'Curriculum Vitae', href: '/chi-sono/' },
+];
+const site = Astro.site ?? new URL(Astro.url.origin);
+const profilo = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: new URL('/chi-sono/', site).href,
+  mainEntity: { '@id': `${site.href}#medico` },
+};
+---
+
+<Base
+  title="Curriculum Vitae del Dott. Konstantinos Martsidis | Uroginecologo"
+  description="Formazione, incarichi, pubblicazioni e società scientifiche del Dott. Konstantinos Martsidis, ginecologo e uroginecologo a Cagliari. Riceve in italiano, inglese e greco."
+  breadcrumbs={breadcrumbs}
+  jsonLd={[profilo]}
+>
+  <section class="intro" aria-labelledby="intro-titolo">
+    <div class="container intro__griglia">
+      <div class="intro__foto">
+        <Foto
+          nome="ritratto"
+          alt={`Ritratto del ${sito.nome}`}
+          descrizione="ritratto del Dott. Martsidis"
+          ratio="4 / 5"
+          loading="eager"
+          sizes="(min-width: 64rem) 32vw, 100vw"
+        />
+      </div>
+      <div class="intro__testo">
+        <p class="eyebrow">Curriculum Vitae</p>
+        <h1 id="intro-titolo">Dott. Konstantinos Martsidis</h1>
+        <p class="intro__ruolo">
+          Specialista in Ginecologia e Ostetricia · Uroginecologo
+        </p>
+        <p class="lead">
+          Sono un ginecologo e mi occupo soprattutto di uroginecologia: dei disturbi del pavimento pelvico che tante donne
+          vivono in silenzio, come le perdite di urina e il prolasso.
+        </p>
+        <p>
+          Sono responsabile dell’Ambulatorio di Uroginecologia del Policlinico Universitario di Cagliari e aiuto primario
+          nel reparto di Ginecologia e Ostetricia della Nuova Casa di Cura di Decimomannu. Nello studio di Via De
+          Magistris seguo le pazienti con calma, partendo sempre dall’ascolto e dalle soluzioni più semplici. Ricevo in
+          italiano, inglese e greco.
+        </p>
+        <ul class="fatti" role="list">
+          <li><Icon name="hospital" size={22} /> {sito.ruoloOspedalieroBreve}</li>
+          <li><Icon name="award" size={22} /> Socio AIUG dal 2014</li>
+          <li><Icon name="languages" size={22} /> Italiano, inglese, greco</li>
+          <li>
+            <Icon name="shield-check" size={22} /> Iscritto all’Ordine dei Medici di Cagliari, n. {sito.ordine.numero}
+          </li>
+        </ul>
+        <ContactButtons size="md" />
+      </div>
+    </div>
+  </section>
+
+  <Section id="incarichi" title="Incarichi" tone="alt">
+    <ol class="timeline" role="list">
+      {
+        esperienze.map((e) => (
+          <li class="timeline__voce">
+            <span class="timeline__periodo">{e.periodo}</span>
+            <div>
+              <h3 class="timeline__titolo">{e.titolo}</h3>
+              {e.ente && <p class="timeline__ente">{e.ente}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="formazione" title="Formazione">
+    <ol class="timeline" role="list">
+      {
+        formazione.map((f) => (
+          <li class="timeline__voce">
+            <span class="timeline__periodo">{f.periodo}</span>
+            <div>
+              <h3 class="timeline__titolo">{f.titolo}</h3>
+              {f.ente && <p class="timeline__ente">{f.ente}</p>}
+              {f.dettaglio && <p class="timeline__dettaglio">{f.dettaglio}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  <Section id="interessi" title="Aree di interesse e società scientifiche" tone="plum">
+    <div class="due-colonne">
+      <div>
+        <h3>Aree di interesse</h3>
+        <ul class="elenco" role="list">
+          {interessi.map((i) => <li>{i}</li>)}
+          <li>Ecografo in studio: {strumentazione.ecografo}, {strumentazione.caratteristiche}</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Società scientifiche</h3>
+        <ul class="elenco" role="list">
+          {
+            societa.map((s) => (
+              <li>
+                <strong>{s.sigla}</strong> — {s.nome}. {s.ruolo}.
+              </li>
+            ))
+          }
+        </ul>
+        <h3>Riconoscimenti</h3>
+        <ul class="elenco" role="list">
+          {
+            premi.map((p) => (
+              <li>
+                <strong>{p.periodo}</strong> — {p.titolo}
+                {p.dettaglio && <span class="muted"> {p.dettaglio}</span>}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  <Section id="pubblicazioni" title="Pubblicazioni scientifiche" intro="Una selezione dei lavori pubblicati su riviste e presentati a congressi internazionali.">
+    <ol class="pubblicazioni" role="list">
+      {
+        pubblicazioni.map((p) => (
+          <li>
+            <p class="pubblicazioni__titolo">
+              {p.link ? (
+                <a href={p.link} target="_blank" rel="noopener">
+                  {p.titolo}
+                  <span class="visually-hidden">{t('a11y.newwindow')}</span>
+                </a>
+              ) : (
+                p.titolo
+              )}
+            </p>
+            {p.autori && <p class="pubblicazioni__autori">{p.autori}</p>}
+            <p class="pubblicazioni__fonte">{p.fonte}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <details class="altro">
+      <summary>Atti congressuali ({attiCongressuali.length})</summary>
+      <ul class="elenco" role="list">{attiCongressuali.map((a) => <li>{a}</li>)}</ul>
+    </details>
+    <details class="altro">
+      <summary>Corsi e congressi ({corsi.length})</summary>
+      <ul class="elenco" role="list">{corsi.map((c) => <li>{c}</li>)}</ul>
+    </details>
+
+    <CTA />
+  </Section>
+</Base>
+
+<style>
+  .intro {
+    padding-block: var(--space-6) var(--space-8);
+    background: radial-gradient(50% 80% at 100% 0%, rgb(236 227 242 / 0.85), transparent 70%);
+  }
+  .intro__griglia {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  @media (min-width: 56rem) {
+    .intro__griglia {
+      grid-template-columns: 0.8fr 1.2fr;
+    }
+  }
+  .intro__foto {
+    max-width: 26rem;
+  }
+  .intro__ruolo {
+    font-weight: 650;
+    color: var(--color-accent-text);
+  }
+  .fatti {
+    display: grid;
+    gap: var(--space-3);
+    list-style: none;
+    margin: var(--space-5) 0 var(--space-6);
+    padding: 0;
+  }
+  .fatti li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .fatti :global(svg) {
+    color: var(--color-primary);
+    margin-top: 0.2rem;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 52rem;
+  }
+  .timeline__voce {
+    display: grid;
+    gap: var(--space-2) var(--space-5);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  @media (min-width: 40rem) {
+    .timeline__voce {
+      grid-template-columns: 8rem 1fr;
+    }
+  }
+  .timeline__periodo {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--color-link);
+  }
+  .timeline__titolo {
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    font-weight: 650;
+    margin: 0 0 0.25rem;
+  }
+  .timeline__ente,
+  .timeline__dettaglio {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+  .timeline__dettaglio {
+    margin-top: 0.35rem;
+    font-size: var(--fs-small);
+  }
+
+  .due-colonne {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 56rem) {
+    .due-colonne {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .elenco {
+    display: grid;
+    gap: 0.6rem;
+    list-style: none;
+    margin: 0 0 var(--space-5);
+    padding: 0;
+  }
+  .elenco li {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .elenco li::before {
+    content: '';
+    position: absolute;
+    left: 0.2rem;
+    top: 0.62em;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .pubblicazioni {
+    display: grid;
+    gap: var(--space-4);
+    list-style: none;
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    max-width: 56rem;
+  }
+  .pubblicazioni li {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+  }
+  .pubblicazioni p {
+    margin: 0;
+  }
+  .pubblicazioni__titolo {
+    font-weight: 600;
+    color: var(--color-heading);
+  }
+  .pubblicazioni__autori,
+  .pubblicazioni__fonte {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .pubblicazioni__fonte {
+    font-style: italic;
+  }
+  .altro {
+    max-width: 56rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .altro:last-of-type {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .altro summary {
+    display: flex;
+    align-items: center;
+    min-height: 3.5rem;
+    font-weight: 650;
+    color: var(--color-link);
+    cursor: pointer;
+  }
+  .altro .elenco {
+    font-size: 1rem;
+  }
+</style>

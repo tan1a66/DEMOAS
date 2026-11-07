@@ -1,0 +1,35 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import Button from '@/components/Button.astro';
+import ContactButtons from '@/components/ContactButtons.astro';
+---
+
+<Base
+  title="Pagina non trovata | Dott. Konstantinos Martsidis"
+  description="La pagina cercata non esiste o è stata spostata. Torni alla home o contatti lo studio del Dott. Martsidis a Cagliari."
+  noindex
+  schemaPrincipale={false}
+>
+  <Section as="h1" title="Questa pagina non c’è più" intro="Il sito è stato rinnovato e alcuni indirizzi sono cambiati. Ecco da dove ripartire:" width="narrow">
+    <ul class="link" role="list">
+      <li><Button href="/" variant="secondary" iconRight="arrow-right">Home</Button></li>
+      <li><Button href="/uroginecologia/" variant="secondary" iconRight="arrow-right">Uroginecologia</Button></li>
+      <li><Button href="/servizi/" variant="secondary" iconRight="arrow-right">Tutti i servizi</Button></li>
+      <li><Button href="/contatti/" variant="secondary" iconRight="arrow-right">Contatti</Button></li>
+    </ul>
+    <p>Se preferisce, può scrivere o chiamare direttamente lo studio:</p>
+    <ContactButtons />
+  </Section>
+</Base>
+
+<style>
+  .link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    list-style: none;
+    margin: 0 0 var(--space-7);
+    padding: 0;
+  }
+</style>

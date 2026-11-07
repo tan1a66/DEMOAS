@@ -1,0 +1,99 @@
+---
+/** Contatti: indirizzo, orari, telefono/WhatsApp, mappa (statica + interattiva al clic), come arrivare. */
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Section from '@/components/Section.astro';
+import ContattiBlocco from '@/components/ContattiBlocco.astro';
+import Icon from '@/components/Icon.astro';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  { label: 'Contatti', href: '/contatti/' },
+];
+---
+
+<Base
+  title="Contatti e come arrivare | Dott. Martsidis, Via De Magistris 29, Cagliari"
+  description="Studio del Dott. Konstantinos Martsidis in Via Edmondo De Magistris 29, primo piano, Cagliari. Telefono e WhatsApp 320 79 03 754, si riceve su appuntamento."
+  breadcrumbs={breadcrumbs}
+>
+  <PageHero
+    titolo="Contatti"
+    eyebrow="Studio a Cagliari"
+    lead="Per prenotare o per qualsiasi domanda può scrivere su WhatsApp o chiamare. Si riceve su appuntamento."
+    contatti={false}
+  />
+
+  <Section id="dove">
+    <ContattiBlocco headingLevel="h2" mostraEmail />
+  </Section>
+
+  <Section id="come-arrivare" title="Come arrivare" tone="alt">
+    {/* [DA VERIFICARE CON IL MEDICO] ascensore, parcheggi, linee di autobus vicine. */}
+    <div class="arrivare">
+      <div class="arrivare__voce">
+        <Icon name="map-pin" size={26} />
+        <div>
+          <h3>Dove si trova</h3>
+          <p>
+            Via Edmondo De Magistris è nel quartiere di Tuvixeddu, a pochi passi da Viale Trento e dai Giardini di Villa
+            Devoto. Lo studio è al primo piano.
+          </p>
+        </div>
+      </div>
+      <div class="arrivare__voce">
+        <Icon name="navigation" size={26} />
+        <div>
+          <h3>In auto o con i mezzi</h3>
+          <p>
+            Usi il link "Indicazioni stradali" qui sopra per ricevere il percorso dal punto in cui si trova, in auto, a
+            piedi o con i mezzi pubblici.
+          </p>
+        </div>
+      </div>
+      <div class="arrivare__voce">
+        <Icon name="heart-handshake" size={26} />
+        <div>
+          <h3>Esigenze particolari</h3>
+          <p>
+            Se ha difficoltà a muoversi, ce lo dica quando prenota: troveremo insieme la soluzione migliore, anche con la
+            <a href="/visita-domiciliare/">visita a domicilio</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .arrivare {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 56rem) {
+    .arrivare {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .arrivare__voce {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+  }
+  .arrivare__voce > :global(svg) {
+    color: var(--color-accent-text);
+  }
+  .arrivare__voce h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  .arrivare__voce p {
+    margin: 0;
+  }
+</style>

@@ -16,17 +16,17 @@ const amaca = (ctrlY: number) => `M100 258 Q196 ${ctrlY} 290 268`;
     </marker>
   </defs>
 
-  <!-- Ossa: sacro e coccige (dietro), pube (davanti) -->
+  {/* Ossa: sacro e coccige (dietro), pube (davanti) */}
   <path d="M318 48C352 100 356 178 322 236C312 252 300 262 288 268" fill="none" stroke="var(--c-sand-200)" stroke-width="22" stroke-linecap="round"></path>
   <ellipse cx="92" cy="236" rx="15" ry="28" transform="rotate(-18 92 236)" fill="var(--c-sand-200)"></ellipse>
 
-  <!-- Retto -->
+  {/* Retto */}
   <path data-parte="retto" d="M300 72C300 140 292 200 268 246L262 300" fill="none" stroke="#d9b590" stroke-width="26" stroke-linecap="round"></path>
 
-  <!-- Vagina (fissa) -->
+  {/* Vagina (fissa) */}
   <path d="M250 222L205 302" fill="none" stroke="#b79acb" stroke-width="15" stroke-linecap="round" opacity="0.85"></path>
 
-  <!-- Utero -->
+  {/* Utero */}
   <g data-parte="utero">
     <path
       transform="translate(222 168) rotate(-32)"
@@ -34,13 +34,13 @@ const amaca = (ctrlY: number) => `M100 258 Q196 ${ctrlY} 290 268`;
       fill="#c7aedb"></path>
   </g>
 
-  <!-- Vescica e uretra -->
+  {/* Vescica e uretra */}
   <g data-parte="vescica">
     <circle cx="150" cy="204" r="40" fill="#9cb9a6"></circle>
     <path d="M150 243L140 300" fill="none" stroke="#9cb9a6" stroke-width="9" stroke-linecap="round"></path>
   </g>
 
-  <!-- Amaca del pavimento pelvico: una forma per stato, si mostra quella attiva -->
+  {/* Amaca del pavimento pelvico: una forma per stato, si mostra quella attiva */}
   <g class="ps-amaca" stroke-linecap="round" fill="none">
     <g data-amaca="normale">
       <path d={amaca(312)} stroke="var(--c-plum-500)" stroke-width="14"></path>
@@ -60,7 +60,7 @@ const amaca = (ctrlY: number) => `M100 258 Q196 ${ctrlY} 290 268`;
     </g>
   </g>
 
-  <!-- Indicatori dei vari stati -->
+  {/* Indicatori dei vari stati */}
   <g data-segno="pressione">
     <line x1="150" y1="78" x2="150" y2="142" stroke="var(--c-plum-700)" stroke-width="5" marker-end="url(#ps-punta)"></line>
     <text x="150" y="64" text-anchor="middle" class="ps-testo">Pressione dell’addome</text>
@@ -75,7 +75,7 @@ const amaca = (ctrlY: number) => `M100 258 Q196 ${ctrlY} 290 268`;
     <line x1="240" y1="334" x2="240" y2="306" marker-end="url(#ps-punta)"></line>
   </g>
 
-  <!-- Etichette -->
+  {/* Etichette */}
   <g class="ps-etichette">
     <text x="132" y="152" text-anchor="middle" data-parte="vescica">Vescica</text>
     <text x="236" y="98" text-anchor="middle" data-parte="utero">Utero</text>

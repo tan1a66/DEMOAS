@@ -1,0 +1,209 @@
+---
+/**
+ * Prenota una visita: SOLO WhatsApp e telefono. Nessun modulo, nessun dato sanitario raccolto dal sito.
+ */
+import Base from '@/layouts/Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import Section from '@/components/Section.astro';
+import Button from '@/components/Button.astro';
+import Icon from '@/components/Icon.astro';
+import Orari from '@/components/Orari.astro';
+import FAQ from '@/components/FAQ.astro';
+import NotaDivulgativa from '@/components/NotaDivulgativa.astro';
+import { sito } from '@/data/sito';
+import { whatsappHref, telefonoHref } from '@/lib/contatti';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  { label: 'Prenota una visita', href: '/prenota-una-visita/' },
+];
+
+// [DA VERIFICARE CON IL MEDICO] risposte su disdette e prenotazione per altre persone.
+const faq = [
+  {
+    domanda: 'Devo spiegare il motivo della visita quando prenoto?',
+    risposta:
+      'No. Il messaggio WhatsApp precompilato è volutamente neutro. Se lo desidera può aggiungere qualche parola, ma può anche parlarne direttamente in studio.',
+  },
+  {
+    domanda: 'Posso prenotare per un’altra persona, ad esempio mia madre?',
+    risposta:
+      'Sì. Ci indichi il nome della persona e un recapito: se ha difficoltà a spostarsi, può valutare anche la visita a domicilio.',
+  },
+  {
+    domanda: 'E se poi non posso venire?',
+    risposta:
+      'Ci avvisi appena possibile, con un messaggio o una telefonata: così l’orario può essere offerto a un’altra paziente.',
+  },
+  {
+    domanda: 'Posso mandare referti su WhatsApp?',
+    risposta:
+      'È meglio portarli in visita. WhatsApp è un servizio di terzi: per la Sua riservatezza Le consigliamo di non inviare referti o informazioni dettagliate sulla Sua salute.',
+  },
+];
+---
+
+<Base
+  title="Prenota una visita | Dott. Martsidis, uroginecologo a Cagliari"
+  description="Prenoti una visita uroginecologica, ginecologica o ostetrica a Cagliari con un messaggio WhatsApp o una telefonata. Nessun modulo da compilare, nessun dato chiesto online."
+  breadcrumbs={breadcrumbs}
+  faq={faq}
+>
+  <PageHero
+    titolo="Prenota una visita"
+    eyebrow="Su appuntamento"
+    lead="Basta un messaggio o una telefonata. Non deve compilare moduli né spiegare il motivo della visita: lo farà, se vorrà, con il Dottore."
+    contatti={false}
+  />
+
+  <Section id="come-prenotare" title="Scelga come preferisce">
+    <div class="opzioni">
+      <article class="opzione opzione--wa">
+        <span class="opzione__icona"><Icon name="whatsapp" size={30} /></span>
+        <h3>Su WhatsApp</h3>
+        <p>Si apre WhatsApp con questo messaggio già pronto. Può inviarlo così com’è:</p>
+        <blockquote class="anteprima">«{sito.whatsapp.messaggio}»</blockquote>
+        <Button href={whatsappHref} icon="whatsapp" size="lg" external block>{t('cta.whatsapp')}</Button>
+      </article>
+      <article class="opzione">
+        <span class="opzione__icona"><Icon name="phone" size={28} /></span>
+        <h3>Per telefono</h3>
+        <p>Preferisce parlare con qualcuno? Chiami questo numero:</p>
+        <p class="numero"><a href={telefonoHref}>{sito.telefono.visualizzato}</a></p>
+        <Button href={telefonoHref} icon="phone" size="lg" variant="secondary" block>{t('cta.call')}</Button>
+      </article>
+    </div>
+  </Section>
+
+  <Section id="dopo" title="Cosa succede dopo" tone="alt">
+    <ol class="passi" role="list">
+      <li>
+        <strong>Concordiamo giorno e orario</strong>, in base ai Suoi impegni.
+        <span class="muted"><Orari compatto /></span>
+      </li>
+      <li>
+        <strong>Le diciamo cosa portare</strong> e se serve una preparazione (ad esempio per l’esame urodinamico o
+        l’ecografia).
+      </li>
+      <li>
+        <strong>Ci vediamo in studio</strong>, in {sito.indirizzo.via}, {sito.indirizzo.dettaglio}, Cagliari. Oppure a
+        casa Sua, se ha scelto la <a href="/visita-domiciliare/">visita a domicilio</a>.
+      </li>
+    </ol>
+    <p class="link-prima">
+      <Icon name="info" size={20} />
+      <span>Vuole sapere come si svolge? Legga <a href="/la-prima-visita/">La prima visita: cosa aspettarsi</a>.</span>
+    </p>
+  </Section>
+
+  <Section id="domande">
+    <div class="faq-wrap">
+      <FAQ items={faq} />
+      <p class="privacy">
+        <Icon name="shield-check" size={20} />
+        <span>
+          Il sito non raccoglie dati sulla Sua salute: non ci sono moduli. Per sapere come vengono trattati i dati quando
+          ci scrive o ci chiama, veda l’<a href="/privacy/">informativa privacy</a>.
+        </span>
+      </p>
+      <NotaDivulgativa />
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .opzioni {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 52rem) {
+    .opzioni {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .opzione {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    box-shadow: var(--shadow-sm);
+  }
+  .opzione--wa {
+    background: var(--c-plum-50);
+    border-color: var(--c-plum-100);
+  }
+  .opzione h3 {
+    margin: 0;
+  }
+  .opzione p {
+    margin: 0;
+  }
+  .opzione > :global(.btn) {
+    margin-top: auto;
+  }
+  .opzione__icona {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .anteprima {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius) var(--radius) var(--radius) 0.25rem;
+    background: var(--c-white);
+    border: 1px solid var(--color-border-soft);
+    font-style: italic;
+  }
+  .numero {
+    margin-bottom: var(--space-3) !important;
+  }
+  .numero a {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 1.5rem + 1.2vw, 2.4rem);
+    text-decoration: none;
+  }
+  .passi {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 46rem;
+    margin: 0 0 var(--space-5);
+    padding-left: 1.4rem;
+  }
+  .passi li::marker {
+    font-family: var(--font-heading);
+    color: var(--color-link);
+    font-weight: 600;
+  }
+  .passi :global(.orari) {
+    margin-top: 0.4rem;
+    font-size: var(--fs-small);
+  }
+  .link-prima,
+  .privacy {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    max-width: 46rem;
+  }
+  .link-prima :global(svg),
+  .privacy :global(svg) {
+    margin-top: 0.25em;
+    color: var(--color-accent-text);
+  }
+  .faq-wrap {
+    max-width: var(--measure);
+  }
+  .privacy {
+    margin-top: var(--space-6);
+    color: var(--color-text-muted);
+  }
+</style>

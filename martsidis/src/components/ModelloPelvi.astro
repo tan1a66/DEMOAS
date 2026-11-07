@@ -62,7 +62,7 @@ const iniziale = statoPerId(STATO_INIZIALE);
         <p>{iniziale.testo}</p>
       </div>
 
-      <!-- Testi sorgente degli stati (copiati nella regione aria-live al cambio di stato) -->
+      {/* Testi sorgente degli stati (copiati nella regione aria-live al cambio di stato) */}
       {
         STATI.map((s) => (
           <template data-testo-src={s.id}>
