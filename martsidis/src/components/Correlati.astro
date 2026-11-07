@@ -1,0 +1,45 @@
+---
+/** "Pagine collegate": card con link descrittivi (non "Sezione dedicata"). */
+import Card from './Card.astro';
+
+interface Props {
+  items: { label: string; href: string; testo?: string }[];
+  title?: string;
+}
+const { items, title = 'Potrebbe interessarLe anche' } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <section class="correlati" aria-labelledby="correlati-titolo">
+      <h2 id="correlati-titolo">{title}</h2>
+      <ul role="list">
+        {items.map((c) => (
+          <li>
+            <Card title={c.label} href={c.href} size="sm" linkLabel="Legga" as="h3">
+              {c.testo && <p>{c.testo}</p>}
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .correlati {
+    margin-top: var(--space-8);
+  }
+  .correlati h2 {
+    font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.9rem);
+    margin-bottom: var(--space-5);
+  }
+  ul {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+</style>

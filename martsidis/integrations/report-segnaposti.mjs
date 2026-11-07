@@ -38,8 +38,15 @@ export default function reportSegnaposti() {
           verificare += (txt.match(/\[DA VERIFICARE/g) || []).length;
         }
         if (pagine.size) {
-          logger.warn(`Segnaposti visibili ancora da compilare in ${pagine.size} pagine:`);
-          for (const [pagina, set] of pagine) logger.warn(`  ${pagina}  →  ${[...set].join(', ')}`);
+          // Segnaposti presenti quasi ovunque (es. orari nel footer): elencati una volta sola.
+          const conteggio = new Map();
+          for (const set of pagine.values()) for (const v of set) conteggio.set(v, (conteggio.get(v) ?? 0) + 1);
+          const globali = [...conteggio].filter(([, n]) => n >= Math.max(3, pagine.size * 0.6)).map(([v]) => v);
+          if (globali.length) logger.warn(`Segnaposti da compilare in tutte le pagine: ${globali.join(', ')}`);
+          for (const [pagina, set] of pagine) {
+            const propri = [...set].filter((v) => !globali.includes(v));
+            if (propri.length) logger.warn(`  ${pagina}  →  ${propri.join(', ')}`);
+          }
         } else {
           logger.info('Nessun segnaposto [DA INSERIRE] visibile nelle pagine.');
         }

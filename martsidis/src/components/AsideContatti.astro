@@ -1,0 +1,146 @@
+---
+/** Colonna laterale delle pagine informative: contatto rapido, indice della pagina, rimando al modello 3D. */
+import Icon from './Icon.astro';
+import Button from './Button.astro';
+import { whatsappHref, telefonoHref } from '@/lib/contatti';
+import { sito } from '@/data/sito';
+import { useTranslations } from '@/i18n';
+
+interface Props {
+  indice?: { slug: string; text: string }[];
+  statoModello?: string;
+  testoModello?: string;
+}
+const { indice = [], statoModello, testoModello } = Astro.props;
+const t = useTranslations();
+---
+
+<aside class="aside" aria-label="Contatti e indice della pagina">
+  {
+    statoModello && (
+      <a class="aside__box aside__modello" href={`/#${statoModello}`}>
+        <span class="aside__modello-icona">
+          <Icon name="waves" size={26} />
+        </span>
+        <span>
+          <span class="aside__titolo">{t('link.modello')}</span>
+          {testoModello && <span class="aside__testo">{testoModello}</span>}
+        </span>
+      </a>
+    )
+  }
+
+  {
+    indice.length > 2 && (
+      <nav class="aside__box aside__indice" aria-labelledby="indice-titolo">
+        <p class="aside__titolo" id="indice-titolo">
+          In questa pagina
+        </p>
+        <ol>
+          {indice.map((h) => (
+            <li>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+  <div class="aside__box aside__box--contatti">
+    <p class="aside__titolo">Vuole parlarne con il Dottore?</p>
+    <p class="aside__testo">Si riceve su appuntamento in {sito.indirizzo.via}, Cagliari.</p>
+    <Button href={whatsappHref} icon="whatsapp" external block>{t('cta.whatsapp')}</Button>
+    <Button href={telefonoHref} icon="phone" variant="secondary" block>{sito.telefono.visualizzato}</Button>
+  </div>
+
+</aside>
+
+<style>
+  .aside {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+  /* Solo il riquadro dei contatti resta fisso durante lo scroll (il resto scorre) */
+  @media (min-width: 64rem) {
+    .aside__box--contatti {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-5));
+    }
+  }
+  /* Su mobile i contatti sono già nella barra in basso e nel riquadro finale: resta solo il modello 3D */
+  @media (max-width: 63.99rem) {
+    .aside__box--contatti,
+    .aside__indice {
+      display: none;
+    }
+  }
+  .aside :global(.btn) {
+    padding-inline: 1em;
+    font-size: 1rem;
+  }
+  .aside__box {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+  }
+  .aside__box--contatti {
+    background: var(--c-plum-50);
+    border-color: var(--c-plum-100);
+  }
+  .aside__titolo {
+    display: block;
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 550;
+    color: var(--color-heading);
+  }
+  .aside__testo {
+    display: block;
+    margin: 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .aside__modello {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .aside__modello:hover {
+    border-color: var(--c-plum-300);
+  }
+  .aside__modello:hover .aside__titolo {
+    color: var(--color-link);
+  }
+  .aside__modello-icona {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--c-sage-100);
+    color: var(--color-accent-text);
+  }
+  .aside__indice ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .aside__indice a {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-size: 1rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+  .aside__indice li:last-child a {
+    border-bottom: 0;
+  }
+</style>

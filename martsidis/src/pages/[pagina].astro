@@ -1,0 +1,129 @@
+---
+/**
+ * Pagine di servizio e legali: /<slug>/ da src/content/pagine/<slug>.md
+ * (le pagine "hub" — uroginecologia e servizi — hanno un file dedicato in src/pages/).
+ */
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Contenuto from '@/layouts/Contenuto.astro';
+import Foto from '@/components/Foto.astro';
+import Icon from '@/components/Icon.astro';
+import { useTranslations } from '@/i18n';
+
+export async function getStaticPaths() {
+  const pagine = await getCollection('pagine', (p) => p.data.tipo !== 'hub');
+  return pagine.map((entry) => ({ params: { pagina: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'pagine'>;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const t = useTranslations();
+const legale = d.tipo === 'legale';
+
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  ...(legale ? [] : [{ label: 'Servizi', href: '/servizi/' }]),
+  { label: d.card?.titolo ?? d.titolo, href: `/${entry.id}/` },
+];
+const indice = headings.filter((h) => h.depth === 2).map((h) => ({ slug: h.slug, text: h.text }));
+if (d.faq.length) indice.push({ slug: 'domande-frequenti-titolo', text: t('faq.title') });
+---
+
+<Contenuto
+  metaTitle={d.metaTitle}
+  description={d.description}
+  titolo={d.titolo}
+  eyebrow={d.eyebrow}
+  lead={d.lead}
+  breadcrumbs={breadcrumbs}
+  faq={d.faq}
+  correlati={d.correlati}
+  statoModello={d.statoModello}
+  testoModello={d.testoModello}
+  indice={indice}
+  tipo={legale ? 'legale' : 'servizio'}
+>
+  {
+    (d.inEvidenza || d.foto) && (
+      <div slot="prima" class:list={['in-evidenza', { 'in-evidenza--con-foto': d.foto }]}>
+        {d.inEvidenza && (
+          <div class="in-evidenza__box">
+            <h2 class="in-evidenza__titolo">{d.inEvidenza.titolo}</h2>
+            <ul role="list">
+              {d.inEvidenza.voci.map((v) => (
+                <li>
+                  <Icon name="check" size={20} />
+                  <span>{v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {d.foto && (
+          <Foto
+            nome={d.foto.nome}
+            alt={d.foto.alt}
+            descrizione={d.foto.descrizione}
+            ratio="4 / 3"
+            sizes="(min-width: 64rem) 30vw, 100vw"
+          />
+        )}
+      </div>
+    )
+  }
+  {d.aggiornato && <p class="aggiornato">Ultimo aggiornamento: {d.aggiornato}</p>}
+  <Content />
+</Contenuto>
+
+<style>
+  .in-evidenza {
+    display: grid;
+    gap: var(--space-5);
+    margin-bottom: var(--space-7);
+  }
+  @media (min-width: 48rem) {
+    .in-evidenza--con-foto {
+      grid-template-columns: 1.2fr 1fr;
+      align-items: start;
+    }
+  }
+  .in-evidenza__box {
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-lg);
+    background: var(--color-accent-bg);
+    border: 1px solid var(--c-sage-200);
+  }
+  .in-evidenza__titolo {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-accent-text);
+    margin-bottom: var(--space-3);
+  }
+  .in-evidenza__box ul {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .in-evidenza__box li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+  }
+  .in-evidenza__box li :global(svg) {
+    margin-top: 0.25em;
+    color: var(--color-accent-text);
+  }
+  .aggiornato {
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+  }
+</style>

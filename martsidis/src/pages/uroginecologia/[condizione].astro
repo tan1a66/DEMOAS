@@ -1,0 +1,64 @@
+---
+/**
+ * Pagine di condizione: /uroginecologia/<slug>/ da src/content/condizioni/<slug>.md
+ * La build verifica che il testo segua lo schema in 8 punti (vedi content.config.ts).
+ */
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Contenuto from '@/layouts/Contenuto.astro';
+import { useTranslations } from '@/i18n';
+
+export async function getStaticPaths() {
+  const condizioni = await getCollection('condizioni');
+  return condizioni.map((entry) => ({ params: { condizione: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'condizioni'>;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const t = useTranslations();
+
+// Schema obbligatorio: titolo (H1) → [sezioni qui sotto] → FAQ → contatto (aggiunti dal layout).
+const SEZIONI = [
+  'Non è un problema raro',
+  'Sintomi',
+  'Cause in breve',
+  'Come si arriva alla diagnosi',
+  'Le possibilità di trattamento',
+];
+const h2 = headings.filter((h) => h.depth === 2);
+const trovate = h2.map((h) => h.text.trim());
+if (trovate.join('|') !== SEZIONI.join('|')) {
+  throw new Error(
+    `La pagina "${entry.id}" non segue lo schema delle condizioni.\n` +
+      `  Titoli ## attesi, in quest'ordine: ${SEZIONI.join(' · ')}\n` +
+      `  Titoli trovati: ${trovate.join(' · ') || '(nessuno)'}`,
+  );
+}
+
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  { label: 'Uroginecologia', href: '/uroginecologia/' },
+  { label: d.nome, href: `/uroginecologia/${entry.id}/` },
+];
+const indice = [...h2.map((h) => ({ slug: h.slug, text: h.text })), { slug: 'domande-frequenti-titolo', text: t('faq.title') }];
+---
+
+<Contenuto
+  metaTitle={d.metaTitle}
+  description={d.description}
+  titolo={d.titolo}
+  eyebrow={d.nome}
+  lead={d.lead}
+  breadcrumbs={breadcrumbs}
+  faq={d.faq}
+  correlati={d.correlati}
+  statoModello={d.statoModello}
+  testoModello={d.testoModello}
+  indice={indice}
+>
+  <Content />
+</Contenuto>

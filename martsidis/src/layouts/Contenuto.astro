@@ -1,0 +1,110 @@
+---
+/**
+ * Layout delle pagine informative (condizioni e servizi):
+ * intestazione → testo + colonna laterale → FAQ → invito al contatto → pagine collegate → nota divulgativa.
+ */
+import '@/styles/prose.css';
+import Base from './Base.astro';
+import PageHero from '@/components/PageHero.astro';
+import AsideContatti from '@/components/AsideContatti.astro';
+import FAQ, { type VoceFaq } from '@/components/FAQ.astro';
+import CTA from '@/components/CTA.astro';
+import Correlati from '@/components/Correlati.astro';
+import NotaDivulgativa from '@/components/NotaDivulgativa.astro';
+import type { Briciola } from '@/components/Breadcrumbs.astro';
+
+interface Props {
+  metaTitle: string;
+  description: string;
+  titolo: string;
+  eyebrow?: string;
+  lead?: string;
+  breadcrumbs: Briciola[];
+  faq?: VoceFaq[];
+  correlati?: { label: string; href: string; testo?: string }[];
+  statoModello?: string;
+  testoModello?: string;
+  indice?: { slug: string; text: string }[];
+  /** legale = privacy/cookie: niente CTA, niente nota divulgativa, niente colonna laterale */
+  tipo?: 'servizio' | 'legale';
+  ctaTitolo?: string;
+}
+
+const {
+  metaTitle,
+  description,
+  titolo,
+  eyebrow,
+  lead,
+  breadcrumbs,
+  faq = [],
+  correlati = [],
+  statoModello,
+  testoModello,
+  indice = [],
+  tipo = 'servizio',
+  ctaTitolo,
+} = Astro.props;
+const legale = tipo === 'legale';
+---
+
+<Base title={metaTitle} description={description} breadcrumbs={breadcrumbs} faq={faq} noindex={false}>
+  <PageHero titolo={titolo} eyebrow={eyebrow} lead={lead} contatti={!legale}>
+    <slot name="hero" />
+  </PageHero>
+
+  <div class="container contenuto">
+    <div class:list={['contenuto__griglia', { 'contenuto__griglia--singola': legale }]}>
+      <div class="contenuto__main">
+        <slot name="prima" />
+        <article class="prose">
+          <slot />
+        </article>
+        <slot name="dopo" />
+
+        {
+          faq.length > 0 && (
+            <div class="contenuto__faq">
+              <FAQ items={faq} />
+            </div>
+          )
+        }
+
+        {!legale && <CTA title={ctaTitolo} />}
+
+        <Correlati items={correlati} />
+
+        {!legale && <NotaDivulgativa />}
+      </div>
+
+      {
+        !legale && (
+          <AsideContatti indice={indice} statoModello={statoModello} testoModello={testoModello} />
+        )
+      }
+    </div>
+  </div>
+</Base>
+
+<style>
+  .contenuto {
+    padding-block: var(--space-7) var(--space-9);
+  }
+  .contenuto__griglia {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 64rem) {
+    .contenuto__griglia {
+      grid-template-columns: minmax(0, 1fr) 19rem;
+      gap: var(--space-8);
+    }
+    .contenuto__griglia--singola {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .contenuto__faq {
+    margin-top: var(--space-8);
+    max-width: var(--measure);
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+/** Pagina hub dell'uroginecologia: testi in src/content/pagine/uroginecologia.md, condizioni dalla collection. */
+import { getCollection, getEntry, render } from 'astro:content';
+import Contenuto from '@/layouts/Contenuto.astro';
+import Card from '@/components/Card.astro';
+import { useTranslations } from '@/i18n';
+
+const pagina = await getEntry('pagine', 'uroginecologia');
+if (!pagina) throw new Error('Manca src/content/pagine/uroginecologia.md');
+const { Content, headings } = await render(pagina);
+const d = pagina.data;
+const condizioni = (await getCollection('condizioni')).sort((a, b) => a.data.ordine - b.data.ordine);
+const t = useTranslations();
+
+const breadcrumbs = [
+  { label: t('breadcrumb.home'), href: '/' },
+  { label: 'Uroginecologia', href: '/uroginecologia/' },
+];
+const indice = [
+  { slug: 'disturbi-titolo', text: 'I disturbi più comuni' },
+  ...headings.filter((h) => h.depth === 2).map((h) => ({ slug: h.slug, text: h.text })),
+];
+---
+
+<Contenuto
+  metaTitle={d.metaTitle}
+  description={d.description}
+  titolo={d.titolo}
+  eyebrow={d.eyebrow}
+  lead={d.lead}
+  breadcrumbs={breadcrumbs}
+  faq={d.faq}
+  correlati={d.correlati}
+  statoModello={d.statoModello}
+  testoModello={d.testoModello}
+  indice={indice}
+>
+  <section slot="prima" class="disturbi" aria-labelledby="disturbi-titolo">
+    <h2 id="disturbi-titolo">I disturbi più comuni</h2>
+    <p class="muted">Ogni pagina spiega, con parole semplici, sintomi, cause, esami e possibilità di cura.</p>
+    <ul role="list">
+      {
+        condizioni.map((c) => (
+          <li>
+            <Card title={c.data.nome} href={`/uroginecologia/${c.id}/`} icon={c.data.home.icona} size="sm" linkLabel="Legga">
+              <p>«{c.data.home.frase}»</p>
+            </Card>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+  <Content />
+</Contenuto>
+
+<style>
+  .disturbi {
+    margin-bottom: var(--space-7);
+  }
+  .disturbi h2 {
+    font-size: clamp(1.6rem, 1.35rem + 1vw, 2.1rem);
+    margin-bottom: var(--space-2);
+  }
+  .disturbi ul {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
+  }
+</style>
