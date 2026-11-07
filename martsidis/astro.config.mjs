@@ -93,7 +93,7 @@ export default defineConfig({
         "default-src 'self'",
         "img-src 'self' data: blob:",
         "font-src 'self'",
-        `connect-src 'self' ${origineStatistiche.join(' ')}`.trim(),
+        /** @type {`connect-src${string}`} */ (`connect-src 'self'${origineStatistiche.map((o) => ` ${o}`).join('')}`),
         'frame-src https://www.openstreetmap.org',
         "worker-src 'self' blob:",
         "object-src 'none'",
@@ -104,6 +104,9 @@ export default defineConfig({
       scriptDirective: { resources: ["'self'", "'wasm-unsafe-eval'", ...origineStatistiche] },
     },
   },
+
+  // Niente evidenziazione del codice (Shiki usa stili inline incompatibili con la CSP; il sito non ha blocchi di codice).
+  markdown: { syntaxHighlight: false },
 
   devToolbar: { enabled: false },
 
