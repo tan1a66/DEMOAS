@@ -11,8 +11,8 @@ export type Stage = {
   onFrame: (fn: (dt: number, t: number) => void) => void;
   /** Disegna un solo fotogramma (es. dopo un cambio di stato con animazioni spente). */
   renderOnce: () => void;
-  /** Forza il ciclo attivo per un po' (es. durante una transizione), anche se la scena è "ferma". */
-  sveglia: () => void;
+  /** Tiene attivo il ciclo per `ms` millisecondi (es. durante una transizione), anche se la scena è "ferma". */
+  sveglia: (ms?: number) => void;
   dispose: () => void;
 };
 
@@ -46,6 +46,7 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
   let visibile = false;
   let paginaVisibile = !document.hidden;
   let attivoFinoA = 0;
+  let inEsecuzione = false;
   let ultimo = performance.now();
   let tempo = 0;
 
@@ -57,15 +58,20 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
     tempo += dt;
     for (const fn of callbacks) fn(dt, tempo);
     disegna();
-    if (!continuo && adesso > attivoFinoA) renderer.setAnimationLoop(null);
+    if (!continuo && performance.now() > attivoFinoA) {
+      renderer.setAnimationLoop(null);
+      inEsecuzione = false;
+    }
   };
 
   const aggiornaCiclo = () => {
     const deveGirare = visibile && paginaVisibile && (continuo || performance.now() < attivoFinoA);
-    if (deveGirare) {
+    if (deveGirare && !inEsecuzione) {
       ultimo = performance.now();
+      inEsecuzione = true;
       renderer.setAnimationLoop(tick);
-    } else {
+    } else if (!deveGirare && inEsecuzione) {
+      inEsecuzione = false;
       renderer.setAnimationLoop(null);
     }
   };
@@ -106,12 +112,13 @@ export function creaStage(host: HTMLElement, { fov = 35, continuo = true }: Opzi
     canvas,
     onFrame: (fn) => callbacks.push(fn),
     renderOnce: disegna,
-    sveglia: () => {
-      attivoFinoA = performance.now() + 2500;
-      aggiornaCiclo();
+    sveglia: (ms = 2500) => {
+      attivoFinoA = Math.max(attivoFinoA, performance.now() + ms);
+      if (!inEsecuzione) aggiornaCiclo();
     },
     dispose: () => {
       renderer.setAnimationLoop(null);
+      inEsecuzione = false;
       ro.disconnect();
       io.disconnect();
       document.removeEventListener('visibilitychange', suVisibilita);
