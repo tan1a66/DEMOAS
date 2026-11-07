@@ -1,0 +1,136 @@
+---
+/**
+ * "Isola" 3D senza framework: equivalente di client:visible per Three.js vanilla.
+ * - Three.js viene scaricato SOLO quando il blocco si avvicina allo schermo, e solo dopo il caricamento della pagina.
+ * - Se WebGL manca, se "riduci movimento" è attivo o se c'è ?no3d nell'URL resta il contenuto di fallback (slot).
+ * - `soloDesktop`: su mobile/touch resta il fallback statico (salvo config.hero3dSuMobile).
+ */
+import { config } from '@/config';
+
+interface Props {
+  scena: 'hero' | 'pelvi';
+  soloDesktop?: boolean;
+  class?: string;
+  /** Etichetta per il contenitore (il canvas è aria-hidden; la descrizione testuale sta fuori). */
+  label?: string;
+}
+const { scena, soloDesktop = false, class: className, label } = Astro.props;
+const soloDesk = soloDesktop && !config.hero3dSuMobile;
+---
+
+<three-island
+  data-scena={scena}
+  data-solo-desktop={soloDesk ? '' : undefined}
+  class:list={['three-island', className]}
+  aria-label={label}
+>
+  <div class="three-island__fallback"><slot /></div>
+</three-island>
+
+<script>
+  import {
+    webglDisponibile,
+    riduciMovimento,
+    disattivatoDaUrl,
+    isMobile,
+    risparmioDati,
+    quandoLibero,
+  } from '../three/shared/capacita';
+
+  type Istanza = { dispose: () => void };
+  type Modulo = { monta: (host: HTMLElement) => Promise<Istanza> };
+
+  // Ogni scena è un chunk separato: Three.js arriva solo con la prima scena che serve.
+  const scene: Record<string, () => Promise<Modulo>> = {
+    hero: () => import('../three/hero/hero'),
+    pelvi: () => import('../three/pelvi/index'),
+  };
+
+  class ThreeIsland extends HTMLElement {
+    private istanza?: Istanza;
+    private io?: IntersectionObserver;
+
+    connectedCallback() {
+      const motivo = this.motivoFallback();
+      if (motivo) {
+        this.dataset.stato = 'fallback';
+        this.dataset.motivo = motivo;
+        this.dispatchEvent(new CustomEvent('three:fallback', { bubbles: true, detail: { motivo } }));
+        return;
+      }
+      const osserva = () => {
+        this.io = new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              this.io?.disconnect();
+              this.avvia();
+            }
+          },
+          { rootMargin: '250px 0px' },
+        );
+        this.io.observe(this);
+      };
+      // Mai prima del load: il 3D non deve competere con il primo caricamento.
+      if (document.readyState === 'complete') quandoLibero(osserva);
+      else window.addEventListener('load', () => quandoLibero(osserva), { once: true });
+    }
+
+    disconnectedCallback() {
+      this.io?.disconnect();
+      this.istanza?.dispose();
+    }
+
+    private motivoFallback(): string | null {
+      if (disattivatoDaUrl()) return 'no3d';
+      if (riduciMovimento()) return 'movimento-ridotto';
+      if (this.hasAttribute('data-solo-desktop') && (isMobile() || risparmioDati())) return 'mobile';
+      if (!webglDisponibile()) return 'no-webgl';
+      return null;
+    }
+
+    private async avvia() {
+      const carica = scene[this.dataset.scena ?? ''];
+      if (!carica) return;
+      this.dataset.stato = 'caricamento';
+      try {
+        const modulo = await carica();
+        this.istanza = await modulo.monta(this);
+        // Due frame per essere sicuri che il primo disegno sia avvenuto, poi dissolvenza.
+        requestAnimationFrame(() => requestAnimationFrame(() => (this.dataset.stato = 'pronto')));
+        this.dispatchEvent(new CustomEvent('three:pronto', { bubbles: true }));
+      } catch (errore) {
+        console.warn('3D non disponibile, resta la versione statica.', errore);
+        this.dataset.stato = 'fallback';
+        this.dispatchEvent(new CustomEvent('three:fallback', { bubbles: true, detail: { motivo: 'errore' } }));
+      }
+    }
+  }
+
+  if (!customElements.get('three-island')) customElements.define('three-island', ThreeIsland);
+</script>
+
+<style>
+  three-island {
+    position: relative;
+    display: block;
+  }
+  .three-island__fallback {
+    position: absolute;
+    inset: 0;
+    transition: opacity 900ms var(--ease);
+  }
+  three-island :global(.stage-canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0;
+    transition: opacity 900ms var(--ease);
+  }
+  three-island[data-stato='pronto'] :global(.stage-canvas) {
+    opacity: 1;
+  }
+  three-island[data-stato='pronto'] .three-island__fallback {
+    opacity: 0;
+  }
+</style>

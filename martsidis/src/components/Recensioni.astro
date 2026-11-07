@@ -1,0 +1,90 @@
+---
+/**
+ * Recensioni: di base solo il rimando alla scheda Google (nessuna recensione incollata o inventata).
+ * Se in src/data/recensioni.ts ci sono recensioni REALI e AUTORIZZATE, vengono mostrate (max 3).
+ */
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+import { recensioni } from '@/data/recensioni';
+import { sito } from '@/data/sito';
+
+const mostrabili = recensioni.filter((r) => r.autorizzata).slice(0, 3);
+const formatoData = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
+---
+
+<div class="recensioni">
+  {
+    mostrabili.length > 0 && (
+      <ul class="recensioni__lista">
+        {mostrabili.map((r) => (
+          <li class="recensioni__item">
+            <blockquote>
+              <p>{r.testo}</p>
+            </blockquote>
+            <p class="recensioni__firma">
+              {r.autrice} · <time datetime={r.data}>{formatoData.format(new Date(r.data))}</time> · {r.fonte}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <div class="recensioni__google">
+    <Icon name="users" size={28} />
+    <p>
+      Le opinioni delle pazienti sono pubblicate sulla scheda Google del Dottore. Le può leggere lì, e se lo desidera
+      può lasciare anche la Sua.
+    </p>
+    <Button href={sito.googleRecensioni} variant="secondary" iconRight="external-link" external>
+      Leggi le recensioni su Google
+    </Button>
+  </div>
+</div>
+
+<style>
+  .recensioni__lista {
+    display: grid;
+    gap: var(--space-5);
+    list-style: none;
+    margin: 0 0 var(--space-6);
+    padding: 0;
+  }
+  @media (min-width: 56rem) {
+    .recensioni__lista {
+      grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
+  }
+  .recensioni__item {
+    padding: var(--space-5);
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border-soft);
+  }
+  .recensioni__item blockquote {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    color: var(--color-heading);
+  }
+  .recensioni__firma {
+    margin: var(--space-3) 0 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .recensioni__google {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    max-width: 40rem;
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+  }
+  .recensioni__google > :global(svg) {
+    color: var(--color-accent-text);
+  }
+  .recensioni__google p {
+    margin: 0;
+  }
+</style>

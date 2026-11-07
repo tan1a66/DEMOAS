@@ -1,0 +1,101 @@
+---
+/**
+ * Foto con segnaposto automatico.
+ * Basta copiare il file in src/assets/foto/ con il nome previsto (es. "ritratto.jpg"):
+ * viene trovato da solo, ottimizzato (AVIF/WebP, dimensioni corrette) e mostrato.
+ * Finché il file non c'è, compare un segnaposto chiaramente riconoscibile.
+ *
+ * Nomi previsti (vedi README → "Dove vanno le foto"):
+ *   ritratto  — ritratto del medico (verticale, almeno 1200 px di lato lungo)
+ *   studio-1, studio-2, studio-3 — ambienti dello studio (orizzontali)
+ *   ecografo  — l'ecografo Samsung HM70A Plus
+ *   nutrizionista — Dott.ssa Manuela Frau
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  nome: string;
+  alt: string;
+  /** Testo del segnaposto */
+  descrizione: string;
+  /** Rapporto d'aspetto, es. "4 / 5" */
+  ratio?: string;
+  /** Larghezze per srcset */
+  widths?: number[];
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const {
+  nome,
+  alt,
+  descrizione,
+  ratio = '4 / 5',
+  widths = [480, 720, 960, 1200],
+  sizes = '(min-width: 64rem) 40vw, 100vw',
+  loading = 'lazy',
+  class: className,
+} = Astro.props;
+
+const foto = import.meta.glob<{ default: ImageMetadata }>('/src/assets/foto/*.{jpg,jpeg,png,webp,avif}', {
+  eager: true,
+});
+const trovata = Object.entries(foto).find(([percorso]) =>
+  new RegExp(`/${nome}\\.(jpe?g|png|webp|avif)$`, 'i').test(percorso),
+)?.[1].default;
+---
+
+{
+  trovata ? (
+    <Picture
+      src={trovata}
+      alt={alt}
+      formats={['avif', 'webp']}
+      widths={widths.filter((w) => w <= trovata.width)}
+      sizes={sizes}
+      loading={loading}
+      class:list={['foto', className]}
+      style={`aspect-ratio: ${ratio}`}
+    />
+  ) : (
+    <div class:list={['foto', 'foto--segnaposto', className]} style={`aspect-ratio: ${ratio}`} role="img" aria-label={alt}>
+      <svg viewBox="0 0 200 200" aria-hidden="true" class="foto__forma">
+        <circle cx="70" cy="80" r="70" fill="var(--c-plum-100)" />
+        <circle cx="140" cy="130" r="60" fill="var(--c-sage-100)" />
+      </svg>
+      <span class="segnaposto">[DA INSERIRE: foto — {descrizione}]</span>
+    </div>
+  )
+}
+
+<style>
+  .foto {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-alt);
+  }
+  .foto--segnaposto {
+    position: relative;
+    display: grid;
+    place-items: end start;
+    padding: var(--space-5);
+    overflow: hidden;
+    border: 1px dashed var(--c-plum-300);
+    background: linear-gradient(160deg, var(--c-plum-50), var(--c-sand-50));
+  }
+  .foto__forma {
+    position: absolute;
+    inset: 10% 10% auto auto;
+    width: 70%;
+    opacity: 0.9;
+  }
+  .foto--segnaposto .segnaposto {
+    position: relative;
+    font-size: var(--fs-small);
+  }
+</style>

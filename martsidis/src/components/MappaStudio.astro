@@ -1,0 +1,135 @@
+---
+/**
+ * Mappa dello studio rispettosa della privacy:
+ * - al caricamento si vede solo un'immagine statica (generata da OpenStreetMap con scripts/genera-mappa.mjs);
+ * - la mappa interattiva OpenStreetMap si carica SOLO se la paziente clicca "Mostra la mappa interattiva";
+ * - i link a Google Maps sono semplici link: non viene caricato nulla da Google.
+ */
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import mappa from '@/assets/mappa/mappa-studio.png';
+import { sito, indirizzoCompleto } from '@/data/sito';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+const { lat, lon } = sito.geo;
+const d = 0.0045;
+const osmEmbed = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d}%2C${lat - d * 0.6}%2C${lon + d}%2C${lat + d * 0.6}&layer=mapnik&marker=${lat}%2C${lon}`;
+---
+
+<figure class="mappa" data-mappa>
+  <div class="mappa__riquadro" data-mappa-riquadro>
+    <Picture
+      src={mappa}
+      alt={`Mappa: lo studio si trova in ${indirizzoCompleto}, nel quartiere Tuvixeddu, vicino a Viale Trento e ai Giardini di Villa Devoto.`}
+      widths={[480, 800, 1200]}
+      sizes="(min-width: 64rem) 50vw, 100vw"
+      formats={['avif', 'webp']}
+      class="mappa__img"
+      loading="lazy"
+    />
+    <button type="button" class="mappa__attiva" data-mappa-attiva data-src={osmEmbed}>
+      <Icon name="map" size={20} />
+      Mostra la mappa interattiva
+    </button>
+  </div>
+  <figcaption class="mappa__didascalia">
+    <span>
+      Mappa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener"
+        >OpenStreetMap contributors<span class="visually-hidden">{t('a11y.newwindow')}</span></a
+      >. La mappa interattiva si carica da OpenStreetMap solo se la attiva (vedi <a href="/privacy/">privacy</a>).
+    </span>
+  </figcaption>
+  <div class="mappa__link">
+    <a href={sito.googleMaps.apri} target="_blank" rel="noopener" class="mappa__ext">
+      <Icon name="external-link" size={18} />{t('contatti.apriMaps')}<span class="visually-hidden"
+        >{t('a11y.newwindow')}</span
+      >
+    </a>
+    <a href={sito.googleMaps.indicazioni} target="_blank" rel="noopener" class="mappa__ext">
+      <Icon name="navigation" size={18} />{t('contatti.indicazioni')}<span class="visually-hidden"
+        >{t('a11y.newwindow')}</span
+      >
+    </a>
+  </div>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-mappa-attiva]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const riquadro = btn.closest<HTMLElement>('[data-mappa-riquadro]');
+      if (!riquadro) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = btn.dataset.src ?? '';
+      iframe.title = 'Mappa interattiva OpenStreetMap dello studio';
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer';
+      iframe.className = 'mappa__iframe';
+      riquadro.replaceChildren(iframe);
+      iframe.focus();
+    });
+  });
+</script>
+
+<style>
+  .mappa {
+    margin: 0;
+  }
+  .mappa__riquadro {
+    position: relative;
+    aspect-ratio: 5 / 3;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border-soft);
+    background: var(--c-sand-100);
+  }
+  .mappa__riquadro :global(.mappa__img),
+  .mappa__riquadro :global(.mappa__iframe) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 0;
+  }
+  .mappa__attiva {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-4);
+    translate: -50% 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: var(--tap);
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: rgb(255 255 255 / 0.95);
+    color: var(--color-primary);
+    font-weight: 650;
+    font-size: 1rem;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mappa__attiva:hover {
+    background: var(--c-white);
+    color: var(--color-primary-hover);
+  }
+  .mappa__didascalia {
+    margin-top: var(--space-3);
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .mappa__link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: var(--space-2);
+  }
+  .mappa__ext {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: var(--tap);
+    font-weight: 600;
+  }
+</style>

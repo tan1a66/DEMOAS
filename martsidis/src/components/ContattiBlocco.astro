@@ -1,0 +1,105 @@
+---
+/** Indirizzo, orari, telefono/WhatsApp e mappa. Usato in Home e nella pagina Contatti. */
+import Icon from './Icon.astro';
+import Orari from './Orari.astro';
+import ContactButtons from './ContactButtons.astro';
+import MappaStudio from './MappaStudio.astro';
+import { sito } from '@/data/sito';
+import { telefonoHref } from '@/lib/contatti';
+import { useTranslations } from '@/i18n';
+
+interface Props {
+  headingLevel?: 'h2' | 'h3';
+  mostraEmail?: boolean;
+}
+const { headingLevel: H = 'h3', mostraEmail = false } = Astro.props;
+const t = useTranslations();
+---
+
+<div class="contatti">
+  <div class="contatti__info">
+    <div class="contatti__voce">
+      <Icon name="map-pin" size={26} />
+      <div>
+        <H class="contatti__h">{t('contatti.indirizzo')}</H>
+        <p>
+          {sito.indirizzo.via}, {sito.indirizzo.dettaglio}<br />
+          {`${sito.indirizzo.cap} ${sito.indirizzo.citta}`}
+        </p>
+      </div>
+    </div>
+    <div class="contatti__voce">
+      <Icon name="clock" size={26} />
+      <div>
+        <H class="contatti__h">{t('contatti.orari')}</H>
+        <Orari />
+      </div>
+    </div>
+    <div class="contatti__voce">
+      <Icon name="phone" size={26} />
+      <div>
+        <H class="contatti__h">{t('contatti.telefono')}</H>
+        <p><a href={telefonoHref} class="contatti__tel">{sito.telefono.visualizzato}</a></p>
+        {
+          mostraEmail && sito.email && (
+            <p class="contatti__email">
+              Email: <a href={`mailto:${sito.email}`}>{sito.email}</a>
+              <br />
+              <span class="muted">Per prenotare è più rapido WhatsApp o il telefono.</span>
+            </p>
+          )
+        }
+      </div>
+    </div>
+    <ContactButtons />
+  </div>
+  <div class="contatti__mappa">
+    <MappaStudio />
+  </div>
+</div>
+
+<style>
+  .contatti {
+    display: grid;
+    gap: var(--space-7);
+    align-items: start;
+  }
+  @media (min-width: 60rem) {
+    .contatti {
+      grid-template-columns: 0.9fr 1.1fr;
+    }
+  }
+  .contatti__info {
+    display: grid;
+    gap: var(--space-5);
+  }
+  .contatti__voce {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+  }
+  .contatti__voce > :global(svg) {
+    color: var(--color-accent-text);
+    margin-top: 0.15rem;
+  }
+  .contatti__h {
+    margin: 0 0 0.25rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+  .contatti__voce p {
+    margin: 0;
+  }
+  .contatti__tel {
+    font-size: 1.35rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .contatti__email {
+    margin-top: var(--space-2) !important;
+  }
+</style>

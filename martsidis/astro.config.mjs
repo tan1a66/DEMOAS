@@ -77,4 +77,11 @@ export default defineConfig({
   ],
 
   devToolbar: { enabled: false },
+
+  vite: {
+    build: {
+      // Three.js da solo supera i 500 kB (≈130 kB gzip): è caricato solo on demand, quindi l'avviso non serve.
+      chunkSizeWarningLimit: 700,
+    },
+  },
 });

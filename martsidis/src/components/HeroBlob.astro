@@ -1,0 +1,78 @@
+---
+/**
+ * Versione statica (SVG) della forma dell'hero: si vede su mobile, senza WebGL,
+ * con "riduci movimento" attivo e mentre il 3D si carica. Decorativa (aria-hidden).
+ */
+
+// Contorno morbido generato in modo deterministico (spline chiusa Catmull-Rom → Bézier).
+function blobPath(punti: number, raggi: number[], cx = 200, cy = 200): string {
+  const pts = Array.from({ length: punti }, (_, i) => {
+    const a = (i / punti) * Math.PI * 2 - Math.PI / 2;
+    const r = raggi[i % raggi.length]!;
+    return [cx + Math.cos(a) * r, cy + Math.sin(a) * r] as const;
+  });
+  const p = (i: number) => pts[(i + punti) % punti]!;
+  let d = `M${p(0)[0].toFixed(1)} ${p(0)[1].toFixed(1)}`;
+  for (let i = 0; i < punti; i++) {
+    const [x0, y0] = p(i - 1);
+    const [x1, y1] = p(i);
+    const [x2, y2] = p(i + 1);
+    const [x3, y3] = p(i + 2);
+    const c1 = [x1 + (x2 - x0) / 6, y1 + (y2 - y0) / 6];
+    const c2 = [x2 - (x3 - x1) / 6, y2 - (y3 - y1) / 6];
+    d += ` C${c1[0]!.toFixed(1)} ${c1[1]!.toFixed(1)} ${c2[0]!.toFixed(1)} ${c2[1]!.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  }
+  return d + 'Z';
+}
+
+const forma = blobPath(9, [150, 162, 146, 170, 152, 160, 144, 166, 156]);
+const riflesso = blobPath(7, [70, 78, 66, 82, 72, 76, 68], 160, 150);
+---
+
+<svg class="hero-blob" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="hb-corpo" cx="36%" cy="30%" r="78%">
+      <stop offset="0" stop-color="#efe8f5"></stop>
+      <stop offset="0.38" stop-color="var(--c-plum-300)"></stop>
+      <stop offset="1" stop-color="var(--c-plum-500)"></stop>
+    </radialGradient>
+    <radialGradient id="hb-salvia" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="var(--c-sage-200)" stop-opacity="0.95"></stop>
+      <stop offset="1" stop-color="var(--c-sage-200)" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="hb-ombra" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="var(--c-plum-700)" stop-opacity="0.16"></stop>
+      <stop offset="1" stop-color="var(--c-plum-700)" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <ellipse cx="205" cy="372" rx="150" ry="20" fill="url(#hb-ombra)"></ellipse>
+  <g class="hero-blob__corpo">
+    <path d={forma} fill="url(#hb-corpo)"></path>
+    <path d={riflesso} fill="url(#hb-salvia)"></path>
+    <path d={forma} fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="2"></path>
+  </g>
+</svg>
+
+<style>
+  .hero-blob {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .hero-blob__corpo {
+    transform-origin: 200px 200px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-blob__corpo {
+      animation: respiro 18s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes respiro {
+    from {
+      transform: rotate(0deg) scale(1);
+    }
+    to {
+      transform: rotate(14deg) scale(1.035);
+    }
+  }
+</style>

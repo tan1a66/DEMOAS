@@ -1,11 +1,433 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
+import Card from '@/components/Card.astro';
+import Button from '@/components/Button.astro';
+import Icon from '@/components/Icon.astro';
 import ContactButtons from '@/components/ContactButtons.astro';
+import ThreeIsland from '@/components/ThreeIsland.astro';
+import HeroBlob from '@/components/HeroBlob.astro';
+import Foto from '@/components/Foto.astro';
+import Recensioni from '@/components/Recensioni.astro';
+import ContattiBlocco from '@/components/ContattiBlocco.astro';
+import ModelloPelvi from '@/components/ModelloPelvi.astro';
+import { sito } from '@/data/sito';
+
+const condizioni = (await getCollection('condizioni')).sort((a, b) => a.data.ordine - b.data.ordine);
+
+const altriServizi = [
+  {
+    titolo: 'Ginecologia',
+    href: '/ginecologia/',
+    icona: 'stethoscope',
+    testo: 'Visita ginecologica, Pap test e HPV, menopausa, cistiti ricorrenti, contraccezione.',
+  },
+  {
+    titolo: 'Ostetricia',
+    href: '/ostetricia/',
+    icona: 'baby',
+    testo: 'Visite in gravidanza, dal desiderio di un figlio fino all’allattamento.',
+  },
+  {
+    titolo: 'Ecografia 3D/4D',
+    href: '/ecografia-3d-4d/',
+    icona: 'scan-line',
+    testo: 'Ecografia ginecologica e ostetrica, transvaginale e transaddominale.',
+  },
+  {
+    titolo: 'Visita a domicilio',
+    href: '/visita-domiciliare/',
+    icona: 'hand-heart',
+    testo: 'Per chi non può spostarsi: pazienti allettate o in gravidanza.',
+  },
+] as const;
+
+const passi = [
+  {
+    titolo: 'Il primo contatto',
+    testo:
+      'Scrive su WhatsApp o chiama. Concordate giorno e orario. Non serve spiegare il motivo della visita, se non lo desidera.',
+  },
+  {
+    titolo: 'La visita',
+    testo:
+      'Si parte da un colloquio, con calma. Poi la visita, sempre spiegata prima, ed eventuali esami come l’ecografia.',
+  },
+  {
+    titolo: 'Il percorso di cura',
+    testo:
+      'Il Dottore Le spiega cosa ha trovato e le possibilità, dalla più semplice. La decisione è sempre condivisa con Lei.',
+  },
+];
 ---
 
-<Base title="Prova layout" description="Prova della fase 1">
-  <Section title="Prova" as="h1">
-    <ContactButtons />
+<Base
+  title="Uroginecologo a Cagliari | Dott. Konstantinos Martsidis"
+  description="Incontinenza urinaria, prolasso e disturbi del pavimento pelvico: visite uroginecologiche, esame urodinamico, ginecologia, ostetricia ed ecografia 3D/4D a Cagliari."
+>
+  <!-- 1. Hero -->
+  <section class="hero" aria-labelledby="hero-titolo">
+    <div class="container hero__inner">
+      <div class="hero__testo">
+        <p class="eyebrow">Uroginecologia a Cagliari</p>
+        <h1 id="hero-titolo">
+          Incontinenza, prolasso, disturbi del pavimento pelvico: problemi comuni, che si possono curare.
+        </h1>
+        <p class="hero__sotto">
+          <strong>{sito.nome}</strong>, uroginecologo.<br />
+          {sito.ruoloOspedaliero}.
+        </p>
+        <ContactButtons />
+        <ul class="hero__rassicura">
+          <li><Icon name="shield-check" size={20} /> Riservatezza e ascolto, senza fretta</li>
+          <li><Icon name="map-pin" size={20} /> {sito.indirizzo.via}, Cagliari</li>
+          <li><Icon name="languages" size={20} /> Italiano, English, Ελληνικά</li>
+        </ul>
+      </div>
+      <div class="hero__visual">
+        <ThreeIsland scena="hero" soloDesktop class="hero__island">
+          <HeroBlob />
+        </ThreeIsland>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Sintomi -->
+  <Section
+    id="situazioni"
+    title="Si riconosce in una di queste situazioni?"
+    intro="Sono disturbi molto diffusi, di cui spesso non si parla. Scelga quello che Le somiglia di più: troverà spiegazioni semplici e le possibili soluzioni."
+    tone="alt"
+  >
+    <ul class="griglia griglia--sintomi" role="list">
+      {
+        condizioni.map((c) => (
+          <li>
+            <Card
+              title={c.data.home.frase}
+              href={`/uroginecologia/${c.id}/`}
+              icon={c.data.home.icona}
+              quote
+              linkLabel="Scopra di più"
+            >
+              <p>{c.data.home.testo}</p>
+            </Card>
+          </li>
+        ))
+      }
+      <li class="griglia__extra">
+        <p>Ha altri disturbi, ad esempio cistiti che tornano o sintomi della menopausa?</p>
+        <Button href="/uroginecologia/" variant="secondary" iconRight="arrow-right">Tutta l’uroginecologia</Button>
+      </li>
+    </ul>
+  </Section>
+
+  <!-- 3. Il pavimento pelvico, spiegato (modello 3D) -->
+  <Section
+    id="pavimento-pelvico"
+    eyebrow="Il pavimento pelvico, spiegato"
+    title="Un’amaca di muscoli che sostiene vescica, utero e intestino"
+    intro="Quando questo sostegno si indebolisce possono comparire perdite di urina o un senso di peso. Esplori il modello: può ruotarlo e vedere cosa cambia nelle diverse situazioni."
+  >
+    <ModelloPelvi />
+  </Section>
+
+  <!-- 4. Chi è il Dott. Martsidis -->
+  <Section id="chi-e" tone="plum">
+    <div class="chi">
+      <div class="chi__foto">
+        <Foto
+          nome="ritratto"
+          alt={`Ritratto del ${sito.nome}`}
+          descrizione="ritratto del Dott. Martsidis"
+          ratio="4 / 5"
+        />
+      </div>
+      <div class="chi__testo">
+        <p class="eyebrow">Chi è il Dott. Martsidis</p>
+        <h2>Uroginecologo, con l’ambulatorio del Policlinico come riferimento</h2>
+        <p class="lead">
+          Specialista in Ginecologia e Ostetricia, si occupa da sempre dei disturbi del pavimento pelvico: nella pratica
+          clinica, in sala operatoria e nella ricerca.
+        </p>
+        <ul class="punti" role="list">
+          <li>
+            <Icon name="hospital" size={24} />
+            <span
+              >Responsabile dell’Ambulatorio di Uroginecologia e del Centro per lo studio e la terapia delle alterazioni
+              del pavimento pelvico del <strong>Policlinico Universitario di Cagliari</strong>.</span
+            >
+          </li>
+          <li>
+            <Icon name="graduation-cap" size={24} />
+            <span
+              >Specializzazione in Ginecologia e Ostetricia <strong>con lode</strong> all’Università di Cagliari; corso
+              avanzato di Uroginecologia agli Ospedali Galliera di Genova.</span
+            >
+          </li>
+          <li>
+            <Icon name="award" size={24} />
+            <span
+              >Socio <abbr title="Associazione Italiana di Urologia Ginecologica e del Pavimento Pelvico">AIUG</abbr>, autore
+              di lavori scientifici sul pavimento pelvico pubblicati su riviste internazionali.</span
+            >
+          </li>
+          <li>
+            <Icon name="languages" size={24} />
+            <span>Riceve in italiano, inglese e greco.</span>
+          </li>
+        </ul>
+        <Button href="/chi-sono/" variant="secondary" iconRight="arrow-right">Il curriculum completo</Button>
+      </div>
+    </div>
+  </Section>
+
+  <!-- 5. Altri servizi -->
+  <Section
+    id="servizi"
+    title="Non solo uroginecologia"
+    intro="Nello studio di Via De Magistris il Dottore segue la salute della donna in tutte le fasi della vita."
+  >
+    <ul class="griglia griglia--servizi" role="list">
+      {
+        altriServizi.map((s) => (
+          <li>
+            <Card title={s.titolo} href={s.href} icon={s.icona} size="sm" linkLabel="Scopra di più">
+              <p>{s.testo}</p>
+            </Card>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="servizi__tutti">
+      <Button href="/servizi/" variant="ghost" iconRight="arrow-right">Tutti i servizi, compresi laser e consulenza nutrizionale</Button>
+    </p>
+  </Section>
+
+  <!-- 6. La prima visita -->
+  <Section id="prima-visita" tone="alt" title="La prima visita, passo per passo" intro="Sapere cosa aspettarsi aiuta a sentirsi più tranquille.">
+    <ol class="passi" role="list">
+      {
+        passi.map((p, i) => (
+          <li class="passo">
+            <span class="passo__n" aria-hidden="true">
+              {i + 1}
+            </span>
+            <h3>{p.titolo}</h3>
+            <p>{p.testo}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <Button href="/la-prima-visita/" variant="secondary" iconRight="arrow-right">Cosa portare e domande frequenti</Button>
+  </Section>
+
+  <!-- 7. Recensioni -->
+  <Section id="recensioni" title="Cosa dicono le pazienti">
+    <Recensioni />
+  </Section>
+
+  <!-- 8. Contatti -->
+  <Section id="contatti" tone="alt" title="Dove riceve" intro="Lo studio è in centro a Cagliari, al primo piano. Si riceve su appuntamento.">
+    <ContattiBlocco />
   </Section>
 </Base>
+
+<style>
+  /* — Hero — */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.5rem) clamp(3rem, 2rem + 4vw, 6rem);
+    background:
+      radial-gradient(60% 70% at 85% 30%, rgb(236 227 242 / 0.9), transparent 70%),
+      radial-gradient(40% 50% at 0% 100%, rgb(229 237 230 / 0.8), transparent 70%),
+      var(--color-bg);
+  }
+  .hero__inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+  .hero__testo {
+    position: relative;
+    z-index: 1;
+  }
+  .hero h1 {
+    max-width: 17em;
+    margin-bottom: var(--space-5);
+  }
+  .hero__sotto {
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    max-width: 34em;
+    margin-bottom: var(--space-6);
+  }
+  .hero__sotto strong {
+    color: var(--color-heading);
+  }
+  .hero__rassicura {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    list-style: none;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .hero__rassicura li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .hero__rassicura :global(svg) {
+    color: var(--color-accent-text);
+  }
+  .hero__visual {
+    position: absolute;
+    top: -2rem;
+    right: -28vw;
+    width: 78vw;
+    max-width: 30rem;
+    aspect-ratio: 1;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .hero__visual :global(.hero__island) {
+    width: 100%;
+    height: 100%;
+  }
+  @media (min-width: 48rem) {
+    .hero__visual {
+      right: -10rem;
+      opacity: 0.6;
+    }
+  }
+  @media (min-width: 64rem) {
+    .hero__inner {
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--space-7);
+    }
+    .hero__visual {
+      position: relative;
+      top: auto;
+      right: auto;
+      width: 100%;
+      max-width: none;
+      opacity: 1;
+    }
+  }
+
+  /* — Griglie di card — */
+  .griglia {
+    display: grid;
+    gap: var(--space-5);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .griglia--sintomi {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  }
+  .griglia--servizi {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  }
+  .griglia__extra {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1.5px dashed var(--c-plum-300);
+    border-radius: var(--radius-lg);
+  }
+  .griglia__extra p {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-heading);
+  }
+  .servizi__tutti {
+    margin: var(--space-5) 0 0;
+  }
+
+  /* — Chi è — */
+  .chi {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+  @media (min-width: 56rem) {
+    .chi {
+      grid-template-columns: 0.8fr 1.2fr;
+    }
+  }
+  .chi__foto {
+    max-width: 26rem;
+  }
+  .punti {
+    display: grid;
+    gap: var(--space-4);
+    list-style: none;
+    margin: var(--space-5) 0 var(--space-6);
+    padding: 0;
+  }
+  .punti li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+  }
+  .punti :global(svg) {
+    color: var(--color-primary);
+    margin-top: 0.15rem;
+  }
+  abbr {
+    text-decoration: none;
+  }
+
+  /* — Passi — */
+  .passi {
+    display: grid;
+    gap: var(--space-5);
+    list-style: none;
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    counter-reset: passi;
+  }
+  @media (min-width: 56rem) {
+    .passi {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .passo {
+    position: relative;
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-soft);
+  }
+  .passo__n {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: var(--space-4);
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 550;
+  }
+  .passo h3 {
+    margin-bottom: var(--space-2);
+  }
+  .passo p {
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+</style>
