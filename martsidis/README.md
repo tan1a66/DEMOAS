@@ -162,27 +162,13 @@ node scripts/genera-mappa.mjs 39.2229 9.1062   # mappa statica da OpenStreetMap 
 node scripts/genera-og.cjs                     # immagine social (richiede Playwright)
 ```
 
-## 5. Sostituire il modello 3D
+## 5. Il modello 3D e l'esperienza della Home
 
-Il sito funziona subito con un **modello procedurale** (`src/three/pelvi/procedurale.ts`). Per usare un modello fatto in Blender:
-
-1. **Nomi degli oggetti** (obbligatori): `bacino`, `pavimento`, `vescica`, `utero`, `retto`.
-2. **Cedimento dell'amaca** (consigliato): sul `pavimento` uno shape key / morph target chiamato `cedimento`, dove 0 è l'amaca normale e 1 l'amaca del prolasso. Senza, il pavimento si abbassa in blocco.
-3. **Etichette** (facoltative): Empty chiamati `etichetta_vescica`, `etichetta_utero`, `etichetta_retto`, `etichetta_pavimento`, `etichetta_bacino`, e per frecce e goccia `rif_pressione`, `rif_discesa`, `rif_uretra`, `rif_amaca`.
-4. **Scala e orientamento**: 1 unità ≈ 10 cm, modello alto circa 2 unità, pavimento pelvico intorno a y = 0.25. In Blender la pancia guarda verso la **vista frontale** (tasto 1 del tastierino), che nel glTF diventa +Z.
-5. **Esportare** come glTF binario (`.glb`) e **comprimere**:
-   ```bash
-   npx @gltf-transform/cli meshopt pelvi-originale.glb public/models/pelvi.glb   # Meshopt (consigliato)
-   ```
-   Con **Draco** invece (`npx @gltf-transform/cli draco …`) bisogna copiare anche i decoder:
-   ```bash
-   cp -r node_modules/three/examples/jsm/libs/draco/gltf public/draco
-   ```
-6. In **`src/config.ts`** impostare `modelloPelviGlb: '/models/pelvi.glb'`.
-
-Se il file non si carica o manca un oggetto, il sito torna da solo al modello procedurale (l'errore compare nella console). Stati, testi, comandi, etichette e versione SVG restano gli stessi: il resto del codice parla solo con l'interfaccia di `src/three/pelvi/modello.ts`.
-
-**Stile**: stilizzato e didattico, materiale "argilla" o semitrasparente nei colori del brand, mai realistico.
+- **Modello anatomico**: `public/models/pelvi.glb`, generato da codice con `npm run modello` (script in `scripts/modello/`: forme SDF → mesh → GLB quantizzato e compresso con Meshopt, ~300 kB). Nodi: `bacino`, `pavimento` (morph target `cedimento`, `iato`, `tensione`), `vescica` (con ureteri), `utero` (con tube e ovaie), `vagina`, `retto` (con sigma). Si può sostituire con un `.glb` fatto in Blender che usi gli stessi nomi.
+- **Esperienza in Home** (`src/components/Esperienza.astro` + `src/three/esperienza/scena.ts`): la palla iniziale diventa l'utero e, scorrendo, gli organi si compongono attorno; poi l'**anello delle problematiche** gira attorno al modello (scroll, clic sulle voci, deep link `/#prolasso`), il modello mostra lo stato e si può ruotare trascinando.
+- **Testi e stati** dell'anello: `src/three/pelvi/stati.ts` (`PROBLEMATICHE` e `PARAMETRI`).
+- Il 3D parte solo alla prima interazione o dopo qualche secondo; senza WebGL, con "riduci movimento" o con `?no3d` si vede la versione statica (elenco leggibile).
+- Controllo visivo del modello: `npx serve .` e aprire `/scripts/modello/visualizza.html?az=0.9&el=0.3`.
 
 ## 6. Pubblicare
 

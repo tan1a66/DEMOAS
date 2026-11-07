@@ -10,7 +10,7 @@ home:
   frase: 'Devo correre in bagno spesso'
   testo: 'Urgenza, bisogno frequente, risvegli notturni.'
   icona: activity
-statoModello: normale
+statoModello: urgenza
 testoModello: 'Nel modello 3D può vedere come sono disposti vescica, utero e retto sopra il pavimento pelvico.'
 faq:
   - domanda: 'Quante volte al giorno è normale andare in bagno?'

@@ -10,6 +10,8 @@ home:
   frase: 'Ho dolore durante i rapporti'
   testo: 'Dispareunia, secchezza, dolore pelvico.'
   icona: heart-handshake
+statoModello: tensione
+testoModello: 'Nel modello 3D può vedere un pavimento pelvico troppo contratto.'
 faq:
   - domanda: 'È normale avere dolore nei rapporti in menopausa?'
     risposta: 'È frequente, perché con il calo degli estrogeni la mucosa vaginale diventa più sottile e secca. Ma frequente non vuol dire inevitabile: esistono trattamenti efficaci e sicuri per molte donne.'

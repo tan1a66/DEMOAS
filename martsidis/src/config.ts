@@ -3,18 +3,10 @@
  */
 export const config = {
   /**
-   * Forma 3D dell'hero anche su smartphone e schermi touch.
-   * Di default è spenta: su mobile si vede la stessa forma in versione statica (SVG),
-   * così Three.js non pesa sul primo caricamento e Lighthouse mobile resta alto.
+   * Modello anatomico 3D (generato con `npm run modello`, vedi README → "Il modello 3D").
+   * Si può sostituire con un .glb fatto in Blender che rispetti gli stessi nomi dei nodi.
    */
-  hero3dSuMobile: false,
-
-  /**
-   * Modello 3D del pavimento pelvico da file .glb (vedi README → "Sostituire il modello 3D").
-   * null = si usa il modello procedurale costruito in codice (src/three/pelvi/procedurale.ts).
-   * Esempio: '/models/pelvi.glb' (file in public/models/pelvi.glb).
-   */
-  modelloPelviGlb: null as string | null,
+  modelloPelviGlb: '/models/pelvi.glb' as string | null,
 
   /**
    * Solo se il .glb è compresso con Draco: cartella in public/ con i decoder

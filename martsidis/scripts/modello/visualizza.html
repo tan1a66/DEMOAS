@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Controllo modello pelvi.glb</title>
+<style>html,body{margin:0;height:100%;background:#fbf8f3}canvas{display:block;width:100%;height:100%}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+<script type="module">
+// Strumento di controllo (non fa parte del sito): npx serve . → /scripts/modello/visualizza.html?az=1.2&el=0.3
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const q = new URLSearchParams(location.search);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.NeutralToneMapping;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#fbf8f3');
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 50);
+const az = +(q.get('az') ?? 0.9), el = +(q.get('el') ?? 0.3), d = +(q.get('d') ?? 5.6);
+camera.position.set(d * Math.sin(az) * Math.cos(el), 0.6 + d * Math.sin(el), d * Math.cos(az) * Math.cos(el));
+camera.lookAt(0, 0.6, 0);
+scene.add(new THREE.HemisphereLight('#fff8f0', '#e6dcef', 1.2));
+const sole = new THREE.DirectionalLight('#ffffff', 2.2); sole.position.set(2, 4, 3); scene.add(sole);
+const colori = { bacino: '#ebe0cf', pavimento: '#8559a0', vescica: '#9cb9a6', utero: '#c7aedb', vagina: '#b79acb', retto: '#d9b590' };
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+loader.load('/public/models/pelvi.glb', (g) => {
+  g.scene.traverse((o) => {
+    if (!o.isMesh) return;
+    const nome = o.name.replace('_mesh', '');
+    o.material = new THREE.MeshStandardMaterial({ color: colori[nome] ?? '#ccc', roughness: 0.55, transparent: nome === 'bacino', opacity: nome === 'bacino' ? +(q.get('op') ?? 0.55) : 1, depthWrite: nome !== 'bacino', side: THREE.DoubleSide });
+    if (o.morphTargetInfluences && q.get('morph')) o.morphTargetInfluences[o.morphTargetDictionary[q.get('morph')]] = 1;
+  });
+  scene.add(g.scene);
+  renderer.render(scene, camera);
+  document.title = 'pronto';
+});
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@ home:
   frase: 'Dopo il parto non è più come prima'
   testo: 'Perineo e pavimento pelvico dopo la gravidanza.'
   icona: baby
-statoModello: riabilitazione
+statoModello: postparto
 testoModello: 'Nel modello 3D può vedere come la riabilitazione aiuta il pavimento pelvico a tornare a sostenere gli organi.'
 faq:
   - domanda: 'Quando posso fare il controllo dopo il parto?'

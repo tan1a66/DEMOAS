@@ -7,7 +7,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-const statoModello = z.enum(['normale', 'incontinenza', 'prolasso', 'riabilitazione']);
+const statoModello = z.enum(['normale', 'incontinenza', 'prolasso', 'urgenza', 'postparto', 'tensione', 'cistiti', 'menopausa', 'riabilitazione']);
 const faq = z.array(z.object({ domanda: z.string(), risposta: z.string() }));
 const icona = z.enum([
   'activity',
