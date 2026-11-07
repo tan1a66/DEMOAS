@@ -1,0 +1,29 @@
+---
+import Icon from './Icon.astro';
+import { useTranslations } from '@/i18n';
+const t = useTranslations();
+---
+
+<p class="nota-divulgativa">
+  <Icon name="info" size={20} />
+  <span>{t('note.divulgativa')}</span>
+</p>
+
+<style>
+  .nota-divulgativa {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    max-width: var(--measure);
+    margin: var(--space-6) 0 0;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius);
+    background: var(--color-bg-alt);
+    color: var(--color-text-muted);
+    font-size: var(--fs-small);
+  }
+  .nota-divulgativa :global(svg) {
+    margin-top: 0.2em;
+    color: var(--color-accent-text);
+  }
+</style>

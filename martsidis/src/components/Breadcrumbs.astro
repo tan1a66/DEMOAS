@@ -1,0 +1,58 @@
+---
+/** Briciole di pane visibili. Il JSON-LD BreadcrumbList viene generato dal layout con gli stessi dati. */
+import { useTranslations } from '@/i18n';
+
+export type Briciola = { label: string; href: string };
+
+interface Props {
+  items: Briciola[];
+}
+const { items } = Astro.props;
+const t = useTranslations();
+---
+
+<nav class="breadcrumbs" aria-label={t('a11y.breadcrumb')}>
+  <ol>
+    {
+      items.map((b, i) => (
+        <li>
+          {i < items.length - 1 ? <a href={b.href}>{b.label}</a> : <span aria-current="page">{b.label}</span>}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .breadcrumbs li {
+    display: inline-flex;
+    align-items: center;
+  }
+  .breadcrumbs li + li::before {
+    content: '/';
+    margin-inline: 0.5rem;
+    color: var(--c-sand-300);
+  }
+  .breadcrumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    color: var(--color-text-muted);
+  }
+  .breadcrumbs a:hover {
+    color: var(--color-link);
+  }
+  .breadcrumbs [aria-current] {
+    color: var(--color-text);
+  }
+</style>

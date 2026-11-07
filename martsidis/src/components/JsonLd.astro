@@ -1,0 +1,9 @@
+---
+/** Inserisce dati strutturati schema.org. `<` viene escapato per sicurezza. */
+interface Props {
+  data: unknown;
+}
+const json = JSON.stringify(Astro.props.data).replace(/</g, '\\u003c');
+---
+
+<script type="application/ld+json" is:inline set:html={json} />

@@ -1,0 +1,96 @@
+---
+/**
+ * Sezione di pagina con sfondo, spaziatura verticale e contenitore.
+ * Se si passa `title`, crea l'h2 e collega la sezione con aria-labelledby.
+ */
+interface Props {
+  id?: string;
+  title?: string;
+  eyebrow?: string;
+  intro?: string;
+  tone?: 'default' | 'alt' | 'plum' | 'dark';
+  width?: 'default' | 'narrow';
+  /** Allineamento dell'intestazione */
+  align?: 'start' | 'center';
+  class?: string;
+  /** Livello del titolo (default h2) */
+  as?: 'h1' | 'h2';
+}
+
+const {
+  id,
+  title,
+  eyebrow,
+  intro,
+  tone = 'default',
+  width = 'default',
+  align = 'start',
+  class: className,
+  as: Tag = 'h2',
+} = Astro.props;
+const headingId = title ? `${id ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-titolo` : undefined;
+---
+
+<section
+  id={id}
+  class:list={['section', `section--${tone}`, className]}
+  aria-labelledby={headingId}
+>
+  <div class:list={['container', { 'container--narrow': width === 'narrow' }]}>
+    {
+      (title || eyebrow || intro) && (
+        <header class:list={['section__head', `section__head--${align}`]}>
+          {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+          {title && <Tag id={headingId}>{title}</Tag>}
+          {intro && <p class="lead section__intro">{intro}</p>}
+        </header>
+      )
+    }
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--section-y);
+    position: relative;
+  }
+  .section--alt {
+    background: var(--color-bg-alt);
+  }
+  .section--plum {
+    background: var(--c-plum-50);
+  }
+  .section--dark {
+    background: var(--color-dark-bg);
+    color: var(--color-on-dark);
+  }
+  .section--dark :global(h2),
+  .section--dark :global(h3) {
+    color: var(--c-white);
+  }
+  .section--dark :global(.eyebrow) {
+    color: var(--c-sage-200);
+  }
+  .section--dark :global(.lead) {
+    color: var(--color-on-dark);
+  }
+  .section--dark :global(a:not(.btn)) {
+    color: var(--c-white);
+  }
+
+  .section__head {
+    margin-bottom: var(--space-7);
+    max-width: 46rem;
+  }
+  .section__head--center {
+    margin-inline: auto;
+    text-align: center;
+  }
+  .section__head--center .section__intro {
+    margin-inline: auto;
+  }
+  .section__intro {
+    margin-bottom: 0;
+  }
+</style>

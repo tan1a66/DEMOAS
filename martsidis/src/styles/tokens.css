@@ -1,0 +1,107 @@
+/*
+ * DESIGN TOKEN — unica fonte per colori, tipografia, spaziature.
+ * Anche il 3D legge questi colori (src/three/shared/palette.ts), quindi cambiandoli qui
+ * cambia tutto il sito. Tutte le combinazioni testo/sfondo usate rispettano WCAG AA (≥ 4.5:1).
+ */
+:root {
+  /* — Palette di base — */
+  --c-ivory: #fbf8f3;      /* sfondo pagina */
+  --c-white: #ffffff;
+  --c-sand-50: #f5efe6;    /* sezioni alternate */
+  --c-sand-100: #eee5d8;
+  --c-sand-200: #e2d6c5;
+  --c-sand-300: #d9ccba;   /* bordi (solo decorativi) */
+
+  --c-ink: #2a2430;        /* testo: 14.2:1 su avorio */
+  --c-muted: #62594f;      /* testo secondario: 6.5:1 su avorio */
+
+  /* Viola del brand, più profondo e raffinato del vecchio #8559A0 */
+  --c-plum-900: #2d1e3c;
+  --c-plum-800: #3e2955;   /* titoli: 12:1 */
+  --c-plum-700: #553872;   /* pulsanti primari: bianco 9.6:1 */
+  --c-plum-600: #6a478e;   /* link: 6.8:1 su avorio */
+  --c-plum-500: #8559a0;   /* viola storico, solo decorativo / testi grandi */
+  --c-plum-300: #bba3cf;
+  --c-plum-100: #ece3f2;
+  --c-plum-50: #f6f1f9;
+
+  /* Un solo accento: salvia */
+  --c-sage-700: #486654;   /* testo accento: 6:1 su avorio */
+  --c-sage-500: #7e9c88;   /* solo decorativo */
+  --c-sage-200: #cbdbcf;
+  --c-sage-100: #e5ede6;
+
+  /* — Ruoli semantici (usare questi nei componenti) — */
+  --color-bg: var(--c-ivory);
+  --color-bg-alt: var(--c-sand-50);
+  --color-surface: var(--c-white);
+  --color-text: var(--c-ink);
+  --color-text-muted: var(--c-muted);
+  --color-heading: var(--c-plum-800);
+  --color-link: var(--c-plum-600);
+  --color-link-hover: var(--c-plum-800);
+  --color-primary: var(--c-plum-700);
+  --color-primary-hover: var(--c-plum-800);
+  --color-on-primary: var(--c-white);
+  --color-accent: var(--c-sage-500);
+  --color-accent-text: var(--c-sage-700);
+  --color-accent-bg: var(--c-sage-100);
+  --color-border: var(--c-sand-300);
+  --color-border-soft: var(--c-sand-200);
+  --color-focus: var(--c-plum-600);
+  --color-dark-bg: var(--c-plum-900);
+  --color-on-dark: #f3edf7;
+  --color-on-dark-muted: #cfc3da; /* 9.3:1 su plum-900 */
+
+  /* — Tipografia — */
+  --font-body: var(--font-figtree), system-ui, sans-serif;
+  --font-heading: var(--font-fraunces), Georgia, serif;
+
+  /* Corpo testo minimo 18px (pubblico anche over 50) */
+  --fs-body: clamp(1.125rem, 1.08rem + 0.2vw, 1.1875rem);
+  --fs-small: 1rem;
+  --fs-lead: clamp(1.2rem, 1.1rem + 0.45vw, 1.375rem);
+  --fs-h1: clamp(2.125rem, 1.55rem + 2.5vw, 3.5rem);
+  --fs-h2: clamp(1.75rem, 1.4rem + 1.5vw, 2.6rem);
+  --fs-h3: clamp(1.3rem, 1.2rem + 0.5vw, 1.5rem);
+  --fs-h4: 1.2rem;
+  --lh-body: 1.65;
+  --lh-heading: 1.15;
+  --measure: 66ch;
+
+  /* — Spaziature (scala 4/8) — */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --section-y: clamp(3.5rem, 2.5rem + 4vw, 6.5rem);
+  --gutter: clamp(1rem, 0.6rem + 2vw, 2rem);
+  --container: 74rem;
+  --container-narrow: 46rem;
+
+  /* — Forme, ombre, movimento — */
+  --radius-sm: 0.5rem;
+  --radius: 1rem;
+  --radius-lg: 1.75rem;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgb(45 30 60 / 0.06), 0 2px 8px rgb(45 30 60 / 0.05);
+  --shadow: 0 2px 6px rgb(45 30 60 / 0.06), 0 12px 32px rgb(45 30 60 / 0.08);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 220ms;
+
+  /* Area minima cliccabile */
+  --tap: 44px;
+  --header-h: 4.5rem;
+  --contactbar-h: 4.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}

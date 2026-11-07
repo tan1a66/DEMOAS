@@ -1,0 +1,165 @@
+---
+import Icon from './Icon.astro';
+import type { NomeIcona } from './icone';
+
+/**
+ * Card con titolo, testo e link. Se c'è `href`, tutta la card è cliccabile
+ * (il link è sul titolo e si estende con ::after: un solo link per card, niente doppioni per gli screen reader).
+ */
+interface Props {
+  title: string;
+  href?: string;
+  icon?: NomeIcona;
+  /** Livello del titolo */
+  as?: 'h2' | 'h3' | 'h4';
+  linkLabel?: string;
+  size?: 'md' | 'sm';
+  tone?: 'surface' | 'plum' | 'sage';
+  quote?: boolean;
+}
+
+const { title, href, icon, as: Tag = 'h3', linkLabel, size = 'md', tone = 'surface', quote = false } = Astro.props;
+---
+
+<article class:list={['card', `card--${size}`, `card--${tone}`, { 'card--link': href, 'card--quote': quote }]}>
+  {
+    icon && (
+      <span class="card__icon">
+        <Icon name={icon} size={size === 'sm' ? 24 : 28} />
+      </span>
+    )
+  }
+  <Tag class="card__title">
+    {
+      href ? (
+        <a href={href} class="card__link">
+          {quote ? <>«{title}»</> : title}
+        </a>
+      ) : quote ? (
+        <>«{title}»</>
+      ) : (
+        title
+      )
+    }
+  </Tag>
+  <div class="card__body"><slot /></div>
+  {
+    href && linkLabel && (
+      <span class="card__more" aria-hidden="true">
+        {linkLabel}
+        <Icon name="arrow-right" size={18} />
+      </span>
+    )
+  }
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition:
+      box-shadow var(--dur) var(--ease),
+      transform var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+  .card--sm {
+    padding: var(--space-5);
+    border-radius: var(--radius);
+  }
+  .card--plum {
+    background: var(--c-plum-50);
+    border-color: var(--c-plum-100);
+  }
+  .card--sage {
+    background: var(--c-sage-100);
+    border-color: var(--c-sage-200);
+  }
+
+  .card__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--c-plum-50);
+    color: var(--color-primary);
+  }
+  .card--plum .card__icon {
+    background: var(--c-white);
+  }
+
+  .card__title {
+    margin: 0;
+    font-size: var(--fs-h3);
+  }
+  .card--sm .card__title {
+    font-size: 1.25rem;
+  }
+  .card--quote .card__title {
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  .card__link {
+    color: var(--color-heading);
+    text-decoration: none;
+  }
+  /* Tutta la card cliccabile */
+  .card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .card__link:focus-visible {
+    outline: none;
+  }
+  .card--link:has(.card__link:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .card__body {
+    color: var(--color-text-muted);
+    flex: 1;
+  }
+  .card__body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .card__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-weight: 650;
+    color: var(--color-link);
+    min-height: var(--tap);
+  }
+
+  .card--link:hover {
+    border-color: var(--c-plum-300);
+    box-shadow: var(--shadow);
+  }
+  .card--link:hover .card__more {
+    color: var(--color-link-hover);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card--link:hover {
+      transform: translateY(-3px);
+    }
+    .card--link:hover .card__more :global(svg) {
+      transform: translateX(3px);
+    }
+    .card__more :global(svg) {
+      transition: transform var(--dur) var(--ease);
+    }
+  }
+</style>

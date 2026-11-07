@@ -1,0 +1,223 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import Orari from './Orari.astro';
+import { sito } from '@/data/sito';
+import { whatsappHref, telefonoHref, isSegnaposto } from '@/lib/contatti';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+const anno = new Date().getFullYear();
+
+const linkServizi = [
+  { label: 'Uroginecologia', href: '/uroginecologia/' },
+  { label: 'Incontinenza urinaria', href: '/uroginecologia/incontinenza-urinaria/' },
+  { label: 'Prolasso genitale', href: '/uroginecologia/prolasso-genitale/' },
+  { label: 'Esame urodinamico', href: '/esame-urodinamico/' },
+  { label: 'Ginecologia', href: '/ginecologia/' },
+  { label: 'Ostetricia', href: '/ostetricia/' },
+  { label: 'Ecografia 3D/4D', href: '/ecografia-3d-4d/' },
+  { label: 'Laser', href: '/laser/' },
+];
+const linkStudio = [
+  { label: 'Prenota una visita', href: '/prenota-una-visita/' },
+  { label: 'La prima visita', href: '/la-prima-visita/' },
+  { label: 'Lo Studio', href: '/lo-studio/' },
+  { label: 'Curriculum Vitae', href: '/chi-sono/' },
+  { label: 'Contatti', href: '/contatti/' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <Logo tone="light" />
+        <p class="site-footer__titles">
+          {sito.titolo}.<br />
+          {sito.ruoloOspedaliero}.
+        </p>
+        <p class="site-footer__legal">
+          {t('footer.ordine', { ordine: sito.ordine.nome, numero: sito.ordine.numero })}<br />
+          {
+            isSegnaposto(sito.piva) ? (
+              <>
+                P.IVA <span class="segnaposto">{sito.piva}</span>
+              </>
+            ) : (
+              t('footer.piva', { piva: sito.piva })
+            )
+          }
+        </p>
+      </div>
+
+      <div>
+        <h2 class="site-footer__h">Lo studio</h2>
+        <address class="site-footer__address">
+          <Icon name="map-pin" size={20} />
+          <span>
+            {sito.indirizzo.via}, {sito.indirizzo.dettaglio}<br />
+            {`${sito.indirizzo.cap} ${sito.indirizzo.citta}`}
+          </span>
+        </address>
+        <div class="site-footer__hours">
+          <Icon name="clock" size={20} />
+          <Orari compatto tone="dark" />
+        </div>
+        <ul class="site-footer__contacts">
+          <li>
+            <a href={telefonoHref}><Icon name="phone" size={20} />{sito.telefono.visualizzato}</a>
+          </li>
+          <li>
+            <a href={whatsappHref} target="_blank" rel="noopener"
+              ><Icon name="whatsapp" size={20} />WhatsApp<span class="visually-hidden">{t('a11y.newwindow')}</span></a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <nav aria-labelledby="footer-servizi">
+        <h2 class="site-footer__h" id="footer-servizi">Servizi</h2>
+        <ul class="site-footer__links">
+          {
+            linkServizi.map((l) => (
+              <li>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav aria-labelledby="footer-studio">
+        <h2 class="site-footer__h" id="footer-studio">Informazioni</h2>
+        <ul class="site-footer__links">
+          {
+            linkStudio.map((l) => (
+              <li>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>© {anno} {sito.nome}</p>
+      <ul class="site-footer__bottom-links">
+        <li><a href="/privacy/">{t('footer.privacy')}</a></li>
+        <li><a href="/cookie/">{t('footer.cookie')}</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-dark-bg);
+    color: var(--color-on-dark-muted);
+    padding-block: var(--space-8) var(--space-6);
+    font-size: 1.0625rem;
+  }
+  .site-footer a {
+    color: var(--color-on-dark);
+    text-decoration: none;
+  }
+  .site-footer a:hover {
+    color: var(--c-white);
+    text-decoration: underline;
+  }
+  .site-footer__grid {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+  }
+  @media (min-width: 48rem) {
+    .site-footer__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (min-width: 72rem) {
+    .site-footer__grid {
+      grid-template-columns: 1.5fr 1.1fr 0.8fr 0.8fr;
+    }
+  }
+  .site-footer__titles {
+    margin-top: var(--space-4);
+    color: var(--color-on-dark);
+  }
+  .site-footer__legal {
+    font-size: var(--fs-small);
+  }
+  .site-footer__legal .segnaposto {
+    background: transparent;
+    color: var(--c-white);
+    border-color: var(--c-plum-300);
+  }
+  .site-footer__h {
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-sage-200);
+    margin-bottom: var(--space-4);
+  }
+  .site-footer__address,
+  .site-footer__hours {
+    display: flex;
+    gap: 0.6rem;
+    font-style: normal;
+    margin-bottom: var(--space-4);
+    color: var(--color-on-dark);
+  }
+  .site-footer__address :global(svg),
+  .site-footer__hours :global(svg) {
+    margin-top: 0.25em;
+    color: var(--c-sage-200);
+  }
+  .site-footer__contacts,
+  .site-footer__links,
+  .site-footer__bottom-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-footer__contacts a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: var(--tap);
+  }
+  .site-footer__contacts :global(svg) {
+    color: var(--c-sage-200);
+  }
+  .site-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+  .site-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3) var(--space-6);
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid rgb(255 255 255 / 0.15);
+    font-size: var(--fs-small);
+  }
+  .site-footer__bottom p {
+    margin: 0;
+  }
+  .site-footer__bottom-links {
+    display: flex;
+    gap: var(--space-5);
+  }
+  .site-footer__bottom-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+  }
+</style>

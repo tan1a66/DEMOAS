@@ -1,0 +1,18 @@
+---
+/**
+ * Statistiche cookieless (Plausible o Umami). Spente di default.
+ * Si attivano con le variabili d'ambiente (vedi .env.example e README → "Statistiche"):
+ *   PUBLIC_ANALYTICS_PROVIDER = plausible | umami
+ *   PUBLIC_ANALYTICS_SCRIPT_URL = URL dello script (meglio se self-hosted o in proxy sul dominio del sito)
+ *   PUBLIC_ANALYTICS_SITE_ID = dominio (Plausible) oppure website-id (Umami)
+ */
+import { PUBLIC_ANALYTICS_PROVIDER, PUBLIC_ANALYTICS_SCRIPT_URL, PUBLIC_ANALYTICS_SITE_ID } from 'astro:env/client';
+
+const provider = PUBLIC_ANALYTICS_PROVIDER;
+const src = PUBLIC_ANALYTICS_SCRIPT_URL;
+const id = PUBLIC_ANALYTICS_SITE_ID;
+const attivo = provider !== 'none' && !!src && !!id && import.meta.env.PROD;
+---
+
+{attivo && provider === 'plausible' && <script is:inline defer data-domain={id} src={src} />}
+{attivo && provider === 'umami' && <script is:inline defer data-website-id={id} src={src} />}

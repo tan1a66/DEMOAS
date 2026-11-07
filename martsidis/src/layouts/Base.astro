@@ -1,0 +1,141 @@
+---
+/**
+ * Layout di base: <head> con SEO (title, description, canonical, Open Graph, JSON-LD),
+ * link "Salta al contenuto", header, footer e barra contatti mobile.
+ */
+import '@/styles/tokens.css';
+import '@/styles/base.css';
+import { Font } from 'astro:assets';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import StickyContactBar from '@/components/StickyContactBar.astro';
+import JsonLd from '@/components/JsonLd.astro';
+import Breadcrumbs, { type Briciola } from '@/components/Breadcrumbs.astro';
+import Analytics from '@/components/Analytics.astro';
+import type { VoceFaq } from '@/components/FAQ.astro';
+import { schemaBreadcrumb, schemaFaq, schemaStudio } from '@/lib/seo';
+import { sito } from '@/data/sito';
+import { useTranslations, linguaDaUrl } from '@/i18n';
+
+interface Props {
+  /** <title> completo e unico per ogni pagina (max ~60 caratteri) */
+  title: string;
+  /** Meta description unica (max ~155 caratteri) */
+  description: string;
+  /** Immagine Open Graph (percorso in public/) */
+  ogImage?: string;
+  ogType?: 'website' | 'article';
+  /** Briciole di pane: se presenti vengono mostrate e aggiunte come BreadcrumbList */
+  breadcrumbs?: Briciola[];
+  /** FAQ della pagina: aggiunge FAQPage in JSON-LD */
+  faq?: VoceFaq[];
+  /** Dati strutturati aggiuntivi */
+  jsonLd?: unknown[];
+  noindex?: boolean;
+  /** Mostra lo schema studio+medico (default su tutte le pagine) */
+  schemaPrincipale?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage = '/og/default.jpg',
+  ogType = 'website',
+  breadcrumbs,
+  faq,
+  jsonLd = [],
+  noindex = false,
+  schemaPrincipale = true,
+} = Astro.props;
+
+const lingua = linguaDaUrl(Astro.url);
+const t = useTranslations(lingua);
+const site = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, site).href;
+const ogImageUrl = new URL(ogImage, site).href;
+
+const schemi: unknown[] = [];
+if (schemaPrincipale) schemi.push(schemaStudio(site));
+if (breadcrumbs?.length) schemi.push(schemaBreadcrumb(breadcrumbs, site));
+if (faq?.length) schemi.push(schemaFaq(faq));
+schemi.push(...jsonLd);
+---
+
+<!doctype html>
+<html lang={t('meta.lang')}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <Font cssVariable="--font-figtree" preload />
+    <Font cssVariable="--font-fraunces" preload />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#fbf8f3" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:locale" content={t('meta.locale')} />
+    <meta property="og:site_name" content={sito.nome} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${sito.nome} — ${sito.sottotitoloLogo}, Cagliari`} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {schemi.map((s) => <JsonLd data={s} />)}
+    <slot name="head" />
+    <Analytics />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenuto">{t('a11y.skip')}</a>
+    <Header />
+    <main id="contenuto" tabindex="-1">
+      {
+        breadcrumbs && breadcrumbs.length > 1 && (
+          <div class="container breadcrumbs-wrap">
+            <Breadcrumbs items={breadcrumbs} />
+          </div>
+        )
+      }
+      <slot />
+    </main>
+    <Footer />
+    <StickyContactBar />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-200%);
+  }
+  .skip-link:focus {
+    transform: none;
+    color: var(--color-on-primary);
+  }
+  main:focus {
+    outline: none;
+  }
+  .breadcrumbs-wrap {
+    padding-top: var(--space-4);
+  }
+</style>

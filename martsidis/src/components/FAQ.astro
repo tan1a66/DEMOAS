@@ -1,0 +1,93 @@
+---
+/**
+ * Domande frequenti con <details>/<summary>: accessibile da tastiera e screen reader
+ * senza JavaScript. Il JSON-LD FAQPage viene aggiunto dal layout con gli stessi dati.
+ */
+import Icon from './Icon.astro';
+import { useTranslations } from '@/i18n';
+
+export type VoceFaq = { domanda: string; risposta: string };
+
+interface Props {
+  items: VoceFaq[];
+  title?: string;
+  /** id del titolo, per aria-labelledby */
+  id?: string;
+  headingLevel?: 'h2' | 'h3';
+}
+
+const t = useTranslations();
+const { items, title = t('faq.title'), id = 'domande-frequenti', headingLevel: H = 'h2' } = Astro.props;
+// Le risposte possono contenere paragrafi separati da una riga vuota.
+const paragrafi = (testo: string) => testo.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+---
+
+{
+  items.length > 0 && (
+    <div class="faq" aria-labelledby={`${id}-titolo`}>
+      <H id={`${id}-titolo`} class="faq__title">
+        {title}
+      </H>
+      <div class="faq__list">
+        {items.map((item) => (
+          <details class="faq__item">
+            <summary class="faq__q">
+              <span>{item.domanda}</span>
+              <Icon name="chevron-down" size={22} class="faq__chev" />
+            </summary>
+            <div class="faq__a">
+              {paragrafi(item.risposta).map((p) => (
+                <p>{p}</p>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .faq__title {
+    margin-bottom: var(--space-5);
+  }
+  .faq__list {
+    border-top: 1px solid var(--color-border);
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .faq__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 3.5rem;
+    padding: var(--space-4) var(--space-2);
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--color-heading);
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+  .faq__q:hover {
+    color: var(--color-link);
+  }
+  .faq__q :global(.faq__chev) {
+    color: var(--color-link);
+    transition: transform var(--dur) var(--ease);
+  }
+  .faq__item[open] :global(.faq__chev) {
+    transform: rotate(180deg);
+  }
+  .faq__a {
+    padding: 0 var(--space-2) var(--space-5);
+    max-width: var(--measure);
+  }
+  .faq__a p:last-child {
+    margin-bottom: 0;
+  }
+</style>

@@ -1,0 +1,63 @@
+---
+/** Orari di ricevimento da src/data/sito.ts. Se non sono ancora stati inseriti mostra il segnaposto. */
+import { sito } from '@/data/sito';
+import { useTranslations } from '@/i18n';
+
+interface Props {
+  compatto?: boolean;
+  tone?: 'default' | 'dark';
+}
+const { compatto = false, tone = 'default' } = Astro.props;
+const t = useTranslations();
+---
+
+<div class:list={['orari', `orari--${tone}`, { 'orari--compatto': compatto }]}>
+  {sito.suAppuntamento && <p class="orari__app">{t('footer.appuntamento')}</p>}
+  {
+    sito.orari.length > 0 ? (
+      <dl class="orari__lista">
+        {sito.orari.map((f) => (
+          <div class="orari__riga">
+            <dt>{f.giorni}</dt>
+            <dd>{f.orario}</dd>
+          </div>
+        ))}
+      </dl>
+    ) : (
+      <p class="orari__segnaposto">
+        <span class="segnaposto">{sito.orariSegnaposto}</span>
+      </p>
+    )
+  }
+</div>
+
+<style>
+  .orari p {
+    margin: 0;
+  }
+  .orari__app {
+    font-weight: 600;
+  }
+  .orari__segnaposto {
+    margin-top: 0.35rem !important;
+  }
+  .orari__lista {
+    margin: 0.35rem 0 0;
+  }
+  .orari__riga {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+  }
+  .orari__riga dt {
+    font-weight: 600;
+  }
+  .orari__riga dd {
+    margin: 0;
+  }
+  .orari--dark .segnaposto {
+    background: transparent;
+    color: var(--c-white);
+    border-color: var(--c-plum-300);
+  }
+</style>

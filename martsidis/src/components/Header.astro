@@ -1,0 +1,361 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { getMenu, useTranslations, linguaDaUrl } from '@/i18n';
+
+const lingua = linguaDaUrl(Astro.url);
+const t = useTranslations(lingua);
+const menu = getMenu(lingua);
+const path = Astro.url.pathname;
+
+const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href));
+const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(f.href));
+---
+
+<header class="site-header no-print" data-header>
+  <div class="container site-header__inner">
+    <Logo />
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="menu-principale"
+      data-menu-toggle
+    >
+      <span class="menu-toggle__icon menu-toggle__icon--open"><Icon name="menu" size={26} /></span>
+      <span class="menu-toggle__icon menu-toggle__icon--close"><Icon name="x" size={26} /></span>
+      <span class="menu-toggle__label" data-label-open={t('a11y.menu.open')} data-label-close={t('a11y.menu.close')}
+        >Menu</span
+      >
+    </button>
+
+    <nav class="nav" id="menu-principale" aria-label={t('a11y.menu.label')} data-nav>
+      <ul class="nav__list">
+        {
+          menu.map((voce, i) =>
+            voce.figli ? (
+              <li class:list={['nav__item', 'nav__item--group', { 'is-active': isGroupActive(voce.figli) }]}>
+                <button
+                  type="button"
+                  class="nav__link nav__trigger"
+                  aria-expanded="false"
+                  aria-controls={`sottomenu-${i}`}
+                  data-submenu-toggle
+                >
+                  {voce.label}
+                  <Icon name="chevron-down" size={18} class="nav__chev" />
+                </button>
+                <ul class="nav__sub" id={`sottomenu-${i}`} hidden data-submenu>
+                  {voce.figli.map((f) => (
+                    <li>
+                      <a
+                        href={f.href}
+                        class:list={['nav__sublink', { 'is-active': path === f.href }]}
+                        aria-current={path === f.href ? 'page' : undefined}
+                      >
+                        <span class="nav__sublabel">{f.label}</span>
+                        {f.descrizione && <span class="nav__subdesc">{f.descrizione}</span>}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ) : (
+              <li class:list={['nav__item', { 'is-active': isActive(voce.href) }]}>
+                <a href={voce.href} class="nav__link" aria-current={path === voce.href ? 'page' : undefined}>
+                  {voce.label}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Menu mobile + sottomenu "Servizi" (pattern "disclosure navigation", WAI-ARIA).
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = header?.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const nav = header?.querySelector<HTMLElement>('[data-nav]');
+  const label = toggle?.querySelector<HTMLElement>('.menu-toggle__label');
+
+  if (header && toggle && nav) {
+    const desktop = window.matchMedia('(min-width: 75rem)');
+
+    const setMenu = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      header.classList.toggle('is-open', open);
+      document.documentElement.classList.toggle('menu-aperto', open && !desktop.matches);
+      if (label) label.textContent = open ? 'Chiudi' : 'Menu';
+      toggle.setAttribute('aria-label', (open ? label?.dataset.labelClose : label?.dataset.labelOpen) ?? 'Menu');
+    };
+    setMenu(false);
+
+    toggle.addEventListener('click', () => setMenu(toggle.getAttribute('aria-expanded') !== 'true'));
+
+    const subToggles = header.querySelectorAll<HTMLButtonElement>('[data-submenu-toggle]');
+    const setSub = (btn: HTMLButtonElement, open: boolean) => {
+      btn.setAttribute('aria-expanded', String(open));
+      const sub = document.getElementById(btn.getAttribute('aria-controls') ?? '');
+      if (sub) sub.hidden = !open;
+    };
+    subToggles.forEach((btn) => {
+      btn.addEventListener('click', () => setSub(btn, btn.getAttribute('aria-expanded') !== 'true'));
+    });
+
+    // Esc chiude sottomenu e menu, riportando il focus al pulsante che li ha aperti.
+    header.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const openSub = [...subToggles].find((b) => b.getAttribute('aria-expanded') === 'true');
+      if (openSub) {
+        setSub(openSub, false);
+        openSub.focus();
+      } else if (toggle.getAttribute('aria-expanded') === 'true') {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+
+    // Su desktop il sottomenu si chiude cliccando fuori o spostando il focus altrove.
+    document.addEventListener('click', (e) => {
+      if (!desktop.matches) return;
+      subToggles.forEach((btn) => {
+        if (!btn.parentElement?.contains(e.target as Node)) setSub(btn, false);
+      });
+    });
+    header.addEventListener('focusout', (e) => {
+      if (!desktop.matches) return;
+      subToggles.forEach((btn) => {
+        const li = btn.parentElement;
+        if (li && !li.contains(e.relatedTarget as Node | null)) setSub(btn, false);
+      });
+    });
+
+    desktop.addEventListener('change', () => {
+      setMenu(false);
+      subToggles.forEach((b) => setSub(b, false));
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(251 248 243 / 0.92);
+    backdrop-filter: saturate(1.2) blur(12px);
+    -webkit-backdrop-filter: saturate(1.2) blur(12px);
+    border-bottom: 1px solid rgb(217 204 186 / 0.6);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: var(--header-h);
+  }
+
+  /* — Pulsante menu (mobile/tablet) — */
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: var(--tap);
+    min-width: var(--tap);
+    padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+    border: 1.5px solid var(--c-plum-300);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-weight: 650;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .menu-toggle__icon {
+    display: inline-flex;
+  }
+  @media (max-width: 26rem) {
+    .menu-toggle {
+      padding: 0.4rem;
+      justify-content: center;
+    }
+    .menu-toggle__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+  }
+  .menu-toggle__icon--close,
+  .is-open .menu-toggle__icon--open {
+    display: none;
+  }
+  .is-open .menu-toggle__icon--close {
+    display: inline-flex;
+  }
+
+  /* — Navigazione: pannello su mobile — */
+  .nav {
+    display: none;
+  }
+  .is-open .nav {
+    display: block;
+    position: absolute;
+    inset: 100% 0 auto 0;
+    height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+    padding: var(--space-4) var(--gutter) calc(var(--contactbar-h) + var(--space-6));
+  }
+  .nav__list,
+  .nav__sub {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav__item {
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+  .nav__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 0.5rem 0.25rem;
+    border: 0;
+    background: none;
+    font-family: var(--font-heading);
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--color-heading);
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .nav__link:hover {
+    color: var(--color-link);
+  }
+  .nav__item.is-active > .nav__link {
+    color: var(--color-link);
+  }
+  .nav__trigger :global(.nav__chev) {
+    transition: transform var(--dur) var(--ease);
+    color: var(--color-link);
+  }
+  .nav__trigger[aria-expanded='true'] :global(.nav__chev) {
+    transform: rotate(180deg);
+  }
+  .nav__sub {
+    padding: 0 0 var(--space-3) var(--space-3);
+  }
+  .nav__sublink {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: var(--tap);
+    padding: 0.45rem 0.5rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--color-text);
+  }
+  .nav__sublabel {
+    font-weight: 650;
+    color: var(--color-heading);
+  }
+  .nav__subdesc {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+  }
+  .nav__sublink:hover,
+  .nav__sublink.is-active {
+    background: var(--c-plum-50);
+  }
+  .nav__sublink:hover .nav__sublabel {
+    color: var(--color-link);
+  }
+
+  /* — Desktop: menu orizzontale — */
+  @media (min-width: 75rem) {
+    .menu-toggle {
+      display: none;
+    }
+    .nav,
+    .is-open .nav {
+      display: block;
+      position: static;
+      height: auto;
+      overflow: visible;
+      background: none;
+      border: 0;
+      padding: 0;
+    }
+    .nav__list {
+      display: flex;
+      align-items: center;
+      gap: clamp(0.25rem, 0.1rem + 0.6vw, 1rem);
+    }
+    .nav__item {
+      position: relative;
+      border: 0;
+    }
+    .nav__link {
+      position: relative;
+      min-height: var(--tap);
+      padding: 0.5rem 0.5rem;
+      font-family: var(--font-body);
+      font-size: 1.0625rem;
+      font-weight: 550;
+      color: var(--color-text);
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+    /* Barretta sopra la voce attiva (richiamo al vecchio sito) */
+    .nav__link::before {
+      content: '';
+      position: absolute;
+      left: 0.5rem;
+      right: 0.5rem;
+      top: -0.55rem;
+      height: 3px;
+      border-radius: 0 0 3px 3px;
+      background: var(--c-plum-500);
+      transform: scaleX(0);
+      transition: transform var(--dur) var(--ease);
+    }
+    .nav__item.is-active > .nav__link::before,
+    .nav__link:hover::before {
+      transform: scaleX(1);
+    }
+    .nav__item.is-active > .nav__link {
+      color: var(--color-link);
+    }
+    .nav__sub {
+      position: absolute;
+      top: calc(100% + 0.6rem);
+      left: 50%;
+      translate: -50% 0;
+      width: 21rem;
+      padding: var(--space-3);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border-soft);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .nav__sublink {
+      padding: 0.55rem 0.75rem;
+    }
+  }
+
+  :global(html.menu-aperto) {
+    overflow: hidden;
+  }
+</style>
