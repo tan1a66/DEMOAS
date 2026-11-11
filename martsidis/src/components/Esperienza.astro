@@ -1,12 +1,13 @@
 ---
 /**
  * Esperienza 3D della Home, guidata dallo scroll.
- * - Il disegno ha sempre un suo spazio: su desktop la colonna destra di ogni sezione ([data-esp-area]),
- *   su telefono un "palco" fisso in alto (.esp__sipario). I testi non gli passano mai sopra.
  * - La massa iniziale nasce crescendo e, scorrendo, si trasforma nel modello (nessuna dissolvenza).
- * - L'anello delle problematiche gira attorno al modello: le voci davanti passano sotto, quelle dietro
- *   rimpiccioliscono e spariscono dietro di lui.
- * - Il disegno statico (.esp__statico) compare SOLO se il 3D non può partire: movimento ridotto, niente WebGL, ?no3d.
+ * - Desktop: il disegno sta nella colonna destra di ogni sezione ([data-esp-area]); i testi a sinistra.
+ * - Telefono: finché è massa (e mentre si trasforma) sta DIETRO ai testi; quando il modello è completo
+ *   prende un suo spazio in alto (.esp__sipario, "palco") e da lì i testi non gli passano più sopra.
+ * - L'anello delle problematiche è un'ellisse in prospettiva attorno al modello: davanti le voci passano
+ *   sotto, dietro rimpiccioliscono e spariscono. Si gira con lo scroll, con un clic o, su telefono, col dito.
+ * - Il disegno statico (.esp__statico) compare SOLO se il 3D non può partire (movimento ridotto, niente WebGL, ?no3d).
  */
 import Button from './Button.astro';
 import HeroBlob from './HeroBlob.astro';
@@ -26,21 +27,24 @@ const legenda = [
 
 <div class="esp" data-esperienza>
   <div class="esp__canvas" data-esp-canvas aria-hidden="true"></div>
-  {/* Palco del modello su telefono: resta fisso sotto l'intestazione per tutta l'esperienza */}
-  <div class="esp__sipario" data-esp-sipario aria-hidden="true">
-    <div class="esp__statico"><HeroBlob uid="m" /></div>
-  </div>
+  {/* Telefono: spazio del modello completo. Compare (senza occupare posto nella pagina) solo quando serve. */}
+  <div class="esp__sipario" data-esp-sipario aria-hidden="true"></div>
 
   <section class="esp-hero" data-esp="hero" aria-labelledby="hero-titolo">
+    {/* Telefono: dove sta la massa all'inizio, dietro al titolo */}
+    <div class="esp-hero__zona" data-esp-zona aria-hidden="true">
+      <div class="esp__statico"><HeroBlob uid="m" /></div>
+    </div>
     <div class="container esp-due">
       <div class="esp-col-testo">
-        <p class="eyebrow">Uroginecologia a Cagliari</p>
+        <p class="esp-hero__luogo">Uroginecologia a Cagliari</p>
         <h1 id="hero-titolo">Incontinenza, prolasso, pavimento pelvico: problemi comuni, che si possono curare.</h1>
         <p class="esp-hero__sotto">
           <strong>{sito.nome}</strong>, uroginecologo. {sito.ruoloOspedaliero}.
         </p>
-        <Button href="/prenota-una-visita/" size="lg" icon="calendar-check" data-prenota>{t('cta.book')}</Button>
-        <p class="esp-hero__scroll" aria-hidden="true"><span></span> Scorra: la massa prende forma</p>
+        <div class="esp-solo-desktop">
+          <Button href="/prenota-una-visita/" size="lg" data-prenota>{t('cta.book')}</Button>
+        </div>
       </div>
       <div class="esp-area" data-esp-area aria-hidden="true">
         <div class="esp__statico"><HeroBlob uid="d" /></div>
@@ -52,15 +56,12 @@ const legenda = [
     <div class="esp-fisso">
       <div class="container esp-due">
         <div class="esp-col-testo">
-          <div>
-            <p class="esp-num">01</p>
-            <h2 id="compone-titolo">Un’amaca di muscoli sostiene vescica, utero e intestino.</h2>
-          </div>
-          <p class="esp-testo">
+          <h2 id="compone-titolo">Un’amaca di muscoli sostiene vescica, utero e intestino.</h2>
+          <p class="esp-testo" data-esp-fine-testo>
             È il pavimento pelvico. Quando cede, o è troppo teso, compaiono disturbi molto diffusi, di cui spesso non
             si parla.
           </p>
-          <div>
+          <div class="esp-legenda-blocco">
             <ul class="esp-legenda" role="list">
               {
                 legenda.map((l) => (
@@ -73,6 +74,7 @@ const legenda = [
             </ul>
             <p class="esp-nota">{t('note.modello')}</p>
           </div>
+          <div class="esp-compone__spazio" aria-hidden="true"></div>
         </div>
         <div class="esp-area" data-esp-area aria-hidden="true"></div>
       </div>
@@ -83,10 +85,10 @@ const legenda = [
     <div class="esp-orbita__fisso">
       <div class="esp-orbita__testo">
         <div class="esp-orbita__titolo">
-          <p class="esp-num">02</p>
           <h2 id="orbita-titolo">Si riconosce in una di queste situazioni?</h2>
           <p class="esp-orbita__aiuto">
-            Scorra, oppure scelga una voce: il cerchio gira attorno al modello e mostra cosa succede.
+            <span class="esp-solo-desktop">Scorra o scelga una voce: il cerchio gira attorno al modello.</span>
+            <span class="esp-solo-telefono">Scorra, oppure faccia girare il cerchio col dito.</span>
           </p>
         </div>
         <div class="esp-orbita__pannello" id="esp-pannello" aria-live="polite" data-esp-pannello></div>
@@ -116,10 +118,7 @@ const legenda = [
     <div class="esp-fisso">
       <div class="container esp-due">
         <div class="esp-col-testo">
-          <div>
-            <p class="esp-num">03</p>
-            <h2 id="percorso-titolo">Il percorso di cura: si parte sempre dal più semplice.</h2>
-          </div>
+          <h2 id="percorso-titolo">Il percorso di cura parte sempre dal più semplice.</h2>
           <ol class="esp-passi">
             <li><strong>Prenota.</strong> Non serve spiegare il motivo, se non vuole.</li>
             <li><strong>La visita, con calma.</strong> Prima si parla, poi la visita: ogni passaggio viene spiegato.</li>
@@ -128,8 +127,8 @@ const legenda = [
               Decide insieme al Dottore.
             </li>
           </ol>
-          <div>
-            <Button href="/prenota-una-visita/" size="lg" icon="calendar-check" data-prenota>{t('cta.book')}</Button>
+          <div class="esp-solo-desktop">
+            <Button href="/prenota-una-visita/" size="lg" data-prenota>{t('cta.book')}</Button>
           </div>
         </div>
         <div class="esp-area" data-esp-area aria-hidden="true"></div>
@@ -147,8 +146,11 @@ const legenda = [
 
   const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
   const ease = (t: number) => t * t * (3 - 2 * t);
+  const mix = (a: number, b: number, t: number) => a + (b - a) * t;
   /** Scala di una voce: grande davanti (prof = 1), piccola di lato, sparisce dietro al modello (prof → -1). */
-  const scalaVoce = (prof: number) => (0.55 + 0.45 * ((prof + 1) / 2)) * ease(clamp((prof + 0.95) / 0.6));
+  const scalaVoce = (prof: number) => (0.45 + 0.55 * ((prof + 1) / 2)) * ease(clamp((prof + 0.95) / 0.6));
+  // Sagoma del modello rispetto al raggio della sua sfera (il bacino è largo ma basso): serve a dargli più spazio.
+  const SAGOMA = { x: 0.97, xGiu: 0.75, giu: 0.7, su: 0.85 }; // xGiu: sotto il centro il bacino si stringe
 
   function avvia(radice: HTMLElement) {
     const q = (s: string) => radice.querySelector<HTMLElement>(s)!;
@@ -158,6 +160,8 @@ const legenda = [
     const orbita = q('[data-esp="orbita"]');
     const percorso = q('[data-esp="percorso"]');
     const sipario = q('[data-esp-sipario]');
+    const zona = q('[data-esp-zona]');
+    const fineTesto = q('[data-esp-fine-testo]');
     const scenaEl = q('[data-esp-scena]');
     const tracciato = radice.querySelector<SVGPathElement>('[data-esp-anello] path')!;
     const pannello = q('[data-esp-pannello]');
@@ -167,6 +171,7 @@ const legenda = [
     const mq = window.matchMedia('(max-width: 63.99rem)');
     let scena: Scena | null = null;
     let attiva = -1;
+    let fineTrascinamento = 0;
 
     // Se lo script viene rieseguito (anteprima in un file: si torna alla Home), chiude l'istanza precedente.
     const w = window as Window & { __espFine?: () => void };
@@ -180,50 +185,56 @@ const legenda = [
 
     radice.classList.add('is-3d');
 
-    // — Geometria dell'anello: centro, raggi e raggio libero per il modello (R) —
+    // — Anello: un'ellisse in prospettiva (più ampia davanti, schiacciata dietro) attorno al modello —
     const geo = { cx: 0, cy: 0, rx: 0, ryF: 0, ryB: 0, R: 80 };
-    // Percorso delle voci: un ovale "squadrato" (superellisse), più piatto davanti, così il modello ha più spazio.
-    const P = 0.55;
-    const sx = (a: number) => Math.sign(Math.sin(a)) * Math.pow(Math.abs(Math.sin(a)), P);
-    const sy = (a: number) => Math.sign(Math.cos(a)) * Math.pow(Math.abs(Math.cos(a)), P);
+    let larghezze: number[] = [];
     const punto = (a: number, k = 1): [number, number] => [
-      geo.cx + sx(a) * geo.rx * k,
-      geo.cy + sy(a) * (Math.cos(a) >= 0 ? geo.ryF : geo.ryB) * k,
+      geo.cx + Math.sin(a) * geo.rx * k,
+      geo.cy + Math.cos(a) * (Math.cos(a) >= 0 ? geo.ryF : geo.ryB) * k,
     ];
-    const DISTACCO = 14; // spazio tra il modello e la voce davanti
     const misura = () => {
       const vh = window.innerHeight;
       const hH = header?.offsetHeight ?? 72;
       const mobile = mq.matches;
-      const r = (mobile ? sipario : scenaEl).getBoundingClientRect();
-      const reg = { x: r.left, y: hH, w: r.width, h: mobile ? r.height : vh - hH };
-      const vw = Math.max(...voci.map((v) => v.offsetWidth));
+      const rs = scenaEl.getBoundingClientRect();
+      const reg = mobile
+        ? { x: 0, y: hH, w: window.innerWidth, h: sipario.offsetHeight }
+        : { x: rs.left, y: hH, w: rs.width, h: vh - hH };
+      larghezze = voci.map((v) => v.offsetWidth);
+      const vw = Math.max(...larghezze);
       const vhh = Math.max(...voci.map((v) => v.offsetHeight));
+      const vicina = (Math.PI * 2) / N; // angolo della voce accanto a quella attiva
       const rx = mobile
-        ? Math.min((reg.w / 2 - 4 - (vw / 2) * 0.92) / 0.86, (reg.w / 2 - 2 - (vw / 2) * 0.74) / 0.985)
-        : Math.min(reg.w / 2 - vw / 2 - 8, 520);
-      // R: il più grande possibile senza che le voci della metà davanti tocchino il modello
-      let R = Math.min((reg.h - vhh - DISTACCO - 16) / 2, reg.w / 2 - 8);
-      for (let k = 0; k < 80; k++) {
-        const ryF = R + vhh / 2 + DISTACCO;
-        let min = Infinity;
-        for (let g = -90; g <= 90; g += 3) {
+        ? (reg.w / 2 - 6 - (vw / 2) * scalaVoce(Math.cos(vicina))) / Math.sin(vicina) // le due vicine si leggono intere
+        : Math.min(reg.w / 2 - vw / 2 - 8, 540);
+      // Il modello più grande possibile: le voci della metà davanti devono restare fuori dalla sua sagoma.
+      const alto = SAGOMA.su + SAGOMA.giu;
+      let R = Math.min((reg.h - vhh - 28) / alto, (reg.w / 2 - 8) / SAGOMA.x);
+      // telefono: le voci di lato restano dentro lo schermo, quindi il modello deve lasciar loro posto
+      if (mobile) R = Math.min(R, (reg.w / 2 - 10 - vw * scalaVoce(Math.cos(2 * vicina))) / SAGOMA.x);
+      let stacco = 12;
+      for (; R > 40; R -= 2) {
+        stacco = Math.min(reg.h - 16 - vhh - alto * R, 0.6 * R, 0.85 * rx - SAGOMA.giu * R - vhh / 2);
+        if (stacco < 12) continue;
+        const ryF = SAGOMA.giu * R + vhh / 2 + stacco;
+        let libero = true;
+        for (let g = -90; g <= 90 && libero; g += 3) {
           const a = (g * Math.PI) / 180;
           const s = scalaVoce(Math.cos(a));
-          const dx = Math.max(Math.abs(sx(a)) * rx - (vw / 2) * s, 0);
-          const dy = Math.max(sy(a) * ryF - (vhh / 2) * s, 0);
-          min = Math.min(min, Math.hypot(dx, dy));
+          const ax = Math.min(Math.abs(Math.sin(a)) * rx, window.innerWidth / 2 - ((vw / 2) * s + 6));
+          const dx = Math.max(ax - (vw / 2) * s, 0);
+          const dy = Math.max(Math.cos(a) * ryF - (vhh / 2) * s, 0);
+          libero = (dx / (SAGOMA.xGiu * R + 8)) ** 2 + (dy / (SAGOMA.giu * R + 8)) ** 2 >= 1;
         }
-        if (min >= R + 8) break;
-        R -= 2;
+        if (libero) break;
       }
-      R = Math.max(R, 40);
+      stacco = Math.max(stacco, 12);
       geo.R = R;
       geo.rx = rx;
-      geo.ryF = R + vhh / 2 + DISTACCO;
-      geo.ryB = R * 0.5;
+      geo.ryF = SAGOMA.giu * R + vhh / 2 + stacco;
+      geo.ryB = geo.ryF * 0.42;
       geo.cx = reg.x + reg.w / 2;
-      geo.cy = reg.y + (reg.h - (2 * R + vhh + DISTACCO + 16)) / 2 + 8 + R;
+      geo.cy = reg.y + (reg.h - (alto * R + stacco + vhh + 16)) / 2 + 8 + SAGOMA.su * R;
     };
 
     // — Stato dell'esperienza in base allo scroll —
@@ -231,30 +242,59 @@ const legenda = [
       const vh = window.innerHeight;
       const hH = header?.offsetHeight ?? 72;
       const mobile = mq.matches;
-      const stick = mobile ? hH + sipario.offsetHeight : hH; // linea sotto cui scorrono i testi
+      const palcoH = sipario.offsetHeight;
+      const stick = mobile ? hH + palcoH : hH; // linea sotto cui scorrono i testi quando il modello ha il suo spazio
       const rComp = compone.getBoundingClientRect();
       const rOrb = orbita.getBoundingClientRect();
       const rPerc = percorso.getBoundingClientRect();
+      const rEsp = radice.getBoundingClientRect();
       const mid = (stick + vh) / 2;
       const quale = rPerc.top <= mid ? 'percorso' : rOrb.top <= mid ? 'orbita' : rComp.top <= mid ? 'compone' : 'hero';
-      // la trasformazione occupa quasi tutta la sezione "compone": si vede accadere mentre si scorre
-      const montaggio = clamp(
-        ((mobile ? vh * 0.75 : vh * 0.3) - rComp.top) / Math.max(rComp.height - vh * (mobile ? 0.5 : 0.9), vh * 0.6),
-      );
+
+      // La trasformazione occupa quasi tutta la sezione "compone".
+      // Telefono: finisce quando l'ultimo testo è uscito in alto, così il modello completo resta libero.
+      let montaggio: number;
+      let avanza = 1; // telefono: 0 → 1 mentre i testi passano sopra la massa
+      if (mobile) {
+        const parte = vh * 0.8;
+        const fondo = fineTesto.getBoundingClientRect().bottom; // fondo dell'ultimo testo che passa sopra
+        avanza = clamp((parte - rComp.top) / Math.max(fondo - rComp.top + parte - hH, 1));
+        // finché i testi le passano sopra la trasformazione arriva al 70%; si completa solo dopo, a spazio libero
+        montaggio = avanza < 1 ? avanza * 0.7 : 0.7 + 0.3 * clamp((hH - fondo) / (vh * 0.35));
+      } else {
+        montaggio = clamp((vh * 0.3 - rComp.top) / Math.max(rComp.height - vh * 0.9, vh * 0.6));
+      }
+      const palco = mobile && avanza >= 0.999;
+
       const corsa = Math.max(rOrb.height - (vh - stick), 1);
       const indice = clamp((stick - rOrb.top) / corsa) * (N - 1);
       const nuova = Math.round(indice);
-      // l'anello "cresce" entrando nella sezione e si richiude uscendo (legato allo scroll, niente dissolvenze)
+      // l'anello "cresce" entrando nella sezione e si richiude uscendo (legato allo scroll)
       const apertura = Math.min(
         clamp((mid - rOrb.top) / Math.max(mid - stick, 1)),
         clamp((rOrb.bottom - vh * 0.45) / (vh * 0.55)),
       );
+
       let area: Area;
+      // alla fine dell'esperienza il palco esce scorrendo insieme alla pagina
+      const esce = mobile ? Math.min(rEsp.bottom - (hH + palcoH), 0) : 0;
+      const palcoArea = { x: 8, y: hH + 8 + esce, w: window.innerWidth - 16, h: palcoH - 16 };
       if (quale === 'orbita') {
         area = { x: geo.cx - geo.R, y: geo.cy - geo.R, w: geo.R * 2, h: geo.R * 2 };
       } else if (mobile) {
-        const r = sipario.getBoundingClientRect();
-        area = { x: r.left + 8, y: r.top + 8, w: r.width - 16, h: r.height - 16 };
+        if (quale === 'percorso') area = palcoArea;
+        else {
+          // dalla posizione dietro al titolo allo spazio in alto, insieme alla trasformazione
+          const r = zona.getBoundingClientRect();
+          const t = ease(avanza);
+          const yZona = Math.max(r.top, hH - r.height * 0.35);
+          area = {
+            x: mix(r.left, palcoArea.x, t),
+            y: mix(yZona, palcoArea.y, t),
+            w: mix(r.width, palcoArea.w, t),
+            h: mix(r.height, palcoArea.h, t),
+          };
+        }
       } else {
         const sezione = quale === 'hero' ? hero : quale === 'compone' ? compone : percorso;
         const r = sezione.querySelector<HTMLElement>('[data-esp-area]')!.getBoundingClientRect();
@@ -264,8 +304,9 @@ const legenda = [
       }
       const stato: IdStato =
         quale === 'orbita' ? PROBLEMATICHE[nuova]!.id : quale === 'percorso' ? 'riabilitazione' : 'normale';
-      return { quale, montaggio, indice, nuova, apertura, area, stato, stick };
+      return { quale, montaggio, indice, nuova, apertura, area, stato, stick, corsa, mobile, palco, esce };
     };
+    let ora = leggi();
 
     const comando = (s: ReturnType<typeof leggi>) => ({
       montaggio: s.montaggio,
@@ -274,26 +315,49 @@ const legenda = [
       area: s.area,
     });
 
-    // Le voci girano attorno al modello: davanti (in basso) grandi, dietro rimpiccioliscono fino a sparire.
-    const disponi = (indice: number, apertura: number) => {
-      const e = ease(apertura);
+    // Le voci sull'anello. I valori seguono lo scroll con un po' di inerzia: il cerchio scivola, non scatta.
+    const morbido = { indice: 0, apertura: 0 };
+    const disponi = () => {
+      const e = ease(morbido.apertura);
       const k = 1 + (1 - e) * 0.3;
       voci.forEach((v, i) => {
-        const a = ((i - indice) / N) * Math.PI * 2;
+        const a = ((i - morbido.indice) / N) * Math.PI * 2;
         const prof = Math.cos(a);
-        const [x, y] = punto(a, k);
-        v.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) scale(${(scalaVoce(prof) * e).toFixed(3)})`;
+        const sc = scalaVoce(prof) * e;
+        const [px, y] = punto(a, k);
+        const meta = ((larghezze[i] ?? 0) * sc) / 2 + 6;
+        const x = clamp(px, meta, window.innerWidth - meta); // resta sempre dentro lo schermo
+        v.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) scale(${sc.toFixed(3)})`;
         v.style.zIndex = String(Math.round(prof * 10) + 20);
-        v.classList.toggle('is-dietro', prof < 0.55);
       });
-      // la linea dell'orbita segue lo stesso percorso e passa dietro al modello
       let d = '';
       for (let g = 0; g <= 360; g += 5) {
         const [x, y] = punto((g * Math.PI) / 180, k);
         d += `${g ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
       }
       tracciato.setAttribute('d', d + 'Z');
-      tracciato.style.strokeWidth = (1.5 * e).toFixed(2);
+      tracciato.style.strokeWidth = e.toFixed(2);
+    };
+    let ultimoT = 0;
+    let girando = false;
+    const gira = (adesso: number) => {
+      const dt = Math.min((adesso - ultimoT) / 1000, 0.05);
+      ultimoT = adesso;
+      const k = 1 - Math.exp(-dt * 9);
+      morbido.indice += (ora.indice - morbido.indice) * k;
+      morbido.apertura += (ora.apertura - morbido.apertura) * k;
+      disponi();
+      if (Math.abs(ora.indice - morbido.indice) > 0.002 || Math.abs(ora.apertura - morbido.apertura) > 0.002) {
+        requestAnimationFrame(gira);
+      } else {
+        girando = false;
+      }
+    };
+    const avviaGiro = () => {
+      if (girando || signal.aborted) return;
+      girando = true;
+      ultimoT = performance.now();
+      requestAnimationFrame(gira);
     };
 
     const mostra = (i: number) => {
@@ -301,56 +365,72 @@ const legenda = [
       voci.forEach((v, k) => v.classList.toggle('is-attiva', k === i));
       const p = PROBLEMATICHE[i]!;
       const dettaglio = voci[i]!.querySelector('.esp-voce__dettaglio')!;
-      pannello.innerHTML = `<p class="esp-pannello__nome">${p.nome}</p><p class="esp-pannello__frase">«${p.frase}»</p>${dettaglio.innerHTML}`;
+      pannello.innerHTML = `<p class="esp-pannello__frase">«${p.frase}»</p><p class="esp-pannello__nome">${p.nome}</p>${dettaglio.innerHTML}`;
     };
 
     const aggiorna = () => {
-      const s = leggi();
-      scena?.comanda(comando(s));
+      ora = leggi();
+      scena?.comanda(comando(ora));
+      // telefono: finché si trasforma il disegno sta dietro ai testi; da completo passa davanti e ha il suo spazio
+      radice.classList.toggle('is-dietro', ora.mobile && !ora.palco);
+      radice.classList.toggle('is-palco', ora.palco);
+      sipario.style.transform = ora.esce ? `translateY(${ora.esce.toFixed(1)}px)` : '';
       // quando l'area è uscita dallo schermo il disegno non serve più (esce scorrendo, senza dissolvenze)
-      host.style.visibility = s.area.y + s.area.h < 0 ? 'hidden' : '';
-      host.dataset.area = [s.area.x, s.area.y, s.area.w, s.area.h].map(Math.round).join(','); // utile per i test
-      disponi(s.indice, s.apertura);
-      radice.classList.toggle('is-orbita', s.apertura > 0.6);
-      if (s.nuova !== attiva && (s.quale === 'orbita' || attiva < 0)) mostra(s.nuova);
+      host.style.visibility = ora.area.y + ora.area.h < 0 ? 'hidden' : '';
+      host.dataset.area = [ora.area.x, ora.area.y, ora.area.w, ora.area.h].map(Math.round).join(','); // utile per i test
+      radice.classList.toggle('is-orbita', ora.apertura > 0.6);
+      if (ora.nuova !== attiva && (ora.quale === 'orbita' || attiva < 0)) mostra(ora.nuova);
+      avviaGiro();
     };
 
     // clic (o focus da tastiera) su una voce: lo scroll porta il cerchio su quella problematica
     const vai = (i: number, liscio = true) => {
       const s = leggi();
       const rOrb = orbita.getBoundingClientRect();
-      const corsa = rOrb.height - (window.innerHeight - s.stick);
       window.scrollTo({
-        top: window.scrollY + rOrb.top - s.stick + (i / (N - 1)) * corsa + 1,
+        top: window.scrollY + rOrb.top - s.stick + (i / (N - 1)) * s.corsa + 1,
         behavior: liscio ? 'smooth' : 'auto',
       });
     };
     radice.querySelectorAll<HTMLButtonElement>('[data-esp-vai]').forEach((b) => {
       const i = Number(b.dataset.espVai);
-      b.addEventListener('click', () => vai(i));
+      b.addEventListener('click', () => {
+        if (performance.now() - fineTrascinamento > 350) vai(i);
+      });
       b.addEventListener('focus', () => {
         if (!radice.classList.contains('is-orbita')) vai(i, false);
       });
     });
 
-    // trascinare sul disegno lo fa ruotare (su touch solo in orizzontale: lo scroll verticale resta libero)
-    let drag: { x: number; y: number; id: number } | null = null;
+    // Trascinare sul disegno: su desktop ruota il modello; su telefono, nel cerchio, lo fa girare col dito
+    // (solo in orizzontale: lo scroll verticale resta libero).
+    let drag: { x: number; y: number; id: number; fatto: number } | null = null;
     radice.addEventListener('pointerdown', (e) => {
       const bersaglio = e.target as HTMLElement;
-      if (!bersaglio.closest('[data-esp-area], [data-esp-sipario], [data-esp-scena]')) return;
-      drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      if (!bersaglio.closest('[data-esp-area], [data-esp-sipario], [data-esp-scena], .esp-voce')) return;
+      drag = { x: e.clientX, y: e.clientY, id: e.pointerId, fatto: 0 };
     });
     window.addEventListener(
       'pointermove',
       (e) => {
         if (!drag || e.pointerId !== drag.id) return;
-        scena?.trascina(e.clientX - drag.x, e.pointerType === 'touch' ? 0 : e.clientY - drag.y);
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
         drag.x = e.clientX;
         drag.y = e.clientY;
+        drag.fatto += Math.abs(dx);
+        if (ora.mobile && ora.quale === 'orbita') {
+          window.scrollBy(0, (-dx * ora.corsa) / (N - 1) / 130); // 130 px di dito = una voce
+        } else {
+          scena?.trascina(dx, e.pointerType === 'touch' ? 0 : dy);
+        }
       },
       { signal },
     );
-    const fineDrag = () => (drag = null);
+    const fineDrag = () => {
+      if (drag && drag.fatto > 8) fineTrascinamento = performance.now();
+      drag = null;
+    };
     window.addEventListener('pointerup', fineDrag, { signal });
     window.addEventListener('pointercancel', fineDrag, { signal });
 
@@ -398,7 +478,7 @@ const legenda = [
         aggiorna();
       } catch (errore) {
         console.warn('3D non disponibile: resta la versione statica.', errore);
-        radice.classList.remove('is-3d');
+        radice.classList.remove('is-3d', 'is-dietro', 'is-palco');
         radice.classList.add('is-statico');
       }
     })();
@@ -416,8 +496,11 @@ const legenda = [
     position: relative;
     --stage-h: 44svh;
   }
+  .esp > section {
+    position: relative; /* sopra la tela quando, su telefono, il disegno sta dietro ai testi */
+  }
 
-  /* — Tela 3D: fissa, sopra ai testi ma mai sovrapposta (il modello sta nelle aree riservate) — */
+  /* — Tela 3D: fissa. Desktop: sempre davanti (il modello ha la sua colonna). Telefono: vedi .is-dietro — */
   .esp__canvas {
     position: fixed;
     top: 0;
@@ -431,6 +514,9 @@ const legenda = [
   }
   .esp.is-pronto .esp__canvas {
     visibility: visible;
+  }
+  .esp.is-dietro .esp__canvas {
+    z-index: 0;
   }
   .esp :global(.stage-canvas) {
     display: block;
@@ -448,27 +534,48 @@ const legenda = [
     display: block;
   }
 
-  /* — Palco del modello su telefono — */
+  /* — Telefono: spazio del modello completo. Fisso sotto l'intestazione, non occupa posto nella pagina. — */
   .esp__sipario {
     display: none;
   }
   @media (max-width: 63.99rem) {
-    /* sempre presente su telefono (anche prima che parta lo script): nessun salto di layout */
-    .esp__sipario {
-      display: block;
-      height: var(--stage-h);
-      background: radial-gradient(70% 80% at 60% 40%, var(--c-plum-50), var(--color-bg) 78%);
-    }
     .esp.is-3d .esp__sipario {
-      position: sticky;
+      display: block;
+      position: fixed;
       top: var(--header-h);
+      left: 0;
+      right: 0;
+      height: var(--stage-h);
       z-index: 2;
+      background: var(--color-bg);
+      visibility: hidden;
       touch-action: pan-y;
-      border-bottom: 1px solid var(--color-border-soft);
+    }
+    .esp.is-3d.is-palco .esp__sipario {
+      visibility: visible;
+    }
+    .esp__sipario::after {
+      content: '';
+      position: absolute;
+      inset: 100% 0 auto;
+      height: 1.25rem;
+      background: linear-gradient(var(--color-bg), rgb(251 248 243 / 0));
     }
   }
 
-  /* — Due colonne: testo a sinistra, area del disegno a destra (desktop) — */
+  .esp-solo-telefono {
+    display: none;
+  }
+  @media (max-width: 63.99rem) {
+    .esp-solo-desktop {
+      display: none;
+    }
+    .esp-solo-telefono {
+      display: inline;
+    }
+  }
+
+  /* — Due colonne su desktop: testo a sinistra, area del disegno a destra — */
   .esp-due {
     display: grid;
     gap: var(--space-6);
@@ -478,6 +585,7 @@ const legenda = [
     display: none;
   }
   .esp-col-testo {
+    position: relative;
     display: grid;
     gap: var(--space-5);
     justify-items: start;
@@ -502,16 +610,7 @@ const legenda = [
     }
     .esp.is-3d .esp-area {
       cursor: grab;
-      touch-action: pan-y;
     }
-  }
-
-  .esp-num {
-    font-family: var(--font-heading);
-    font-size: 1.1rem;
-    color: var(--color-accent-text);
-    letter-spacing: 0.1em;
-    margin: 0 0 var(--space-3) !important;
   }
   .esp-testo {
     font-size: var(--fs-lead);
@@ -521,36 +620,50 @@ const legenda = [
   /* — Hero — */
   .esp-hero {
     display: grid;
-    align-items: center;
-    padding-block: var(--space-6);
-    min-height: calc(100svh - var(--header-h) - var(--stage-h));
+    align-items: end;
+    min-height: calc(100svh - var(--header-h) - var(--contactbar-h));
+    padding-block: var(--space-6) var(--space-7);
+  }
+  .esp-hero__luogo {
+    font-weight: 600;
+    color: var(--color-accent-text);
   }
   .esp-hero h1 {
-    font-size: clamp(1.9rem, 1.3rem + 2.7vw, 3.6rem);
-    max-width: 13em;
+    font-size: clamp(2.2rem, 9.4vw, 2.9rem);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    max-width: 12em;
   }
   .esp-hero__sotto {
-    font-size: var(--fs-lead);
     max-width: 30em;
   }
-  .esp-hero__scroll {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
+  /* telefono: la massa sta dietro al titolo, un po' spostata verso destra */
+  .esp-hero__zona {
+    position: absolute;
+    top: 1svh;
+    left: 14vw;
+    width: 86vw;
+    aspect-ratio: 1;
+    pointer-events: none;
   }
-  .esp-hero__scroll span {
-    width: 1px;
-    height: 2.5rem;
-    background: linear-gradient(var(--c-plum-500), transparent);
+  .esp.is-statico .esp-hero__zona {
+    opacity: 0.5;
   }
   @media (min-width: 64rem) {
     .esp-hero {
+      align-items: center;
       min-height: calc(100svh - var(--header-h));
-      background:
-        radial-gradient(55% 70% at 78% 45%, rgb(236 227 242 / 0.9), transparent 70%),
-        radial-gradient(40% 50% at 0% 100%, rgb(229 237 230 / 0.8), transparent 70%);
+      padding-block: var(--space-6);
+    }
+    .esp-hero h1 {
+      font-size: clamp(2.6rem, 1.4rem + 2.9vw, 4rem);
+      max-width: 12.5em;
+    }
+    .esp-hero__sotto {
+      font-size: var(--fs-lead);
+    }
+    .esp-hero__zona {
+      display: none;
     }
   }
 
@@ -561,13 +674,14 @@ const legenda = [
   }
   .esp-compone h2,
   .esp-percorso h2 {
-    font-size: clamp(1.7rem, 1.3rem + 1.9vw, 3rem);
-    max-width: 14em;
+    font-size: clamp(1.9rem, 1.3rem + 2.2vw, 3rem);
+    letter-spacing: -0.02em;
+    max-width: 13em;
   }
   .esp-legenda {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1.25rem;
+    gap: 0.4rem 1.25rem;
     list-style: none;
     margin: 0 0 var(--space-3);
     padding: 0;
@@ -579,8 +693,8 @@ const legenda = [
     gap: 0.5rem;
   }
   .esp-pall {
-    width: 0.9rem;
-    height: 0.9rem;
+    width: 0.8rem;
+    height: 0.8rem;
     border-radius: 50%;
     border: 1px solid rgb(42 36 48 / 0.15);
   }
@@ -603,12 +717,14 @@ const legenda = [
     font-size: var(--fs-small);
     color: var(--color-text-muted);
   }
+  .esp-compone__spazio {
+    display: none;
+  }
   .esp-passi {
     display: grid;
     gap: var(--space-4);
     margin: 0;
     padding-left: 1.4rem;
-    font-size: var(--fs-lead);
     max-width: 30em;
   }
   .esp-passi li::marker {
@@ -616,6 +732,9 @@ const legenda = [
     color: var(--color-link);
   }
   @media (min-width: 64rem) {
+    .esp-passi {
+      font-size: var(--fs-lead);
+    }
     .esp.is-3d .esp-compone {
       height: 220vh;
       padding: 0;
@@ -633,13 +752,20 @@ const legenda = [
     }
   }
   @media (max-width: 63.99rem) {
-    /* su telefono i testi scorrono sotto il palco: spaziati, così c'è sempre qualcosa da leggere mentre il modello si compone */
+    /* telefono: i testi scorrono sopra la massa che si trasforma; la legenda si ferma sotto il modello completo */
     .esp.is-3d .esp-compone {
-      min-height: 150svh;
-      padding-block: var(--space-6);
+      padding-block: 14svh 0;
     }
     .esp.is-3d .esp-compone .esp-col-testo {
-      gap: 24svh;
+      gap: 18svh;
+    }
+    .esp.is-3d .esp-legenda-blocco {
+      position: sticky;
+      top: calc(var(--header-h) + var(--stage-h) + 1.25rem);
+    }
+    .esp.is-3d .esp-compone__spazio {
+      display: block;
+      height: 62svh;
     }
     .esp.is-3d .esp-percorso {
       padding-block: var(--space-7) var(--space-8);
@@ -648,7 +774,6 @@ const legenda = [
 
   /* — Anello delle problematiche — */
   .esp-orbita {
-    position: relative;
     padding-block: var(--section-y);
   }
   .esp-orbita__titolo {
@@ -657,17 +782,18 @@ const legenda = [
     padding-inline: var(--gutter);
   }
   .esp-orbita h2 {
-    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.4rem);
-    max-width: 14em;
+    font-size: clamp(1.7rem, 1.25rem + 1.6vw, 2.5rem);
+    letter-spacing: -0.02em;
+    max-width: 12em;
   }
   .esp-orbita__aiuto {
     font-size: var(--fs-small);
     color: var(--color-text-muted);
-    max-width: 26em;
+    max-width: 24em;
   }
   .esp-voce__btn {
     display: grid;
-    gap: 0.15rem;
+    gap: 0.1rem;
     width: 100%;
     padding: 0;
     border: 0;
@@ -677,16 +803,13 @@ const legenda = [
   }
   .esp-voce__frase {
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     line-height: 1.2;
     color: var(--color-heading);
   }
   .esp-voce__nome {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-accent-text);
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
   }
 
   /* versione statica: elenco leggibile */
@@ -697,21 +820,19 @@ const legenda = [
   }
   .esp:not(.is-3d) .esp-voci {
     display: grid;
-    gap: var(--space-4);
+    gap: 0 var(--space-6);
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
     list-style: none;
     max-width: calc(var(--container) + 2 * var(--gutter));
-    margin: var(--space-6) auto 0;
+    margin: var(--space-5) auto 0;
     padding: 0 var(--gutter);
   }
   .esp:not(.is-3d) .esp-voce {
-    padding: var(--space-5);
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-soft);
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--color-border);
   }
   .esp:not(.is-3d) .esp-voce__frase {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
   }
   .esp:not(.is-3d) .esp-voce__dettaglio p {
     margin: var(--space-3) 0;
@@ -745,21 +866,23 @@ const legenda = [
   }
   .esp.is-3d .esp-voce__btn {
     min-height: var(--tap);
-    padding: 0.55rem 0.9rem;
-    border-radius: var(--radius);
-    border: 1px solid transparent;
-    background: var(--color-bg);
+    padding: 0.4rem 0.6rem;
+    background: var(--color-bg); /* copre la linea dell'orbita sotto al testo */
+    align-content: center;
   }
   .esp.is-3d.is-orbita .esp-voce__btn {
     pointer-events: auto;
+    touch-action: pan-y; /* il dito in orizzontale fa girare il cerchio */
   }
-  .esp.is-3d .esp-voce.is-dietro .esp-voce__frase {
+  .esp.is-3d .esp-voce:not(.is-attiva) .esp-voce__frase {
     color: var(--color-text-muted);
   }
-  .esp.is-3d .esp-voce.is-attiva .esp-voce__btn {
-    background: var(--c-white);
-    border-color: var(--c-plum-300);
-    box-shadow: var(--shadow);
+  .esp.is-3d .esp-voce.is-attiva .esp-voce__frase,
+  .esp.is-3d .esp-voce.is-attiva .esp-voce__nome {
+    text-decoration: underline;
+    text-decoration-color: var(--c-plum-300);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
   }
   .esp.is-3d .esp-orbita__anello {
     position: fixed;
@@ -774,31 +897,27 @@ const legenda = [
   }
   .esp-orbita__anello path {
     fill: none;
-    stroke: rgb(133 89 160 / 0.32);
+    stroke: rgb(133 89 160 / 0.4);
     stroke-width: 0;
   }
   .esp-orbita__pannello {
-    padding: var(--space-5);
-    border-radius: var(--radius-lg);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border-soft);
-    box-shadow: var(--shadow-sm);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
   }
   .esp-orbita__pannello :global(p) {
     margin: 0 0 var(--space-2);
   }
-  .esp-orbita__pannello :global(.esp-pannello__nome) {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-accent-text);
-  }
   .esp-orbita__pannello :global(.esp-pannello__frase) {
     font-family: var(--font-heading);
-    font-size: 1.3rem;
-    line-height: 1.2;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--color-heading);
+  }
+  .esp-orbita__pannello :global(.esp-pannello__nome) {
+    font-size: var(--fs-small);
+    color: var(--color-accent-text);
+    font-weight: 600;
   }
   .esp-orbita__pannello :global(a) {
     display: inline-flex;
@@ -819,7 +938,7 @@ const legenda = [
     }
     .esp.is-3d .esp-orbita__titolo {
       padding: 0;
-      margin: 0 0 var(--space-5);
+      margin: 0 0 var(--space-6);
     }
     .esp.is-3d .esp-orbita__pannello {
       min-height: 15rem;
@@ -830,7 +949,7 @@ const legenda = [
     }
   }
   @media (max-width: 63.99rem) {
-    /* telefono: il titolo scorre, la scheda della voce attiva resta ferma sotto il palco */
+    /* telefono: il titolo scorre via sotto il modello, la scheda della voce attiva resta ferma */
     .esp.is-3d .esp-orbita__fisso,
     .esp.is-3d .esp-orbita__testo {
       display: contents;
@@ -839,37 +958,39 @@ const legenda = [
       display: none;
     }
     .esp.is-3d .esp-orbita__titolo {
-      padding-block: var(--space-6) var(--space-4);
+      padding-block: 0 var(--space-5);
     }
     .esp.is-3d .esp-orbita__pannello {
       position: sticky;
-      top: calc(var(--header-h) + var(--stage-h) + 0.5rem);
+      top: calc(var(--header-h) + var(--stage-h) + 0.75rem);
       margin-inline: var(--gutter);
-      padding: var(--space-4);
-      max-height: calc(100svh - var(--header-h) - var(--stage-h) - var(--contactbar-h) - 1.25rem);
+      max-height: calc(100svh - var(--header-h) - var(--stage-h) - var(--contactbar-h) - 1.5rem);
       overflow: auto;
-      font-size: 1rem;
+      background: var(--color-bg);
+      font-size: 1.0625rem;
       line-height: 1.5;
     }
     .esp.is-3d .esp-orbita__pannello :global(.esp-pannello__frase) {
-      font-size: 1.1rem;
+      font-size: 1.35rem;
     }
-    /* etichette compatte: solo il nome; la frase è nella scheda */
+    /* etichette corte: solo il nome; la frase è nella scheda sotto */
     .esp.is-3d .esp-voce {
-      max-width: 6.75rem;
+      max-width: 6.5rem;
     }
     .esp.is-3d .esp-voce__frase {
       display: none;
     }
     .esp.is-3d .esp-voce__btn {
-      padding: 0.35rem 0.55rem;
+      padding: 0.3rem 0.4rem;
       text-align: center;
-      align-content: center;
     }
     .esp.is-3d .esp-voce__nome {
-      font-size: 0.75rem;
-      letter-spacing: 0.03em;
-      line-height: 1.25;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      line-height: 1.15;
+    }
+    .esp.is-3d .esp-voce.is-attiva .esp-voce__nome {
+      color: var(--color-heading);
     }
   }
 </style>

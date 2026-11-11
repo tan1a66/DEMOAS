@@ -147,11 +147,9 @@ const t = useTranslations();
   .prenota__icona {
     display: grid;
     place-items: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    background: var(--color-primary);
-    color: var(--color-on-primary);
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--color-primary);
   }
   .prenota__testo {
     display: grid;
@@ -176,7 +174,31 @@ const t = useTranslations();
       width: 100%;
       max-width: none;
       margin: auto 0 0;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      border-radius: 0.875rem 0.875rem 0 0;
+    }
+    .prenota__dentro::before {
+      content: '';
+      display: block;
+      width: 2.25rem;
+      height: 0.3rem;
+      margin: -0.5rem auto 0.9rem;
+      border-radius: 1rem;
+      background: var(--c-sand-300);
+    }
+    .prenota__opzioni {
+      gap: 0;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--color-surface);
+    }
+    .prenota__opz {
+      border: 0;
+      border-radius: 0;
+      border-bottom: 1px solid var(--color-border-soft);
+    }
+    .prenota__opzioni li:last-child .prenota__opz {
+      border-bottom: 0;
     }
   }
   @media (prefers-reduced-motion: no-preference) {

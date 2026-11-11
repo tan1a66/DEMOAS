@@ -30,9 +30,7 @@ const { titolo, eyebrow, lead, contatti = true } = Astro.props;
 <style>
   .page-hero {
     padding-block: var(--space-6) var(--space-7);
-    background:
-      radial-gradient(50% 80% at 100% 0%, rgb(236 227 242 / 0.85), transparent 70%),
-      radial-gradient(40% 60% at 0% 100%, rgb(229 237 230 / 0.6), transparent 70%);
+    border-bottom: 1px solid var(--color-border-soft);
   }
   .page-hero h1 {
     max-width: 22em;

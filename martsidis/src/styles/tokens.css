@@ -85,12 +85,12 @@
   --container-narrow: 46rem;
 
   /* — Forme, ombre, movimento — */
-  --radius-sm: 0.5rem;
-  --radius: 1rem;
-  --radius-lg: 1.75rem;
-  --radius-pill: 999px;
-  --shadow-sm: 0 1px 2px rgb(45 30 60 / 0.06), 0 2px 8px rgb(45 30 60 / 0.05);
-  --shadow: 0 2px 6px rgb(45 30 60 / 0.06), 0 12px 32px rgb(45 30 60 / 0.08);
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-pill: 0.5rem; /* pulsanti: rettangoli morbidi, non pillole */
+  --shadow-sm: none;
+  --shadow: 0 12px 32px rgb(45 30 60 / 0.08);
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --dur: 220ms;
 

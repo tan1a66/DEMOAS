@@ -84,7 +84,14 @@ export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) 
 
   // Uniform condivise: tempo e respiro della massa
   const comuni = { uTempo: { value: 0 }, uAmp: { value: 0.07 }, uCentro: { value: CENTRO }, uRaggio: { value: RAGGIO_MASSA } };
-  const massaColori = { uC1: { value: c.plum500 }, uC2: { value: c.plum300 }, uC3: { value: c.sage200 } };
+  // Su telefono la massa sta dietro ai testi: tinte più chiare, così il titolo resta ben leggibile.
+  const telefono = window.matchMedia('(max-width: 63.99rem)').matches;
+  const tinta = (col: Color, q: number) => (telefono ? col.clone().lerp(c.ivory, q) : col);
+  const massaColori = {
+    uC1: { value: tinta(c.plum500, 0.52) },
+    uC2: { value: tinta(c.plum300, 0.5) },
+    uC3: { value: tinta(c.sage200, 0.35) },
+  };
 
   const parti: Record<string, Object3D> = {};
   const materiali: Record<string, MeshStandardMaterial> = {};

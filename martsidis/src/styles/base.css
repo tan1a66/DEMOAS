@@ -163,10 +163,8 @@ hr {
 .eyebrow {
   display: inline-block;
   font-family: var(--font-body);
-  font-size: var(--fs-small);
-  font-weight: 650;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--color-accent-text);
   margin-bottom: var(--space-3);
 }
