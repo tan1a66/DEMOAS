@@ -24,6 +24,8 @@ const servizi = [
   title="Uroginecologo a Cagliari | Dott. Konstantinos Martsidis"
   description="Incontinenza urinaria, prolasso e disturbi del pavimento pelvico: visite uroginecologiche, esame urodinamico, ginecologia, ostetricia ed ecografia 3D/4D a Cagliari."
 >
+  {/* il modello 3D si scarica in parallelo alla pagina: la massa compare prima */}
+  <link slot="head" rel="preload" href="/models/pelvi.glb" as="fetch" crossorigin />
   <Esperienza />
 
   <div class="dopo">

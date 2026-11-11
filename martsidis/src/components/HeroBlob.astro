@@ -25,30 +25,35 @@ function blobPath(punti: number, raggi: number[], cx = 200, cy = 200): string {
   return d + 'Z';
 }
 
+interface Props {
+  /** suffisso per rendere unici gli id dei gradienti quando il componente compare più volte */
+  uid?: string;
+}
+const { uid = 'a' } = Astro.props;
 const forma = blobPath(9, [150, 162, 146, 170, 152, 160, 144, 166, 156]);
 const riflesso = blobPath(7, [70, 78, 66, 82, 72, 76, 68], 160, 150);
 ---
 
 <svg class="hero-blob" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
   <defs>
-    <radialGradient id="hb-corpo" cx="36%" cy="30%" r="78%">
+    <radialGradient id={`hb-corpo-${uid}`} cx="36%" cy="30%" r="78%">
       <stop offset="0" stop-color="#efe8f5"></stop>
       <stop offset="0.38" stop-color="var(--c-plum-300)"></stop>
       <stop offset="1" stop-color="var(--c-plum-500)"></stop>
     </radialGradient>
-    <radialGradient id="hb-salvia" cx="50%" cy="50%" r="50%">
+    <radialGradient id={`hb-salvia-${uid}`} cx="50%" cy="50%" r="50%">
       <stop offset="0" stop-color="var(--c-sage-200)" stop-opacity="0.95"></stop>
       <stop offset="1" stop-color="var(--c-sage-200)" stop-opacity="0"></stop>
     </radialGradient>
-    <radialGradient id="hb-ombra" cx="50%" cy="50%" r="50%">
+    <radialGradient id={`hb-ombra-${uid}`} cx="50%" cy="50%" r="50%">
       <stop offset="0" stop-color="var(--c-plum-700)" stop-opacity="0.16"></stop>
       <stop offset="1" stop-color="var(--c-plum-700)" stop-opacity="0"></stop>
     </radialGradient>
   </defs>
-  <ellipse cx="205" cy="372" rx="150" ry="20" fill="url(#hb-ombra)"></ellipse>
+  <ellipse cx="205" cy="372" rx="150" ry="20" fill={`url(#hb-ombra-${uid})`}></ellipse>
   <g class="hero-blob__corpo">
-    <path d={forma} fill="url(#hb-corpo)"></path>
-    <path d={riflesso} fill="url(#hb-salvia)"></path>
+    <path d={forma} fill={`url(#hb-corpo-${uid})`}></path>
+    <path d={riflesso} fill={`url(#hb-salvia-${uid})`}></path>
     <path d={forma} fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="2"></path>
   </g>
 </svg>

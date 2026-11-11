@@ -54,7 +54,7 @@ const faq = [
   <PageHero
     titolo="Prenota una visita"
     eyebrow="Su appuntamento"
-    lead="Basta un messaggio o una telefonata. Non deve compilare moduli né spiegare il motivo della visita: lo farà, se vorrà, con il Dottore."
+    lead="Un messaggio, una telefonata o la prenotazione online: scelga Lei. Non deve compilare moduli né spiegare il motivo della visita."
     contatti={false}
   />
 
@@ -73,6 +73,14 @@ const faq = [
         <p>Preferisce parlare con qualcuno? Chiami questo numero:</p>
         <p class="numero"><a href={telefonoHref}>{sito.telefono.visualizzato}</a></p>
         <Button href={telefonoHref} icon="phone" size="lg" variant="secondary" block>{t('cta.call')}</Button>
+      </article>
+      <article class="opzione">
+        <span class="opzione__icona"><Icon name="calendar-check" size={28} /></span>
+        <h3>Su MioDottore</h3>
+        <p>Preferisce fare da sola? Prenoti online dal profilo del Dottore su MioDottore.</p>
+        <Button href={sito.mioDottore} iconRight="external-link" size="lg" variant="secondary" external block>
+          Apri MioDottore
+        </Button>
       </article>
     </div>
   </Section>
@@ -118,9 +126,9 @@ const faq = [
     display: grid;
     gap: var(--space-5);
   }
-  @media (min-width: 52rem) {
+  @media (min-width: 60rem) {
     .opzioni {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
     }
   }
   .opzione {

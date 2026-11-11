@@ -2,7 +2,6 @@
 /** Colonna laterale delle pagine informative: contatto rapido, indice della pagina, rimando al modello 3D. */
 import Icon from './Icon.astro';
 import Button from './Button.astro';
-import { whatsappHref, telefonoHref } from '@/lib/contatti';
 import { sito } from '@/data/sito';
 import { useTranslations } from '@/i18n';
 
@@ -49,8 +48,7 @@ const t = useTranslations();
   <div class="aside__box aside__box--contatti">
     <p class="aside__titolo">Vuole parlarne con il Dottore?</p>
     <p class="aside__testo">Si riceve su appuntamento in {sito.indirizzo.via}, Cagliari.</p>
-    <Button href={whatsappHref} icon="whatsapp" external block>{t('cta.whatsapp')}</Button>
-    <Button href={telefonoHref} icon="phone" variant="secondary" block>{sito.telefono.visualizzato}</Button>
+    <Button href="/prenota-una-visita/" icon="calendar-check" block data-prenota>{t('cta.book')}</Button>
   </div>
 
 </aside>

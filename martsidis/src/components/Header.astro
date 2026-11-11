@@ -63,7 +63,12 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
               </li>
             ) : (
               <li class:list={['nav__item', { 'is-active': isActive(voce.href) }]}>
-                <a href={voce.href} class="nav__link" aria-current={path === voce.href ? 'page' : undefined}>
+                <a
+                  href={voce.href}
+                  class="nav__link"
+                  aria-current={path === voce.href ? 'page' : undefined}
+                  data-prenota={voce.href === '/prenota-una-visita/' ? '' : undefined}
+                >
                   {voce.label}
                 </a>
               </li>

@@ -25,7 +25,7 @@ I cookie sono piccoli file che un sito salva nel browser, ad esempio per ricorda
 Alcuni elementi si attivano solo se è Lei a sceglierlo:
 
 - **"Mostra la mappa interattiva"** carica la mappa da OpenStreetMap, che riceve il Suo indirizzo IP e potrebbe utilizzare propri strumenti tecnici;
-- i link a **WhatsApp**, **Google Maps** e alla **scheda Google** con le recensioni La portano su siti esterni, che applicano le proprie regole sui cookie.
+- i link a **WhatsApp**, **MioDottore**, **Google Maps** e alla **scheda Google** con le recensioni La portano su siti esterni, che applicano le proprie regole sui cookie.
 
 ## Come gestire i cookie
 

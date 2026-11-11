@@ -130,6 +130,7 @@ Tutte seguono lo schema: *non è un problema raro → sintomi → cause → diag
 ## 8. Altre pagine
 
 ### Prenota una visita (`/prenota-una-visita/`)
+- [ ] **MioDottore**: la prenotazione online dal profilo è attiva? Sul sito compare come terza scelta ("Prenoti online dal profilo del Dottore"), accanto a WhatsApp e telefono.
 - [ ] FAQ su disdette e prenotazione per altre persone.
 - [ ] Consiglio di non inviare referti su WhatsApp.
 

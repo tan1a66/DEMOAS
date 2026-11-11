@@ -32,6 +32,8 @@ Il messaggio WhatsApp precompilato non contiene informazioni sulla Sua salute. L
 
 WhatsApp è un servizio di WhatsApp Ireland Limited (gruppo Meta), che tratta i dati come titolare autonomo secondo la propria informativa.
 
+Se sceglie di prenotare su MioDottore, il link La porta sul sito di MioDottore (gruppo Docplanner), che tratta i dati della prenotazione come titolare autonomo secondo la propria informativa.
+
 *Base giuridica:* misure precontrattuali richieste da Lei (art. 6, par. 1, lett. b GDPR); per eventuali dati relativi alla salute che decida di comunicarci, finalità di cura (art. 9, par. 2, lett. h GDPR).
 
 ### Mappa interattiva

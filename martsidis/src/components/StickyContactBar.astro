@@ -1,21 +1,15 @@
 ---
-/** Barra fissa in basso, solo su mobile/tablet: WhatsApp e Chiama sempre a un tocco. */
+/** Barra fissa in basso, solo su mobile/tablet: "Prenota una visita" sempre a un tocco (apre la scelta). */
 import Icon from './Icon.astro';
-import { whatsappHref, telefonoHref } from '@/lib/contatti';
 import { useTranslations } from '@/i18n';
 
 const t = useTranslations();
 ---
 
 <nav class="contactbar no-print" aria-label={t('a11y.contactbar')}>
-  <a class="contactbar__btn contactbar__btn--wa" href={whatsappHref} target="_blank" rel="noopener">
-    <Icon name="whatsapp" size={24} />
-    <span>{t('cta.whatsapp.short')}</span>
-    <span class="visually-hidden">{t('a11y.newwindow')}</span>
-  </a>
-  <a class="contactbar__btn contactbar__btn--tel" href={telefonoHref}>
-    <Icon name="phone" size={22} />
-    <span>{t('cta.call')}</span>
+  <a class="contactbar__btn" href="/prenota-una-visita/" data-prenota>
+    <Icon name="calendar-check" size={22} />
+    <span>{t('cta.book')}</span>
   </a>
 </nav>
 
@@ -24,9 +18,6 @@ const t = useTranslations();
     position: fixed;
     inset: auto 0 0 0;
     z-index: 40;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
     padding: var(--space-2) var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
     background: rgb(251 248 243 / 0.94);
     backdrop-filter: blur(10px);
@@ -46,21 +37,14 @@ const t = useTranslations();
     gap: 0.55em;
     min-height: 3.25rem;
     border-radius: var(--radius-pill);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
     font-weight: 700;
     font-size: 1.0625rem;
     text-decoration: none;
   }
-  .contactbar__btn--wa {
-    background: var(--color-primary);
-    color: var(--color-on-primary);
-  }
-  .contactbar__btn--wa:hover {
+  .contactbar__btn:hover {
     color: var(--color-on-primary);
     background: var(--color-primary-hover);
-  }
-  .contactbar__btn--tel {
-    background: var(--color-surface);
-    color: var(--color-primary);
-    border: 2px solid var(--c-plum-300);
   }
 </style>

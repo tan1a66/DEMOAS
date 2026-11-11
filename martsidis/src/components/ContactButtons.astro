@@ -1,28 +1,28 @@
 ---
+/** Pulsante "Prenota una visita": apre la scelta tra WhatsApp, telefono e MioDottore (PrenotaDialog). */
 import Button from './Button.astro';
-import { whatsappHref, telefonoHref } from '@/lib/contatti';
-import { sito } from '@/data/sito';
 import { useTranslations } from '@/i18n';
 
 interface Props {
   size?: 'md' | 'lg';
-  /** Mostra il numero nel pulsante "Chiama" */
-  showNumber?: boolean;
-  /** Variante del secondo pulsante */
+  /** 'light' per gli sfondi scuri */
   secondary?: 'secondary' | 'light';
   align?: 'start' | 'center';
 }
 
-const { size = 'lg', showNumber = false, secondary = 'secondary', align = 'start' } = Astro.props;
+const { size = 'lg', secondary = 'secondary', align = 'start' } = Astro.props;
 const t = useTranslations();
 ---
 
 <div class:list={['contact-buttons', `contact-buttons--${align}`]}>
-  <Button href={whatsappHref} size={size} icon="whatsapp" external variant={secondary === 'light' ? 'light' : 'primary'}>
-    {t('cta.whatsapp')}
-  </Button>
-  <Button href={telefonoHref} size={size} icon="phone" variant={secondary}>
-    {showNumber ? `${t('cta.call')} ${sito.telefono.visualizzato}` : t('cta.call')}
+  <Button
+    href="/prenota-una-visita/"
+    size={size}
+    icon="calendar-check"
+    variant={secondary === 'light' ? 'light' : 'primary'}
+    data-prenota
+  >
+    {t('cta.book')}
   </Button>
 </div>
 
@@ -34,10 +34,5 @@ const t = useTranslations();
   }
   .contact-buttons--center {
     justify-content: center;
-  }
-  @media (max-width: 30rem) {
-    .contact-buttons > :global(.btn) {
-      flex: 1 1 100%;
-    }
   }
 </style>

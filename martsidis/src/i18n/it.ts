@@ -24,7 +24,7 @@ export const it = {
   'cta.book': 'Prenota una visita',
   'cta.title': 'Vuole parlarne con il Dottore?',
   'cta.text':
-    'Può scrivere su WhatsApp o chiamare per fissare una visita. Il messaggio precompilato non contiene nulla sul motivo della visita: aggiunge Lei solo quello che desidera.',
+    'Può prenotare con un messaggio WhatsApp, una telefonata o online su MioDottore. Il messaggio WhatsApp è già pronto e non dice nulla sul motivo della visita.',
 
   'note.divulgativa': 'Le informazioni di questa pagina sono divulgative e non sostituiscono una visita medica.',
   'note.modello': 'Rappresentazione semplificata a scopo divulgativo.',

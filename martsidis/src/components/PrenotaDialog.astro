@@ -1,0 +1,192 @@
+---
+/**
+ * "Prenota una visita": la paziente sceglie come (WhatsApp, telefono, MioDottore).
+ * Si apre da qualsiasi elemento con l'attributo data-prenota (pulsanti, barra mobile, voce di menu).
+ * Senza JavaScript quei link portano alla pagina /prenota-una-visita/, che offre le stesse tre scelte.
+ * [DA VERIFICARE] la prenotazione online su MioDottore è attiva?
+ */
+import Icon from './Icon.astro';
+import { sito } from '@/data/sito';
+import { whatsappHref, telefonoHref } from '@/lib/contatti';
+import { useTranslations } from '@/i18n';
+
+const t = useTranslations();
+---
+
+<dialog class="prenota" id="prenota-dialog" aria-labelledby="prenota-titolo">
+  <div class="prenota__dentro">
+    <div class="prenota__testa">
+      <h2 id="prenota-titolo">Come preferisce prenotare?</h2>
+      <form method="dialog">
+        <button class="prenota__chiudi" aria-label="Chiudi"><Icon name="x" size={24} /></button>
+      </form>
+    </div>
+    <ul class="prenota__opzioni" role="list">
+      <li>
+        <a class="prenota__opz" href={whatsappHref} target="_blank" rel="noopener">
+          <span class="prenota__icona"><Icon name="whatsapp" size={26} /></span>
+          <span class="prenota__testo">
+            <strong>WhatsApp</strong>
+            <span>Messaggio già pronto, senza il motivo della visita</span>
+          </span>
+          <span class="visually-hidden">{t('a11y.newwindow')}</span>
+        </a>
+      </li>
+      <li>
+        <a class="prenota__opz" href={telefonoHref}>
+          <span class="prenota__icona"><Icon name="phone" size={24} /></span>
+          <span class="prenota__testo">
+            <strong>Telefono</strong>
+            <span>{sito.telefono.visualizzato}</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a class="prenota__opz" href={sito.mioDottore} target="_blank" rel="noopener">
+          <span class="prenota__icona"><Icon name="calendar-check" size={24} /></span>
+          <span class="prenota__testo">
+            <strong>MioDottore</strong>
+            <span>Prenoti online dal profilo del Dottore</span>
+          </span>
+          <span class="visually-hidden">{t('a11y.newwindow')}</span>
+        </a>
+      </li>
+    </ul>
+    <p class="prenota__nota">Si riceve su appuntamento in {sito.indirizzo.via}, Cagliari.</p>
+  </div>
+</dialog>
+
+<script>
+  // Un solo ascoltatore per tutto il documento (anche se lo script viene rieseguito, es. nell'anteprima in un file).
+  const w = window as Window & { __prenota?: boolean };
+  if (!w.__prenota) {
+    w.__prenota = true;
+    document.addEventListener('click', (e) => {
+      const el = e.target as Element | null;
+      const dialog = document.getElementById('prenota-dialog') as HTMLDialogElement | null;
+      if (!el || !dialog || typeof dialog.showModal !== 'function') return;
+      if (el.closest('[data-prenota]')) {
+        e.preventDefault();
+        document.querySelector<HTMLButtonElement>('[data-menu-toggle][aria-expanded="true"]')?.click();
+        if (!dialog.open) dialog.showModal();
+      } else if (el === dialog || el.closest('.prenota__opz')) {
+        dialog.close(); // clic fuori dalla scheda, oppure scelta fatta
+      }
+    });
+  }
+</script>
+
+<style>
+  .prenota {
+    width: min(30rem, calc(100% - 2rem));
+    max-height: calc(100dvh - 2rem);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 0 24px 80px rgb(45 30 60 / 0.35);
+    overflow: auto;
+  }
+  .prenota::backdrop {
+    background: rgb(45 30 60 / 0.5);
+  }
+  .prenota__dentro {
+    padding: var(--space-5) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  }
+  .prenota__testa {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .prenota__testa h2 {
+    margin: 0;
+    font-size: 1.6rem;
+  }
+  .prenota__chiudi {
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    border: 1.5px solid var(--c-plum-300);
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-primary);
+    cursor: pointer;
+  }
+  .prenota__opzioni {
+    display: grid;
+    gap: var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .prenota__opz {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: 4.5rem;
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    transition:
+      border-color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+  .prenota__opz:hover {
+    border-color: var(--color-primary);
+    background: var(--c-plum-50);
+    color: var(--color-text);
+  }
+  .prenota__icona {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .prenota__testo {
+    display: grid;
+    line-height: 1.35;
+  }
+  .prenota__testo strong {
+    font-size: 1.2rem;
+    color: var(--color-heading);
+  }
+  .prenota__testo span {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  .prenota__nota {
+    margin: var(--space-4) 0 0;
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+  /* telefono: scheda che sale dal basso */
+  @media (max-width: 40rem) {
+    .prenota {
+      width: 100%;
+      max-width: none;
+      margin: auto 0 0;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .prenota[open] {
+      animation: prenota-sale 260ms var(--ease);
+    }
+  }
+  @keyframes prenota-sale {
+    from {
+      transform: translateY(1.5rem);
+    }
+  }
+</style>

@@ -165,10 +165,18 @@ node scripts/genera-og.cjs                     # immagine social (richiede Playw
 ## 5. Il modello 3D e l'esperienza della Home
 
 - **Modello anatomico**: `public/models/pelvi.glb`, generato da codice con `npm run modello` (script in `scripts/modello/`: forme SDF → mesh → GLB quantizzato e compresso con Meshopt, ~300 kB). Nodi: `bacino`, `pavimento` (morph target `cedimento`, `iato`, `tensione`), `vescica` (con ureteri), `utero` (con tube e ovaie), `vagina`, `retto` (con sigma). Si può sostituire con un `.glb` fatto in Blender che usi gli stessi nomi.
-- **Esperienza in Home** (`src/components/Esperienza.astro` + `src/three/esperienza/scena.ts`): la palla iniziale diventa l'utero e, scorrendo, gli organi si compongono attorno; poi l'**anello delle problematiche** gira attorno al modello (scroll, clic sulle voci, deep link `/#prolasso`), il modello mostra lo stato e si può ruotare trascinando.
+- **Esperienza in Home** (`src/components/Esperienza.astro` + `src/three/esperienza/scena.ts`):
+  - la **massa iniziale è fatta delle parti stesse del modello**: nasce crescendo e, scorrendo, ogni parte si sposta verso la sua forma e il suo colore. È una trasformazione continua, senza dissolvenze e senza una versione statica "prima" del 3D;
+  - il **disegno ha sempre un suo spazio**: su desktop la colonna destra di ogni sezione (`[data-esp-area]`), su telefono un palco fisso sotto l'intestazione (`.esp__sipario`, altezza `--stage-h`). I testi non gli passano mai sopra;
+  - l'**anello delle problematiche** gira attorno al modello (scroll, clic sulle voci, deep link `/#prolasso`): le voci davanti passano sotto il modello, quelle dietro rimpiccioliscono e spariscono dietro di lui. Lo spazio del modello è calcolato in modo che le voci non lo tocchino;
+  - il modello si ruota trascinando (su touch in orizzontale: lo scroll verticale resta libero).
 - **Testi e stati** dell'anello: `src/three/pelvi/stati.ts` (`PROBLEMATICHE` e `PARAMETRI`).
-- Il 3D parte solo alla prima interazione o dopo qualche secondo; senza WebGL, con "riduci movimento" o con `?no3d` si vede la versione statica (elenco leggibile).
+- **Quando il 3D non può partire** (movimento ridotto, niente WebGL, `?no3d`): disegno statico e problematiche come elenco leggibile.
+- **iPhone**: la tela 3D è alta `100lvh` (non cambia quando la barra di Safari compare o scompare), le misure usano `svh`, i margini di sicurezza sono rispettati.
 - Controllo visivo del modello: `npx serve .` e aprire `/scripts/modello/visualizza.html?az=0.9&el=0.3`.
+
+### Prenota una visita
+Ogni pulsante "Prenota una visita" (anche la barra in basso su mobile e la voce di menu) apre una scelta tra **WhatsApp, telefono e MioDottore** (`src/components/PrenotaDialog.astro`; si apre da qualsiasi elemento con `data-prenota`). Senza JavaScript gli stessi link portano alla pagina `/prenota-una-visita/`, che offre le stesse tre scelte.
 
 ## 6. Pubblicare
 
