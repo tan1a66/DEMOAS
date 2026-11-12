@@ -60,7 +60,7 @@ const PARTI: Record<string, { colore: string }> = {
 };
 
 /** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
-const CAMMINO = { partenza: -5, durata: 3.4, falcate: 0.95 };
+const CAMMINO = { partenza: -6, durata: 5.2, falcate: 0.62 }; // passo lento
 
 export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}, { cammina = false } = {}) {
   const stage = creaStage(host, { fov: 30, continuo: false });
@@ -164,6 +164,10 @@ vec3 rotX(vec3 p, vec3 c, float a) {
   vec3 d = p - c; float co = cos(a), si = sin(a);
   return c + vec3(d.x, d.y * co - d.z * si, d.y * si + d.z * co);
 }
+vec3 rotZ(vec3 p, vec3 c, float a) {
+  vec3 d = p - c; float co = cos(a), si = sin(a);
+  return c + vec3(d.x * co - d.y * si, d.x * si + d.y * co, d.z);
+}
 vec3 cammina(vec3 p) {
   float s = p.x >= 0.0 ? 1.0 : -1.0;
   float fi = uFase + (s > 0.0 ? 0.0 : 3.14159);
@@ -180,9 +184,15 @@ vec3 cammina(vec3 p) {
   float wk = 1.0 - smoothstep(-5.1, -4.2, p.y);
   p = rotX(p, vec3(0.0, -4.6, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
   p = rotX(p, vec3(0.0, 0.3, -0.06), -uPasso * 0.36 * sin(fi) * wl);
+  // un piede davanti all'altro: la gamba si porta verso il centro, come in passerella
+  p = rotZ(p, vec3(0.0, 0.3, 0.0), -s * uPasso * 0.075 * wl);
   // braccia: oscillano avanti e indietro, opposte alla gamba dello stesso lato, gomito appena piegato
   p = rotX(p, vec3(0.0, 2.15, -0.22), -uPasso * (0.06 + 0.2 * max(0.0, -sin(fi))) * we);
-  return rotX(p, sp, uPasso * 0.38 * sin(fi) * wa);
+  p = rotX(p, sp, uPasso * 0.28 * sin(fi) * wa);
+  // ondeggiare dei fianchi verso la gamba d'appoggio (svanisce verso i piedi e verso le spalle)
+  float fianchi = smoothstep(-8.5, -0.5, p.y) * (1.0 - smoothstep(2.0, 4.8, p.y));
+  p.x -= uPasso * 0.13 * sin(uFase) * fianchi;
+  return p;
 }`)
         .replace('#include <project_vertex>', `vec4 mondoC = modelMatrix * vec4(transformed, 1.0);
 float cg = cos(uGruppoRot), sg = sin(uGruppoRot);
@@ -191,7 +201,7 @@ fC = vec3(cg * fC.x - sg * fC.z, fC.y, sg * fC.x + cg * fC.z);
 fC = cammina(fC);
 // capelli: più si scende verso le punte più ondeggiano; camminando restano un po' indietro
 float lunghi = uOnda * (1.0 - smoothstep(2.4, 7.0, fC.y));
-fC.z -= lunghi * uPasso * 0.28;
+fC.z -= lunghi * uPasso * 0.16;
 fC.x += lunghi * uOndaAmp * 0.12 * sin(uOndaT * 3.1 + fC.y * 1.7);
 fC.z += lunghi * uOndaAmp * 0.1 * sin(uOndaT * 2.3 + fC.x * 2.0 + 1.3);
 fC.y += lunghi * uPasso * 0.05 * cos(uFase * 2.0);
@@ -311,7 +321,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     const frena = 1 - Math.pow(1 - q, 2.2);
     const passo = 1 - smooth(0.62, 0.97, q);
     fase += dt * Math.PI * 2 * CAMMINO.falcate * (0.35 + 0.65 * passo);
-    gruppo.position.set(CAMMINO.partenza * (1 - frena), Math.abs(Math.cos(fase)) * 0.1 * passo, 0);
+    gruppo.position.set(CAMMINO.partenza * (1 - frena), Math.abs(Math.cos(fase)) * 0.06 * passo, 0);
     gruppo.rotation.y = (Math.PI / 2) * (1 - smooth(0.55, 1, q));
     pelle.uFase.value = fase;
     pelle.uPasso.value = passo;
@@ -348,7 +358,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
 
     for (const nome of Object.keys(PARTI)) {
       const o = parti[nome];
-      if (o) o.position.copy(base[nome]!.pos);
+      if (o) o.position.copy(base[nome]!.pos).setX(base[nome]!.pos.x - 0.13 * Math.sin(fase) * passo); // gli organi seguono i fianchi
     }
     if (materiali.bacino) materiali.bacino.opacity = 0.42 * att.opacita;
 

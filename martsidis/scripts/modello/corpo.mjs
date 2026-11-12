@@ -2,7 +2,7 @@
 // Proporzioni realistiche ma senza dettagli del viso; capelli raccolti in uno chignon basso.
 // Le braccia sono staccate dai fianchi (si uniscono solo alla spalla): così camminando oscillano
 // avanti e indietro senza trascinare la pelle dei fianchi.
-import { smin, smax, ellissoide, cono } from './sdf.mjs';
+import { smin, smax, smoothstep, ellissoide, cono } from './sdf.mjs';
 
 const gamba = (x, y, z, s) => {
   let d = cono(x, y, z, s * 0.94, 0.2, -0.06, s * 0.6, -4.6, 0.04, 0.86, 0.42); // coscia piena
@@ -54,8 +54,10 @@ export function corpo(x, y, z) {
 // Viso libero; la parte dentro il corpo è tolta (così si vede solo fuori).
 export function capelli(x, y, z) {
   let d = ellissoide(x, y - 7.25, z + 0.08, 0.78, 0.95, 0.9); // calotta
-  d = smin(d, ellissoide(x, y - 6.3, z + 0.64, 0.86, 1.3, 0.42), 0.4); // dietro la testa
-  d = smin(d, ellissoide(x, y - 4.3, z + 1.12, 1.02, 2.1, 0.32), 0.45); // lungo la schiena
+  // un'unica chioma dalla nuca a metà schiena: segue la curva della testa e poi della schiena, senza giunture
+  const zc = -1.05 + 0.55 * smoothstep(4.0, 7.2, y) + 0.12 * smoothstep(3.6, 2.4, y);
+  const chioma = cono(x, y, (z - zc) * 2.3, 0, 7.3, 0, 0, 2.5, 0, 0.82, 0.82) / 1.7; // punte che si assottigliano
+  d = smin(d, chioma, 0.7);
   d = smin(d, ellissoide(Math.abs(x) - 0.68, y - 6.0, z + 0.04, 0.24, 1.3, 0.36), 0.28); // ciocche ai lati del viso
   d = smax(d, -ellissoide(x, y - 6.8, z - 0.6, 0.55, 0.85, 0.62), 0.08); // viso libero
   d = smax(d, -ellissoide(x, y - 8.12, z - 0.1, 0.03, 0.1, 0.6), 0.03); // riga in mezzo
