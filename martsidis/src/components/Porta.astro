@@ -245,8 +245,8 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
     30% {
-      /* sulla soglia, un po' a sinistra: dallo spiraglio la parete di destra con il quadro e le sedie */
-      transform: rotateY(28deg) translate3d(-44.9vh, 52vh, 76.3vh);
+      /* come nella pianta: fuori, una porta di distanza e un po' a sinistra, in diagonale nel vano verso il quadro */
+      transform: rotateY(28deg) translate3d(-36.9vh, 52vh, 58.3vh);
       animation-timing-function: linear;
     }
     64% {
@@ -308,7 +308,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
 
   /* il corridoio sta nella scena davanti: varcata la soglia (dopo ~1,6 s) non serve più e si nasconde */
   .porta--aperta .fuori {
-    animation: fuori-via 0.01s linear 1.6s forwards;
+    animation: fuori-via 0.01s linear 2.1s forwards;
   }
   @keyframes fuori-via {
     to {
@@ -346,7 +346,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   .porta--aperta .luce-corridoio {
     animation:
       luce-entra 1.2s ease 0.3s forwards,
-      fuori-via 0.01s linear 1.6s forwards;
+      fuori-via 0.01s linear 2.1s forwards;
   }
   @keyframes luce-entra {
     to {
