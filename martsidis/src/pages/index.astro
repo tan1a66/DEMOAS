@@ -48,7 +48,7 @@ const servizi = [
     </Section>
 
     <Section id="servizi" tone="alt">
-      <p class="eyebrow">Nello studio</p>
+      <p class="eyebrow servizi__occhiello">Nello studio</p>
       <ul class="servizi" role="list">
         {
           servizi.map((s) => (
@@ -92,18 +92,19 @@ const servizi = [
   .servizi {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.2em 0.9em;
-    margin: 0;
+    justify-content: center;
+    gap: 0.15em 0.75em;
+    max-width: 22em;
+    margin: 0 auto;
+    text-align: center;
     padding: 0;
     list-style: none;
     font-family: var(--font-heading);
-    font-size: clamp(1.7rem, 1.2rem + 2.4vw, 3.4rem);
+    font-size: clamp(1.6rem, 1.1rem + 2.4vw, 3.2rem);
     line-height: 1.15;
   }
-  .servizi li:not(:last-child)::after {
-    content: '·';
-    margin-left: 0.9em;
-    color: var(--c-plum-300);
+  .servizi__occhiello {
+    text-align: center;
   }
   .servizi a {
     color: var(--color-heading);

@@ -115,23 +115,18 @@ const legenda = [
   </section>
 
   <section class="esp-percorso" data-esp="percorso" id="riabilitazione" aria-labelledby="percorso-titolo">
-    <div class="esp-fisso">
-      <div class="container esp-due">
-        <div class="esp-col-testo">
-          <h2 id="percorso-titolo">Il percorso di cura parte sempre dal più semplice.</h2>
-          <ol class="esp-passi">
-            <li><strong>Prenota.</strong> Non serve spiegare il motivo, se non vuole.</li>
-            <li><strong>La visita, con calma.</strong> Prima si parla, poi la visita: ogni passaggio viene spiegato.</li>
-            <li>
-              <strong>Le possibilità di cura.</strong> Abitudini, riabilitazione, terapie e, solo se serve, un intervento.
-              Decide insieme al Dottore.
-            </li>
-          </ol>
-          <div class="esp-solo-desktop">
-            <Button href="/prenota-una-visita/" size="lg" data-prenota>{t('cta.book')}</Button>
-          </div>
-        </div>
-        <div class="esp-area" data-esp-area aria-hidden="true"></div>
+    <div class="container">
+      <h2 id="percorso-titolo">Il percorso di cura parte sempre dal più semplice.</h2>
+      <ol class="esp-passi">
+        <li><span class="esp-passi__n" aria-hidden="true">01</span><strong>Prenota.</strong> Non serve spiegare il motivo, se non vuole.</li>
+        <li><span class="esp-passi__n" aria-hidden="true">02</span><strong>La visita, con calma.</strong> Prima si parla, poi la visita: ogni passaggio viene spiegato.</li>
+        <li>
+          <span class="esp-passi__n" aria-hidden="true">03</span><strong>Le possibilità di cura.</strong> Abitudini, riabilitazione, terapie e, solo se serve, un intervento.
+          Decide insieme al Dottore.
+        </li>
+      </ol>
+      <div class="esp-percorso__cta">
+        <Button href="/prenota-una-visita/" size="lg" data-prenota>{t('cta.book')}</Button>
       </div>
     </div>
   </section>
@@ -247,7 +242,6 @@ const legenda = [
       const rComp = compone.getBoundingClientRect();
       const rOrb = orbita.getBoundingClientRect();
       const rPerc = percorso.getBoundingClientRect();
-      const rEsp = radice.getBoundingClientRect();
       const mid = (stick + vh) / 2;
       const quale = rPerc.top <= mid ? 'percorso' : rOrb.top <= mid ? 'orbita' : rComp.top <= mid ? 'compone' : 'hero';
 
@@ -277,13 +271,13 @@ const legenda = [
 
       let area: Area;
       // alla fine dell'esperienza il palco esce scorrendo insieme alla pagina
-      const esce = mobile ? Math.min(rEsp.bottom - (hH + palcoH), 0) : 0;
+      // finito l'anello il disegno sale e sparisce insieme alla sezione: il percorso ha tutta la pagina
+      const esce = Math.min(rOrb.bottom - vh, 0);
       const palcoArea = { x: 8, y: hH + 8 + esce, w: window.innerWidth - 16, h: palcoH - 16 };
-      if (quale === 'orbita') {
-        area = { x: geo.cx - geo.R, y: geo.cy - geo.R, w: geo.R * 2, h: geo.R * 2 };
+      if (quale === 'orbita' || quale === 'percorso') {
+        area = { x: geo.cx - geo.R, y: geo.cy - geo.R + esce, w: geo.R * 2, h: geo.R * 2 };
       } else if (mobile) {
-        if (quale === 'percorso') area = palcoArea;
-        else {
+        {
           // dalla posizione dietro al titolo allo spazio in alto, insieme alla trasformazione
           const r = zona.getBoundingClientRect();
           const t = ease(avanza);
@@ -296,14 +290,14 @@ const legenda = [
           };
         }
       } else {
-        const sezione = quale === 'hero' ? hero : quale === 'compone' ? compone : percorso;
+        const sezione = quale === 'hero' ? hero : compone;
         const r = sezione.querySelector<HTMLElement>('[data-esp-area]')!.getBoundingClientRect();
         const yc = hH + (vh - hH - r.height) / 2; // centrato nella fascia sotto l'intestazione
         const y = quale === 'hero' ? Math.max(r.top, yc) : quale === 'compone' ? yc : Math.min(r.top, yc);
         area = { x: r.left, y, w: r.width, h: r.height };
       }
       const stato: IdStato =
-        quale === 'orbita' ? PROBLEMATICHE[nuova]!.id : quale === 'percorso' ? 'riabilitazione' : 'normale';
+        quale === 'orbita' || quale === 'percorso' ? PROBLEMATICHE[nuova]!.id : 'normale';
       return { quale, montaggio, indice, nuova, apertura, area, stato, stick, corsa, mobile, palco, esce };
     };
     let ora = leggi();
@@ -720,28 +714,61 @@ const legenda = [
   .esp-compone__spazio {
     display: none;
   }
+  /* il percorso ha tutta la pagina: il disegno è già uscito scorrendo */
+  .esp-percorso {
+    position: relative;
+    z-index: 4;
+    background: var(--color-bg);
+  }
+  .esp-percorso h2 {
+    max-width: 16em;
+    margin-inline: auto;
+    text-align: center;
+  }
   .esp-passi {
     display: grid;
-    gap: var(--space-4);
-    margin: 0;
-    padding-left: 1.4rem;
-    max-width: 30em;
+    gap: var(--space-6);
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: none;
   }
-  .esp-passi li::marker {
+  .esp-passi li {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+  }
+  .esp-passi__n {
+    display: block;
+    margin-bottom: var(--space-3);
     font-family: var(--font-heading);
-    color: var(--color-link);
+    font-size: 2.6rem;
+    line-height: 1;
+    color: var(--c-plum-300);
+  }
+  .esp-passi strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 500;
+    font-size: 1.35rem;
+    color: var(--color-heading);
+    margin-bottom: 0.3rem;
+  }
+  .esp-percorso__cta {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-7);
   }
   @media (min-width: 64rem) {
     .esp-passi {
-      font-size: var(--fs-lead);
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-7);
     }
     .esp.is-3d .esp-compone {
       height: 220vh;
       padding: 0;
     }
-    .esp.is-3d .esp-percorso {
-      height: 150vh;
-      padding: 0;
+    .esp-percorso {
+      padding-block: calc(var(--section-y) * 1.4);
     }
     .esp.is-3d .esp-fisso {
       position: sticky;
@@ -766,9 +793,6 @@ const legenda = [
     .esp.is-3d .esp-compone__spazio {
       display: block;
       height: 62svh;
-    }
-    .esp.is-3d .esp-percorso {
-      padding-block: var(--space-7) var(--space-8);
     }
   }
 
