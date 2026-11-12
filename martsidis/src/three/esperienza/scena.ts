@@ -199,11 +199,14 @@ float cg = cos(uGruppoRot), sg = sin(uGruppoRot);
 vec3 fC = mondoC.xyz - uGruppoPos;
 fC = vec3(cg * fC.x - sg * fC.z, fC.y, sg * fC.x + cg * fC.z);
 fC = cammina(fC);
-// capelli: più si scende verso le punte più ondeggiano; camminando restano un po' indietro
-float lunghi = uOnda * (1.0 - smoothstep(2.4, 7.0, fC.y));
-fC.z -= lunghi * uPasso * 0.16;
-fC.x += lunghi * uOndaAmp * 0.12 * sin(uOndaT * 3.1 + fC.y * 1.7);
-fC.z += lunghi * uOndaAmp * 0.1 * sin(uOndaT * 2.3 + fC.x * 2.0 + 1.3);
+// capelli: ondeggiano come in acqua. Un'onda scende dalla nuca alle punte (sfasata con l'altezza),
+// segue l'ondeggiare dei fianchi e, camminando, la chioma scivola indietro. Le punte si muovono di più.
+float lunghi = uOnda * pow(1.0 - smoothstep(2.4, 7.0, fC.y), 1.4);
+float giu = 7.0 - fC.y;
+fC.x += lunghi * uOndaAmp * 0.38 * sin(uOndaT * 2.1 - giu * 0.85);
+fC.x += lunghi * uPasso * 0.16 * sin(uFase - 0.9 - giu * 0.3);
+fC.z -= lunghi * uOndaAmp * 0.24 * (0.55 + 0.45 * sin(uOndaT * 1.6 - giu * 0.7 + 1.0));
+fC.z -= lunghi * uPasso * 0.32;
 fC.y += lunghi * uPasso * 0.05 * cos(uFase * 2.0);
 vec3 wC = vec3(cg * fC.x + sg * fC.z, fC.y, -sg * fC.x + cg * fC.z) + uGruppoPos;
 vec4 mvPosition = viewMatrix * vec4(wC, 1.0);
@@ -255,7 +258,9 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelleCorpo.add(sagoma);
   }
   // capelli: stessa palette, un viola più profondo e pieno; scrivono la profondità e si disegnano prima della pelle
-  vesti('capelli', materialePelle(tinta(c.plum500, 0.3).lerp(c.plum300, 0.25), c.plum700.clone(), 0.62, 0, true, 1), 4);
+  const matCapelli = materialePelle(tinta(c.plum500, 0.3).lerp(c.plum300, 0.25), c.plum700.clone(), 0.62, 0, true, 1);
+  matCapelli.roughness = 0.22; // un riflesso morbido che scorre sulla chioma mentre ondeggia
+  vesti('capelli', matCapelli, 4);
 
   const pavimento = parti.pavimento?.getObjectByName('pavimento_mesh') as Mesh | undefined;
   const morph = (nome: string, v: number) => {
@@ -328,7 +333,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelle.uGruppoPos.value.copy(gruppo.position);
     pelle.uGruppoRot.value = gruppo.rotation.y;
     // l'ondeggiare dei capelli segue il passo e si spegne piano dopo che la figura si è fermata
-    onda = Math.max(passo, onda * Math.exp(-dt * 0.9));
+    onda = Math.max(passo, onda * Math.exp(-dt * 0.55)); // dopo l'arrivo i capelli si posano piano
     if (onda < 0.01) onda = 0;
     pelle.uOndaAmp.value = onda;
     pelle.uOndaT.value += dt;
