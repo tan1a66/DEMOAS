@@ -1,13 +1,14 @@
 ---
 /**
- * Entrata del sito:
- * 1. la porta dello studio è chiusa: legno, maniglia a sinistra, targa in ottone al centro con le stesse
- *    diciture di quella vera, e il pulsante "ENTRA";
- * 2. toccando "ENTRA" la porta si apre (cardine a destra, verso l'interno) e si intravede lo studio,
- *    disegnato in prospettiva: parete con il quadro dei fiori bianchi, le due sedie grigie;
- * 3. la camera avanza ed entra nel quadro dei fiori: è lì che la ragazza cammina; poi resta la Home.
-* Ogni volta che si apre la Home; mai con "riduci movimento". Senza JavaScript "ENTRA" è un link
- * e l'apertura è solo CSS (:target).
+ * Entrata del sito, come un piccolo film in 3D (CSS 3D: un mondo con pareti, porta, sedie, e una camera che si muove).
+ * 1. Primissimo piano della porta dello studio: legno, maniglia a sinistra, targa in ottone (stesse diciture della
+ *    targa vera) al centro dello schermo, e il pulsante "ENTRA".
+ * 2. La porta (misura normale, ~90 cm) si socchiude di ~60 cm; la camera arretra appena e passa nello spiraglio.
+ * 3. Dentro, la camera guarda a destra: sulla parete di destra il quadro dei fiori bianchi e sotto le quattro sedie;
+ *    in fondo a sinistra il passaggio verso lo studio del Dottore (scrivania, lettino). Inquadrature di scorcio.
+ * 4. La camera entra nel quadro: i fiori diventano lo sfondo dove la ragazza cammina; poi resta la Home.
+ * Ogni volta che si apre la Home; mai con "riduci movimento". Senza JavaScript "ENTRA" funziona lo stesso.
+ * Unità: 1vh ≈ 2,7 cm (la stanza è alta 100vh). Origine: centro della porta sul pavimento; y verso il basso.
  */
 
 // Fiori del quadro (sempre uguali): bianchi con il cuore dorato, su fondo tortora
@@ -24,14 +25,21 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
 
 <div class="porta" data-porta>
   <span id="benvenuta" class="porta__ancora"></span>
-  <div class="porta__scena">
-    <!-- lo studio, in 3D: una stanza vera (pareti, pavimento, soffitto). Davanti alla porta la parete con il
-         quadro dei fiori e, sotto, le due sedie -->
-    <div class="porta__studio" aria-hidden="true">
-      <!-- parete davanti alla porta, più larga: a sinistra il passaggio verso lo studio del Dottore -->
-      <div class="f f-fondo f-fondo--a"></div>
-      <div class="f f-fondo f-fondo--b"></div>
-      <div class="f f-fondo f-fondo--c">
+  <div class="porta__scena" aria-hidden="true">
+    <div class="mondo">
+      <!-- corridoio: il muro con il vano della porta -->
+      <div class="m muro-fuori muro-fuori--sx"></div>
+      <div class="m muro-fuori muro-fuori--dx"></div>
+      <div class="m muro-fuori muro-fuori--su"></div>
+      <div class="m stipite stipite--sx"></div>
+      <div class="m stipite stipite--dx"></div>
+      <div class="m stipite stipite--su"></div>
+
+      <!-- la sala d'attesa -->
+      <div class="m pav"></div>
+      <div class="m soff"><span class="luce"></span></div>
+      <div class="m parete-sx"><span class="tavolino"></span></div>
+      <div class="m parete-dx">
         <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
           <defs>
             <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
@@ -54,8 +62,12 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
           }
         </svg>
       </div>
-      <!-- lo studio del Dottore, più in fondo: scrivania, poltrona, lettino -->
-      <div class="f f-ufficio">
+      <div class="m fondo fondo--a"></div>
+      <div class="m fondo fondo--b"></div>
+      <div class="m fondo fondo--c"></div>
+      <div class="m davanti"></div>
+      <!-- lo studio del Dottore, oltre il passaggio in fondo a sinistra -->
+      <div class="m ufficio">
         <svg viewBox="0 0 900 1000" preserveAspectRatio="xMidYMax slice">
           <defs>
             <linearGradient id="uf-muro" x1="0" y1="0" x2="0" y2="1">
@@ -108,47 +120,27 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
           </g>
         </svg>
       </div>
-      <div class="f f-ufficio-pav"></div>
-      <div class="f f-stipite f-stipite--sx"></div>
-      <div class="f f-stipite f-stipite--dx"></div>
-      <div class="f f-pav"></div>
-      <div class="f f-soff"><span class="luce"></span></div>
-      <div class="f f-sx"><span class="tavolino"></span></div>
-      <div class="f f-dx"></div>
-      {/* due sedie in 3D: seduta, schienale con spessore, gambe, ombra a terra */}
-      {
-        ['sedia sedia--1', 'sedia sedia--2'].map((c) => (
-          <div class={c}>
-            <span class="sd-ombra" />
-            <span class="sd-gamba sd-gamba--1" />
-            <span class="sd-gamba sd-gamba--2" />
-            <span class="sd-gamba sd-gamba--3" />
-            <span class="sd-gamba sd-gamba--4" />
-            <span class="sd-sopra" />
-            <span class="sd-fronte" />
-            <span class="sd-lato sd-lato--sx" />
-            <span class="sd-lato sd-lato--dx" />
-            <span class="sd-schienale" />
-            <span class="sd-schienale-lato sd-schienale-lato--sx" />
-            <span class="sd-schienale-lato sd-schienale-lato--dx" />
-            <span class="sd-schienale-cima" />
-          </div>
-        ))
-      }
-    </div>
-
-    <div class="porta__anta" aria-hidden="true">
-      <div class="porta__spessore"></div>
-      <div class="porta__venature"></div>
-      <div class="porta__targa">
-        <span class="porta__vite porta__vite--1"></span><span class="porta__vite porta__vite--2"></span>
-        <span class="porta__vite porta__vite--3"></span><span class="porta__vite porta__vite--4"></span>
-        <span class="porta__nome">Dott. Konstantinos Martsidis</span>
-        <span class="porta__ruolo">Medico Chirurgo</span>
-        <span class="porta__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
-        <span class="porta__piede"><span>Tel.: 3207903754</span><span>Riceve per appuntamento</span></span>
+      <div class="m ufficio-pav"></div>
+      <!-- quattro sedie sotto il quadro, contro la parete di destra -->
+      <div class="sedia sedia--1"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
+        <div class="sedia sedia--2"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
+        <div class="sedia sedia--3"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
+        <div class="sedia sedia--4"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
+        
+      <!-- la porta: cardine a destra, si apre verso l'interno -->
+      <div class="m anta">
+        <div class="anta__spessore"></div>
+        <div class="anta__venature"></div>
+        <div class="targa">
+          <span class="vite vite--1"></span><span class="vite vite--2"></span>
+          <span class="vite vite--3"></span><span class="vite vite--4"></span>
+          <span class="targa__nome">Dott. Konstantinos Martsidis</span>
+          <span class="targa__ruolo">Medico Chirurgo</span>
+          <span class="targa__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
+          <span class="targa__piede"><span>Tel.: 3207903754</span><span>Riceve per appuntamento</span></span>
+        </div>
+        <div class="maniglia"></div>
       </div>
-      <div class="porta__maniglia"></div>
     </div>
   </div>
   <!-- il quadro a tutto schermo: si entra nei fiori ed è lì che la donna cammina -->
@@ -189,18 +181,16 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
         e?.preventDefault();
         if (porta.classList.contains('porta--aperta')) return;
         porta.classList.add('porta--aperta');
-        // la porta si è aperta: si va verso il quadro dei fiori…
-        setTimeout(() => porta.classList.add('porta--quadro'), 2000);
-        // …e ci si entra: la donna cammina tra i fiori
+        // la camera è entrata nel quadro: la donna cammina tra i fiori
         setTimeout(() => {
           porta.classList.add('porta--dentro');
           html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 3700);
+        }, 5400);
         // quando si è fermata i fiori lasciano il posto alla Home
-        setTimeout(() => porta.classList.add('porta--via'), 10200);
-        setTimeout(salta, 11800);
+        setTimeout(() => porta.classList.add('porta--via'), 11900);
+        setTimeout(salta, 13500);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -215,7 +205,7 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: #f1ede6;
+    background: #e9e4dc;
     cursor: pointer;
     overflow: hidden;
   }
@@ -225,183 +215,201 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   .porta__scena {
     position: absolute;
     inset: 0;
-    perspective: 75vmax;
-    perspective-origin: 50% 45%;
-    transform-origin: 50% 50%;
+    perspective: 100vh;
+    perspective-origin: 50% 50%;
   }
-  /* — la stanza: profondità P, la parete di fondo è davanti alla porta — */
-  .porta__studio {
-    --P: 110vh;
+  /* il mondo: un punto al centro dello schermo; la camera è il suo transform (il mondo si muove al contrario) */
+  .mondo {
     position: absolute;
-    inset: 0;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
     transform-style: preserve-3d;
-    transition: transform 2.6s cubic-bezier(0.45, 0, 0.2, 1);
+    /* primissimo piano sulla targa */
+    transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
   }
-  /* aprendo si avanza un poco nella stanza */
-  .porta--aperta .porta__studio {
-    transform: translateX(24vw) translateZ(8vh); /* un passo avanti, lo sguardo verso lo studio a sinistra */
+  .porta--aperta .mondo,
+  .porta:has(.porta__ancora:target) .mondo {
+    animation: camera 5.4s cubic-bezier(0.4, 0, 0.35, 1) forwards;
   }
-  .f {
-    position: absolute;
+  /* rotateY(φ) translate3d(-C): C è il punto inquadrato al centro dello schermo, φ quanto si guarda a destra */
+  @keyframes camera {
+    0% {
+      transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
+    }
+    30% {
+      /* la porta si socchiude: un passo indietro, uno sguardo appena a destra */
+      transform: rotateY(12deg) translate3d(-24vh, 52vh, 36vh);
+    }
+    46% {
+      /* nello spiraglio, guardando avanti: la porta resta alle spalle */
+      transform: rotateY(15deg) translate3d(-18vh, 54vh, 141vh);
+    }
+    66% {
+      /* dentro, lo sguardo va a destra: il quadro e le sedie di scorcio */
+      transform: rotateY(55deg) translate3d(-72vh, 55vh, 112vh);
+    }
+    100% {
+      /* davanti al quadro, così vicini da entrarci */
+      transform: rotateY(90deg) translate3d(-107vh, 53vh, 80vh);
+    }
   }
-  /* la parete di fondo va da x = -60vw a 100vw; il passaggio verso lo studio è tra -48vw e -14vw */
-  .f-fondo {
-    top: 0;
-    height: 100%;
-    transform: translateZ(calc(var(--P) * -1));
-    background: linear-gradient(180deg, #f7f4ef, #ece7df);
-    box-shadow: inset 0 0 8vh rgb(90 70 50 / 0.1);
-  }
-  .f-fondo::after {
-    content: '';
+  .m {
     position: absolute;
     left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2.6%;
-    background: #d9d2c6; /* battiscopa */
-  }
-  .f-fondo--a {
-    left: -60vw;
-    width: 12vw;
-  }
-  .f-fondo--b {
-    left: -48vw;
-    width: 34vw;
-    height: 24%;
-  }
-  .f-fondo--b::after {
-    display: none;
-  }
-  .f-fondo--c {
-    left: -14vw;
-    width: 114vw;
-  }
-  .f-fondo--c .quadro {
-    left: 24.6%; /* stesso posto di prima sullo schermo */
-    width: 63.2%;
-  }
-  .f-ufficio {
-    left: -100vw;
-    width: 100vw;
     top: 0;
-    height: 100%;
-    transform: translateZ(calc(var(--P) * -1 - 75vh));
+    transform-origin: 0 0;
+    transform-style: preserve-3d;
   }
-  .f-ufficio svg {
-    width: 100%;
-    height: 100%;
+
+  /* — corridoio — */
+  .muro-fuori {
+    background: linear-gradient(180deg, #ece7df, #e2dcd2);
   }
-  .f-ufficio-pav {
-    left: -100vw;
-    width: 100vw;
-    top: 100%;
-    height: 75vh;
-    transform-origin: 50% 0;
-    transform: translateZ(calc(var(--P) * -1)) rotateX(-90deg);
-    background: linear-gradient(0deg, #a99273, #c2ae90);
+  .muro-fuori--sx {
+    width: 300vh;
+    height: 300vh;
+    transform: translate3d(-318vh, -200vh, 0.2vh);
   }
-  .f-stipite {
-    top: 24%;
-    height: 76%;
-    width: 4vh; /* spessore del muro nel passaggio */
-    transform-origin: 0 50%;
-    background: linear-gradient(90deg, #dcd6cc, #cfc8bd);
+  .muro-fuori--dx {
+    width: 300vh;
+    height: 300vh;
+    transform: translate3d(18vh, -200vh, 0.2vh);
   }
-  .f-stipite--sx {
-    left: -48vw;
-    transform: translateZ(calc(var(--P) * -1)) rotateY(90deg);
+  .muro-fuori--su {
+    width: 36vh;
+    height: 122vh;
+    transform: translate3d(-18vh, -200vh, 0.2vh);
   }
-  .f-stipite--dx {
-    left: -14vw;
-    transform: translateZ(calc(var(--P) * -1)) rotateY(90deg);
+  .stipite {
+    background: linear-gradient(90deg, #8d5c2e, #a8733f);
   }
-  .quadro {
-    position: absolute;
-    left: 14%;
-    top: 22%;
-    width: 72%;
-    height: 19%;
-    box-shadow: 0 1.2vh 2.4vh rgb(60 50 40 / 0.18);
-    outline: 2px solid #a59d8b;
+  .stipite--sx {
+    width: 1.6vh;
+    height: 79.6vh;
+    transform: translate3d(-18vh, -79.6vh, 0.3vh);
   }
-  .f-pav {
-    left: -60vw;
-    top: 100%;
-    width: 160vw;
-    height: var(--P);
-    transform-origin: 50% 0;
-    transform: rotateX(-90deg);
-    background: linear-gradient(0deg, #b29c7d, #cdbb9f 70%, #d6c7ad);
+  .stipite--dx {
+    width: 1.6vh;
+    height: 79.6vh;
+    transform: translate3d(16.5vh, -79.6vh, 0.3vh);
   }
-  .f-soff {
-    left: -60vw;
-    bottom: 100%;
-    width: 160vw;
-    height: var(--P);
-    transform-origin: 50% 100%;
-    transform: rotateX(90deg);
-    background: linear-gradient(0deg, #d6d1c8, #e4e0d9);
+  .stipite--su {
+    width: 36vh;
+    height: 1.6vh;
+    transform: translate3d(-18vh, -79.6vh, 0.3vh);
+  }
+
+  /* — la sala: x da -90vh a 70vh, z da 0 a -160vh, alta 100vh — */
+  .pav {
+    width: 160vh;
+    height: 160vh;
+    transform: translate3d(-90vh, 0, 0) rotateX(-90deg);
+    background: linear-gradient(180deg, #b9a585, #cdbca1);
+  }
+  .soff {
+    width: 160vh;
+    height: 160vh;
+    transform: translate3d(-90vh, -100vh, 0) rotateX(-90deg);
+    background: #e2ded7;
   }
   .luce {
     position: absolute;
-    left: 50%;
-    width: 25%;
-    top: 30%;
-    height: 14%;
+    left: 40%;
+    top: 35%;
+    width: 30%;
+    height: 12%;
     background: #fff;
     box-shadow: 0 0 6vh 2vh rgb(255 252 235 / 0.9);
   }
-  .f-sx {
-    top: 0;
-    right: calc(100% + 60vw);
-    width: var(--P);
-    height: 100%;
-    transform-origin: 100% 50%;
-    transform: rotateY(-90deg);
-    background: linear-gradient(90deg, #ece8e1, #d4cec4);
-    box-shadow: inset -2px 0 0 rgb(120 100 80 / 0.12);
-  }
-  .f-dx {
-    top: 0;
-    left: 100%;
-    width: var(--P);
-    height: 100%;
-    transform-origin: 0 50%;
-    transform: rotateY(90deg);
-    background: linear-gradient(270deg, #e3ded6, #c9c2b7);
+  .parete-sx {
+    width: 160vh;
+    height: 100vh;
+    transform: translate3d(-90vh, -100vh, 0) rotateY(90deg);
+    background: linear-gradient(90deg, #ebe6de, #dfd9cf);
   }
   .tavolino {
     position: absolute;
-    left: 6%;
+    left: 12%;
     bottom: 26%;
-    width: 18%;
+    width: 12%;
     height: 2.2%;
     background: #fbfbfa;
     box-shadow: 0 1vh 1.5vh rgb(0 0 0 / 0.08);
   }
-  /* sedie 3D: l'origine è sul pavimento, spigolo anteriore sinistro; W larghezza, D profondità, H altezza seduta */
+  .parete-dx {
+    width: 160vh;
+    height: 100vh;
+    transform: translate3d(70vh, -100vh, 0) rotateY(90deg);
+    background: linear-gradient(90deg, #f4f0ea, #e8e3db);
+    box-shadow: inset 0 -2.6vh 0 #d9d2c6;
+  }
+  /* il quadro sulla parete di destra: lungo, sopra le sedie */
+  .parete-dx .quadro {
+    position: absolute;
+    left: 22%;
+    top: 37%;
+    width: 56%;
+    height: 17%;
+    box-shadow: 0 1.2vh 2.4vh rgb(60 50 40 / 0.18);
+    outline: 0.3vh solid #a59d8b;
+  }
+  .fondo {
+    height: 100vh;
+    background: linear-gradient(180deg, #f2eee8, #e6e1d8);
+  }
+  .fondo--a {
+    width: 15vh;
+    transform: translate3d(-90vh, -100vh, -160vh);
+  }
+  .fondo--b {
+    width: 35vh;
+    height: 22vh;
+    transform: translate3d(-75vh, -100vh, -160vh);
+  }
+  .fondo--c {
+    width: 110vh;
+    transform: translate3d(-40vh, -100vh, -160vh);
+  }
+  .davanti {
+    width: 160vh;
+    height: 100vh;
+    transform: translate3d(-90vh, -100vh, -0.1vh);
+    background: #e7e2d9;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 66.5% 100%, 66.5% 21%, 45.9% 21%, 45.9% 100%, 0 100%);
+  }
+  .ufficio {
+    width: 150vh;
+    height: 100vh;
+    transform: translate3d(-150vh, -100vh, -240vh);
+  }
+  .ufficio svg {
+    width: 100%;
+    height: 100%;
+  }
+  .ufficio-pav {
+    width: 150vh;
+    height: 80vh;
+    transform: translate3d(-150vh, 0, -160vh) rotateX(-90deg);
+    background: linear-gradient(180deg, #ad9677, #c2ae90);
+  }
+
+  /* — sedie 3D contro la parete di destra (girate verso la sala) — */
   .sedia {
     --W: 17vh;
     --D: 16vh;
     --H: 17vh;
-    --S: 22vh; /* altezza dello schienale sopra la seduta */
-    position: absolute;
-    top: 100%;
-    width: var(--W);
-    transform-style: preserve-3d;
-    transform: translateZ(calc(var(--P) * -1 + var(--D) + 3vh));
+    --S: 22vh;
   }
   .sedia > span {
     position: absolute;
     display: block;
   }
-  .sedia--1 {
-    left: 35%;
-  }
-  .sedia--2 {
-    left: 53%;
-  }
+  .sedia--1 { transform: translate3d(calc(70vh - 18vh), 0, -38vh) rotateY(-90deg); }
+  .sedia--2 { transform: translate3d(calc(70vh - 18vh), 0, -58vh) rotateY(-90deg); }
+  .sedia--3 { transform: translate3d(calc(70vh - 18vh), 0, -78vh) rotateY(-90deg); }
+  .sedia--4 { transform: translate3d(calc(70vh - 18vh), 0, -98vh) rotateY(-90deg); }
   .sd-ombra {
     left: -3vh;
     top: 0;
@@ -481,55 +489,109 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     background: #7d776f;
   }
 
-  /* — la porta: cardine a destra, maniglia a sinistra; si apre verso l'interno, solo socchiusa — */
-  .porta__anta {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
+  /* — la porta: 90 cm × 210 cm (33 × 78vh), cardine a destra — */
+  .anta {
+    width: 33vh;
+    height: 78vh;
     transform-origin: 100% 50%;
+    transform: translate3d(-16.5vh, -78vh, 0);
     background:
-      linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 3%, transparent 97%, rgb(0 0 0 / 0.22)),
+      linear-gradient(90deg, rgb(0 0 0 / 0.18), transparent 4%, transparent 96%, rgb(0 0 0 / 0.16)),
       linear-gradient(180deg, #cf9a62, #bd8248 55%, #ab713a);
-    box-shadow: 0 0 80px rgb(30 20 10 / 0.35);
-    will-change: transform;
+    box-shadow: 0 0 6vh rgb(30 20 10 / 0.25);
   }
-  .porta__anta::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgb(20 12 6);
-    opacity: 0;
-    pointer-events: none;
+  .porta--aperta .anta,
+  .porta:has(.porta__ancora:target) .anta {
+    animation: porta-apre 1.6s cubic-bezier(0.5, 0, 0.3, 1) 0.15s forwards;
   }
-  /* lo spessore della porta: il bordo che si vede mentre ruota */
-  .porta__spessore {
+  @keyframes porta-apre {
+    to {
+      /* socchiusa: circa 60 cm di passaggio */
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-72deg);
+    }
+  }
+  .anta__spessore {
     position: absolute;
     top: 0;
     left: 0;
-    width: 5vmin;
+    width: 1.5vh;
     height: 100%;
     transform-origin: 0 50%;
     transform: rotateY(90deg);
     background: linear-gradient(90deg, #8a5a2c, #a8733f 40%, #7d5127);
   }
-  .porta--aperta .porta__anta,
-  .porta:has(.porta__ancora:target) .porta__anta {
-    animation: porta-apre 2.2s cubic-bezier(0.5, 0, 0.25, 1) forwards;
+  .anta__venature {
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background: repeating-linear-gradient(
+      92deg,
+      transparent 0 0.6vh,
+      rgb(120 70 30 / 0.25) 0.6vh 0.64vh,
+      transparent 0.64vh 1.4vh,
+      rgb(255 220 180 / 0.12) 1.4vh 1.44vh
+    );
   }
-  .porta--aperta .porta__anta::after,
-  .porta:has(.porta__ancora:target) .porta__anta::after {
-    animation: porta-ombra 2.2s cubic-bezier(0.5, 0, 0.25, 1) forwards;
+  /* targa: 30 × 22 cm circa, al centro della porta, all'altezza degli occhi */
+  .targa {
+    position: absolute;
+    left: 50%;
+    top: 28vh;
+    translate: -50% -50%;
+    display: grid;
+    gap: 0.06vh;
+    width: 12.5vh;
+    padding: 0.9vh 0.9vh 0.6vh;
+    border-radius: 0.1vh;
+    background: linear-gradient(135deg, #ecd394, #c9a456 45%, #e8cc87 70%, #b8913f);
+    box-shadow: 0 0.4vh 1vh rgb(40 25 5 / 0.4), inset 0 0.04vh 0 rgb(255 255 255 / 0.55);
+    color: #3a2a12;
+    font-family: Georgia, 'Times New Roman', serif;
+    text-align: center;
+    line-height: 1.25;
+  }
+  .vite {
+    position: absolute;
+    width: 0.32vh;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6d6, #c9a24c 60%, #8a6a22);
+  }
+  .vite--1 { top: 0.25vh; left: 0.25vh; }
+  .vite--2 { top: 0.25vh; right: 0.25vh; }
+  .vite--3 { bottom: 0.25vh; left: 0.25vh; }
+  .vite--4 { bottom: 0.25vh; right: 0.25vh; }
+  .targa__nome {
+    font-size: 0.72vh;
+  }
+  .targa__ruolo {
+    font-size: 0.42vh;
+    font-style: italic;
+  }
+  .targa__righe {
+    margin-top: 0.28vh;
+    font-size: 0.48vh;
+  }
+  .targa__piede {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4vh;
+    margin-top: 0.45vh;
+    font-size: 0.38vh;
+  }
+  /* maniglia a sinistra */
+  .maniglia {
+    position: absolute;
+    top: 41vh;
+    left: 2.4vh;
+    width: 2.2vh;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
+    box-shadow: 0 0.4vh 0.8vh rgb(40 25 5 / 0.45);
   }
 
-  /* — verso il quadro: la camera avanza fino a entrare nei fiori — */
-  .porta--quadro .porta__studio {
-    transition: transform 1.7s cubic-bezier(0.5, 0, 0.3, 1);
-    transform: translateY(18.5vh) translateZ(calc(var(--P) + 24vmax));
-  }
-  .porta--quadro .porta__anta {
-    opacity: 0;
-    transition: opacity 0.5s;
-  }
+  /* — dentro il quadro — */
   .porta__prato {
     position: absolute;
     inset: 0;
@@ -539,7 +601,10 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     pointer-events: none;
     transition: opacity 0.5s ease;
   }
-  /* dentro il quadro: i fiori diventano lo sfondo, leggeri, dietro alla donna e ai testi */
+  .porta--aperta .porta__prato {
+    transition-delay: 4.9s;
+    opacity: 1;
+  }
   .porta--dentro {
     z-index: -1;
     background: transparent;
@@ -549,88 +614,17 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     visibility: hidden;
   }
   .porta--dentro .porta__prato {
+    transition-delay: 0s;
     opacity: 0.5;
   }
   .porta--via .porta__prato {
     opacity: 0;
     transition-duration: 1.5s;
   }
-
-  /* senza JavaScript: appena si entra la porta non blocca più nulla e lo studio sfuma */
+  /* senza JavaScript: si entra, poi la porta non blocca più nulla */
   .porta:has(.porta__ancora:target) {
     pointer-events: none;
-    animation: studio-via 0.8s ease 2.3s forwards;
-  }
-
-  .porta__venature {
-    position: absolute;
-    inset: 0;
-    opacity: 0.35;
-    background: repeating-linear-gradient(
-      92deg,
-      transparent 0 18px,
-      rgb(120 70 30 / 0.25) 18px 19px,
-      transparent 19px 41px,
-      rgb(255 220 180 / 0.12) 41px 42px
-    );
-  }
-  /* targa al centro */
-  .porta__targa {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -62%;
-    display: grid;
-    gap: 0.3rem;
-    width: min(30rem, 84vw);
-    padding: clamp(1.4rem, 4vw, 2.4rem) clamp(1.2rem, 4vw, 2.6rem) clamp(1rem, 3vw, 1.6rem);
-    border-radius: 3px;
-    background: linear-gradient(135deg, #ecd394, #c9a456 45%, #e8cc87 70%, #b8913f);
-    box-shadow: 0 10px 28px rgb(40 25 5 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.55);
-    color: #3a2a12;
-    font-family: Georgia, 'Times New Roman', serif;
-    text-align: center;
-  }
-  .porta__vite {
-    position: absolute;
-    width: 0.8rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff6d6, #c9a24c 60%, #8a6a22);
-  }
-  .porta__vite--1 { top: 0.6rem; left: 0.6rem; }
-  .porta__vite--2 { top: 0.6rem; right: 0.6rem; }
-  .porta__vite--3 { bottom: 0.6rem; left: 0.6rem; }
-  .porta__vite--4 { bottom: 0.6rem; right: 0.6rem; }
-  .porta__nome {
-    font-size: clamp(1.15rem, 0.85rem + 1.6vw, 1.75rem);
-  }
-  .porta__ruolo {
-    font-size: clamp(0.8rem, 0.7rem + 0.45vw, 1rem);
-    font-style: italic;
-  }
-  .porta__righe {
-    margin-top: 0.6rem;
-    font-size: clamp(0.9rem, 0.75rem + 0.6vw, 1.15rem);
-    line-height: 1.35;
-  }
-  .porta__piede {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 1rem;
-    font-size: clamp(0.72rem, 0.64rem + 0.35vw, 0.9rem);
-  }
-  /* maniglia a sinistra */
-  .porta__maniglia {
-    position: absolute;
-    top: 58%;
-    left: 6%;
-    width: clamp(2.8rem, 6vw, 4rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
-    box-shadow: 0 8px 16px rgb(40 25 5 / 0.45);
+    animation: studio-via 0.8s ease 5.2s forwards;
   }
 
   /* — ENTRA — */
@@ -675,16 +669,6 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   @keyframes entra-respira {
     50% {
       box-shadow: 0 12px 34px rgb(30 20 10 / 0.4), 0 0 0 12px rgb(246 227 176 / 0.14);
-    }
-  }
-  @keyframes porta-apre {
-    to {
-      transform: rotateY(-72deg);
-    }
-  }
-  @keyframes porta-ombra {
-    to {
-      opacity: 0.35;
     }
   }
   @keyframes studio-via {
