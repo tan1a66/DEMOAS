@@ -21,7 +21,10 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
   <div class="porta__anta" aria-hidden="true">
     {
       img ? (
-        <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
+        <>
+          <img class="porta__sfondo" src={img.src} alt="" />
+          <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
+        </>
       ) : (
         <>
           <div class="porta__venature" />
@@ -179,6 +182,50 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: 45% 45%;
+  }
+  .porta__sfondo {
+    position: absolute;
+    inset: -40px;
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    object-fit: cover;
+    filter: blur(28px) brightness(0.85);
+  }
+  .porta__foto {
+    position: relative;
+  }
+  @media (min-aspect-ratio: 4/5) {
+    /* schermo largo: la foto (verticale) si vede tutta, al centro, su uno sfondo sfocato della stessa foto */
+    .porta__foto {
+      object-fit: contain;
+      object-position: 50% 50%;
+    }
+    .porta--foto .porta__anta {
+      transform-origin: 42% 62%;
+    }
+  }
+  /* con la foto vera (la porta è già socchiusa): dopo "Entra" si entra nella sala, verso le sedie */
+  .porta--foto .porta__anta {
+    background: #2a2118;
+    transform-origin: 30% 62%;
+    box-shadow: none;
+  }
+  .porta--foto.porta--aperta .porta__anta,
+  .porta--foto:has(.porta__ancora:target) .porta__anta {
+    animation: porta-entra 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+  }
+  .porta--foto .porta__anta::after {
+    display: none;
+  }
+  @keyframes porta-entra {
+    55% {
+      opacity: 1;
+    }
+    to {
+      transform: scale(3.2);
+      opacity: 0;
+    }
   }
   .porta__venature {
     position: absolute;
