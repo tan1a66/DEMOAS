@@ -236,24 +236,22 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   /* un unico movimento, senza soste. Il primo arrivo è l'inquadratura della foto: la porta si apre verso di noi,
      l'anta con la targa a destra in primo piano, nello spiraglio di scorcio la parete di destra con il quadro e le
      sedie. Poi si entra e si va nel quadro. */
+  /* camera: occhio E, sguardo φ (0 = dritto nella porta, 90° = verso la parete di destra);
+     nel transform: rotateY(φ) translate3d(-C), con C = E + 100vh · direzione dello sguardo */
   @keyframes camera {
     0% {
+      /* davanti alla porta chiusa, sulla targa */
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
-      animation-timing-function: ease-out;
+      animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
-    7% {
-      /* un piccolo passo verso la porta mentre scatta la serratura */
-      transform: rotateY(1deg) translate3d(0vh, 50.3vh, 83vh);
-      animation-timing-function: cubic-bezier(0.45, 0, 0.6, 1);
-    }
-    26% {
-      /* sulla soglia: la vista resta stretta sulla stanza, in diagonale verso il quadro */
-      transform: rotateY(16deg) translate3d(-21.6vh, 52vh, 92vh);
+    30% {
+      /* sulla soglia, un po' a sinistra: dallo spiraglio la parete di destra con il quadro e le sedie */
+      transform: rotateY(28deg) translate3d(-44.9vh, 52vh, 76.3vh);
       animation-timing-function: linear;
     }
     64% {
-      /* dentro: il quadro intero, di scorcio, con le sedie */
-      transform: rotateY(58deg) translate3d(-30vh, 49vh, 82vh);
+      /* dentro: quadro e sedie di scorcio */
+      transform: rotateY(70deg) translate3d(-64vh, 54vh, 94.2vh);
       animation-timing-function: cubic-bezier(0.3, 0.3, 0.4, 1);
     }
     100% {
@@ -261,6 +259,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       transform: rotateY(90deg) translate3d(-101.9vh, 55vh, 74vh);
     }
   }
+
   .m {
     position: absolute;
     left: 0;
@@ -637,29 +636,29 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   .porta:has(.porta__ancora:target) .anta {
     animation: porta-apre 2.2s linear forwards;
   }
-  /* la porta: prima lo scatto della serratura, poi si apre con slancio e si ferma piano contro la parete */
+  /* la porta: prima lo scatto della serratura, poi si apre verso l'interno con slancio e si ferma piano contro la parete di destra */
   @keyframes porta-apre {
     0% {
       transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(0deg);
       animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
     }
     9% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-3.5deg);
+      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(3.5deg);
     }
     15% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-4deg);
+      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(4deg);
       animation-timing-function: cubic-bezier(0.35, 0, 0.25, 1);
     }
     62% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-80deg);
+      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(80deg);
       animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
     }
     84% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-89deg);
+      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(89deg);
       animation-timing-function: ease-in-out;
     }
     100% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-87deg);
+      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(87deg);
     }
   }
 

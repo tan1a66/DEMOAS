@@ -60,7 +60,8 @@ const PARTI: Record<string, { colore: string }> = {
 };
 
 /** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
-const CAMMINO = { partenza: -6, durata: 5.2, falcate: 0.62 }; // passo lento
+// passo lento; il ciclo del passo segue lo spazio percorso (il piede d'appoggio resta fermo a terra)
+const CAMMINO = { partenza: -15, durata: 6.2, ampiezza: 0.27 };
 
 export async function monta(
   host: HTMLElement,
@@ -197,13 +198,13 @@ vec3 cammina(vec3 p) {
   // asse del braccio prolungato oltre il polso, così anche la mano lo segue tutta
   float h = clamp(dot(p - sp, ab) / dot(ab, ab), 0.0, 1.15);
   float da = length(p - sp - ab * h);
-  float wa = (1.0 - smoothstep(0.34, 0.5, da)) * smoothstep(0.04, 0.22, h);
+  float wa = (1.0 - smoothstep(0.5, 0.75, da)) * smoothstep(0.04, 0.2, h);
   float we = smoothstep(0.34, 0.68, h) * wa; // transizione lunga: il gomito si piega senza spigolo
   // gambe: la piega è distribuita sulla coscia alta, così i fianchi non si deformano
   float wl = (1.0 - smoothstep(uAnca - 2.0, uAnca - 0.55, p.y)) * smoothstep(0.0, 0.05, abs(p.x)) * (1.0 - wa);
   float wk = 1.0 - smoothstep(uGin - 0.5, uGin + 0.4, p.y);
   p = rotX(p, vec3(0.0, uGin, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
-  p = rotX(p, vec3(0.0, uAnca, -0.06), -uPasso * 0.36 * sin(fi) * wl);
+  p = rotX(p, vec3(0.0, uAnca, -0.06), -uPasso * 0.27 * sin(fi) * wl);
   // un piede davanti all'altro: la gamba si porta verso il centro, come in passerella
   p = rotZ(p, vec3(0.0, uAnca, 0.0), -s * uPasso * 0.075 * wl);
   // braccia: oscillano avanti e indietro, opposte alla gamba dello stesso lato, gomito appena piegato
@@ -212,7 +213,7 @@ vec3 cammina(vec3 p) {
   p = rotX(p, sp, uPasso * 0.28 * sin(fi) * wa);
   // ondeggiare dei fianchi verso la gamba d'appoggio (svanisce verso i piedi e verso le spalle)
   float fianchi = smoothstep(uPiedi, uAnca - 0.8, p.y) * (1.0 - smoothstep(uVita, uVita + 2.8, p.y));
-  p.x -= uPasso * 0.13 * sin(uFase) * fianchi;
+  p.x -= uPasso * 0.13 * sin(uFase) * fianchi * (1.0 - wa); // le braccia restano un pezzo unico
   return p;
 }`)
         .replace('#include <project_vertex>', `vec4 mondoC = modelMatrix * vec4(transformed, 1.0);
@@ -324,6 +325,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   };
   window.addEventListener('pointermove', onPointer, { passive: true });
   const centro = new Vector3();
+  let xPrima = CAMMINO.partenza;
   let tCammino = -ritardo; // con l'entrata dalla porta, la figura compare e cammina quando la porta è aperta
   let onda = cammina ? 1 : 0;
   let fase = 0;
@@ -356,8 +358,12 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     const q = cammina ? Math.min(Math.max(tCammino, 0) / CAMMINO.durata, 1) : 1;
     const frena = 1 - Math.pow(1 - q, 2.2);
     const passo = 1 - smooth(0.62, 0.97, q);
-    fase += dt * Math.PI * 2 * CAMMINO.falcate * (0.35 + 0.65 * passo);
-    gruppo.position.set(CAMMINO.partenza * (1 - frena), Math.abs(Math.cos(fase)) * 0.06 * passo, 0);
+    const x = CAMMINO.partenza * (1 - frena);
+    // un ciclo (due passi) = 4 · gamba · sin(ampiezza): la fase avanza con lo spazio, non con il tempo
+    const ciclo = 4 * (art.anca - art.piedi) * Math.sin(CAMMINO.ampiezza);
+    fase += (Math.abs(x - xPrima) / ciclo) * Math.PI * 2;
+    xPrima = x;
+    gruppo.position.set(x, -Math.abs(Math.sin(fase)) * 0.05 * passo, 0);
     gruppo.rotation.y = (Math.PI / 2) * (1 - smooth(0.55, 1, q));
     pelle.uFase.value = fase;
     pelle.uPasso.value = passo;
