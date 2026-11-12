@@ -18,6 +18,9 @@ import {
   FrontSide,
   DoubleSide,
   Vector3,
+  AnimationMixer,
+  Matrix4,
+  SkinnedMesh,
   type IUniform,
 } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -86,7 +89,11 @@ export async function monta(
 
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const gltf = await loader.loadAsync(config.modelloPelviGlb ?? '/models/pelvi.glb');
+  // la figura animata (Meshy + Mixamo, public/models/donna.glb) è facoltativa: senza, resta quella del modello
+  const [gltf, animata] = await Promise.all([
+    loader.loadAsync(config.modelloPelviGlb ?? '/models/pelvi.glb'),
+    loader.loadAsync('/models/donna.glb').catch(() => null),
+  ]);
   const modello = gltf.scene;
 
   // Uniform condivise: comparsa (una linea che sale dai piedi alla testa) e taglio della pelle
@@ -278,17 +285,69 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
         o.renderOrder = ordine;
       }
     });
-  vesti('corpo', materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 1, false, 1), 5);
-  // Solo profondità della parte alta del corpo, disegnata prima dei capelli: la chioma dietro la schiena
-  // resta nascosta dal corpo (la pelle è traslucida e da sola non la coprirebbe). Gli organi sono più in basso.
-  const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;
-  if (pelleCorpo) {
-    const pre = materialePelle(pelle.uPelleA.value, c.plum500.clone(), 1, 0, true);
-    pre.colorWrite = false;
-    (pre.userData.propri as { uDaY: { value: number } }).uDaY.value = art.piedi - 1; // tutta la figura: si vede solo la superficie davanti, niente doppi strati
-    const sagoma = new Mesh(pelleCorpo.geometry, pre);
-    sagoma.renderOrder = 4; // dopo le ossa del bacino (3), prima della pelle (5): l'apparato resta visibile
-    pelleCorpo.add(sagoma);
+  const matPelle = materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 1, false, 1);
+  const matSagoma = materialePelle(pelle.uPelleA.value, c.plum500.clone(), 1, 0, true);
+  matSagoma.colorWrite = false;
+  (matSagoma.userData.propri as { uDaY: { value: number } }).uDaY.value = art.piedi - 1;
+  // Solo profondità, disegnata prima della pelle: si vede solo la superficie davanti (niente doppi strati, niente
+  // capelli attraverso la schiena). Dopo le ossa del bacino (3), prima della pelle (5): l'apparato resta visibile.
+  const conSagoma = (m: Mesh) => {
+    const sk = m as SkinnedMesh;
+    const sag = sk.isSkinnedMesh ? new SkinnedMesh(m.geometry, matSagoma) : new Mesh(m.geometry, matSagoma);
+    if (sk.isSkinnedMesh) (sag as unknown as SkinnedMesh).bind(sk.skeleton, sk.bindMatrix);
+    sag.position.copy(m.position);
+    sag.quaternion.copy(m.quaternion);
+    sag.scale.copy(m.scale);
+    sag.renderOrder = 4;
+    sag.frustumCulled = false;
+    m.parent?.add(sag);
+  };
+  const corpoStatico = modello.getObjectByName('corpo');
+  let mixer: AnimationMixer | null = null;
+  let hips: Object3D | null = null;
+  const apparato = new Group();
+  const H0 = new Matrix4();
+  const Ht = new Matrix4();
+  const Pinv = new Matrix4();
+  if (animata && corpoStatico?.parent) {
+    // la figura animata prende il posto di quella statica, con la stessa pelle
+    corpoStatico.visible = false;
+    const figura = animata.scene;
+    const al = (figura.children[0]?.userData.allineamento ?? figura.userData.allineamento) as
+      | { scala: number; posizione: [number, number, number] }
+      | undefined;
+    if (al) {
+      figura.scale.setScalar(al.scala);
+      figura.position.fromArray(al.posizione);
+    }
+    corpoStatico.parent.add(figura);
+    const pelli: Mesh[] = [];
+    figura.traverse((o) => {
+      if ((o as Mesh).isMesh) pelli.push(o as Mesh);
+    });
+    for (const m of pelli) {
+      m.material = matPelle;
+      m.renderOrder = 5;
+      m.frustumCulled = false;
+      conSagoma(m);
+    }
+    hips = figura.getObjectByName('mixamorigHips') ?? null;
+    if (animata.animations[0]) {
+      mixer = new AnimationMixer(figura);
+      mixer.clipAction(animata.animations[0]).play();
+      mixer.update(0);
+    }
+    // l'apparato segue il bacino della figura
+    const genitore = corpoStatico.parent;
+    genitore.add(apparato);
+    for (const o of Object.values(parti)) apparato.add(o);
+    apparato.matrixAutoUpdate = false;
+    modello.updateMatrixWorld(true);
+    if (hips) H0.copy(Pinv.copy(genitore.matrixWorld).invert().multiply(hips.matrixWorld)).invert();
+  } else {
+    vesti('corpo', matPelle, 5);
+    const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;
+    if (pelleCorpo) conSagoma(pelleCorpo);
   }
   // i capelli fanno parte della figura (maschera nel colore dei vertici): colore e ondeggiare nello shader della pelle
 
@@ -350,6 +409,17 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     }
     const m = att.montaggio;
     if (tCammino > -0.4) nascita = Math.min(nascita + dt / 1.6, 1);
+    // la figura si muove finché la si guarda intera; con lo zoom rallenta e si ferma
+    const velocita = 1 - smooth(0, 0.25, att.montaggio);
+    if (mixer && velocita > 0.001) {
+      mixer.update(dt * velocita);
+      if (hips && apparato.parent) {
+        apparato.parent.updateMatrixWorld(true);
+        Ht.copy(Pinv.copy(apparato.parent.matrixWorld).invert().multiply(hips.matrixWorld));
+        apparato.matrix.copy(Ht).multiply(H0);
+        apparato.matrixWorldNeedsUpdate = true;
+      }
+    }
 
     // La figura entra camminando di profilo, rallenta, si gira verso di noi e si ferma.
     // finché la porta è chiusa la figura aspetta (nascosta); poi compare ed entra
@@ -434,7 +504,8 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       Math.abs(att.ax - ax) < 0.5 &&
       Math.abs(att.ay - ay) < 0.5 &&
       Math.abs(att.ar - ar) < 0.5 &&
-      !evidenza;
+      !evidenza &&
+      !(mixer && velocita > 0.001);
     if (!fermo) stage.sveglia(250);
   };
   stage.onFrame(fotogramma);
