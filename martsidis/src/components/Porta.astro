@@ -244,25 +244,31 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
       animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
-    24% {
-      /* come nella foto: a sinistra, vicino alla porta socchiusa; oltre l'anta si scorge il quadro sulla parete di destra */
-      transform: rotateY(22deg) translate3d(-23.5vh, 52vh, 80.7vh);
+    22% {
+      /* la porta si socchiude: nello spiraglio si scorge già il quadro */
+      transform: rotateY(-8deg) translate3d(15.9vh, 51vh, 85vh);
     }
     38% {
-      /* un attimo fermi a guardare */
-      transform: rotateY(23deg) translate3d(-24.5vh, 52vh, 81vh);
+      transform: rotateY(-9deg) translate3d(18.1vh, 51vh, 85.8vh);
       animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
     }
-    70% {
-      /* dentro, lentamente, girandosi a sinistra: quadro e sedie di scorcio */
-      transform: rotateY(-70deg) translate3d(64vh, 54vh, 94.2vh);
+    50% {
+      /* oltre la soglia: lo sguardo resta sempre sul centro del quadro */
+      transform: rotateY(-19.3deg) translate3d(28.1vh, 53vh, 106.4vh);
+    }
+    68% {
+      transform: rotateY(-42.6deg) translate3d(52.7vh, 54vh, 113.6vh);
+    }
+    84% {
+      transform: rotateY(-59.4deg) translate3d(78.1vh, 55vh, 110.9vh);
       animation-timing-function: cubic-bezier(0.3, 0.2, 0.3, 1);
     }
     100% {
-      /* dritti davanti al quadro, così vicini che riempie lo schermo: da qui, senza stacchi, i fiori scendono */
-      transform: rotateY(-90deg) translate3d(101vh, 55vh, 74.8vh); /* centro esatto del quadro */
+      /* dritti davanti al quadro, così vicini che riempie lo schermo: coincide al pixel con il prato */
+      transform: rotateY(-90deg) translate3d(101vh, 55vh, 74.8vh);
     }
   }
+
 
 
   .m {
@@ -313,7 +319,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
 
   /* il corridoio sta nella scena davanti: varcata la soglia (dopo ~1,6 s) non serve più e si nasconde */
   .porta--aperta .fuori {
-    animation: fuori-via 0.01s linear 3.1s forwards;
+    animation: fuori-via 0.01s linear 3.8s forwards;
   }
   @keyframes fuori-via {
     to {
@@ -351,7 +357,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   .porta--aperta .luce-corridoio {
     animation:
       luce-entra 1.2s ease 0.3s forwards,
-      fuori-via 0.01s linear 3.1s forwards;
+      fuori-via 0.01s linear 3.8s forwards;
   }
   @keyframes luce-entra {
     to {
