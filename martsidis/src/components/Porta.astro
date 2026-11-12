@@ -1,92 +1,139 @@
 ---
 /**
  * Entrata del sito:
- * 1. la porta dello studio è chiusa (legno e targa in ottone con le stesse diciture di quella vera)
- *    con il pulsante "Entra";
- * 2. toccando "Entra" la porta si apre e si intravede lo studio (disegnato: pareti chiare, il quadro
- *    con i fiori bianchi, le due sedie grigie);
- * 3. subito dopo la donna entra camminando nella Home.
- * Una volta per visita (sessionStorage), mai con "riduci movimento". Senza JavaScript "Entra" è un link
+ * 1. la porta dello studio è chiusa: legno, maniglia a sinistra, targa in ottone al centro con le stesse
+ *    diciture di quella vera, e il pulsante "ENTRA";
+ * 2. toccando "ENTRA" la porta si apre (cardine a destra, verso l'interno) e si intravede lo studio,
+ *    disegnato in prospettiva: parete con il quadro dei fiori bianchi, le due sedie grigie;
+ * 3. la camera si gira e si vede la ragazza che entra camminando nella Home.
+ * Una volta per visita (sessionStorage), mai con "riduci movimento". Senza JavaScript "ENTRA" è un link
  * e l'apertura è solo CSS (:target).
  */
 
-// Fiori del quadro (disegnati, sempre uguali): bianchi su fondo tortora, come nella sala d'attesa
+// Prospettiva dello studio: punto di fuga a (640, 330). Parete sinistra da x=0 (vicina) a x=430 (lontana).
+const PF = { x: 640, y: 330 };
+const FONDO = { x0: 430, x1: 1000, y0: 170, y1: 525 }; // parete di fondo
+// punto sulla parete sinistra: u = 0 vicino … 1 lontano, v = 0 soffitto … 1 pavimento
+const muro = (u: number, v: number) => {
+  const x = FONDO.x0 * u;
+  const yt = FONDO.y0 * u;
+  const yb = 700 - (700 - FONDO.y1) * u;
+  return { x, y: yt + (yb - yt) * v, h: yb - yt };
+};
+const quad = (pts: { x: number; y: number }[]) => pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+const Q = { u0: 0.12, u1: 0.9, v0: 0.3, v1: 0.5 }; // il quadro sulla parete sinistra
+const quadro = quad([muro(Q.u0, Q.v0), muro(Q.u1, Q.v0), muro(Q.u1, Q.v1), muro(Q.u0, Q.v1)]);
+
 let seme = 11;
 const caso = () => (seme = (seme * 16807) % 2147483647) / 2147483647;
-const fiori = Array.from({ length: 70 }, () => ({
-  x: 140 + caso() * 600,
-  y: 225 + caso() * 115,
-  r: 7 + caso() * 9,
-  a: caso() * 72,
-}));
-const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 + caso() * 60 }));
+const fiori = Array.from({ length: 80 }, () => {
+  const u = Q.u0 + 0.02 + caso() * (Q.u1 - Q.u0 - 0.04);
+  const v = Q.v0 + 0.03 + caso() * (Q.v1 - Q.v0 - 0.08);
+  const p = muro(u, v);
+  return { x: p.x, y: p.y, r: p.h * (0.012 + caso() * 0.014), a: caso() * 72, sx: 0.55 + 0.45 * u };
+});
+const pavimento = quad([{ x: 0, y: 700 }, muro(1, 1), { x: 1000, y: FONDO.y1 }, { x: 1000, y: 700 }]);
+const soffitto = quad([{ x: 0, y: 0 }, { x: 1000, y: 0 }, { x: 1000, y: FONDO.y0 }, muro(1, 0)]);
+const pareteSx = quad([{ x: 0, y: 0 }, muro(1, 0), muro(1, 1), { x: 0, y: 700 }]);
+const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x: 330, y: 120 }]);
 ---
-
 
 <div class="porta" data-porta>
   <span id="benvenuta" class="porta__ancora"></span>
-  <svg class="porta__studio" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <defs>
-      <linearGradient id="studio-muro" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#ece9e3" />
-        <stop offset="0.85" stop-color="#f6f3ee" />
-      </linearGradient>
-      <linearGradient id="studio-quadro" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#cfc6b3" />
-        <stop offset="0.6" stop-color="#b9b09c" />
-        <stop offset="1" stop-color="#a9a597" />
-      </linearGradient>
-      <linearGradient id="studio-sedia" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#77716b" />
-        <stop offset="0.5" stop-color="#8d8780" />
-        <stop offset="1" stop-color="#6f6963" />
-      </linearGradient>
-    </defs>
-    <rect width="1000" height="700" fill="url(#studio-muro)" />
-    <rect width="1000" height="70" fill="#e4e1db" />
-    <rect x="40" y="18" width="380" height="22" rx="3" fill="#ffffff" />
-    <rect x="40" y="18" width="380" height="22" rx="3" fill="#fffbe8" opacity="0.6" />
-    <rect x="0" y="640" width="1000" height="60" fill="#dcd2c3" />
-    <rect x="128" y="212" width="624" height="150" fill="url(#studio-quadro)" />
-    {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 2} y2={362} stroke="#9a9a8c" stroke-width="1.2" opacity="0.6" />)}
-    {
-      fiori.map((f) => (
-        <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
-          {[0, 72, 144, 216, 288].map((r) => (
-            <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
-          ))}
-          <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
-        </g>
-      ))
-    }
-    <rect x="128" y="212" width="624" height="150" fill="none" stroke="#a49d8c" stroke-width="2" />
-    <!-- tavolino a sinistra -->
-    <rect x="-20" y="520" width="120" height="14" fill="#fbfbfa" />
-    <rect x="70" y="534" width="6" height="106" fill="#e7e5e1" />
-    <!-- due sedie -->
-    {
-      [250, 440].map((x) => (
-        <g>
-          <rect x={x} y="440" width="130" height="150" rx="16" fill="url(#studio-sedia)" />
-          {[470, 500, 530, 560].map((y) => <line x1={x + 10} y1={y} x2={x + 120} y2={y} stroke="#5f5a55" stroke-width="2" opacity="0.5" />)}
-          <rect x={x - 10} y="585" width="150" height="26" rx="8" fill="#7d7771" />
-          <rect x={x} y="611" width="6" height="60" fill="#55504b" />
-          <rect x={x + 124} y="611" width="6" height="60" fill="#55504b" />
-        </g>
-      ))
-    }
-  </svg>
-  <div class="porta__anta" aria-hidden="true">
-    <div class="porta__venature"></div>
-    <div class="porta__targa">
-      <span class="porta__nome">Dott. Konstantinos Martsidis</span>
-      <span class="porta__ruolo">Medico Chirurgo</span>
-      <span class="porta__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
-      <span class="porta__piede"><span>Tel.: 3207903754</span><span>Riceve per appuntamento</span></span>
+  <div class="porta__scena">
+    <svg class="porta__studio" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="st-sx" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#e6e2db" />
+          <stop offset="1" stop-color="#f3f0ea" />
+        </linearGradient>
+        <linearGradient id="st-fondo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f7f4ef" />
+          <stop offset="1" stop-color="#ebe7e0" />
+        </linearGradient>
+        <linearGradient id="st-pav" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d9cdbb" />
+          <stop offset="1" stop-color="#c7b8a2" />
+        </linearGradient>
+        <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d2c9b6" />
+          <stop offset="0.6" stop-color="#b9b09c" />
+          <stop offset="1" stop-color="#a7a395" />
+        </linearGradient>
+        <linearGradient id="st-sedia" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#6f6963" />
+          <stop offset="0.45" stop-color="#8f8982" />
+          <stop offset="1" stop-color="#67615b" />
+        </linearGradient>
+        <radialGradient id="st-alone" cx="0.4" cy="0.05" r="0.7">
+          <stop offset="0" stop-color="#fffdf5" stop-opacity="0.9" />
+          <stop offset="1" stop-color="#fffdf5" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x={FONDO.x0} y={FONDO.y0} width={FONDO.x1 - FONDO.x0} height={FONDO.y1 - FONDO.y0} fill="url(#st-fondo)" />
+      <polygon points={soffitto} fill="#e3dfd8" />
+      <polygon points={luce} fill="#ffffff" />
+      <polygon points={pareteSx} fill="url(#st-sx)" />
+      <polygon points={pavimento} fill="url(#st-pav)" />
+      {/* battiscopa e spigoli */}
+      <line x1={FONDO.x0} y1={FONDO.y0} x2={FONDO.x0} y2={FONDO.y1} stroke="#d6d1c8" stroke-width="2" />
+      <line x1="0" y1="700" x2={FONDO.x0} y2={FONDO.y1} stroke="#bfb3a1" stroke-width="3" />
+      {/* il quadro, in prospettiva sulla parete */}
+      <polygon points={quadro} fill="url(#st-quadro)" stroke="#a39b89" stroke-width="2" />
+      {
+        fiori.map((f) => (
+          <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) scale(${f.sx.toFixed(2)} 1) rotate(${f.a.toFixed(0)})`}>
+            {[0, 72, 144, 216, 288].map((r) => (
+              <ellipse
+                cx="0"
+                cy={(-f.r * 0.55).toFixed(1)}
+                rx={(f.r * 0.42).toFixed(1)}
+                ry={(f.r * 0.6).toFixed(1)}
+                fill="#fbfaf6"
+                transform={`rotate(${r})`}
+              />
+            ))}
+            <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
+          </g>
+        ))
+      }
+      {/* le due sedie, appoggiate alla parete di fondo, con la loro ombra */}
+      {
+        [
+          { x: 520, s: 1 },
+          { x: 690, s: 1 },
+        ].map(({ x }) => (
+          <g>
+            <ellipse cx={x + 60} cy="612" rx="78" ry="10" fill="#000" opacity="0.12" />
+            <path d={`M${x} ${385} q0 -16 16 -16 h88 q16 0 16 16 v120 h-120 z`} fill="url(#st-sedia)" />
+            {[410, 435, 460, 485].map((y) => (
+              <line x1={x + 8} y1={y} x2={x + 112} y2={y} stroke="#56514c" stroke-width="2" opacity="0.45" />
+            ))}
+            <path d={`M${x - 8} 505 h136 l-10 26 h-116 z`} fill="#7c766f" />
+            <rect x={x + 2} y="531" width="6" height="78" fill="#4f4a45" />
+            <rect x={x + 112} y="531" width="6" height="78" fill="#4f4a45" />
+            <rect x={x + 22} y="531" width="5" height="64" fill="#5d5853" />
+            <rect x={x + 94} y="531" width="5" height="64" fill="#5d5853" />
+          </g>
+        ))
+      }
+      <rect width="1000" height="700" fill="url(#st-alone)" />
+    </svg>
+
+    <div class="porta__anta" aria-hidden="true">
+      <div class="porta__venature"></div>
+      <div class="porta__targa">
+        <span class="porta__vite porta__vite--1"></span><span class="porta__vite porta__vite--2"></span>
+        <span class="porta__vite porta__vite--3"></span><span class="porta__vite porta__vite--4"></span>
+        <span class="porta__nome">Dott. Konstantinos Martsidis</span>
+        <span class="porta__ruolo">Medico Chirurgo</span>
+        <span class="porta__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
+        <span class="porta__piede"><span>Tel.: 3207903754</span><span>Riceve per appuntamento</span></span>
+      </div>
+      <div class="porta__maniglia"></div>
     </div>
-    <div class="porta__pomello"></div>
   </div>
-  <a class="porta__entra" href="#benvenuta" data-porta-entra>Entra</a>
+  <a class="porta__entra" href="#benvenuta" data-porta-entra>ENTRA</a>
 </div>
 
 <script>
@@ -99,15 +146,16 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
       /* navigazione privata */
     }
     const w = window as Window & { __portaChiusa?: boolean };
+    const html = document.documentElement;
     const salta = () => {
       porta.classList.add('porta--salta');
       w.__portaChiusa = false;
-      document.documentElement.classList.remove('porta-chiusa');
+      html.classList.remove('porta-chiusa', 'camera-gira');
     };
     if (vista || matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
     else {
       w.__portaChiusa = true;
-      document.documentElement.classList.add('porta-chiusa'); // niente scroll finché non si entra
+      html.classList.add('porta-chiusa'); // niente scroll finché non si entra
       const entra = porta.querySelector<HTMLAnchorElement>('[data-porta-entra]');
       requestAnimationFrame(() => entra?.focus({ preventScroll: true }));
       const apri = (e?: Event) => {
@@ -119,14 +167,15 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
         } catch {
           /* ok */
         }
-        // la porta è aperta e si è intravisto lo studio: subito la donna che cammina
+        // la porta si è socchiusa e si è intravisto lo studio: la camera si gira verso la ragazza
         setTimeout(() => {
-          porta.classList.add('porta--dentro');
+          porta.classList.add('porta--gira');
+          html.classList.add('camera-gira');
+          html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
-          document.documentElement.classList.remove('porta-chiusa');
           window.dispatchEvent(new Event('porta-aperta'));
         }, 2300);
-        setTimeout(salta, 3100);
+        setTimeout(salta, 3700);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -141,46 +190,40 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
     position: fixed;
     inset: 0;
     z-index: 100;
-    perspective: 1800px;
-    perspective-origin: 0% 50%;
-    background: #2a2118;
+    background: #f1ede6;
     cursor: pointer;
+    overflow: hidden;
   }
   .porta--salta {
     display: none;
   }
-
-  /* — lo studio, dietro la porta — */
+  .porta__scena {
+    position: absolute;
+    inset: 0;
+    perspective: 1600px;
+    perspective-origin: 100% 50%;
+    transform-origin: 50% 50%;
+  }
   .porta__studio {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    transform-origin: 45% 55%;
-    transition:
-      transform 2.4s cubic-bezier(0.45, 0, 0.2, 1),
-      opacity 0.7s ease;
+    transform-origin: 30% 55%;
+    transition: transform 2.6s cubic-bezier(0.45, 0, 0.2, 1);
   }
   .porta--aperta .porta__studio {
-    transform: scale(1.1);
-  }
-  /* subito dopo: lo studio lascia il posto alla Home, dove entra la donna */
-  .porta--dentro {
-    pointer-events: none;
-    background: transparent;
-  }
-  .porta--dentro .porta__studio {
-    opacity: 0;
+    transform: scale(1.08);
   }
 
-  /* — la porta chiusa — */
+  /* — la porta: cardine a destra, maniglia a sinistra; si apre verso l'interno, solo socchiusa — */
   .porta__anta {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    transform-origin: 0% 50%;
+    transform-origin: 100% 50%;
     background:
-      linear-gradient(90deg, rgb(0 0 0 / 0.22), transparent 3%, transparent 97%, rgb(0 0 0 / 0.25)),
+      linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 3%, transparent 97%, rgb(0 0 0 / 0.22)),
       linear-gradient(180deg, #cf9a62, #bd8248 55%, #ab713a);
     box-shadow: 0 0 80px rgb(30 20 10 / 0.35);
     will-change: transform;
@@ -194,23 +237,47 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
   }
   .porta--aperta .porta__anta,
   .porta:has(.porta__ancora:target) .porta__anta {
-    animation: porta-apre 2.2s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+    animation: porta-apre 2.2s cubic-bezier(0.5, 0, 0.25, 1) forwards;
   }
   .porta--aperta .porta__anta::after,
   .porta:has(.porta__ancora:target) .porta__anta::after {
-    animation: porta-ombra 2.2s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+    animation: porta-ombra 2.2s cubic-bezier(0.5, 0, 0.25, 1) forwards;
   }
-  .porta--dentro .porta__anta {
-    visibility: hidden;
-  }
-  /* senza JavaScript: appena si entra la porta non blocca più nulla e lo studio sfuma */
-  .porta:has(.porta__ancora:target) {
+
+  /* — la camera si gira: la porta esce di lato, la Home (con la ragazza) entra dall'altro — */
+  .porta--gira {
     pointer-events: none;
     background: transparent;
   }
-  .porta:has(.porta__ancora:target) .porta__studio {
-    animation: studio-via 0.7s ease 2.3s forwards;
+  .porta--gira .porta__scena {
+    animation: camera-via 1.3s cubic-bezier(0.55, 0, 0.3, 1) forwards;
   }
+  :global(html.camera-gira .esp__canvas),
+  :global(html.camera-gira .esp-hero) {
+    animation: camera-arriva 1.3s cubic-bezier(0.55, 0, 0.3, 1) both;
+  }
+  @keyframes camera-via {
+    to {
+      transform: perspective(1400px) translateX(-75%) rotateY(32deg);
+      opacity: 0;
+    }
+  }
+  @keyframes camera-arriva {
+    from {
+      transform: perspective(1400px) translateX(45%) rotateY(-24deg);
+      opacity: 0;
+    }
+    35% {
+      opacity: 1;
+    }
+  }
+
+  /* senza JavaScript: appena si entra la porta non blocca più nulla e lo studio sfuma */
+  .porta:has(.porta__ancora:target) {
+    pointer-events: none;
+    animation: studio-via 0.8s ease 2.3s forwards;
+  }
+
   .porta__venature {
     position: absolute;
     inset: 0;
@@ -223,44 +290,58 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
       rgb(255 220 180 / 0.12) 41px 42px
     );
   }
+  /* targa al centro */
   .porta__targa {
     position: absolute;
-    top: 16%;
-    right: 8%;
+    top: 50%;
+    left: 50%;
+    translate: -50% -62%;
     display: grid;
     gap: 0.3rem;
-    width: min(26rem, 72vw);
-    padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 2rem);
+    width: min(30rem, 84vw);
+    padding: clamp(1.4rem, 4vw, 2.4rem) clamp(1.2rem, 4vw, 2.6rem) clamp(1rem, 3vw, 1.6rem);
     border-radius: 3px;
-    background: linear-gradient(135deg, #e9cf8e, #c9a456 45%, #e6c983 70%, #b8913f);
-    box-shadow: 0 6px 18px rgb(40 25 5 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.5);
+    background: linear-gradient(135deg, #ecd394, #c9a456 45%, #e8cc87 70%, #b8913f);
+    box-shadow: 0 10px 28px rgb(40 25 5 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.55);
     color: #3a2a12;
     font-family: Georgia, 'Times New Roman', serif;
     text-align: center;
   }
+  .porta__vite {
+    position: absolute;
+    width: 0.8rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6d6, #c9a24c 60%, #8a6a22);
+  }
+  .porta__vite--1 { top: 0.6rem; left: 0.6rem; }
+  .porta__vite--2 { top: 0.6rem; right: 0.6rem; }
+  .porta__vite--3 { bottom: 0.6rem; left: 0.6rem; }
+  .porta__vite--4 { bottom: 0.6rem; right: 0.6rem; }
   .porta__nome {
-    font-size: clamp(1.05rem, 0.8rem + 1.4vw, 1.6rem);
+    font-size: clamp(1.15rem, 0.85rem + 1.6vw, 1.75rem);
   }
   .porta__ruolo {
-    font-size: clamp(0.75rem, 0.65rem + 0.4vw, 0.95rem);
+    font-size: clamp(0.8rem, 0.7rem + 0.45vw, 1rem);
     font-style: italic;
   }
   .porta__righe {
-    margin-top: 0.5rem;
-    font-size: clamp(0.85rem, 0.7rem + 0.6vw, 1.1rem);
+    margin-top: 0.6rem;
+    font-size: clamp(0.9rem, 0.75rem + 0.6vw, 1.15rem);
     line-height: 1.35;
   }
   .porta__piede {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 0.9rem;
-    font-size: clamp(0.7rem, 0.62rem + 0.35vw, 0.88rem);
+    margin-top: 1rem;
+    font-size: clamp(0.72rem, 0.64rem + 0.35vw, 0.9rem);
   }
-  .porta__pomello {
+  /* maniglia a sinistra */
+  .porta__maniglia {
     position: absolute;
     top: 58%;
-    right: 7%;
+    left: 6%;
     width: clamp(2.8rem, 6vw, 4rem);
     aspect-ratio: 1;
     border-radius: 50%;
@@ -268,31 +349,32 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
     box-shadow: 0 8px 16px rgb(40 25 5 / 0.45);
   }
 
-  /* — "Entra" — */
+  /* — ENTRA — */
   .porta__entra {
     position: absolute;
     left: 50%;
-    bottom: max(12vh, 5rem);
+    bottom: max(10vh, 5rem);
     translate: -50% 0;
     z-index: 2;
-    padding: 0.95rem 2.6rem;
+    padding: 1.05rem 3.2rem;
     border-radius: 999px;
-    border: 1px solid rgb(255 240 200 / 0.75);
-    background: rgb(45 30 60 / 0.82);
-    backdrop-filter: blur(6px);
-    color: #fff6dc;
-    font-family: var(--font-heading);
-    font-size: 1.35rem;
-    letter-spacing: 0.08em;
+    border: 1px solid #f3dda0;
+    background: linear-gradient(135deg, #3e2955, #2d1e3c);
+    color: #f6e3b0;
+    font-family: var(--font-body);
+    font-weight: 650;
+    font-size: 1.15rem;
+    letter-spacing: 0.32em;
+    text-indent: 0.32em;
     text-decoration: none;
-    box-shadow: 0 10px 30px rgb(30 20 10 / 0.35);
+    box-shadow: 0 12px 34px rgb(30 20 10 / 0.4);
     animation: entra-respira 2.4s ease-in-out infinite;
   }
   .porta__entra:hover,
   .porta__entra:focus-visible {
-    background: rgb(45 30 60 / 0.95);
-    outline: 2px solid #fff6dc;
-    outline-offset: 4px;
+    color: #fff;
+    outline: 2px solid #f6e3b0;
+    outline-offset: 5px;
   }
   .porta--aperta .porta__entra,
   .porta:has(.porta__ancora:target) .porta__entra {
@@ -308,17 +390,17 @@ const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 
   }
   @keyframes entra-respira {
     50% {
-      box-shadow: 0 10px 30px rgb(30 20 10 / 0.35), 0 0 0 10px rgb(255 240 200 / 0.12);
+      box-shadow: 0 12px 34px rgb(30 20 10 / 0.4), 0 0 0 12px rgb(246 227 176 / 0.14);
     }
   }
   @keyframes porta-apre {
     to {
-      transform: rotateY(-104deg);
+      transform: rotateY(-68deg);
     }
   }
   @keyframes porta-ombra {
     to {
-      opacity: 0.45;
+      opacity: 0.35;
     }
   }
   @keyframes studio-via {
