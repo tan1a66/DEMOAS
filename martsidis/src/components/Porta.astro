@@ -1,39 +1,88 @@
 ---
 /**
- * Entrata del sito, in tre tempi:
- * 1. la porta dello studio è chiusa (legno e targa in ottone, come quella vera) con il pulsante "Entra";
- * 2. toccando "Entra" la porta si apre e dietro c'è lo studio (la foto src/assets/foto/porta.jpg);
- * 3. si entra nello studio: la foto resta, sfocata e leggera, dietro alla donna che entra camminando,
- *    poi lascia il posto alla Home.
+ * Entrata del sito:
+ * 1. la porta dello studio è chiusa (legno e targa in ottone con le stesse diciture di quella vera)
+ *    con il pulsante "Entra";
+ * 2. toccando "Entra" la porta si apre e si intravede lo studio (disegnato: pareti chiare, il quadro
+ *    con i fiori bianchi, le due sedie grigie);
+ * 3. subito dopo la donna entra camminando nella Home.
  * Una volta per visita (sessionStorage), mai con "riduci movimento". Senza JavaScript "Entra" è un link
  * e l'apertura è solo CSS (:target).
  */
-import { getImage } from 'astro:assets';
-import type { ImageMetadata } from 'astro';
-import { sito } from '@/data/sito';
 
-const foto = import.meta.glob<{ default: ImageMetadata }>('/src/assets/foto/porta.{jpg,jpeg,png,webp}', { eager: true });
-const sorgente = Object.values(foto)[0]?.default;
-const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'webp' }) : null;
+// Fiori del quadro (disegnati, sempre uguali): bianchi su fondo tortora, come nella sala d'attesa
+let seme = 11;
+const caso = () => (seme = (seme * 16807) % 2147483647) / 2147483647;
+const fiori = Array.from({ length: 70 }, () => ({
+  x: 140 + caso() * 600,
+  y: 225 + caso() * 115,
+  r: 7 + caso() * 9,
+  a: caso() * 72,
+}));
+const steli = Array.from({ length: 45 }, () => ({ x: 140 + caso() * 600, y: 300 + caso() * 60 }));
 ---
+
 
 <div class="porta" data-porta>
   <span id="benvenuta" class="porta__ancora"></span>
-  {
-    img && (
-      <div class="porta__studio" aria-hidden="true">
-        <img class="porta__sfondo" src={img.src} alt="" />
-        <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
-      </div>
-    )
-  }
+  <svg class="porta__studio" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="studio-muro" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ece9e3" />
+        <stop offset="0.85" stop-color="#f6f3ee" />
+      </linearGradient>
+      <linearGradient id="studio-quadro" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#cfc6b3" />
+        <stop offset="0.6" stop-color="#b9b09c" />
+        <stop offset="1" stop-color="#a9a597" />
+      </linearGradient>
+      <linearGradient id="studio-sedia" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#77716b" />
+        <stop offset="0.5" stop-color="#8d8780" />
+        <stop offset="1" stop-color="#6f6963" />
+      </linearGradient>
+    </defs>
+    <rect width="1000" height="700" fill="url(#studio-muro)" />
+    <rect width="1000" height="70" fill="#e4e1db" />
+    <rect x="40" y="18" width="380" height="22" rx="3" fill="#ffffff" />
+    <rect x="40" y="18" width="380" height="22" rx="3" fill="#fffbe8" opacity="0.6" />
+    <rect x="0" y="640" width="1000" height="60" fill="#dcd2c3" />
+    <rect x="128" y="212" width="624" height="150" fill="url(#studio-quadro)" />
+    {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 2} y2={362} stroke="#9a9a8c" stroke-width="1.2" opacity="0.6" />)}
+    {
+      fiori.map((f) => (
+        <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
+          {[0, 72, 144, 216, 288].map((r) => (
+            <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
+          ))}
+          <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
+        </g>
+      ))
+    }
+    <rect x="128" y="212" width="624" height="150" fill="none" stroke="#a49d8c" stroke-width="2" />
+    <!-- tavolino a sinistra -->
+    <rect x="-20" y="520" width="120" height="14" fill="#fbfbfa" />
+    <rect x="70" y="534" width="6" height="106" fill="#e7e5e1" />
+    <!-- due sedie -->
+    {
+      [250, 440].map((x) => (
+        <g>
+          <rect x={x} y="440" width="130" height="150" rx="16" fill="url(#studio-sedia)" />
+          {[470, 500, 530, 560].map((y) => <line x1={x + 10} y1={y} x2={x + 120} y2={y} stroke="#5f5a55" stroke-width="2" opacity="0.5" />)}
+          <rect x={x - 10} y="585" width="150" height="26" rx="8" fill="#7d7771" />
+          <rect x={x} y="611" width="6" height="60" fill="#55504b" />
+          <rect x={x + 124} y="611" width="6" height="60" fill="#55504b" />
+        </g>
+      ))
+    }
+  </svg>
   <div class="porta__anta" aria-hidden="true">
     <div class="porta__venature"></div>
     <div class="porta__targa">
-      <span class="porta__nome">{sito.nome}</span>
+      <span class="porta__nome">Dott. Konstantinos Martsidis</span>
       <span class="porta__ruolo">Medico Chirurgo</span>
       <span class="porta__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
-      <span class="porta__riceve">Riceve per appuntamento</span>
+      <span class="porta__piede"><span>Tel.: 3207903754</span><span>Riceve per appuntamento</span></span>
     </div>
     <div class="porta__pomello"></div>
   </div>
@@ -70,16 +119,14 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
         } catch {
           /* ok */
         }
-        // 2,4 s: si è entrati. Lo studio resta dietro, la donna entra camminando
+        // la porta è aperta e si è intravisto lo studio: subito la donna che cammina
         setTimeout(() => {
           porta.classList.add('porta--dentro');
           w.__portaChiusa = false;
           document.documentElement.classList.remove('porta-chiusa');
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 2400);
-        // quando lei si è fermata lo studio lascia il posto alla Home
-        setTimeout(() => porta.classList.add('porta--via'), 8200);
-        setTimeout(salta, 9800);
+        }, 2300);
+        setTimeout(salta, 3100);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -107,49 +154,22 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
   .porta__studio {
     position: absolute;
     inset: 0;
-    overflow: hidden;
-    transform-origin: 40% 62%;
-    transition:
-      transform 3.2s cubic-bezier(0.45, 0, 0.2, 1),
-      filter 1.6s ease,
-      opacity 1.6s ease;
-  }
-  .porta__sfondo {
-    position: absolute;
-    inset: -40px;
-    width: calc(100% + 80px);
-    height: calc(100% + 80px);
-    object-fit: cover;
-    filter: blur(28px) brightness(0.85);
-  }
-  .porta__foto {
-    position: relative;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: 45% 45%;
+    transform-origin: 45% 55%;
+    transition:
+      transform 2.4s cubic-bezier(0.45, 0, 0.2, 1),
+      opacity 0.7s ease;
   }
-  @media (min-aspect-ratio: 4/5) {
-    /* schermo largo: la foto (verticale) si vede tutta, al centro, su uno sfondo sfocato della stessa foto */
-    .porta__foto {
-      object-fit: contain;
-    }
-  }
-  /* si entra: lo studio si avvicina */
   .porta--aperta .porta__studio {
-    transform: scale(1.35);
+    transform: scale(1.1);
   }
-  /* dentro: lo studio resta dietro alla donna, sfocato e leggero; la Home è davanti */
+  /* subito dopo: lo studio lascia il posto alla Home, dove entra la donna */
   .porta--dentro {
-    z-index: -1;
-    background: transparent;
     pointer-events: none;
+    background: transparent;
   }
   .porta--dentro .porta__studio {
-    filter: blur(6px) saturate(0.9);
-    opacity: 0.32;
-  }
-  .porta--via .porta__studio {
     opacity: 0;
   }
 
@@ -189,7 +209,7 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     background: transparent;
   }
   .porta:has(.porta__ancora:target) .porta__studio {
-    animation: studio-via 1.2s ease 2.2s forwards;
+    animation: studio-via 0.7s ease 2.3s forwards;
   }
   .porta__venature {
     position: absolute;
@@ -230,9 +250,12 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     font-size: clamp(0.85rem, 0.7rem + 0.6vw, 1.1rem);
     line-height: 1.35;
   }
-  .porta__riceve {
-    margin-top: 0.6rem;
-    font-size: 0.85rem;
+  .porta__piede {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.9rem;
+    font-size: clamp(0.7rem, 0.62rem + 0.35vw, 0.88rem);
   }
   .porta__pomello {
     position: absolute;
