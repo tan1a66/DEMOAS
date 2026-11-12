@@ -39,7 +39,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       <!-- la sala d'attesa -->
       <div class="m pav"></div>
       <div class="m soff"><span class="luce"></span></div>
-            <div class="m parete-sx"><span class="tavolino"></span></div>
+            <div class="m parete-sx"></div>
 <div class="m parete-dx">
         <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
           <defs>
@@ -64,71 +64,14 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
         </svg>
       </div>
       <div class="m fondo fondo--a"></div>
-      <div class="m fondo fondo--b"></div>
-      <div class="m fondo fondo--c"></div>
       <div class="m davanti"></div>
-      <!-- lo studio del Dottore, oltre il passaggio in fondo a sinistra -->
-      <div class="m ufficio">
-        <svg viewBox="0 0 900 1000" preserveAspectRatio="xMidYMax slice">
-          <defs>
-            <linearGradient id="uf-muro" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#f3f0ea" /><stop offset="1" stop-color="#e5e0d7" />
-            </linearGradient>
-            <linearGradient id="uf-legno" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#c79a6a" /><stop offset="1" stop-color="#a77a4b" />
-            </linearGradient>
-            <linearGradient id="uf-lettino" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#ffffff" /><stop offset="1" stop-color="#e7e5e2" />
-            </linearGradient>
-          </defs>
-          <rect width="900" height="1000" fill="url(#uf-muro)" />
-          <rect y="975" width="900" height="25" fill="#d9d2c6" />
-          <!-- finestra con luce -->
-          <rect x="70" y="170" width="250" height="330" fill="#fbfdff" stroke="#d7d2c9" stroke-width="8" />
-          <line x1="195" y1="170" x2="195" y2="500" stroke="#d7d2c9" stroke-width="6" />
-          <rect x="60" y="170" width="60" height="340" fill="#efe9df" opacity="0.9" />
-          <!-- diplomi -->
-          <rect x="420" y="300" width="90" height="70" fill="#fbfaf7" stroke="#b9a27a" stroke-width="5" />
-          <rect x="530" y="300" width="90" height="70" fill="#fbfaf7" stroke="#b9a27a" stroke-width="5" />
-          <g transform="translate(-20 0)">
-          <!-- scrivania con monitor e poltrona -->
-          <rect x="90" y="700" width="380" height="22" rx="3" fill="url(#uf-legno)" />
-          <rect x="110" y="722" width="16" height="255" fill="#8d6a43" />
-          <rect x="434" y="722" width="16" height="255" fill="#8d6a43" />
-          <rect x="300" y="722" width="150" height="150" fill="#b58a5c" />
-          <rect x="190" y="560" width="160" height="105" rx="6" fill="#2f2c2a" />
-          <rect x="198" y="568" width="144" height="89" rx="3" fill="#5d6a74" opacity="0.6" />
-          <rect x="262" y="665" width="16" height="35" fill="#3a3734" />
-          <path d="M170 640 q0 -40 40 -40 h20 q40 0 40 40 v110 h-100 z" fill="#3e3b39" />
-          <rect x="160" y="750" width="120" height="22" rx="8" fill="#353230" />
-          <rect x="214" y="772" width="12" height="150" fill="#2c2a28" />
-          <path d="M160 960 l60 -40 l60 40" stroke="#2c2a28" stroke-width="10" fill="none" />
-          </g>
-          <g transform="translate(-230 0)">
-          <!-- lettino da visita -->
-          <path d="M540 735 h300 q14 0 14 14 v32 h-328 v-32 q0 -14 14 -14 z" fill="url(#uf-lettino)" stroke="#d6d3cf" stroke-width="3" />
-          <path d="M760 735 q40 -60 80 -40 l14 54 h-94 z" fill="#f4f3f1" stroke="#d6d3cf" stroke-width="3" />
-          <rect x="540" y="726" width="200" height="12" fill="#f8f8f6" opacity="0.9" />
-          <rect x="545" y="781" width="300" height="28" fill="#cfcac3" />
-          <rect x="560" y="809" width="14" height="168" fill="#b9b6b1" />
-          <rect x="815" y="809" width="14" height="168" fill="#b9b6b1" />
-          <rect x="560" y="900" width="270" height="10" fill="#c4c1bc" />
-          <!-- carrello e lampada -->
-          <rect x="870" y="760" width="20" height="215" fill="#d9d6d0" />
-          <line x1="700" y1="975" x2="700" y2="560" stroke="#a9a6a1" stroke-width="7" />
-          <path d="M700 560 q40 -20 80 10" stroke="#a9a6a1" stroke-width="7" fill="none" />
-          <ellipse cx="785" cy="580" rx="34" ry="16" fill="#efeee9" stroke="#bdb9b2" stroke-width="4" />
-          </g>
-        </svg>
-      </div>
-      <div class="m ufficio-pav"></div>
       <!-- quattro sedie sotto il quadro, contro la parete di destra -->
       <div class="sedia sedia--1"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         <div class="sedia sedia--2"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         <div class="sedia sedia--3"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         <div class="sedia sedia--4"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         
-      <!-- la porta: cardine a destra, si apre verso il corridoio (verso di noi) -->
+      <!-- la porta: cardine nell'angolo destro, si apre verso l'interno fino alla parete -->
       <div class="m anta">
         <div class="anta__spessore"></div>
         <div class="anta__venature"></div>
@@ -242,20 +185,19 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.7);
     }
     30% {
-      transform: var(--foto);
+      /* il punto di vista della pianta: fuori, a sinistra della porta, in diagonale verso il quadro */
+      transform: rotateY(20deg) translate3d(-10vh, 52vh, 54vh);
       animation-timing-function: linear;
     }
     62% {
-      transform: rotateY(40deg) translate3d(-59vh, 54vh, 107vh);
+      /* nel vano della porta e dentro, verso il quadro */
+      transform: rotateY(40deg) translate3d(-59vh, 54vh, 102vh);
       animation-timing-function: cubic-bezier(0.2, 0.4, 0.4, 1);
     }
     100% {
       /* davanti al quadro, così vicini da entrarci */
-      transform: rotateY(90deg) translate3d(-97vh, 55vh, 117vh);
+      transform: rotateY(90deg) translate3d(-53.5vh, 55vh, 74vh);
     }
-  }
-  .mondo {
-    --foto: rotateY(28deg) translate3d(-22vh, 52vh, 43vh);
   }
   .m {
     position: absolute;
@@ -303,57 +245,49 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     transform: translate3d(-18vh, -79.6vh, 0.3vh);
   }
 
-  /* — la sala d'attesa (pianta): porta in basso, quadro e sedie sulla parete di destra verso il fondo.
-     x da -60 a 60vh, z da 0 a -160vh, alta 100vh (1vh ≈ 2,7 cm) — */
+  /* — la sala d'attesa, come nella pianta: la porta è nell'angolo destro (cardine sull'angolo) e si apre verso
+     l'interno fino alla parete di destra; subito dopo, sulla stessa parete, il quadro e sotto le sedie.
+     Il resto della stanza non si vede. x da -100 a 16.5vh, z da 0 a -160vh, alta 100vh (1vh ≈ 2,7 cm) — */
   .pav {
-    width: 120vh;
+    width: 116.5vh;
     height: 160vh;
-    transform: translate3d(-60vh, 0, 0) rotateX(-90deg);
+    transform: translate3d(-100vh, 0, 0) rotateX(-90deg);
     background: linear-gradient(180deg, #c7b392, #d6c6aa);
   }
   .soff {
-    width: 120vh;
+    width: 116.5vh;
     height: 160vh;
-    transform: translate3d(-60vh, -100vh, 0) rotateX(-90deg);
+    transform: translate3d(-100vh, -100vh, 0) rotateX(-90deg);
     background: #e4e0d9;
   }
   .luce {
     position: absolute;
-    left: 30%;
-    top: 30%;
-    width: 40%;
-    height: 12%;
+    left: 55%;
+    top: 18%;
+    width: 30%;
+    height: 40%;
     background: #fff;
     box-shadow: 0 0 6vh 2vh rgb(255 252 235 / 0.9);
   }
   .parete-sx {
     width: 160vh;
     height: 100vh;
-    transform: translate3d(-60vh, -100vh, 0) rotateY(90deg);
+    transform: translate3d(-100vh, -100vh, 0) rotateY(90deg);
     background: linear-gradient(90deg, #ebe6de, #e1dbd1);
-  }
-  .tavolino {
-    position: absolute;
-    left: 8%;
-    bottom: 27%;
-    width: 14%;
-    height: 2.4%;
-    background: #fbfbfa;
-    box-shadow: 0 1vh 1.5vh rgb(0 0 0 / 0.08);
   }
   .parete-dx {
     width: 160vh;
     height: 100vh;
-    transform: translate3d(60vh, -100vh, 0) rotateY(90deg);
+    transform: translate3d(16.5vh, -100vh, 0) rotateY(90deg);
     background: linear-gradient(90deg, #f6f3ee, #ebe6de);
     box-shadow: inset 0 -2.6vh 0 #d9d2c6;
   }
-  /* il quadro sulla parete di destra, verso il fondo, sopra le sedie */
+  /* il quadro sulla parete di destra, subito dopo la porta, sopra le sedie */
   .parete-dx .quadro {
     position: absolute;
-    left: 45%;
+    left: 22.5%;
     top: 37%;
-    width: 50%;
+    width: 47.5%;
     height: 17%;
     box-shadow: 0 1.2vh 2.4vh rgb(60 50 40 / 0.18);
     outline: 0.3vh solid #a59d8b;
@@ -363,45 +297,19 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     background: linear-gradient(180deg, #f2eee8, #e6e1d8);
     box-shadow: inset 0 -2.6vh 0 #d9d2c6;
   }
-  /* parete di fondo: a sinistra il passaggio verso lo studio del Dottore (x da -50 a -20vh) */
   .fondo--a {
-    width: 10vh;
-    transform: translate3d(-60vh, -100vh, -160vh);
-  }
-  .fondo--b {
-    width: 30vh;
-    height: 22vh;
-    box-shadow: none;
-    transform: translate3d(-50vh, -100vh, -160vh);
-  }
-  .fondo--c {
-    width: 80vh;
-    transform: translate3d(-20vh, -100vh, -160vh);
+    width: 116.5vh;
+    transform: translate3d(-100vh, -100vh, -160vh);
   }
   .davanti {
-    width: 120vh;
+    width: 116.5vh;
     height: 100vh;
-    transform: translate3d(-60vh, -100vh, -0.1vh);
+    transform: translate3d(-100vh, -100vh, -0.1vh);
     background: #e7e2d9;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 63.75% 100%, 63.75% 22%, 36.25% 22%, 36.25% 100%, 0 100%);
-  }
-  .ufficio {
-    width: 150vh;
-    height: 100vh;
-    transform: translate3d(-130vh, -100vh, -240vh);
-  }
-  .ufficio svg {
-    width: 100%;
-    height: 100%;
-  }
-  .ufficio-pav {
-    width: 150vh;
-    height: 80vh;
-    transform: translate3d(-130vh, 0, -160vh) rotateX(-90deg);
-    background: linear-gradient(180deg, #ad9677, #c2ae90);
+    clip-path: polygon(0 0, 100% 0, 100% 22%, 71.7% 22%, 71.7% 100%, 0 100%);
   }
 
-  /* — sedie 3D sulla parete di destra, sotto il quadro, girate verso la sala — */
+  /* — quattro sedie 3D sulla parete di destra, sotto il quadro, girate verso la sala — */
   .sedia {
     --W: 17vh;
     --D: 16vh;
@@ -412,10 +320,10 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     position: absolute;
     display: block;
   }
-  .sedia--1 { transform: translate3d(42vh, 0, -150vh) rotateY(-90deg); }
-  .sedia--2 { transform: translate3d(42vh, 0, -130vh) rotateY(-90deg); }
-  .sedia--3 { transform: translate3d(42vh, 0, -110vh) rotateY(-90deg); }
-  .sedia--4 { transform: translate3d(42vh, 0, -90vh) rotateY(-90deg); }
+  .sedia--1 { transform: translate3d(-1.5vh, 0, -112vh) rotateY(-90deg); }
+  .sedia--2 { transform: translate3d(-1.5vh, 0, -94vh) rotateY(-90deg); }
+  .sedia--3 { transform: translate3d(-1.5vh, 0, -76vh) rotateY(-90deg); }
+  .sedia--4 { transform: translate3d(-1.5vh, 0, -58vh) rotateY(-90deg); }
   .sd-ombra {
     left: -3vh;
     top: 0;
@@ -512,11 +420,11 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
   @keyframes porta-apre {
     40% {
-      transform: translate3d(-16.5vh, -78vh, 0) rotateY(48deg);
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-60deg);
     }
     to {
-      /* si apre verso il corridoio (verso di noi), come nella foto */
-      transform: translate3d(-16.5vh, -78vh, 0) rotateY(66deg);
+      /* tutta aperta, appoggiata alla parete di destra */
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-88deg);
     }
   }
   .anta__spessore {
