@@ -24,13 +24,15 @@ const braccio = (x, y, z, s) => {
 // vita segnata, fianchi rotondi.
 export function tronco(x, y, z) {
   const ax = Math.abs(x);
-  let d = ellissoide(x, y - 0.75, z + 0.12, 1.8, 1.72, 1.06); // bacino e fianchi
+  // bacino e fianchi: il cavallo è subito sotto l'apparato (y ≈ -0,45), come in un corpo vero
+  let d = ellissoide(x, y - 1.0, z + 0.12, 1.8, 1.46, 1.06);
+  d = smin(d, ellissoide(x, y - 0.08, z + 0.12, 1.7, 0.42, 0.95), 0.4); // la base del bacino, larga, fino alle cosce
   d = smin(d, ellissoide(x, y - 2.65, z + 0.1, 1.22, 1.2, 0.8), 0.8); // vita
   d = smin(d, ellissoide(x, y - 3.9, z + 0.14, 1.46, 1.1, 0.9), 0.55); // torace e schiena
   d = smin(d, cono(x, y, z, -1.55, 4.98, -0.2, 1.55, 4.98, -0.2, 0.42, 0.42), 0.45); // spalle
   d = smin(d, Math.min(cono(x, y, z, -1.45, 5.0, -0.2, 0, 5.4, -0.2, 0.32, 0.32), cono(x, y, z, 1.45, 5.0, -0.2, 0, 5.4, -0.2, 0.32, 0.32)), 0.35); // trapezi
   d = smin(d, ellissoide(ax - 0.55, y - 3.6, z - 0.6, 0.56, 0.52, 0.5), 0.32); // seno pieno
-  d = smin(d, ellissoide(ax - 0.62, y - 0.3, z + 0.86, 0.8, 0.86, 0.64), 0.42); // glutei rotondi
+  d = smin(d, ellissoide(ax - 0.62, y - 0.15, z + 0.86, 0.8, 0.78, 0.64), 0.42); // glutei rotondi
   d = smin(d, cono(x, y, z, 0, 4.95, -0.22, 0, 6.4, -0.08, 0.34, 0.3), 0.3); // collo
   let t = ellissoide(x, y - 7.15, z - 0.02, 0.7, 0.88, 0.82); // cranio
   t = smin(t, ellissoide(x, y - 6.7, z - 0.12, 0.5, 0.52, 0.56), 0.22); // mandibola
