@@ -468,8 +468,13 @@ const legenda = [
       try {
         const { monta } = await import('../three/esperienza/scena');
         // se c'è l'entrata dalla porta, la donna comincia a camminare quando la porta si è aperta
-        const porta = document.querySelector('[data-porta]:not(.porta--salta)');
-        scena = await monta(host, comando(leggi()), { cammina: true, ritardo: porta ? 1.6 : 0 });
+        const w = window as Window & { __portaChiusa?: boolean };
+        scena = await monta(host, comando(leggi()), {
+          cammina: true,
+          ritardo: w.__portaChiusa ? 0.4 : 0,
+          attesa: () => !!w.__portaChiusa,
+        });
+        window.addEventListener('porta-aperta', () => scena?.comanda({}), { signal });
         if (signal.aborted) return scena.dispose();
         radice.classList.add('is-pronto');
         aggiorna();

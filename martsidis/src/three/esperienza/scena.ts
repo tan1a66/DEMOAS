@@ -63,7 +63,11 @@ const PARTI: Record<string, { colore: string }> = {
 /** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
 const CAMMINO = { partenza: -6, durata: 5.2, falcate: 0.62 }; // passo lento
 
-export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}, { cammina = false, ritardo = 0 } = {}) {
+export async function monta(
+  host: HTMLElement,
+  iniziale: Partial<Comando> = {},
+  { cammina = false, ritardo = 0, attesa = (): boolean => false }: { cammina?: boolean; ritardo?: number; attesa?: () => boolean } = {},
+) {
   const stage = creaStage(host, { fov: 30, continuo: false });
   const { scene, camera, renderer } = stage;
   camera.far = 400;
@@ -330,7 +334,9 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (tCammino > -0.4) nascita = Math.min(nascita + dt / 1.6, 1);
 
     // La figura entra camminando di profilo, rallenta, si gira verso di noi e si ferma.
-    tCammino += dt;
+    // finché la porta è chiusa la figura aspetta (nascosta); poi compare ed entra
+    if (attesa()) tCammino = -ritardo;
+    else tCammino += dt;
     const q = cammina ? Math.min(Math.max(tCammino, 0) / CAMMINO.durata, 1) : 1;
     const frena = 1 - Math.pow(1 - q, 2.2);
     const passo = 1 - smooth(0.62, 0.97, q);
@@ -399,7 +405,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
 
     const fermo =
       nascita >= 1 &&
-      (!cammina || tCammino >= CAMMINO.durata) &&
+      (!cammina || tCammino >= CAMMINO.durata || attesa()) &&
       onda === 0 &&
       Math.abs(att.montaggio - cmd.montaggio) < 0.001 &&
       Math.abs(att.giro - cmd.giro) < 0.001 &&

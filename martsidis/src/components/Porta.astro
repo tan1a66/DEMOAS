@@ -3,8 +3,9 @@
  * Entrata del sito: la porta dello studio si apre e dietro c'è la Home, con la donna che entra camminando.
  * - Se esiste src/assets/foto/porta.jpg (la foto della porta dello studio) l'anta usa quella foto;
  *   altrimenti è una porta disegnata, in legno, con la targa in ottone.
- * - Una volta per visita (sessionStorage), mai con "riduci movimento"; un tocco la salta.
- * - Senza JavaScript si apre comunque da sola (animazione CSS) e non blocca nulla.
+ * - Resta chiusa finché non si tocca "Entra" (o la porta): poi si apre piano.
+ * - Una volta per visita (sessionStorage), mai con "riduci movimento".
+ * - Funziona anche senza JavaScript: "Entra" è un link e l'apertura è solo CSS (:target).
  */
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -15,8 +16,9 @@ const sorgente = Object.values(foto)[0]?.default;
 const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'webp' }) : null;
 ---
 
-<div class:list={['porta', { 'porta--foto': img }]} data-porta aria-hidden="true">
-  <div class="porta__anta">
+<div class:list={['porta', { 'porta--foto': img }]} data-porta>
+  <span id="benvenuta" class="porta__ancora"></span>
+  <div class="porta__anta" aria-hidden="true">
     {
       img ? (
         <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
@@ -33,6 +35,7 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
       )
     }
   </div>
+  <a class="porta__entra" href="#benvenuta" data-porta-entra>Entra</a>
 </div>
 
 <script>
@@ -41,16 +44,44 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     let vista = false;
     try {
       vista = sessionStorage.getItem('porta-vista') === '1';
-      sessionStorage.setItem('porta-vista', '1');
     } catch {
-      /* navigazione privata: la porta si apre comunque */
+      /* navigazione privata */
     }
-    const salta = () => porta.classList.add('porta--salta');
+    const w = window as Window & { __portaChiusa?: boolean };
+    const salta = () => {
+      porta.classList.add('porta--salta');
+      w.__portaChiusa = false;
+    };
     if (vista || matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
-    porta.addEventListener('click', salta, { once: true });
-    porta.addEventListener('animationend', (e) => {
-      if (e.animationName.includes('porta-via')) salta();
-    });
+    else {
+      w.__portaChiusa = true;
+      document.documentElement.classList.add('porta-chiusa'); // niente scroll finché non si entra
+      const entra = porta.querySelector<HTMLAnchorElement>('[data-porta-entra]');
+      requestAnimationFrame(() => entra?.focus({ preventScroll: true }));
+      const apri = (e?: Event) => {
+        e?.preventDefault();
+        if (porta.classList.contains('porta--aperta')) return;
+        porta.classList.add('porta--aperta');
+        try {
+          sessionStorage.setItem('porta-vista', '1');
+        } catch {
+          /* ok */
+        }
+        // la donna comincia a entrare mentre la porta finisce di aprirsi
+        setTimeout(() => {
+          w.__portaChiusa = false;
+          document.documentElement.classList.remove('porta-chiusa');
+          window.dispatchEvent(new Event('porta-aperta'));
+        }, 1300);
+      };
+      porta.addEventListener('click', apri);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') apri(e);
+      });
+      porta.addEventListener('animationend', (e) => {
+        if (e.animationName.includes('porta-via')) salta();
+      });
+    }
   }
 </script>
 
@@ -62,7 +93,6 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     perspective: 1800px;
     perspective-origin: 0% 50%;
     background: transparent;
-    animation: porta-via 0.01s linear 2.2s forwards;
     cursor: pointer;
   }
   .porta--salta {
@@ -77,7 +107,6 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
       linear-gradient(90deg, rgb(0 0 0 / 0.18), transparent 3%, transparent 97%, rgb(0 0 0 / 0.2)),
       linear-gradient(180deg, #c58f5c, #b07a49 55%, #a06b3d);
     box-shadow: 0 0 80px rgb(30 20 10 / 0.35);
-    animation: porta-apre 1.5s cubic-bezier(0.6, 0, 0.25, 1) 0.55s forwards;
     will-change: transform;
   }
   /* l'anta, aprendosi, si scurisce appena (prende meno luce) */
@@ -87,7 +116,64 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     inset: 0;
     background: rgb(20 12 6);
     opacity: 0;
-    animation: porta-ombra 1.5s cubic-bezier(0.6, 0, 0.25, 1) 0.55s forwards;
+  }
+  /* si apre piano, solo dopo "Entra" */
+  .porta--aperta {
+    animation: porta-via 0.01s linear 3s forwards;
+  }
+  /* senza JavaScript: appena si entra la porta non blocca più nulla (l'anta aperta è di taglio, invisibile) */
+  .porta:has(.porta__ancora:target) {
+    pointer-events: none;
+  }
+  .porta--aperta .porta__anta,
+  .porta:has(.porta__ancora:target) .porta__anta {
+    animation: porta-apre 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+  }
+  .porta--aperta .porta__anta::after,
+  .porta:has(.porta__ancora:target) .porta__anta::after {
+    animation: porta-ombra 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+  }
+  .porta--aperta .porta__entra,
+  .porta:has(.porta__ancora:target) .porta__entra {
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .porta__entra {
+    position: absolute;
+    left: 50%;
+    bottom: max(12vh, 5rem);
+    translate: -50% 0;
+    z-index: 2;
+    padding: 0.95rem 2.6rem;
+    border-radius: 999px;
+    border: 1px solid rgb(255 240 200 / 0.75);
+    background: rgb(45 30 60 / 0.82);
+    backdrop-filter: blur(6px);
+    color: #fff6dc;
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgb(30 20 10 / 0.35);
+    animation: entra-respira 2.4s ease-in-out infinite;
+  }
+  .porta__entra:hover,
+  .porta__entra:focus-visible {
+    background: rgb(45 30 60 / 0.95);
+    outline: 2px solid #fff6dc;
+    outline-offset: 4px;
+  }
+  @keyframes entra-respira {
+    50% {
+      box-shadow: 0 10px 30px rgb(30 20 10 / 0.35), 0 0 0 10px rgb(255 240 200 / 0.12);
+    }
+  }
+  .porta__ancora {
+    position: absolute;
+    top: 0;
+  }
+  :global(html.porta-chiusa) {
+    overflow: hidden;
   }
   .porta__foto {
     width: 100%;
