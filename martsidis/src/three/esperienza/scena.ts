@@ -63,7 +63,7 @@ const PARTI: Record<string, { colore: string }> = {
 /** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
 const CAMMINO = { partenza: -6, durata: 5.2, falcate: 0.62 }; // passo lento
 
-export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}, { cammina = false } = {}) {
+export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}, { cammina = false, ritardo = 0 } = {}) {
   const stage = creaStage(host, { fov: 30, continuo: false });
   const { scene, camera, renderer } = stage;
   camera.far = 400;
@@ -259,9 +259,9 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelleCorpo.add(sagoma);
   }
   // capelli: stessa palette, un viola più profondo e pieno; scrivono la profondità e si disegnano prima della pelle
-  // sotto i fili, solo un velo di volume (i fili dietro la testa li nasconde la sagoma del corpo)
-  const matCapelli = materialePelle(tinta(c.plum300, 0.2), c.plum500.clone(), 0.14, 0, false, 1);
-  vesti('capelli', matCapelli, 4);
+  // i capelli sono solo fili: il volume solido del modello non si disegna (lasciava un velo chiaro ai lati)
+  const volumeCapelli = modello.getObjectByName('capelli');
+  if (volumeCapelli) volumeCapelli.visible = false;
   // i fili: lisci, luminosi, leggeri
   const capelli = creaCapelli(
     { ...pelle, ...comuni },
@@ -304,7 +304,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   };
   window.addEventListener('pointermove', onPointer, { passive: true });
   const centro = new Vector3();
-  let tCammino = 0;
+  let tCammino = -ritardo; // con l'entrata dalla porta, la figura compare e cammina quando la porta è aperta
   let onda = cammina ? 1 : 0;
   let fase = 0;
 
@@ -327,11 +327,11 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       att[key] = lerp(att[key], p[key], Math.min(dt * 3, 1));
     }
     const m = att.montaggio;
-    nascita = Math.min(nascita + dt / 1.6, 1);
+    if (tCammino > -0.4) nascita = Math.min(nascita + dt / 1.6, 1);
 
     // La figura entra camminando di profilo, rallenta, si gira verso di noi e si ferma.
     tCammino += dt;
-    const q = cammina ? Math.min(tCammino / CAMMINO.durata, 1) : 1;
+    const q = cammina ? Math.min(Math.max(tCammino, 0) / CAMMINO.durata, 1) : 1;
     const frena = 1 - Math.pow(1 - q, 2.2);
     const passo = 1 - smooth(0.62, 0.97, q);
     fase += dt * Math.PI * 2 * CAMMINO.falcate * (0.35 + 0.65 * passo);

@@ -6,6 +6,7 @@ import Foto from '@/components/Foto.astro';
 import Recensioni from '@/components/Recensioni.astro';
 import ContattiBlocco from '@/components/ContattiBlocco.astro';
 import Esperienza from '@/components/Esperienza.astro';
+import Porta from '@/components/Porta.astro';
 import { sito } from '@/data/sito';
 
 const servizi = [
@@ -26,6 +27,7 @@ const servizi = [
 >
   {/* il modello 3D si scarica in parallelo alla pagina: la massa compare prima */}
   <link slot="head" rel="preload" href="/models/pelvi.glb" as="fetch" crossorigin />
+  <Porta />
   <Esperienza />
 
   <div class="dopo">

@@ -1,0 +1,168 @@
+---
+/**
+ * Entrata del sito: la porta dello studio si apre e dietro c'è la Home, con la donna che entra camminando.
+ * - Se esiste src/assets/foto/porta.jpg (la foto della porta dello studio) l'anta usa quella foto;
+ *   altrimenti è una porta disegnata, in legno, con la targa in ottone.
+ * - Una volta per visita (sessionStorage), mai con "riduci movimento"; un tocco la salta.
+ * - Senza JavaScript si apre comunque da sola (animazione CSS) e non blocca nulla.
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { sito } from '@/data/sito';
+
+const foto = import.meta.glob<{ default: ImageMetadata }>('/src/assets/foto/porta.{jpg,jpeg,png,webp}', { eager: true });
+const sorgente = Object.values(foto)[0]?.default;
+const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'webp' }) : null;
+---
+
+<div class:list={['porta', { 'porta--foto': img }]} data-porta aria-hidden="true">
+  <div class="porta__anta">
+    {
+      img ? (
+        <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
+      ) : (
+        <>
+          <div class="porta__venature" />
+          <div class="porta__targa">
+            <span class="porta__nome">{sito.nome}</span>
+            <span class="porta__ruolo">Ginecologia · Ostetricia · Uroginecologia</span>
+            <span class="porta__riceve">Riceve per appuntamento</span>
+          </div>
+          <div class="porta__pomello" />
+        </>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  const porta = document.querySelector<HTMLElement>('[data-porta]');
+  if (porta) {
+    let vista = false;
+    try {
+      vista = sessionStorage.getItem('porta-vista') === '1';
+      sessionStorage.setItem('porta-vista', '1');
+    } catch {
+      /* navigazione privata: la porta si apre comunque */
+    }
+    const salta = () => porta.classList.add('porta--salta');
+    if (vista || matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
+    porta.addEventListener('click', salta, { once: true });
+    porta.addEventListener('animationend', (e) => {
+      if (e.animationName.includes('porta-via')) salta();
+    });
+  }
+</script>
+
+<style>
+  .porta {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    perspective: 1800px;
+    perspective-origin: 0% 50%;
+    background: transparent;
+    animation: porta-via 0.01s linear 2.2s forwards;
+    cursor: pointer;
+  }
+  .porta--salta {
+    display: none;
+  }
+  .porta__anta {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform-origin: 0% 50%;
+    background:
+      linear-gradient(90deg, rgb(0 0 0 / 0.18), transparent 3%, transparent 97%, rgb(0 0 0 / 0.2)),
+      linear-gradient(180deg, #c58f5c, #b07a49 55%, #a06b3d);
+    box-shadow: 0 0 80px rgb(30 20 10 / 0.35);
+    animation: porta-apre 1.5s cubic-bezier(0.6, 0, 0.25, 1) 0.55s forwards;
+    will-change: transform;
+  }
+  /* l'anta, aprendosi, si scurisce appena (prende meno luce) */
+  .porta__anta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgb(20 12 6);
+    opacity: 0;
+    animation: porta-ombra 1.5s cubic-bezier(0.6, 0, 0.25, 1) 0.55s forwards;
+  }
+  .porta__foto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .porta__venature {
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background: repeating-linear-gradient(
+      92deg,
+      transparent 0 18px,
+      rgb(120 70 30 / 0.25) 18px 19px,
+      transparent 19px 41px,
+      rgb(255 220 180 / 0.12) 41px 42px
+    );
+  }
+  .porta__targa {
+    position: absolute;
+    top: 22%;
+    right: 9%;
+    display: grid;
+    gap: 0.35rem;
+    width: min(26rem, 70vw);
+    padding: clamp(1rem, 3vw, 1.75rem);
+    border-radius: 3px;
+    background: linear-gradient(135deg, #e9cf8e, #c9a456 45%, #e6c983 70%, #b8913f);
+    box-shadow: 0 6px 18px rgb(40 25 5 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.5);
+    color: #3a2a12;
+    font-family: var(--font-heading);
+    text-align: center;
+  }
+  .porta__nome {
+    font-size: clamp(1.1rem, 0.8rem + 1.6vw, 1.7rem);
+  }
+  .porta__ruolo {
+    font-size: clamp(0.8rem, 0.7rem + 0.5vw, 1rem);
+    font-style: italic;
+  }
+  .porta__riceve {
+    margin-top: 0.4rem;
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+  .porta__pomello {
+    position: absolute;
+    top: 56%;
+    right: 7%;
+    width: clamp(2.8rem, 6vw, 4rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
+    box-shadow: 0 8px 16px rgb(40 25 5 / 0.45);
+  }
+  @keyframes porta-apre {
+    to {
+      transform: rotateY(-104deg);
+    }
+  }
+  @keyframes porta-ombra {
+    to {
+      opacity: 0.45;
+    }
+  }
+  @keyframes porta-via {
+    to {
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .porta {
+      display: none;
+    }
+  }
+</style>

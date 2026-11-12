@@ -36,7 +36,7 @@ const calotta = (polar: number, phi: number) =>
 /** Superficie esterna della chioma lungo la schiena, all'altezza y e all'angolo phi. */
 const schiena = (y: number, phi: number) => {
   const zc = -1.02 + 0.52 * smooth(4.0, 7.2, y) + 0.1 * smooth(3.6, 2.4, y);
-  const largo = 0.84 + 0.14 * smooth(6.2, 3.4, y);
+  const largo = 0.86 + 0.14 * smooth(6.2, 3.4, y);
   const xc = 0.06 * Math.sin(y * 1.3);
   return new Vector3(xc + largo * Math.sin(phi), y, zc - 0.3 * Math.cos(phi));
 };
@@ -46,7 +46,7 @@ function ciocche(): Vector3[][] {
   // dietro e ai lati: phi da -1.75 a 1.75
   const N = 1200;
   for (let i = 0; i < N; i++) {
-    const phi = (i / (N - 1) - 0.5) * 3.5 + (caso() - 0.5) * 0.02;
+    const phi = (i / (N - 1) - 0.5) * 4.0 + (caso() - 0.5) * 0.03; // fino a ±2: si unisce alle ciocche davanti
     const lato = phi >= 0 ? 1 : -1;
     const fine = 2.25 + 0.55 * (0.98 * Math.sin(phi)) ** 2 + caso() * 0.25;
     const p = [
@@ -62,10 +62,26 @@ function ciocche(): Vector3[][] {
     for (const v of p.slice(1)) v.add(new Vector3((caso() - 0.5) * 0.05, 0, (caso() - 0.5) * 0.05));
     fili.push(p);
   }
+  // ai lati: fili che coprono il fianco del collo, si appoggiano sulla spalla e ricadono dietro (niente vuoti)
+  for (const lato of [-1, 1])
+    for (let i = 0; i < 260; i++) {
+      const phi = lato * (1.55 + caso() * 0.55);
+      const zm = -0.5 + caso() * 0.5;
+      const fine = 2.6 + caso() * 0.6;
+      fili.push([
+        new Vector3(0.03 * lato, C.y + R.y - 0.01, C.z + 0.25 - 0.1 * caso()),
+        calotta(0.55, phi),
+        calotta(1.15, phi),
+        new Vector3(lato * (0.84 + caso() * 0.06), 6.3, zm * 0.6),
+        new Vector3(lato * (0.98 + caso() * 0.08), 5.45, zm - 0.12),
+        new Vector3(lato * (0.98 + caso() * 0.08), 4.5, -1.0 - caso() * 0.1),
+        new Vector3(lato * (0.9 + caso() * 0.1), fine, -1.02 - caso() * 0.08),
+      ]);
+    }
   // davanti: ciocche ai lati del viso che ricadono davanti alle spalle
   for (const lato of [-1, 1])
     for (let i = 0; i < 280; i++) {
-      const phi = lato * (1.95 + caso() * 0.55);
+      const phi = lato * (1.85 + caso() * 0.65);
       const sx = (caso() - 0.5) * 0.24, sz = (caso() - 0.5) * 0.2;
         const p = [
           new Vector3(0.03 * lato, C.y + R.y - 0.01, C.z + 0.25 - 0.1 * caso()),

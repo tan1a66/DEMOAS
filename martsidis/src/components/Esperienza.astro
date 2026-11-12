@@ -467,7 +467,9 @@ const legenda = [
     (async () => {
       try {
         const { monta } = await import('../three/esperienza/scena');
-        scena = await monta(host, comando(leggi()), { cammina: true });
+        // se c'è l'entrata dalla porta, la donna comincia a camminare quando la porta si è aperta
+        const porta = document.querySelector('[data-porta]:not(.porta--salta)');
+        scena = await monta(host, comando(leggi()), { cammina: true, ritardo: porta ? 1.6 : 0 });
         if (signal.aborted) return scena.dispose();
         radice.classList.add('is-pronto');
         aggiorna();
