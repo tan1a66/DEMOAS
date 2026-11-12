@@ -10,7 +10,7 @@ import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer
 import { mkdir } from 'node:fs/promises';
 import { surfaceNets } from './mesher.mjs';
 import { PARTI, ANCORE, pavimento, bacino } from './anatomia.mjs';
-import { PARTE_CORPO, corpo } from './corpo.mjs';
+import { PARTE_CORPO, PARTE_CAPELLI, corpo } from './corpo.mjs';
 
 await Promise.all([MeshoptEncoder.ready, MeshoptSimplifier.ready, MeshoptDecoder.ready]);
 const USCITA = 'public/models/pelvi.glb';
@@ -135,7 +135,7 @@ const t0 = Date.now();
   console.log(`bacino fuori dalla figura: ${((fuori / tot) * 100).toFixed(2)}%`);
 }
 
-for (const parte of [...PARTI, PARTE_CORPO]) {
+for (const parte of [...PARTI, PARTE_CORPO, PARTE_CAPELLI]) {
   const t = Date.now();
   const grezza = surfaceNets(parte.sdf, parte.min, parte.max, parte.passo);
   correggiAvvolgimento(grezza.posizioni, grezza.normali, grezza.indici);
