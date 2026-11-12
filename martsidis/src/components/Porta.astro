@@ -1,11 +1,12 @@
 ---
 /**
- * Entrata del sito: la porta dello studio si apre e dietro c'è la Home, con la donna che entra camminando.
- * - Se esiste src/assets/foto/porta.jpg (la foto della porta dello studio) l'anta usa quella foto;
- *   altrimenti è una porta disegnata, in legno, con la targa in ottone.
- * - Resta chiusa finché non si tocca "Entra" (o la porta): poi si apre piano.
- * - Una volta per visita (sessionStorage), mai con "riduci movimento".
- * - Funziona anche senza JavaScript: "Entra" è un link e l'apertura è solo CSS (:target).
+ * Entrata del sito, in tre tempi:
+ * 1. la porta dello studio è chiusa (legno e targa in ottone, come quella vera) con il pulsante "Entra";
+ * 2. toccando "Entra" la porta si apre e dietro c'è lo studio (la foto src/assets/foto/porta.jpg);
+ * 3. si entra nello studio: la foto resta, sfocata e leggera, dietro alla donna che entra camminando,
+ *    poi lascia il posto alla Home.
+ * Una volta per visita (sessionStorage), mai con "riduci movimento". Senza JavaScript "Entra" è un link
+ * e l'apertura è solo CSS (:target).
  */
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -16,27 +17,25 @@ const sorgente = Object.values(foto)[0]?.default;
 const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'webp' }) : null;
 ---
 
-<div class:list={['porta', { 'porta--foto': img }]} data-porta>
+<div class="porta" data-porta>
   <span id="benvenuta" class="porta__ancora"></span>
+  {
+    img && (
+      <div class="porta__studio" aria-hidden="true">
+        <img class="porta__sfondo" src={img.src} alt="" />
+        <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
+      </div>
+    )
+  }
   <div class="porta__anta" aria-hidden="true">
-    {
-      img ? (
-        <>
-          <img class="porta__sfondo" src={img.src} alt="" />
-          <img class="porta__foto" src={img.src} alt="" width={img.attributes.width} height={img.attributes.height} />
-        </>
-      ) : (
-        <>
-          <div class="porta__venature" />
-          <div class="porta__targa">
-            <span class="porta__nome">{sito.nome}</span>
-            <span class="porta__ruolo">Ginecologia · Ostetricia · Uroginecologia</span>
-            <span class="porta__riceve">Riceve per appuntamento</span>
-          </div>
-          <div class="porta__pomello" />
-        </>
-      )
-    }
+    <div class="porta__venature"></div>
+    <div class="porta__targa">
+      <span class="porta__nome">{sito.nome}</span>
+      <span class="porta__ruolo">Medico Chirurgo</span>
+      <span class="porta__righe">Specialista in Ginecologia ed Ostetricia<br />Esperto in Uroginecologia</span>
+      <span class="porta__riceve">Riceve per appuntamento</span>
+    </div>
+    <div class="porta__pomello"></div>
   </div>
   <a class="porta__entra" href="#benvenuta" data-porta-entra>Entra</a>
 </div>
@@ -54,6 +53,7 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     const salta = () => {
       porta.classList.add('porta--salta');
       w.__portaChiusa = false;
+      document.documentElement.classList.remove('porta-chiusa');
     };
     if (vista || matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
     else {
@@ -70,19 +70,20 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
         } catch {
           /* ok */
         }
-        // la donna comincia a entrare mentre la porta finisce di aprirsi
+        // 2,4 s: si è entrati. Lo studio resta dietro, la donna entra camminando
         setTimeout(() => {
+          porta.classList.add('porta--dentro');
           w.__portaChiusa = false;
           document.documentElement.classList.remove('porta-chiusa');
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 1300);
+        }, 2400);
+        // quando lei si è fermata lo studio lascia il posto alla Home
+        setTimeout(() => porta.classList.add('porta--via'), 8200);
+        setTimeout(salta, 9800);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') apri(e);
-      });
-      porta.addEventListener('animationend', (e) => {
-        if (e.animationName.includes('porta-via')) salta();
+        if (e.key === 'Escape' && !porta.classList.contains('porta--aperta')) apri(e);
       });
     }
   }
@@ -95,24 +96,75 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     z-index: 100;
     perspective: 1800px;
     perspective-origin: 0% 50%;
-    background: transparent;
+    background: #2a2118;
     cursor: pointer;
   }
   .porta--salta {
     display: none;
   }
+
+  /* — lo studio, dietro la porta — */
+  .porta__studio {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform-origin: 40% 62%;
+    transition:
+      transform 3.2s cubic-bezier(0.45, 0, 0.2, 1),
+      filter 1.6s ease,
+      opacity 1.6s ease;
+  }
+  .porta__sfondo {
+    position: absolute;
+    inset: -40px;
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    object-fit: cover;
+    filter: blur(28px) brightness(0.85);
+  }
+  .porta__foto {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 45% 45%;
+  }
+  @media (min-aspect-ratio: 4/5) {
+    /* schermo largo: la foto (verticale) si vede tutta, al centro, su uno sfondo sfocato della stessa foto */
+    .porta__foto {
+      object-fit: contain;
+    }
+  }
+  /* si entra: lo studio si avvicina */
+  .porta--aperta .porta__studio {
+    transform: scale(1.35);
+  }
+  /* dentro: lo studio resta dietro alla donna, sfocato e leggero; la Home è davanti */
+  .porta--dentro {
+    z-index: -1;
+    background: transparent;
+    pointer-events: none;
+  }
+  .porta--dentro .porta__studio {
+    filter: blur(6px) saturate(0.9);
+    opacity: 0.32;
+  }
+  .porta--via .porta__studio {
+    opacity: 0;
+  }
+
+  /* — la porta chiusa — */
   .porta__anta {
     position: absolute;
     inset: 0;
     overflow: hidden;
     transform-origin: 0% 50%;
     background:
-      linear-gradient(90deg, rgb(0 0 0 / 0.18), transparent 3%, transparent 97%, rgb(0 0 0 / 0.2)),
-      linear-gradient(180deg, #c58f5c, #b07a49 55%, #a06b3d);
+      linear-gradient(90deg, rgb(0 0 0 / 0.22), transparent 3%, transparent 97%, rgb(0 0 0 / 0.25)),
+      linear-gradient(180deg, #cf9a62, #bd8248 55%, #ab713a);
     box-shadow: 0 0 80px rgb(30 20 10 / 0.35);
     will-change: transform;
   }
-  /* l'anta, aprendosi, si scurisce appena (prende meno luce) */
   .porta__anta::after {
     content: '';
     position: absolute;
@@ -120,27 +172,80 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     background: rgb(20 12 6);
     opacity: 0;
   }
-  /* si apre piano, solo dopo "Entra" */
-  .porta--aperta {
-    animation: porta-via 0.01s linear 3s forwards;
-  }
-  /* senza JavaScript: appena si entra la porta non blocca più nulla (l'anta aperta è di taglio, invisibile) */
-  .porta:has(.porta__ancora:target) {
-    pointer-events: none;
-  }
   .porta--aperta .porta__anta,
   .porta:has(.porta__ancora:target) .porta__anta {
-    animation: porta-apre 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+    animation: porta-apre 2.2s cubic-bezier(0.55, 0, 0.2, 1) forwards;
   }
   .porta--aperta .porta__anta::after,
   .porta:has(.porta__ancora:target) .porta__anta::after {
-    animation: porta-ombra 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
+    animation: porta-ombra 2.2s cubic-bezier(0.55, 0, 0.2, 1) forwards;
   }
-  .porta--aperta .porta__entra,
-  .porta:has(.porta__ancora:target) .porta__entra {
-    opacity: 0;
-    transition: opacity 0.4s;
+  .porta--dentro .porta__anta {
+    visibility: hidden;
   }
+  /* senza JavaScript: appena si entra la porta non blocca più nulla e lo studio sfuma */
+  .porta:has(.porta__ancora:target) {
+    pointer-events: none;
+    background: transparent;
+  }
+  .porta:has(.porta__ancora:target) .porta__studio {
+    animation: studio-via 1.2s ease 2.2s forwards;
+  }
+  .porta__venature {
+    position: absolute;
+    inset: 0;
+    opacity: 0.35;
+    background: repeating-linear-gradient(
+      92deg,
+      transparent 0 18px,
+      rgb(120 70 30 / 0.25) 18px 19px,
+      transparent 19px 41px,
+      rgb(255 220 180 / 0.12) 41px 42px
+    );
+  }
+  .porta__targa {
+    position: absolute;
+    top: 16%;
+    right: 8%;
+    display: grid;
+    gap: 0.3rem;
+    width: min(26rem, 72vw);
+    padding: clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 2rem);
+    border-radius: 3px;
+    background: linear-gradient(135deg, #e9cf8e, #c9a456 45%, #e6c983 70%, #b8913f);
+    box-shadow: 0 6px 18px rgb(40 25 5 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.5);
+    color: #3a2a12;
+    font-family: Georgia, 'Times New Roman', serif;
+    text-align: center;
+  }
+  .porta__nome {
+    font-size: clamp(1.05rem, 0.8rem + 1.4vw, 1.6rem);
+  }
+  .porta__ruolo {
+    font-size: clamp(0.75rem, 0.65rem + 0.4vw, 0.95rem);
+    font-style: italic;
+  }
+  .porta__righe {
+    margin-top: 0.5rem;
+    font-size: clamp(0.85rem, 0.7rem + 0.6vw, 1.1rem);
+    line-height: 1.35;
+  }
+  .porta__riceve {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .porta__pomello {
+    position: absolute;
+    top: 58%;
+    right: 7%;
+    width: clamp(2.8rem, 6vw, 4rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
+    box-shadow: 0 8px 16px rgb(40 25 5 / 0.45);
+  }
+
+  /* — "Entra" — */
   .porta__entra {
     position: absolute;
     left: 50%;
@@ -166,10 +271,10 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
     outline: 2px solid #fff6dc;
     outline-offset: 4px;
   }
-  @keyframes entra-respira {
-    50% {
-      box-shadow: 0 10px 30px rgb(30 20 10 / 0.35), 0 0 0 10px rgb(255 240 200 / 0.12);
-    }
+  .porta--aperta .porta__entra,
+  .porta:has(.porta__ancora:target) .porta__entra {
+    opacity: 0;
+    transition: opacity 0.4s;
   }
   .porta__ancora {
     position: absolute;
@@ -178,104 +283,10 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
   :global(html.porta-chiusa) {
     overflow: hidden;
   }
-  .porta__foto {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 45% 45%;
-  }
-  .porta__sfondo {
-    position: absolute;
-    inset: -40px;
-    width: calc(100% + 80px);
-    height: calc(100% + 80px);
-    object-fit: cover;
-    filter: blur(28px) brightness(0.85);
-  }
-  .porta__foto {
-    position: relative;
-  }
-  @media (min-aspect-ratio: 4/5) {
-    /* schermo largo: la foto (verticale) si vede tutta, al centro, su uno sfondo sfocato della stessa foto */
-    .porta__foto {
-      object-fit: contain;
-      object-position: 50% 50%;
+  @keyframes entra-respira {
+    50% {
+      box-shadow: 0 10px 30px rgb(30 20 10 / 0.35), 0 0 0 10px rgb(255 240 200 / 0.12);
     }
-    .porta--foto .porta__anta {
-      transform-origin: 42% 62%;
-    }
-  }
-  /* con la foto vera (la porta è già socchiusa): dopo "Entra" si entra nella sala, verso le sedie */
-  .porta--foto .porta__anta {
-    background: #2a2118;
-    transform-origin: 30% 62%;
-    box-shadow: none;
-  }
-  .porta--foto.porta--aperta .porta__anta,
-  .porta--foto:has(.porta__ancora:target) .porta__anta {
-    animation: porta-entra 2.6s cubic-bezier(0.55, 0, 0.2, 1) forwards;
-  }
-  .porta--foto .porta__anta::after {
-    display: none;
-  }
-  @keyframes porta-entra {
-    55% {
-      opacity: 1;
-    }
-    to {
-      transform: scale(3.2);
-      opacity: 0;
-    }
-  }
-  .porta__venature {
-    position: absolute;
-    inset: 0;
-    opacity: 0.35;
-    background: repeating-linear-gradient(
-      92deg,
-      transparent 0 18px,
-      rgb(120 70 30 / 0.25) 18px 19px,
-      transparent 19px 41px,
-      rgb(255 220 180 / 0.12) 41px 42px
-    );
-  }
-  .porta__targa {
-    position: absolute;
-    top: 22%;
-    right: 9%;
-    display: grid;
-    gap: 0.35rem;
-    width: min(26rem, 70vw);
-    padding: clamp(1rem, 3vw, 1.75rem);
-    border-radius: 3px;
-    background: linear-gradient(135deg, #e9cf8e, #c9a456 45%, #e6c983 70%, #b8913f);
-    box-shadow: 0 6px 18px rgb(40 25 5 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.5);
-    color: #3a2a12;
-    font-family: var(--font-heading);
-    text-align: center;
-  }
-  .porta__nome {
-    font-size: clamp(1.1rem, 0.8rem + 1.6vw, 1.7rem);
-  }
-  .porta__ruolo {
-    font-size: clamp(0.8rem, 0.7rem + 0.5vw, 1rem);
-    font-style: italic;
-  }
-  .porta__riceve {
-    margin-top: 0.4rem;
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    letter-spacing: 0.04em;
-  }
-  .porta__pomello {
-    position: absolute;
-    top: 56%;
-    right: 7%;
-    width: clamp(2.8rem, 6vw, 4rem);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
-    box-shadow: 0 8px 16px rgb(40 25 5 / 0.45);
   }
   @keyframes porta-apre {
     to {
@@ -287,10 +298,9 @@ const img = sorgente ? await getImage({ src: sorgente, width: 1600, format: 'web
       opacity: 0.45;
     }
   }
-  @keyframes porta-via {
+  @keyframes studio-via {
     to {
-      visibility: hidden;
-      pointer-events: none;
+      opacity: 0;
     }
   }
   @media (prefers-reduced-motion: reduce) {
