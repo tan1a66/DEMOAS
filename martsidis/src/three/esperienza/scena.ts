@@ -332,18 +332,18 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       conSagoma(m);
     }
     hips = figura.getObjectByName('mixamorigHips') ?? null;
-    if (animata.animations[0]) {
-      mixer = new AnimationMixer(figura);
-      mixer.clipAction(animata.animations[0]).play();
-      mixer.update(0);
-    }
-    // l'apparato segue il bacino della figura
+    // l'apparato segue il bacino: riferimento = posa di partenza del modello (quella allineata all'apparato),
+    // misurata prima che l'animazione muova le ossa
     const genitore = corpoStatico.parent;
     genitore.add(apparato);
     for (const o of Object.values(parti)) apparato.add(o);
     apparato.matrixAutoUpdate = false;
     modello.updateMatrixWorld(true);
     if (hips) H0.copy(Pinv.copy(genitore.matrixWorld).invert().multiply(hips.matrixWorld)).invert();
+    if (animata.animations[0]) {
+      mixer = new AnimationMixer(figura);
+      mixer.clipAction(animata.animations[0]).play();
+    }
   } else {
     vesti('corpo', matPelle, 5);
     const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;
