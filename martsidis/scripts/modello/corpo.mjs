@@ -62,8 +62,8 @@ export function capelli(x, y, z) {
   // ciocche lunghe che scendono ai lati del viso e ricadono davanti alle spalle, sul petto
   const ax = Math.abs(x);
   const ciocca = smin(
-    cono(ax, y, z, 0.64, 6.7, 0.02, 0.9, 4.95, 0.12, 0.27, 0.23),
-    cono(ax, y, z, 0.9, 4.95, 0.12, 0.82, 3.45, 0.6, 0.23, 0.1),
+    cono(ax, y, z, 0.64, 6.7, 0.02, 0.92, 5.0, 0.22, 0.27, 0.22),
+    cono(ax, y, z, 0.92, 5.0, 0.22, 0.9, 4.25, 0.62, 0.22, 0.1),
     0.35,
   );
   d = smin(d, ciocca, 0.45);

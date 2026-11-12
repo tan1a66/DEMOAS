@@ -27,6 +27,7 @@ import { creaStage } from '../shared/stage';
 import { paletteBrand } from '../shared/palette';
 import { config } from '@/config';
 import { PARAMETRI, type IdStato, type Organo, type ParametriStato } from '../pelvi/stati';
+import { creaCapelli } from './capelli';
 
 export type Area = { x: number; y: number; w: number; h: number };
 export type Comando = {
@@ -258,9 +259,17 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelleCorpo.add(sagoma);
   }
   // capelli: stessa palette, un viola più profondo e pieno; scrivono la profondità e si disegnano prima della pelle
-  const matCapelli = materialePelle(tinta(c.plum500, 0.3).lerp(c.plum300, 0.25), c.plum700.clone(), 0.62, 0, true, 1);
-  matCapelli.roughness = 0.22; // un riflesso morbido che scorre sulla chioma mentre ondeggia
+  // sotto i fili, solo un velo di volume (i fili dietro la testa li nasconde la sagoma del corpo)
+  const matCapelli = materialePelle(tinta(c.plum300, 0.2), c.plum500.clone(), 0.14, 0, false, 1);
   vesti('capelli', matCapelli, 4);
+  // i fili: lisci, luminosi, leggeri
+  const capelli = creaCapelli(
+    { ...pelle, ...comuni },
+    tinta(c.plum300, 0.15),
+    c.plum500.clone().lerp(c.plum700, 0.35),
+    c.ivory.clone(),
+  );
+  modello.add(capelli);
 
   const pavimento = parti.pavimento?.getObjectByName('pavimento_mesh') as Mesh | undefined;
   const morph = (nome: string, v: number) => {
