@@ -411,7 +411,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (tCammino > -0.4) nascita = Math.min(nascita + dt / 1.6, 1);
     // la figura si muove finché la si guarda intera; con lo zoom rallenta e si ferma
     const velocita = 1 - smooth(0, 0.25, att.montaggio);
-    if (mixer && velocita > 0.001) {
+    if (mixer && velocita > 0.001 && !attesa()) {
       mixer.update(dt * velocita);
       if (hips && apparato.parent) {
         apparato.parent.updateMatrixWorld(true);
@@ -505,7 +505,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       Math.abs(att.ay - ay) < 0.5 &&
       Math.abs(att.ar - ar) < 0.5 &&
       !evidenza &&
-      !(mixer && velocita > 0.001);
+      !(mixer && velocita > 0.001 && !attesa());
     if (!fermo) stage.sveglia(250);
   };
   stage.onFrame(fotogramma);

@@ -98,7 +98,7 @@ export async function montaStanza(scena: HTMLElement, mondoStanza: HTMLElement, 
   loader.setMeshoptDecoder(MeshoptDecoder);
 
   const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, matchMedia('(max-width: 63.99rem)').matches ? 1.5 : 2));
   renderer.toneMapping = NoToneMapping;
   const [gltf, tQuadro] = await Promise.all([
     loader.loadAsync(SEDIA),
