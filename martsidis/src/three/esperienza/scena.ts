@@ -59,7 +59,10 @@ const PARTI: Record<string, { colore: string }> = {
   bacino: { colore: '#ece2d2' },
 };
 
-export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) {
+/** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
+const CAMMINO = { partenza: -5, durata: 3.4, falcate: 0.95 };
+
+export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}, { cammina = false } = {}) {
   const stage = creaStage(host, { fov: 30, continuo: false });
   const { scene, camera, renderer } = stage;
   camera.far = 400;
@@ -85,13 +88,17 @@ export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) 
   const comuni = {
     uComparsa: { value: -10 },
     uTaglio: { value: 0 },
-    uCentro: { value: CENTRO },
+    uCentro: { value: CENTRO.clone() },
   };
   const telefono = window.matchMedia('(max-width: 63.99rem)').matches;
   const pelle = {
     uPelleA: { value: (telefono ? c.plum300.clone().lerp(c.ivory, 0.45) : c.plum300.clone()) },
     uPelleB: { value: c.plum500.clone() },
     uBordo: { value: c.sage200.clone() },
+    uFase: { value: 0 },
+    uPasso: { value: 0 },
+    uGruppoPos: { value: new Vector3() },
+    uGruppoRot: { value: 0 },
   };
 
   const parti: Record<string, Object3D> = {};
@@ -144,6 +151,38 @@ if (vMondo.y > uComparsa) discard;`);
     mat.customProgramCacheKey = () => 'pelle'; // shader diverso da quello degli organi
     comparsa(mat, (shader) => {
       Object.assign(shader.uniforms, pelle);
+      // Camminata: gambe, ginocchia e braccia ruotano attorno alle articolazioni (nello spazio della figura)
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', `#include <common>
+uniform float uFase; uniform float uPasso; uniform vec3 uGruppoPos; uniform float uGruppoRot;
+vec3 rotX(vec3 p, vec3 c, float a) {
+  vec3 d = p - c; float co = cos(a), si = sin(a);
+  return c + vec3(d.x, d.y * co - d.z * si, d.y * si + d.z * co);
+}
+vec3 cammina(vec3 p) {
+  float s = p.x >= 0.0 ? 1.0 : -1.0;
+  float fi = uFase + (s > 0.0 ? 0.0 : 3.14159);
+  float wl = (1.0 - smoothstep(-0.9, 0.4, p.y)) * smoothstep(0.0, 0.3, abs(p.x));
+  float wk = 1.0 - smoothstep(-4.6, -3.6, p.y);
+  p = rotX(p, vec3(0.0, -4.1, 0.02), uPasso * 0.8 * max(0.0, cos(fi)) * wk * wl);
+  p = rotX(p, vec3(0.0, 0.3, -0.08), -uPasso * 0.42 * sin(fi) * wl);
+  vec3 sp = vec3(s * 1.72, 4.75, -0.22);
+  vec3 ab = vec3(s * 2.18, -0.35, 0.02) - sp;
+  float h = clamp(dot(p - sp, ab) / dot(ab, ab), 0.0, 1.0);
+  float da = length(p - sp - ab * h);
+  float wa = (1.0 - smoothstep(0.32, 0.5, da)) * smoothstep(0.05, 0.25, h);
+  return rotX(p, sp, uPasso * 0.24 * sin(fi) * wa);
+}`)
+        .replace('#include <project_vertex>', `vec4 mondoC = modelMatrix * vec4(transformed, 1.0);
+float cg = cos(uGruppoRot), sg = sin(uGruppoRot);
+vec3 fC = mondoC.xyz - uGruppoPos;
+fC = vec3(cg * fC.x - sg * fC.z, fC.y, sg * fC.x + cg * fC.z);
+fC = cammina(fC);
+vec3 wC = vec3(cg * fC.x + sg * fC.z, fC.y, -sg * fC.x + cg * fC.z) + uGruppoPos;
+vec4 mvPosition = viewMatrix * vec4(wC, 1.0);
+gl_Position = projectionMatrix * mvPosition;`)
+        .replace('#include <fog_vertex>', `#include <fog_vertex>
+vMondo = wC;`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
 uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo;`)
@@ -202,6 +241,8 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   };
   window.addEventListener('pointermove', onPointer, { passive: true });
   const centro = new Vector3();
+  let tCammino = 0;
+  let fase = 0;
 
   const fotogramma = (dt: number, t: number) => {
     const k = Math.min(dt * 5, 1);
@@ -223,12 +264,26 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     }
     const m = att.montaggio;
     nascita = Math.min(nascita + dt / 1.6, 1);
+
+    // La figura entra camminando di profilo, rallenta, si gira verso di noi e si ferma.
+    tCammino += dt;
+    const q = cammina ? Math.min(tCammino / CAMMINO.durata, 1) : 1;
+    const frena = 1 - Math.pow(1 - q, 2.2);
+    const passo = 1 - smooth(0.62, 0.97, q);
+    fase += dt * Math.PI * 2 * CAMMINO.falcate * (0.35 + 0.65 * passo);
+    gruppo.position.set(CAMMINO.partenza * (1 - frena), Math.abs(Math.cos(fase)) * 0.1 * passo, 0);
+    gruppo.rotation.y = (Math.PI / 2) * (1 - smooth(0.55, 1, q));
+    pelle.uFase.value = fase;
+    pelle.uPasso.value = passo;
+    pelle.uGruppoPos.value.copy(gruppo.position);
+    pelle.uGruppoRot.value = gruppo.rotation.y;
+    comuni.uCentro.value.copy(CENTRO).add(gruppo.position);
     comuni.uComparsa.value = lerp(-9.2, 8.6, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
 
     // Zoom: dalla figura intera all'apparato (interpolazione "logaritmica": velocità costante percepita)
     const z = smooth(0, 1, m);
     const raggioMondo = RAGGIO_CORPO * Math.pow(RAGGIO_MODELLO / RAGGIO_CORPO, z);
-    centro.lerpVectors(CENTRO_CORPO, CENTRO, smooth(0, 0.7, m));
+    centro.lerpVectors(CENTRO_CORPO, CENTRO, smooth(0, 0.7, m)).addScaledVector(gruppo.position, Math.min(m * 4, 1));
     // la pelle si apre dal bacino mentre ci si avvicina
     comuni.uTaglio.value = m < 0.25 ? 0 : 0.2 + Math.pow(smooth(0.25, 1, m), 1.6) * 10;
 
@@ -275,6 +330,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
 
     const fermo =
       nascita >= 1 &&
+      (!cammina || tCammino >= CAMMINO.durata) &&
       Math.abs(att.montaggio - cmd.montaggio) < 0.001 &&
       Math.abs(att.giro - cmd.giro) < 0.001 &&
       Math.abs(att.ax - ax) < 0.5 &&

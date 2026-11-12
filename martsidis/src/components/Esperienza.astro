@@ -37,10 +37,11 @@ const legenda = [
     </div>
     <div class="container esp-due">
       <div class="esp-col-testo">
-        <p class="esp-hero__luogo">Uroginecologia a Cagliari</p>
-        <h1 id="hero-titolo">Incontinenza, prolasso, pavimento pelvico: problemi comuni, che si possono curare.</h1>
+        <p class="esp-hero__luogo">Ginecologia e uroginecologia a Cagliari</p>
+        <h1 id="hero-titolo">Il benessere della donna, in ogni fase della vita.</h1>
         <p class="esp-hero__sotto">
-          <strong>{sito.nome}</strong>, uroginecologo. {sito.ruoloOspedaliero}.
+          Ascolto, visite e cure con calma e riservatezza: dalla gravidanza alla menopausa.
+          <br /><strong>{sito.nome}</strong>, ginecologo e uroginecologo.
         </p>
         <div class="esp-solo-desktop">
           <Button href="/prenota-una-visita/" size="lg" data-prenota>{t('cta.book')}</Button>
@@ -466,7 +467,7 @@ const legenda = [
     (async () => {
       try {
         const { monta } = await import('../three/esperienza/scena');
-        scena = await monta(host, comando(leggi()));
+        scena = await monta(host, comando(leggi()), { cammina: true });
         if (signal.aborted) return scena.dispose();
         radice.classList.add('is-pronto');
         aggiorna();
