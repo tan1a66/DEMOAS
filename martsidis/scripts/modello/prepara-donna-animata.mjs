@@ -1,7 +1,7 @@
 // Prepara la figura animata di Meshy/Mixamo (GLB con scheletro e animazione) per il sito:
 // capelli riconosciuti dal colore della texture → COLOR_0 (r = 1 sui capelli); niente texture; animazione sul posto
 // (tolto lo spostamento orizzontale del bacino); allineamento all'apparato negli extras; compressione Meshopt.
-// Uso: node scripts/modello/prepara-donna-animata.mjs <file.glb>  → public/models/donna.glb
+// Uso: node scripts/modello/prepara-donna-animata.mjs <file.glb> [nome animazione, default Red_Carpet_Walk] → public/models/donna.glb
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, EXTMeshoptCompression } from '@gltf-transform/extensions';
 import { prune, dedup, quantize, resample } from '@gltf-transform/functions';
@@ -40,16 +40,21 @@ for (let v = 0; v < n; v++) { const y = pos[v * 3 + 1]; if (y > cav + H * 0.03 &
 const S = 16.8 / H;
 const allineamento = { scala: S, posizione: [0, -0.5 - cav * S, -0.12 - (zs / zn) * S] };
 
-// animazione sul posto: il bacino non si sposta in orizzontale
-for (const anim of root.listAnimations()) {
-  for (const ch of anim.listChannels()) {
-    if (ch.getTargetPath() !== 'translation' || !/Hips/.test(ch.getTargetNode()?.getName() ?? '')) continue;
-    const out = ch.getSampler().getOutput();
-    const a = out.getArray().slice();
-    const x0 = a[0], z0 = a[2];
-    for (let i = 0; i < a.length; i += 3) { a[i] = x0; a[i + 2] = z0; }
-    out.setArray(a);
-  }
+// una sola animazione (le altre si tolgono), sul posto: il bacino resta in orizzontale dove è nella posa di partenza,
+// così il corpo resta centrato sull'apparato
+const scelta = process.argv[3] ?? 'Red_Carpet_Walk';
+const anims = root.listAnimations();
+const tenuta = anims.find((a) => a.getName() === scelta) ?? anims[0];
+for (const a of anims) if (a !== tenuta) a.dispose();
+console.log('animazione:', tenuta.getName(), '(disponibili:', anims.map((a) => a.getName()).join(', ') + ')');
+for (const ch of tenuta.listChannels()) {
+  const nodo = ch.getTargetNode();
+  if (ch.getTargetPath() !== 'translation' || !/Hips/.test(nodo?.getName() ?? '')) continue;
+  const [bx, , bz] = nodo.getTranslation();
+  const out = ch.getSampler().getOutput();
+  const a = out.getArray().slice();
+  for (let i = 0; i < a.length; i += 3) { a[i] = bx; a[i + 2] = bz; }
+  out.setArray(a);
 }
 root.listScenes()[0].listChildren()[0].setExtras({ allineamento });
 doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
