@@ -71,8 +71,8 @@ export async function montaSedie(scena: HTMLElement, mondo: HTMLElement, prima: 
     renderer.setSize(w, h, false);
     const vh = h / 100;
     const scala = (35 * vh) / ALTEZZA_MODELLO;
-    // contro la parete di destra (x = 17,4vh), girate verso la sala, sotto il quadro
-    const x = 17.4 * vh - (PROFONDITA / 2) * scala - 1.2 * vh;
+    // appoggiate alla parete di destra (x = 17,4vh), girate verso la sala, sotto il quadro
+    const x = 17.4 * vh - (PROFONDITA / 2) * scala + 0.4 * vh; // lo schienale tocca il muro
     [-103.5, -85.5, -67.5, -49.5].forEach((z, i) => {
       const s = sedie[i]!;
       s.scale.set(scala, -scala, scala);

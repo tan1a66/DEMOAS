@@ -33,10 +33,11 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
          dietro la stanza per un errore di ordinamento dei piani 3D) -->
     <div class="mondo">
       <!-- la sala d'attesa -->
-      <div class="m pav"></div>
+      <div class="m pav"><span class="ombre-pav"></span></div>
       <div class="m soff"><span class="luce"></span></div>
             <div class="m parete-sx"></div>
 <div class="m parete-dx">
+        <span class="ombre-sedie"></span>
         <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
           <defs>
             <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
@@ -404,6 +405,29 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       radial-gradient(60% 70% at 60% 40%, rgb(255 250 240 / 0.5), transparent 70%),
       linear-gradient(90deg, #d8d0c3, #e6ded2 25%, #ece6dc 60%, #e2dbd0);
     box-shadow: inset 0 -2.6vh 0 #d9d2c6;
+  }
+  /* ombre di contatto delle sedie: sulla parete dietro gli schienali e sul pavimento sotto le sedute */
+  .ombre-sedie {
+    position: absolute;
+    left: 28%;
+    width: 46%;
+    bottom: 0;
+    height: 40%;
+    background:
+      radial-gradient(9% 70% at 12% 75%, rgb(70 55 40 / 0.26), transparent),
+      radial-gradient(9% 70% at 37% 75%, rgb(70 55 40 / 0.26), transparent),
+      radial-gradient(9% 70% at 62% 75%, rgb(70 55 40 / 0.26), transparent),
+      radial-gradient(9% 70% at 87% 75%, rgb(70 55 40 / 0.26), transparent);
+    filter: blur(0.8vh);
+  }
+  .ombre-pav {
+    position: absolute;
+    right: 0;
+    width: 17%;
+    top: 28%;
+    height: 48%;
+    background: linear-gradient(270deg, rgb(70 55 40 / 0.24), transparent);
+    filter: blur(1vh);
   }
   /* il quadro sulla parete di destra, subito dopo la porta, sopra le sedie */
   .parete-dx .quadro {

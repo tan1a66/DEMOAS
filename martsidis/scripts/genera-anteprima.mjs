@@ -21,7 +21,7 @@ const DIST = 'dist-anteprima';
 const OUT_DIR = 'anteprima';
 const OUT = path.join(OUT_DIR, 'ginecologiacagliari-anteprima.html');
 // Chunk caricati solo con un modello .glb: non servono all'anteprima.
-const ESCLUSI = /^(DRACOLoader|GLTFLoader|draco_|meshopt_|glb\.)/;
+const ESCLUSI = /^(DRACOLoader|draco_|glb\.)/; // GLTFLoader e meshopt servono (modello e sedie)
 
 const MIME = {
   '.woff2': 'font/woff2',
