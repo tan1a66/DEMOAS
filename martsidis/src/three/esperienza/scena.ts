@@ -152,7 +152,7 @@ if (vMondo.y > uComparsa) discard;`);
   const materialePelle = (colA: Color, colB: Color, pieno: number, testa: number, scrive = false, onda = 0) => {
     const mat = new MeshStandardMaterial({ roughness: 0.35, metalness: 0, transparent: true, depthWrite: scrive });
     mat.customProgramCacheKey = () => 'pelle'; // shader diverso da quello degli organi
-    const propri = { uPelleA: { value: colA }, uPelleB: { value: colB }, uPieno: { value: pieno }, uTesta: { value: testa }, uOnda: { value: onda }, uDaY: { value: -100 } };
+    const propri = { uPelleA: { value: colA }, uPelleB: { value: colB }, uPieno: { value: pieno }, uTesta: { value: testa }, uOnda: { value: onda }, uDaY: { value: -100 }, uViso: { value: c.plum300.clone().lerp(c.ivory, 0.82) } };
     comparsa(mat, (shader) => {
       Object.assign(shader.uniforms, pelle, propri);
       // Camminata: gambe, ginocchia e braccia ruotano attorno alle articolazioni (nello spazio della figura)
@@ -202,7 +202,7 @@ gl_Position = projectionMatrix * mvPosition;`)
 vMondo = wC;`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
-uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo; uniform float uPieno; uniform float uTesta; uniform float uDaY;`)
+uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo; uniform float uPieno; uniform float uTesta; uniform float uDaY; uniform vec3 uViso;`)
         .replace('#include <color_fragment>', `#include <color_fragment>
 float dTaglio = distance(vMondo, uCentro) - uTaglio;
 if (dTaglio < 0.0 || vMondo.y < uDaY) discard;
@@ -210,7 +210,10 @@ float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2
 diffuseColor.rgb = mix(uPelleA, uPelleB, fres * 0.6);
 diffuseColor.a = mix(uPieno, max(0.62, uPieno), fres);
 // la testa è più piena: davanti ai capelli raccolti si vede il viso, non l'interno della capigliatura
-diffuseColor.a = max(diffuseColor.a, uTesta * smoothstep(6.6, 6.95, vMondo.y));
+float testaW = uTesta * smoothstep(6.6, 6.95, vMondo.y);
+diffuseColor.a = max(diffuseColor.a, testaW);
+// il viso pieno prende il tono con cui la pelle traslucida appare sul fondo: chiaro, distinto dai capelli
+diffuseColor.rgb = mix(diffuseColor.rgb, uViso, testaW);
 float bordo = (1.0 - smoothstep(0.0, 0.35, dTaglio)) * step(0.001, uTaglio);
 diffuseColor.rgb = mix(diffuseColor.rgb, uBordo, bordo);
 diffuseColor.a = max(diffuseColor.a, bordo * 0.9);`)
@@ -229,7 +232,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
         o.renderOrder = ordine;
       }
     });
-  vesti('corpo', materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 0.88), 5);
+  vesti('corpo', materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 1), 5);
   // Solo profondità della parte alta del corpo, disegnata prima dei capelli: la chioma dietro la schiena
   // resta nascosta dal corpo (la pelle è traslucida e da sola non la coprirebbe). Gli organi sono più in basso.
   const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;

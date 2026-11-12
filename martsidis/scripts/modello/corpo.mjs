@@ -5,11 +5,11 @@
 import { smin, smax, ellissoide, cono } from './sdf.mjs';
 
 const gamba = (x, y, z, s) => {
-  let d = cono(x, y, z, s * 0.88, 0.2, -0.06, s * 0.46, -5.0, 0.04, 0.78, 0.38); // coscia lunga e affusolata (con un filo d'aria tra le cosce: camminando non si strappano)
-  d = smin(d, ellissoide(x - s * 0.47, y + 5.05, z - 0.08, 0.36, 0.38, 0.36), 0.15); // ginocchio
-  d = smin(d, cono(x, y, z, s * 0.47, -5.1, 0.0, s * 0.33, -9.55, -0.12, 0.38, 0.17), 0.2); // gamba
-  d = smin(d, ellissoide(x - s * 0.42, y + 6.55, z + 0.16, 0.34, 1.15, 0.34), 0.35); // polpaccio
-  d = smin(d, cono(x, y, z, s * 0.32, -9.85, -0.2, s * 0.36, -10.0, 0.72, 0.2, 0.12), 0.16); // piede
+  let d = cono(x, y, z, s * 0.9, 0.2, -0.06, s * 0.54, -5.0, 0.04, 0.78, 0.37); // coscia lunga e affusolata (con un filo d'aria tra le cosce: camminando non si strappano)
+  d = smin(d, ellissoide(x - s * 0.54, y + 5.05, z - 0.08, 0.34, 0.38, 0.35), 0.15); // ginocchio
+  d = smin(d, cono(x, y, z, s * 0.54, -5.1, 0.0, s * 0.36, -9.55, -0.12, 0.36, 0.17), 0.2); // gamba
+  d = smin(d, ellissoide(x - s * 0.52, y + 6.55, z + 0.16, 0.32, 1.15, 0.34), 0.35); // polpaccio
+  d = smin(d, cono(x, y, z, s * 0.36, -9.85, -0.2, s * 0.4, -10.0, 0.72, 0.2, 0.12), 0.16); // piede
   return d;
 };
 
@@ -25,12 +25,12 @@ const braccio = (x, y, z, s) => {
 export function tronco(x, y, z) {
   const ax = Math.abs(x);
   let d = ellissoide(x, y - 0.75, z + 0.12, 1.72, 1.75, 1.02); // bacino e fianchi
-  d = smin(d, ellissoide(x, y - 2.65, z + 0.1, 1.08, 1.2, 0.75), 0.8); // vita
+  d = smin(d, ellissoide(x, y - 2.65, z + 0.08, 1.02, 1.2, 0.72), 0.8); // vita sottile
   d = smin(d, ellissoide(x, y - 3.9, z + 0.14, 1.22, 1.05, 0.82), 0.55); // torace
   d = smin(d, cono(x, y, z, -1.26, 4.92, -0.2, 1.26, 4.92, -0.2, 0.34, 0.34), 0.45); // spalle
   d = smin(d, Math.min(cono(x, y, z, -1.2, 4.95, -0.2, 0, 5.35, -0.2, 0.3, 0.3), cono(x, y, z, 1.2, 4.95, -0.2, 0, 5.35, -0.2, 0.3, 0.3)), 0.35); // trapezi spioventi
-  d = smin(d, ellissoide(ax - 0.5, y - 3.65, z - 0.52, 0.44, 0.42, 0.38), 0.3); // seno
-  d = smin(d, ellissoide(ax - 0.58, y - 0.25, z + 0.78, 0.74, 0.8, 0.58), 0.4); // glutei
+  d = smin(d, ellissoide(ax - 0.52, y - 3.6, z - 0.58, 0.55, 0.52, 0.5), 0.32); // seno pieno
+  d = smin(d, ellissoide(ax - 0.58, y - 0.3, z + 0.84, 0.78, 0.84, 0.64), 0.42); // glutei rotondi
   d = smin(d, cono(x, y, z, 0, 4.9, -0.22, 0, 6.75, -0.08, 0.3, 0.26), 0.3); // collo lungo
   let t = ellissoide(x, y - 7.5, z - 0.02, 0.62, 0.78, 0.74); // cranio
   t = smin(t, ellissoide(x, y - 7.0, z - 0.12, 0.45, 0.5, 0.52), 0.22); // mandibola
