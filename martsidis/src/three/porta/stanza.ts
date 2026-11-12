@@ -21,6 +21,7 @@ import {
   NoToneMapping,
   PerspectiveCamera,
   PlaneGeometry,
+  RepeatWrapping,
   SRGBColorSpace,
   Scene,
   Vector3,
@@ -84,6 +85,10 @@ async function texturaQuadro(svg: SVGSVGElement, anisotropia: number): Promise<T
   t.colorSpace = SRGBColorSpace;
   t.anisotropy = anisotropia;
   t.minFilter = LinearMipmapLinearFilter;
+  // la stanza è a specchio: il quadro si ribalta di nuovo, così i fiori sono dritti (uguali al prato)
+  t.wrapS = RepeatWrapping;
+  t.repeat.x = -1;
+  t.offset.x = 1;
   return t;
 }
 
@@ -186,7 +191,8 @@ export async function montaStanza(scena: HTMLElement, mondoStanza: HTMLElement, 
     const w = scena.clientWidth, h = scena.clientHeight;
     renderer.setSize(w, h, false);
     const vh = sonda.getBoundingClientRect().height / 100;
-    mondo.scale.setScalar(vh);
+    // l'interno è a specchio rispetto alla porta: quadro e sedie sulla parete di sinistra
+    mondo.scale.set(-vh, vh, vh);
     const d = 100 * vh; // la prospettiva CSS è 100vh
     camera.fov = (2 * Math.atan(h / 2 / d) * 180) / Math.PI;
     camera.aspect = w / h;

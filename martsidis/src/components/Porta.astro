@@ -121,7 +121,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
           <g transform={`rotate(${f.a.toFixed(0)})`}>
             <animateTransform attributeName="transform" type="scale" additive="sum" from="1" to={f.sp.toFixed(2)} dur="3s" begin="indefinite" fill="freeze" />
             {[0, 72, 144, 216, 288].map((r) => (
-              <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" stroke="#e8e2d2" stroke-width="0.4" transform={`rotate(${r})`} />
+              <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
             ))}
             <circle r={(f.r * 0.22).toFixed(1)} fill="#9a78c2" />
           </g>
@@ -254,13 +254,13 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
     }
     70% {
-      /* dentro, lentamente: quadro e sedie di scorcio */
-      transform: rotateY(70deg) translate3d(-64vh, 54vh, 94.2vh);
+      /* dentro, lentamente, girandosi a sinistra: quadro e sedie di scorcio */
+      transform: rotateY(-70deg) translate3d(64vh, 54vh, 94.2vh);
       animation-timing-function: cubic-bezier(0.3, 0.2, 0.3, 1);
     }
     100% {
       /* dritti davanti al quadro, così vicini che riempie lo schermo: da qui, senza stacchi, i fiori scendono */
-      transform: rotateY(90deg) translate3d(-101.9vh, 55vh, 74vh);
+      transform: rotateY(-90deg) translate3d(101vh, 55vh, 74.8vh); /* centro esatto del quadro */
     }
   }
 
