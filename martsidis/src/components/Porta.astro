@@ -14,13 +14,14 @@
 // Fiori del quadro (sempre uguali): bianchi con il cuore dorato, su fondo tortora
 let seme = 11;
 const caso = () => (seme = (seme * 16807) % 2147483647) / 2147483647;
-const fiori = Array.from({ length: 95 }, () => ({
-  x: 10 + caso() * 980,
-  y: 30 + caso() * 150,
-  r: 9 + caso() * 12,
+const fiori = Array.from({ length: 230 }, (_, i) => ({
+  v: i % 5, // variante di volo quando si dissolvono
+  x: 5 + caso() * 990,
+  y: 22 + caso() * 165,
+  r: 7 + caso() * 11,
   a: caso() * 72,
 }));
-const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 + caso() * 80 }));
+const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 + caso() * 80 }));
 ---
 
 <div class="porta" data-porta>
@@ -38,8 +39,8 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
       <!-- la sala d'attesa -->
       <div class="m pav"></div>
       <div class="m soff"><span class="luce"></span></div>
-      <div class="m parete-sx"><span class="tavolino"></span></div>
-      <div class="m parete-dx">
+            <div class="m parete-sx"><span class="tavolino"></span></div>
+<div class="m parete-dx">
         <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
           <defs>
             <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
@@ -127,7 +128,7 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
         <div class="sedia sedia--3"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         <div class="sedia sedia--4"><span class="sd-ombra"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span></div>
         
-      <!-- la porta: cardine a destra, si apre verso l'interno -->
+      <!-- la porta: cardine a destra, si apre verso il corridoio (verso di noi) -->
       <div class="m anta">
         <div class="anta__spessore"></div>
         <div class="anta__venature"></div>
@@ -149,7 +150,7 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 3} y2="210" stroke="#97978a" stroke-width="1.6" opacity="0.55" />)}
     {
       fiori.map((f) => (
-        <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
+        <g class={`fiore fiore--${f.v}`} transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
           {[0, 72, 144, 216, 288].map((r) => (
             <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
           ))}
@@ -187,10 +188,8 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
           html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 5400);
-        // quando si è fermata i fiori lasciano il posto alla Home
-        setTimeout(() => porta.classList.add('porta--via'), 11900);
-        setTimeout(salta, 13500);
+        }, 4200);
+        setTimeout(salta, 6400);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -231,29 +230,32 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   }
   .porta--aperta .mondo,
   .porta:has(.porta__ancora:target) .mondo {
-    animation: camera 5.4s cubic-bezier(0.4, 0, 0.35, 1) forwards;
+    animation: camera 4.2s linear forwards;
   }
   /* rotateY(φ) translate3d(-C): C è il punto inquadrato al centro dello schermo, φ quanto si guarda a destra */
+  /* un unico movimento, senza soste. Il primo arrivo è l'inquadratura della foto: la porta si apre verso di noi,
+     l'anta con la targa a destra in primo piano, nello spiraglio di scorcio la parete di destra con il quadro e le
+     sedie. Poi si entra e si va nel quadro. */
   @keyframes camera {
     0% {
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
+      animation-timing-function: cubic-bezier(0.45, 0, 0.75, 0.7);
     }
-    24% {
-      /* come nella foto: vicini alla porta che si socchiude, la sala si vede già nello spiraglio a sinistra */
-      transform: rotateY(20deg) translate3d(-22vh, 51vh, 64vh);
+    30% {
+      transform: var(--foto);
+      animation-timing-function: linear;
     }
-    48% {
-      /* si avanza nello spiraglio (la porta continua ad aprirsi, ma ormai è alle spalle) */
-      transform: rotateY(10deg) translate3d(-10vh, 54vh, 141vh);
-    }
-    68% {
-      /* dentro, lo sguardo va a destra: il quadro e le sedie di scorcio */
-      transform: rotateY(55deg) translate3d(-72vh, 55vh, 112vh);
+    62% {
+      transform: rotateY(40deg) translate3d(-59vh, 54vh, 107vh);
+      animation-timing-function: cubic-bezier(0.2, 0.4, 0.4, 1);
     }
     100% {
       /* davanti al quadro, così vicini da entrarci */
-      transform: rotateY(90deg) translate3d(-107vh, 53vh, 80vh);
+      transform: rotateY(90deg) translate3d(-97vh, 55vh, 117vh);
     }
+  }
+  .mondo {
+    --foto: rotateY(28deg) translate3d(-22vh, 52vh, 43vh);
   }
   .m {
     position: absolute;
@@ -301,24 +303,25 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     transform: translate3d(-18vh, -79.6vh, 0.3vh);
   }
 
-  /* — la sala: x da -90vh a 70vh, z da 0 a -160vh, alta 100vh — */
+  /* — la sala d'attesa (pianta): porta in basso, quadro e sedie sulla parete di destra verso il fondo.
+     x da -60 a 60vh, z da 0 a -160vh, alta 100vh (1vh ≈ 2,7 cm) — */
   .pav {
-    width: 160vh;
+    width: 120vh;
     height: 160vh;
-    transform: translate3d(-90vh, 0, 0) rotateX(-90deg);
-    background: linear-gradient(180deg, #b9a585, #cdbca1);
+    transform: translate3d(-60vh, 0, 0) rotateX(-90deg);
+    background: linear-gradient(180deg, #c7b392, #d6c6aa);
   }
   .soff {
-    width: 160vh;
+    width: 120vh;
     height: 160vh;
-    transform: translate3d(-90vh, -100vh, 0) rotateX(-90deg);
-    background: #e2ded7;
+    transform: translate3d(-60vh, -100vh, 0) rotateX(-90deg);
+    background: #e4e0d9;
   }
   .luce {
     position: absolute;
-    left: 40%;
-    top: 35%;
-    width: 30%;
+    left: 30%;
+    top: 30%;
+    width: 40%;
     height: 12%;
     background: #fff;
     box-shadow: 0 0 6vh 2vh rgb(255 252 235 / 0.9);
@@ -326,31 +329,31 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   .parete-sx {
     width: 160vh;
     height: 100vh;
-    transform: translate3d(-90vh, -100vh, 0) rotateY(90deg);
-    background: linear-gradient(90deg, #ebe6de, #dfd9cf);
+    transform: translate3d(-60vh, -100vh, 0) rotateY(90deg);
+    background: linear-gradient(90deg, #ebe6de, #e1dbd1);
   }
   .tavolino {
     position: absolute;
-    left: 12%;
-    bottom: 26%;
-    width: 12%;
-    height: 2.2%;
+    left: 8%;
+    bottom: 27%;
+    width: 14%;
+    height: 2.4%;
     background: #fbfbfa;
     box-shadow: 0 1vh 1.5vh rgb(0 0 0 / 0.08);
   }
   .parete-dx {
     width: 160vh;
     height: 100vh;
-    transform: translate3d(70vh, -100vh, 0) rotateY(90deg);
-    background: linear-gradient(90deg, #f4f0ea, #e8e3db);
+    transform: translate3d(60vh, -100vh, 0) rotateY(90deg);
+    background: linear-gradient(90deg, #f6f3ee, #ebe6de);
     box-shadow: inset 0 -2.6vh 0 #d9d2c6;
   }
-  /* il quadro sulla parete di destra: lungo, sopra le sedie */
+  /* il quadro sulla parete di destra, verso il fondo, sopra le sedie */
   .parete-dx .quadro {
     position: absolute;
-    left: 22%;
+    left: 45%;
     top: 37%;
-    width: 56%;
+    width: 50%;
     height: 17%;
     box-shadow: 0 1.2vh 2.4vh rgb(60 50 40 / 0.18);
     outline: 0.3vh solid #a59d8b;
@@ -358,31 +361,34 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   .fondo {
     height: 100vh;
     background: linear-gradient(180deg, #f2eee8, #e6e1d8);
+    box-shadow: inset 0 -2.6vh 0 #d9d2c6;
   }
+  /* parete di fondo: a sinistra il passaggio verso lo studio del Dottore (x da -50 a -20vh) */
   .fondo--a {
-    width: 15vh;
-    transform: translate3d(-90vh, -100vh, -160vh);
+    width: 10vh;
+    transform: translate3d(-60vh, -100vh, -160vh);
   }
   .fondo--b {
-    width: 35vh;
+    width: 30vh;
     height: 22vh;
-    transform: translate3d(-75vh, -100vh, -160vh);
+    box-shadow: none;
+    transform: translate3d(-50vh, -100vh, -160vh);
   }
   .fondo--c {
-    width: 110vh;
-    transform: translate3d(-40vh, -100vh, -160vh);
+    width: 80vh;
+    transform: translate3d(-20vh, -100vh, -160vh);
   }
   .davanti {
-    width: 160vh;
+    width: 120vh;
     height: 100vh;
-    transform: translate3d(-90vh, -100vh, -0.1vh);
+    transform: translate3d(-60vh, -100vh, -0.1vh);
     background: #e7e2d9;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 66.5% 100%, 66.5% 21%, 45.9% 21%, 45.9% 100%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 63.75% 100%, 63.75% 22%, 36.25% 22%, 36.25% 100%, 0 100%);
   }
   .ufficio {
     width: 150vh;
     height: 100vh;
-    transform: translate3d(-150vh, -100vh, -240vh);
+    transform: translate3d(-130vh, -100vh, -240vh);
   }
   .ufficio svg {
     width: 100%;
@@ -391,11 +397,11 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   .ufficio-pav {
     width: 150vh;
     height: 80vh;
-    transform: translate3d(-150vh, 0, -160vh) rotateX(-90deg);
+    transform: translate3d(-130vh, 0, -160vh) rotateX(-90deg);
     background: linear-gradient(180deg, #ad9677, #c2ae90);
   }
 
-  /* — sedie 3D contro la parete di destra (girate verso la sala) — */
+  /* — sedie 3D sulla parete di destra, sotto il quadro, girate verso la sala — */
   .sedia {
     --W: 17vh;
     --D: 16vh;
@@ -406,10 +412,10 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     position: absolute;
     display: block;
   }
-  .sedia--1 { transform: translate3d(calc(70vh - 18vh), 0, -38vh) rotateY(-90deg); }
-  .sedia--2 { transform: translate3d(calc(70vh - 18vh), 0, -58vh) rotateY(-90deg); }
-  .sedia--3 { transform: translate3d(calc(70vh - 18vh), 0, -78vh) rotateY(-90deg); }
-  .sedia--4 { transform: translate3d(calc(70vh - 18vh), 0, -98vh) rotateY(-90deg); }
+  .sedia--1 { transform: translate3d(42vh, 0, -150vh) rotateY(-90deg); }
+  .sedia--2 { transform: translate3d(42vh, 0, -130vh) rotateY(-90deg); }
+  .sedia--3 { transform: translate3d(42vh, 0, -110vh) rotateY(-90deg); }
+  .sedia--4 { transform: translate3d(42vh, 0, -90vh) rotateY(-90deg); }
   .sd-ombra {
     left: -3vh;
     top: 0;
@@ -502,15 +508,15 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   }
   .porta--aperta .anta,
   .porta:has(.porta__ancora:target) .anta {
-    animation: porta-apre 2.8s cubic-bezier(0.35, 0, 0.25, 1) 0.1s forwards;
+    animation: porta-apre 2.6s cubic-bezier(0.4, 0, 0.3, 1) forwards;
   }
   @keyframes porta-apre {
-    45% {
-      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-55deg);
+    40% {
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(48deg);
     }
     to {
-      /* socchiusa: circa 60 cm di passaggio */
-      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-72deg);
+      /* si apre verso il corridoio (verso di noi), come nella foto */
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(66deg);
     }
   }
   .anta__spessore {
@@ -605,7 +611,7 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     transition: opacity 0.5s ease;
   }
   .porta--aperta .porta__prato {
-    transition-delay: 4.9s;
+    transition-delay: 3.7s;
     opacity: 1;
   }
   .porta--dentro {
@@ -617,17 +623,43 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     visibility: hidden;
   }
   .porta--dentro .porta__prato {
-    transition-delay: 0s;
-    opacity: 0.5;
+    transition: none;
+    opacity: 1;
   }
-  .porta--via .porta__prato {
+  .porta--dentro .porta__prato > rect,
+  .porta--dentro .porta__prato > line {
+    transition: opacity 0.9s ease;
     opacity: 0;
-    transition-duration: 1.5s;
+  }
+  /* quando compare la ragazza i fiori si dissolvono: si alzano e volano via, ognuno a modo suo */
+  .porta--dentro .fiore {
+    animation: fiore-via 1.6s cubic-bezier(0.3, 0, 0.6, 1) forwards;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .porta--dentro .fiore--1 { animation-name: fiore-via-1; animation-delay: 0.1s; }
+  .porta--dentro .fiore--2 { animation-name: fiore-via-2; animation-delay: 0.2s; }
+  .porta--dentro .fiore--3 { animation-name: fiore-via-3; animation-delay: 0.05s; }
+  .porta--dentro .fiore--4 { animation-name: fiore-via-4; animation-delay: 0.3s; }
+  @keyframes fiore-via {
+    to { translate: 0 -60px; scale: 1.6; opacity: 0; }
+  }
+  @keyframes fiore-via-1 {
+    to { translate: 70px -40px; scale: 1.3; rotate: 90deg; opacity: 0; }
+  }
+  @keyframes fiore-via-2 {
+    to { translate: -60px -70px; scale: 1.8; rotate: -60deg; opacity: 0; }
+  }
+  @keyframes fiore-via-3 {
+    to { translate: 30px -90px; scale: 0.6; opacity: 0; }
+  }
+  @keyframes fiore-via-4 {
+    to { translate: -30px 30px; scale: 2; rotate: 140deg; opacity: 0; }
   }
   /* senza JavaScript: si entra, poi la porta non blocca più nulla */
   .porta:has(.porta__ancora:target) {
     pointer-events: none;
-    animation: studio-via 0.8s ease 5.2s forwards;
+    animation: studio-via 0.8s ease 4.2s forwards;
   }
 
   /* — ENTRA — */
