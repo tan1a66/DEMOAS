@@ -1,7 +1,7 @@
 ---
 /**
  * Esperienza 3D della Home, guidata dallo scroll.
- * - La massa iniziale nasce crescendo e, scorrendo, si trasforma nel modello (nessuna dissolvenza).
+ * - All'inizio una figura femminile stilizzata; scorrendo la camera entra nel bacino e la pelle si apre (nessuna dissolvenza).
  * - Desktop: il disegno sta nella colonna destra di ogni sezione ([data-esp-area]); i testi a sinistra.
  * - Telefono: finché è massa (e mentre si trasforma) sta DIETRO ai testi; quando il modello è completo
  *   prende un suo spazio in alto (.esp__sipario, "palco") e da lì i testi non gli passano più sopra.
@@ -462,7 +462,7 @@ const legenda = [
     daHash();
     window.addEventListener('hashchange', daHash, { signal });
 
-    // Il 3D parte subito: non c'è una versione statica "prima". La massa nasce crescendo.
+    // Il 3D parte subito: non c'è una versione statica "prima". La figura compare dal basso verso l'alto.
     (async () => {
       try {
         const { monta } = await import('../three/esperienza/scena');

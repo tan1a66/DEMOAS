@@ -9,7 +9,8 @@ import { EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/exte
 import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer';
 import { mkdir } from 'node:fs/promises';
 import { surfaceNets } from './mesher.mjs';
-import { PARTI, ANCORE, pavimento } from './anatomia.mjs';
+import { PARTI, ANCORE, pavimento, bacino } from './anatomia.mjs';
+import { PARTE_CORPO, corpo } from './corpo.mjs';
 
 await Promise.all([MeshoptEncoder.ready, MeshoptSimplifier.ready, MeshoptDecoder.ready]);
 const USCITA = 'public/models/pelvi.glb';
@@ -125,7 +126,16 @@ function aggiungiParte(nome, { posizioni, normali, indici, uv, targets }, nodoIn
 }
 
 const t0 = Date.now();
-for (const parte of PARTI) {
+// controllo: il bacino deve stare tutto dentro la figura
+{
+  let fuori = 0, tot = 0;
+  for (let x = -1.42; x <= 1.42; x += 0.04) for (let y = -0.2; y <= 1.62; y += 0.04) for (let z = -1; z <= 0.72; z += 0.04) {
+    if (bacino(x, y, z) < 0) { tot++; if (corpo(x, y, z) > -0.05) fuori++; }
+  }
+  console.log(`bacino fuori dalla figura: ${((fuori / tot) * 100).toFixed(2)}%`);
+}
+
+for (const parte of [...PARTI, PARTE_CORPO]) {
   const t = Date.now();
   const grezza = surfaceNets(parte.sdf, parte.min, parte.max, parte.passo);
   correggiAvvolgimento(grezza.posizioni, grezza.normali, grezza.indici);

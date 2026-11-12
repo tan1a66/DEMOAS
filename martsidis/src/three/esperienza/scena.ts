@@ -1,8 +1,8 @@
 /**
- * Scena 3D della Home.
- * La "massa" iniziale è fatta delle parti stesse del modello: ogni vertice parte proiettato sulla superficie
- * della massa (stessi colori, stesso respiro) e, con lo scroll, si sposta verso la sua forma reale
- * cambiando colore. È una trasformazione continua, non una dissolvenza tra oggetti.
+ * Scena 3D: figura femminile stilizzata → zoom dentro l'apparato pelvico.
+ * All'inizio si vede tutta la figura, traslucida, con gli organi già al loro posto. Scorrendo la camera
+ * si avvicina al bacino e la "pelle" si apre a partire dal bacino (un taglio sferico che si allarga, con
+ * un bordo luminoso): è un'unica trasformazione continua, senza dissolvenze tra oggetti diversi.
  * L'inquadratura segue un'area dello schermo (rettangolo in px) indicata dalla pagina: i testi stanno fuori.
  */
 import {
@@ -25,13 +25,12 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { creaStage } from '../shared/stage';
 import { paletteBrand } from '../shared/palette';
-import { simplexNoise3D } from '../shared/noise-glsl';
 import { config } from '@/config';
 import { PARAMETRI, type IdStato, type Organo, type ParametriStato } from '../pelvi/stati';
 
 export type Area = { x: number; y: number; w: number; h: number };
 export type Comando = {
-  /** 0 = massa, 1 = modello composto */
+  /** 0 = figura intera, 1 = dentro l'apparato pelvico */
   montaggio: number;
   stato: IdStato;
   /** rotazione extra (rad) guidata dallo scroll dell'anello */
@@ -42,7 +41,8 @@ export type Comando = {
 };
 
 const CENTRO = new Vector3(0, 0.62, 0);
-const RAGGIO_MASSA = 0.8;
+const CENTRO_CORPO = new Vector3(0, -0.3, -0.1);
+const RAGGIO_CORPO = 8.75; // metà altezza della figura
 const RAGGIO_MODELLO = 1.5; // sfera che contiene tutto il bacino
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
@@ -50,21 +50,20 @@ const smooth = (a: number, b: number, x: number) => {
 };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-// Parti: colore finale, strato nella massa (la più esterna copre le altre), finestra di trasformazione.
-// La pelle della massa è l'utero (superficie chiusa attorno al centro: copre tutta la sfera, senza toppe);
-// le altre parti partono appena sotto e ne escono trasformandosi.
-const PARTI: Record<string, { colore: string; strato: number; finestra: [number, number] }> = {
-  utero: { colore: '#c7aedb', strato: 1, finestra: [0.2, 0.82] },
-  vescica: { colore: '#9cb9a6', strato: 0.994, finestra: [0.16, 0.74] },
-  pavimento: { colore: '#8a5aa6', strato: 0.988, finestra: [0.12, 0.7] },
-  retto: { colore: '#d9b590', strato: 0.982, finestra: [0.24, 0.86] },
-  vagina: { colore: '#b99bcd', strato: 0.976, finestra: [0.3, 0.9] },
-  bacino: { colore: '#ece2d2', strato: 0.97, finestra: [0.04, 0.64] },
+const PARTI: Record<string, { colore: string }> = {
+  utero: { colore: '#c7aedb' },
+  vescica: { colore: '#9cb9a6' },
+  pavimento: { colore: '#8a5aa6' },
+  retto: { colore: '#d9b590' },
+  vagina: { colore: '#b99bcd' },
+  bacino: { colore: '#ece2d2' },
 };
 
 export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) {
   const stage = creaStage(host, { fov: 30, continuo: false });
   const { scene, camera, renderer } = stage;
+  camera.far = 400;
+  camera.updateProjectionMatrix();
   renderer.toneMapping = NeutralToneMapping;
   const pmrem = new PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -82,20 +81,39 @@ export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) 
   const gltf = await loader.loadAsync(config.modelloPelviGlb ?? '/models/pelvi.glb');
   const modello = gltf.scene;
 
-  // Uniform condivise: tempo e respiro della massa
-  const comuni = { uTempo: { value: 0 }, uAmp: { value: 0.07 }, uCentro: { value: CENTRO }, uRaggio: { value: RAGGIO_MASSA } };
-  // Su telefono la massa sta dietro ai testi: tinte più chiare, così il titolo resta ben leggibile.
+  // Uniform condivise: comparsa (una linea che sale dai piedi alla testa) e taglio della pelle
+  const comuni = {
+    uComparsa: { value: -10 },
+    uTaglio: { value: 0 },
+    uCentro: { value: CENTRO },
+  };
   const telefono = window.matchMedia('(max-width: 63.99rem)').matches;
-  const tinta = (col: Color, q: number) => (telefono ? col.clone().lerp(c.ivory, q) : col);
-  const massaColori = {
-    uC1: { value: tinta(c.plum500, 0.52) },
-    uC2: { value: tinta(c.plum300, 0.5) },
-    uC3: { value: tinta(c.sage200, 0.35) },
+  const pelle = {
+    uPelleA: { value: (telefono ? c.plum300.clone().lerp(c.ivory, 0.45) : c.plum300.clone()) },
+    uPelleB: { value: c.plum500.clone() },
+    uBordo: { value: c.sage200.clone() },
   };
 
   const parti: Record<string, Object3D> = {};
   const materiali: Record<string, MeshStandardMaterial> = {};
-  const morphU: Record<string, IUniform<number>> = {};
+  const comparsa = (mat: MeshStandardMaterial, extra?: (shader: { uniforms: Record<string, IUniform>; vertexShader: string; fragmentShader: string }) => void) => {
+    mat.onBeforeCompile = (shader) => {
+      Object.assign(shader.uniforms, comuni);
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', `#include <common>
+varying vec3 vMondo;`)
+        .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
+vMondo = (modelMatrix * vec4(transformed, 1.0)).xyz;`);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', `#include <common>
+uniform float uComparsa; uniform float uTaglio; uniform vec3 uCentro;
+varying vec3 vMondo;`)
+        .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+if (vMondo.y > uComparsa) discard;`);
+      extra?.(shader);
+    };
+  };
+
   for (const [nome, info] of Object.entries(PARTI)) {
     const nodo = modello.getObjectByName(nome);
     if (!nodo) continue;
@@ -109,66 +127,48 @@ export async function monta(host: HTMLElement, iniziale: Partial<Comando> = {}) 
       depthWrite: !osso,
       side: nome === 'pavimento' ? DoubleSide : FrontSide,
     });
-    const uMorph = { value: 0 };
-    const uStrato = { value: info.strato };
-    mat.onBeforeCompile = (shader) => {
-      Object.assign(shader.uniforms, comuni, massaColori, { uMorph, uStrato });
-      shader.vertexShader = shader.vertexShader
-        .replace(
-          '#include <common>',
-          `#include <common>
-uniform float uMorph; uniform float uStrato; uniform float uTempo; uniform float uAmp; uniform vec3 uCentro; uniform float uRaggio;
-varying float vMassaY; varying float vMassaN; varying vec3 vMassaDir;
-${simplexNoise3D}`,
-        )
-        .replace(
-          '#include <project_vertex>',
-          `vec4 mondoM = modelMatrix * vec4(transformed, 1.0);
-vec3 dirM = normalize(mondoM.xyz - uCentro + vec3(1e-5, 2e-5, 3e-5));
-float rumoreM = snoise(dirM * 1.15 + vec3(uTempo * 0.09, uTempo * 0.07, uTempo * 0.05));
-vec3 sullaMassa = uCentro + dirM * uRaggio * uStrato * (1.0 + rumoreM * uAmp);
-vec3 finaleM = mix(sullaMassa, mondoM.xyz, uMorph);
-vec4 mvPosition = viewMatrix * vec4(finaleM, 1.0);
-gl_Position = projectionMatrix * mvPosition;
-vMassaDir = normalize((viewMatrix * vec4(dirM, 0.0)).xyz);
-vMassaY = dirM.y; vMassaN = rumoreM;`,
-        );
-      shader.fragmentShader = shader.fragmentShader
-        .replace(
-          '#include <common>',
-          `#include <common>
-uniform float uMorph; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3;
-varying float vMassaY; varying float vMassaN; varying vec3 vMassaDir;`,
-        )
-        .replace(
-          '#include <color_fragment>',
-          `#include <color_fragment>
-vec3 massaC = mix(uC1, uC2, smoothstep(-0.85, 0.95, vMassaY * 0.65 + vMassaN * 0.45 + 0.1));
-massaC = mix(massaC, uC3, smoothstep(0.55, 1.0, vMassaY) * 0.35);
-diffuseColor.rgb = mix(massaC, diffuseColor.rgb, smoothstep(0.0, 0.85, uMorph));`,
-        )
-        // finché è massa: stessa luce e stessa superficie per tutte le parti (nessuna "toppa" visibile)
-        .replace(
-          '#include <roughnessmap_fragment>',
-          `#include <roughnessmap_fragment>
-roughnessFactor = mix(0.62, roughnessFactor, uMorph);`,
-        )
-        .replace(
-          '#include <normal_fragment_begin>',
-          `#include <normal_fragment_begin>
-normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
-        );
-    };
+    comparsa(mat);
     materiali[nome] = mat;
-    morphU[nome] = uMorph;
     nodo.traverse((o) => {
       if ((o as Mesh).isMesh) {
         (o as Mesh).material = mat;
-        (o as Mesh).frustumCulled = false; // i vertici si spostano nello shader
         if (osso) o.renderOrder = 3;
       }
     });
   }
+
+  // La pelle: traslucida (più piena sui bordi, come vetro), si apre dal bacino con un bordo luminoso.
+  const corpo = modello.getObjectByName('corpo');
+  if (corpo) {
+    const mat = new MeshStandardMaterial({ roughness: 0.35, metalness: 0, transparent: true, depthWrite: false });
+    mat.customProgramCacheKey = () => 'pelle'; // shader diverso da quello degli organi
+    comparsa(mat, (shader) => {
+      Object.assign(shader.uniforms, pelle);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', `#include <common>
+uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo;`)
+        .replace('#include <color_fragment>', `#include <color_fragment>
+float dTaglio = distance(vMondo, uCentro) - uTaglio;
+if (dTaglio < 0.0) discard;
+float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.2);
+diffuseColor.rgb = mix(uPelleA, uPelleB, fres * 0.6);
+diffuseColor.a = mix(0.07, 0.62, fres);
+float bordo = (1.0 - smoothstep(0.0, 0.35, dTaglio)) * step(0.001, uTaglio);
+diffuseColor.rgb = mix(diffuseColor.rgb, uBordo, bordo);
+diffuseColor.a = max(diffuseColor.a, bordo * 0.9);`)
+        .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+float lineaComparsa = 1.0 - smoothstep(0.0, 0.5, uComparsa - vMondo.y);`)
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
+    });
+    corpo.traverse((o) => {
+      if ((o as Mesh).isMesh) {
+        (o as Mesh).material = mat;
+        o.renderOrder = 5;
+      }
+    });
+  }
+
   const pavimento = parti.pavimento?.getObjectByName('pavimento_mesh') as Mesh | undefined;
   const morph = (nome: string, v: number) => {
     const i = pavimento?.morphTargetDictionary?.[nome];
@@ -191,7 +191,7 @@ normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
   };
   const att = { montaggio: 0, giro: 0, opacita: 1, ax: 0, ay: 0, ar: 0, ...PARAMETRI.normale };
   let prima = true;
-  let nascita = 0; // la massa nasce crescendo da un punto (nessuna dissolvenza)
+  let nascita = 0; // la figura compare con una linea che sale dai piedi alla testa
   let yaw = 0;
   let pitch = 0;
   const mouse = { x: 0, y: 0 };
@@ -201,6 +201,7 @@ normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
     stage.sveglia(600);
   };
   window.addEventListener('pointermove', onPointer, { passive: true });
+  const centro = new Vector3();
 
   const fotogramma = (dt: number, t: number) => {
     const k = Math.min(dt * 5, 1);
@@ -221,43 +222,37 @@ normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
       att[key] = lerp(att[key], p[key], Math.min(dt * 3, 1));
     }
     const m = att.montaggio;
-    nascita = Math.min(nascita + dt / 1.2, 1);
-    const cresce = 1 - Math.pow(1 - nascita, 3);
-    comuni.uRaggio.value = RAGGIO_MASSA * cresce;
-    gruppo.scale.setScalar(cresce);
-    gruppo.position.copy(CENTRO).multiplyScalar(1 - cresce);
-    comuni.uTempo.value = t;
-    comuni.uAmp.value = 0.07 * (1 - smooth(0, 0.5, m));
+    nascita = Math.min(nascita + dt / 1.6, 1);
+    comuni.uComparsa.value = lerp(-9.2, 8.6, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
 
-    // Inquadratura: il modello (o la massa) occupa l'area indicata, centrato e senza uscirne.
+    // Zoom: dalla figura intera all'apparato (interpolazione "logaritmica": velocità costante percepita)
+    const z = smooth(0, 1, m);
+    const raggioMondo = RAGGIO_CORPO * Math.pow(RAGGIO_MODELLO / RAGGIO_CORPO, z);
+    centro.lerpVectors(CENTRO_CORPO, CENTRO, smooth(0, 0.7, m));
+    // la pelle si apre dal bacino mentre ci si avvicina
+    comuni.uTaglio.value = m < 0.25 ? 0 : 0.2 + Math.pow(smooth(0.25, 1, m), 1.6) * 10;
+
     const w = host.clientWidth, h = host.clientHeight;
-    const raggioMondo = lerp(RAGGIO_MASSA * 1.07, RAGGIO_MODELLO, smooth(0, 0.9, m));
-    const riempi = lerp(0.8, 1, smooth(0, 0.9, m)); // la massa occupa l'80% dell'area (come la versione statica)
     const tanMezzo = Math.tan((camera.fov * Math.PI) / 360);
-    const dist = (raggioMondo * h) / (2 * att.ar * riempi * tanMezzo);
+    const dist = (raggioMondo * h) / (2 * att.ar * tanMezzo);
     camera.setViewOffset(w, h, w / 2 - att.ax, h / 2 - att.ay, w, h);
-    const az = 0.8 + att.giro + yaw + mouse.x * 0.2;
-    const el = 0.26 + pitch + mouse.y * 0.1;
+    // di fronte da lontano, di tre quarti da vicino (come il modello di sempre)
+    const az = lerp(0.15, 0.8, smooth(0.2, 1, m)) + att.giro + yaw + mouse.x * 0.2;
+    const el = lerp(0.05, 0.26, smooth(0.2, 1, m)) + pitch + mouse.y * 0.1;
     camera.position.set(
-      CENTRO.x + dist * Math.sin(az) * Math.cos(el),
-      CENTRO.y + dist * Math.sin(el),
-      CENTRO.z + dist * Math.cos(az) * Math.cos(el),
+      centro.x + dist * Math.sin(az) * Math.cos(el),
+      centro.y + dist * Math.sin(el),
+      centro.z + dist * Math.cos(az) * Math.cos(el),
     );
-    camera.lookAt(CENTRO);
+    camera.lookAt(centro);
 
-    // Trasformazione massa → parti (ognuna nella sua finestra di scroll)
-    for (const [nome, info] of Object.entries(PARTI)) {
-      const q = smooth(info.finestra[0], info.finestra[1], m);
-      if (morphU[nome]) morphU[nome].value = q;
+    for (const nome of Object.keys(PARTI)) {
       const o = parti[nome];
-      if (o) {
-        o.position.copy(base[nome]!.pos);
-        o.scale.setScalar(1);
-      }
+      if (o) o.position.copy(base[nome]!.pos);
     }
-    if (materiali.bacino) materiali.bacino.opacity = lerp(1, 0.42, smooth(0.25, 0.7, m)) * att.opacita;
+    if (materiali.bacino) materiali.bacino.opacity = 0.42 * att.opacita;
 
-    // Stato del modello (solo a modello composto)
+    // Stato del modello (solo da vicino)
     const st = smooth(0.88, 1, m);
     morph('cedimento', att.cedimento * st);
     morph('iato', att.iato * st);
@@ -275,13 +270,11 @@ normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
     }
     if (evidenza === 'vescica' && parti.vescica && att.pulsa > 0.01) {
       parti.vescica.scale.setScalar(1 + Math.sin(t * 6) * 0.03 * att.pulsa * st);
-    }
+    } else if (parti.vescica) parti.vescica.scale.setScalar(1);
     gruppo.visible = att.opacita > 0.01;
 
-    // la massa respira sempre; a modello composto si ferma quando nulla si muove
     const fermo =
       nascita >= 1 &&
-      m > 0.99 &&
       Math.abs(att.montaggio - cmd.montaggio) < 0.001 &&
       Math.abs(att.giro - cmd.giro) < 0.001 &&
       Math.abs(att.ax - ax) < 0.5 &&
@@ -293,7 +286,7 @@ normal = normalize(mix(normalize(vMassaDir), normal, uMorph));`,
   stage.onFrame(fotogramma);
 
   await stage.compila();
-  stage.sveglia(1000);
+  stage.sveglia(1800);
 
   return {
     comanda(nuovo: Partial<Comando>) {
