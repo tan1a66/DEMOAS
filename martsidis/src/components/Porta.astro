@@ -150,8 +150,23 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       w.__portaChiusa = false;
       html.classList.remove('porta-chiusa');
     };
+    // le sedie vere (WebGL) tra la stanza e la porta: si preparano subito, si animano dopo "ENTRA"
+    let sedie: { avvia: () => void; dispose: () => void } | null = null;
+    const scena = porta.querySelector<HTMLElement>('.porta__scena');
+    const mondi = porta.querySelectorAll<HTMLElement>('.mondo');
+    const preparaSedie = async () => {
+      try {
+        if (!scena || mondi.length < 2 || !('WebGLRenderingContext' in window)) return;
+        const { montaSedie } = await import('@/three/porta/sedie');
+        sedie = await montaSedie(scena, mondi[0]!, mondi[1]!);
+        if (porta.classList.contains('porta--aperta')) sedie.avvia();
+      } catch {
+        /* restano le sedie disegnate in CSS */
+      }
+    };
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
     else {
+      void preparaSedie();
       w.__portaChiusa = true;
       html.classList.add('porta-chiusa'); // niente scroll finché non si entra
       const entra = porta.querySelector<HTMLAnchorElement>('[data-porta-entra]');
@@ -160,8 +175,10 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
         e?.preventDefault();
         if (porta.classList.contains('porta--aperta')) return;
         porta.classList.add('porta--aperta');
+        sedie?.avvia();
         // la camera è entrata nel quadro: la donna cammina tra i fiori
         setTimeout(() => {
+          sedie?.dispose();
           porta.classList.add('porta--dentro');
           // i fiori diventano grandi e scendono: il prato dove cammina la ragazza
           porta.querySelectorAll<SVGAnimationElement>('.porta__prato animateTransform').forEach((a) => a.beginElement());
@@ -701,6 +718,18 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #fff3c8, #d6b25e 40%, #8f6a22 85%);
     box-shadow: 0 0.4vh 0.8vh rgb(40 25 5 / 0.45);
+  }
+
+  /* sedie vere in WebGL (tra la stanza e la porta); quelle in CSS restano solo se il WebGL non parte */
+  .porta__scena :global(.porta__sedie) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .porta__scena:global(.ha-sedie) .sedia {
+    display: none;
   }
 
   /* targa nitida: la targa 3D (12.5vh) ingrandita 5 volte, al centro dello schermo */
