@@ -1,5 +1,9 @@
 ---
-/** Intestazione delle pagine interne: occhiello, H1, sottotitolo e (facoltativi) pulsanti di contatto. */
+/**
+ * Intestazione delle pagine interne: occhiello, H1, sottotitolo e (facoltativi) pulsanti di contatto.
+ * Con `modello` a destra (sotto, su telefono) compare il modello 3D, che si compone all'arrivo come in Home
+ * e mostra lo stato della pagina (es. prolasso): è il filo conduttore del sito.
+ */
 import ContactButtons from './ContactButtons.astro';
 
 interface Props {
@@ -7,25 +11,55 @@ interface Props {
   eyebrow?: string;
   lead?: string;
   contatti?: boolean;
+  /** stato del modello 3D (vedi src/three/pelvi/stati.ts); senza, niente modello */
+  modello?: string;
 }
-const { titolo, eyebrow, lead, contatti = true } = Astro.props;
+const { titolo, eyebrow, lead, contatti = true, modello } = Astro.props;
 ---
 
-<header class="page-hero">
-  <div class="container">
-    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
-    <h1>{titolo}</h1>
-    {lead && <p class="lead">{lead}</p>}
-    <slot />
-    {
-      contatti && (
-        <div class="page-hero__cta">
-          <ContactButtons size="md" />
-        </div>
-      )
-    }
+<header class:list={['page-hero', { 'page-hero--modello': modello }]}>
+  <div class="container page-hero__griglia">
+    <div class="page-hero__testo">
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h1>{titolo}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <slot />
+      {
+        contatti && (
+          <div class="page-hero__cta">
+            <ContactButtons size="md" />
+          </div>
+        )
+      }
+    </div>
+    {modello && <div class="page-hero__modello" data-guida={modello} aria-hidden="true" />}
   </div>
 </header>
+
+<script>
+  import { puoMontare } from '@/three/guida';
+  import type { IdStato } from '@/three/pelvi/stati';
+
+  const avvia = () => {
+    document.querySelectorAll<HTMLElement>('[data-guida]:not([data-montato])').forEach((host) => {
+      host.dataset.montato = '';
+      if (!puoMontare()) return;
+      // dopo il primo disegno della pagina: il titolo arriva subito, il modello subito dopo
+      requestAnimationFrame(() =>
+        setTimeout(async () => {
+          try {
+            const { montaGuida } = await import('@/three/guida');
+            await montaGuida(host, { stato: host.dataset.guida as IdStato, modo: 'pagina' });
+          } catch {
+            host.hidden = true;
+          }
+        }, 120),
+      );
+    });
+  };
+  avvia();
+  document.addEventListener('astro:page-load', avvia);
+</script>
 
 <style>
   .page-hero {
@@ -40,5 +74,53 @@ const { titolo, eyebrow, lead, contatti = true } = Astro.props;
   }
   .page-hero__cta {
     margin-top: var(--space-6);
+  }
+  .page-hero__griglia {
+    display: grid;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .page-hero__modello {
+    position: relative;
+    height: clamp(15rem, 62vw, 20rem);
+    margin-inline: calc(var(--gutter) * -1);
+    touch-action: pan-y;
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s linear;
+  }
+  .page-hero__modello:global(.is-pronto) {
+    opacity: 1; /* la tela compare quando la massa è pronta a nascere: niente riquadro vuoto */
+  }
+  .page-hero__modello :global(canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  @media (max-width: 63.99rem) {
+    /* telefono: il modello apre la pagina, subito sopra il titolo */
+    .page-hero--modello .page-hero__testo {
+      display: contents;
+    }
+    .page-hero__modello {
+      order: -1;
+      height: clamp(13rem, 56vw, 18rem);
+      margin-block: calc(var(--space-4) * -1) calc(var(--space-2) * -1);
+    }
+    .page-hero--modello .page-hero__cta {
+      order: 3;
+      margin-top: 0;
+    }
+  }
+  @media (min-width: 64rem) {
+    .page-hero--modello .page-hero__griglia {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: var(--space-7);
+    }
+    .page-hero__modello {
+      height: clamp(22rem, 34vw, 30rem);
+      margin: calc(var(--space-6) * -1) 0 calc(var(--space-7) * -1);
+    }
   }
 </style>

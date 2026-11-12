@@ -49,7 +49,7 @@ const legale = tipo === 'legale';
 ---
 
 <Base title={metaTitle} description={description} breadcrumbs={breadcrumbs} faq={faq} noindex={false}>
-  <PageHero titolo={titolo} eyebrow={eyebrow} lead={lead} contatti={!legale}>
+  <PageHero titolo={titolo} eyebrow={eyebrow} lead={lead} contatti={!legale} modello={legale ? undefined : (statoModello ?? 'normale')}>
     <slot name="hero" />
   </PageHero>
 

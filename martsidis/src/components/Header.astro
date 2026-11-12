@@ -31,6 +31,7 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
     </button>
 
     <nav class="nav" id="menu-principale" aria-label={t('a11y.menu.label')} data-nav>
+      <div class="nav__modello" data-nav-modello aria-hidden="true"></div>
       <ul class="nav__list">
         {
           menu.map((voce, i) =>
@@ -90,7 +91,25 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
   if (header && toggle && nav) {
     const desktop = window.matchMedia('(min-width: 75rem)');
 
+    // Menu a tutto schermo (telefono/tablet): dietro le voci il modello gira piano.
+    // Si carica solo all'apertura e si smonta alla chiusura (nessun costo quando il menu è chiuso).
+    const hostModello = nav.querySelector<HTMLElement>('[data-nav-modello]');
+    let guida: Promise<{ dispose: () => void } | null> | null = null;
+    const modello = async (on: boolean) => {
+      if (!hostModello) return;
+      if (on && !guida) {
+        guida = import('@/three/guida').then(({ puoMontare, montaGuida }) =>
+          puoMontare() ? montaGuida(hostModello, { stato: 'normale', modo: 'menu' }) : null,
+        ).catch(() => null);
+      } else if (!on && guida) {
+        const g = guida;
+        guida = null;
+        (await g)?.dispose();
+      }
+    };
+
     const setMenu = (open: boolean) => {
+      void modello(open && !desktop.matches);
       toggle.setAttribute('aria-expanded', String(open));
       header.classList.toggle('is-open', open);
       document.documentElement.classList.toggle('menu-aperto', open && !desktop.matches);
@@ -210,6 +229,25 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
   .nav {
     display: none;
   }
+  /* Menu a tutto schermo su fondo viola scuro: l'intestazione diventa parte del menu */
+  .site-header.is-open {
+    background: var(--c-plum-900);
+    border-bottom-color: rgb(255 255 255 / 0.1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .is-open :global(.logo),
+  .is-open :global(.logo:hover) {
+    color: var(--c-white);
+  }
+  .is-open :global(.logo__sub) {
+    color: var(--c-sage-200);
+  }
+  .is-open .menu-toggle {
+    background: transparent;
+    color: var(--c-white);
+    border-color: rgb(255 255 255 / 0.4);
+  }
   .is-open .nav {
     display: block;
     position: absolute;
@@ -217,9 +255,86 @@ const isGroupActive = (figli: { href: string }[]) => figli.some((f) => isActive(
     height: calc(100dvh - var(--header-h));
     overflow-y: auto;
     overscroll-behavior: contain;
-    background: var(--color-bg);
-    border-top: 1px solid var(--color-border);
-    padding: var(--space-4) var(--gutter) calc(var(--contactbar-h) + var(--space-6));
+    background: var(--c-plum-900);
+    padding: var(--space-5) var(--gutter) var(--space-8);
+  }
+  .nav__modello {
+    display: none;
+  }
+  .is-open .nav__modello {
+    display: block;
+    position: fixed;
+    right: -18vw;
+    bottom: -6vh;
+    width: min(110vw, 46rem);
+    height: min(110vw, 46rem);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s linear;
+  }
+  .is-open .nav__modello:global(.is-pronto) {
+    opacity: 0.3; /* una presenza dietro le voci, che restano sempre leggibili */
+  }
+  .nav__modello :global(canvas) {
+    width: 100%;
+    height: 100%;
+  }
+  .is-open .nav__list {
+    position: relative;
+    z-index: 1;
+  }
+  .is-open .nav__item {
+    border-bottom-color: rgb(255 255 255 / 0.12);
+    animation: voce-entra 0.5s var(--ease) both;
+  }
+  .is-open .nav__item:nth-child(2) { animation-delay: 40ms; }
+  .is-open .nav__item:nth-child(3) { animation-delay: 80ms; }
+  .is-open .nav__item:nth-child(4) { animation-delay: 120ms; }
+  .is-open .nav__item:nth-child(5) { animation-delay: 160ms; }
+  .is-open .nav__item:nth-child(6) { animation-delay: 200ms; }
+  .is-open .nav__item:nth-child(7) { animation-delay: 240ms; }
+  @keyframes voce-entra {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .is-open .nav__item {
+      animation: none;
+    }
+  }
+  @media (max-width: 74.99rem) {
+    .is-open .nav__link {
+      min-height: 4.25rem;
+      font-size: clamp(1.75rem, 1.3rem + 2.4vw, 2.5rem);
+      letter-spacing: -0.015em;
+      color: var(--c-white);
+    }
+    .is-open .nav__link:hover,
+    .is-open .nav__item.is-active > .nav__link {
+      color: var(--c-plum-300);
+    }
+    .is-open .nav__trigger :global(.nav__chev) {
+      color: var(--c-plum-300);
+    }
+    .is-open .nav__sublink {
+      color: var(--color-on-dark-muted);
+    }
+    .is-open .nav__sublabel {
+      color: var(--c-white);
+      font-size: 1.1rem;
+    }
+    .is-open .nav__subdesc {
+      color: var(--color-on-dark-muted);
+    }
+    .is-open .nav__sublink:hover,
+    .is-open .nav__sublink.is-active {
+      background: rgb(255 255 255 / 0.08);
+    }
+    .is-open .nav__sublink:hover .nav__sublabel {
+      color: var(--c-white);
+    }
   }
   .nav__list,
   .nav__sub {
