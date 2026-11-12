@@ -5,122 +5,140 @@
  *    diciture di quella vera, e il pulsante "ENTRA";
  * 2. toccando "ENTRA" la porta si apre (cardine a destra, verso l'interno) e si intravede lo studio,
  *    disegnato in prospettiva: parete con il quadro dei fiori bianchi, le due sedie grigie;
- * 3. la camera si gira e si vede la ragazza che entra camminando nella Home.
- * Una volta per visita (sessionStorage), mai con "riduci movimento". Senza JavaScript "ENTRA" è un link
+ * 3. la camera avanza ed entra nel quadro dei fiori: è lì che la ragazza cammina; poi resta la Home.
+* Ogni volta che si apre la Home; mai con "riduci movimento". Senza JavaScript "ENTRA" è un link
  * e l'apertura è solo CSS (:target).
  */
 
-// Prospettiva dello studio: punto di fuga a (640, 330). Parete sinistra da x=0 (vicina) a x=430 (lontana).
-const PF = { x: 640, y: 330 };
-const FONDO = { x0: 430, x1: 1000, y0: 170, y1: 525 }; // parete di fondo
-// punto sulla parete sinistra: u = 0 vicino … 1 lontano, v = 0 soffitto … 1 pavimento
-const muro = (u: number, v: number) => {
-  const x = FONDO.x0 * u;
-  const yt = FONDO.y0 * u;
-  const yb = 700 - (700 - FONDO.y1) * u;
-  return { x, y: yt + (yb - yt) * v, h: yb - yt };
-};
-const quad = (pts: { x: number; y: number }[]) => pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-const Q = { u0: 0.12, u1: 0.9, v0: 0.3, v1: 0.5 }; // il quadro sulla parete sinistra
-const quadro = quad([muro(Q.u0, Q.v0), muro(Q.u1, Q.v0), muro(Q.u1, Q.v1), muro(Q.u0, Q.v1)]);
-
+// Fiori del quadro (sempre uguali): bianchi con il cuore dorato, su fondo tortora
 let seme = 11;
 const caso = () => (seme = (seme * 16807) % 2147483647) / 2147483647;
-const fiori = Array.from({ length: 80 }, () => {
-  const u = Q.u0 + 0.02 + caso() * (Q.u1 - Q.u0 - 0.04);
-  const v = Q.v0 + 0.03 + caso() * (Q.v1 - Q.v0 - 0.08);
-  const p = muro(u, v);
-  return { x: p.x, y: p.y, r: p.h * (0.012 + caso() * 0.014), a: caso() * 72, sx: 0.55 + 0.45 * u };
-});
-const pavimento = quad([{ x: 0, y: 700 }, muro(1, 1), { x: 1000, y: FONDO.y1 }, { x: 1000, y: 700 }]);
-const soffitto = quad([{ x: 0, y: 0 }, { x: 1000, y: 0 }, { x: 1000, y: FONDO.y0 }, muro(1, 0)]);
-const pareteSx = quad([{ x: 0, y: 0 }, muro(1, 0), muro(1, 1), { x: 0, y: 700 }]);
-const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x: 330, y: 120 }]);
+const fiori = Array.from({ length: 95 }, () => ({
+  x: 10 + caso() * 980,
+  y: 30 + caso() * 150,
+  r: 9 + caso() * 12,
+  a: caso() * 72,
+}));
+const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 + caso() * 80 }));
 ---
 
 <div class="porta" data-porta>
   <span id="benvenuta" class="porta__ancora"></span>
   <div class="porta__scena">
-    <svg class="porta__studio" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="st-sx" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#e6e2db" />
-          <stop offset="1" stop-color="#f3f0ea" />
-        </linearGradient>
-        <linearGradient id="st-fondo" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#f7f4ef" />
-          <stop offset="1" stop-color="#ebe7e0" />
-        </linearGradient>
-        <linearGradient id="st-pav" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#d9cdbb" />
-          <stop offset="1" stop-color="#c7b8a2" />
-        </linearGradient>
-        <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#d2c9b6" />
-          <stop offset="0.6" stop-color="#b9b09c" />
-          <stop offset="1" stop-color="#a7a395" />
-        </linearGradient>
-        <linearGradient id="st-sedia" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#6f6963" />
-          <stop offset="0.45" stop-color="#8f8982" />
-          <stop offset="1" stop-color="#67615b" />
-        </linearGradient>
-        <radialGradient id="st-alone" cx="0.4" cy="0.05" r="0.7">
-          <stop offset="0" stop-color="#fffdf5" stop-opacity="0.9" />
-          <stop offset="1" stop-color="#fffdf5" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-      <rect x={FONDO.x0} y={FONDO.y0} width={FONDO.x1 - FONDO.x0} height={FONDO.y1 - FONDO.y0} fill="url(#st-fondo)" />
-      <polygon points={soffitto} fill="#e3dfd8" />
-      <polygon points={luce} fill="#ffffff" />
-      <polygon points={pareteSx} fill="url(#st-sx)" />
-      <polygon points={pavimento} fill="url(#st-pav)" />
-      {/* battiscopa e spigoli */}
-      <line x1={FONDO.x0} y1={FONDO.y0} x2={FONDO.x0} y2={FONDO.y1} stroke="#d6d1c8" stroke-width="2" />
-      <line x1="0" y1="700" x2={FONDO.x0} y2={FONDO.y1} stroke="#bfb3a1" stroke-width="3" />
-      {/* il quadro, in prospettiva sulla parete */}
-      <polygon points={quadro} fill="url(#st-quadro)" stroke="#a39b89" stroke-width="2" />
-      {
-        fiori.map((f) => (
-          <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) scale(${f.sx.toFixed(2)} 1) rotate(${f.a.toFixed(0)})`}>
-            {[0, 72, 144, 216, 288].map((r) => (
-              <ellipse
-                cx="0"
-                cy={(-f.r * 0.55).toFixed(1)}
-                rx={(f.r * 0.42).toFixed(1)}
-                ry={(f.r * 0.6).toFixed(1)}
-                fill="#fbfaf6"
-                transform={`rotate(${r})`}
-              />
-            ))}
-            <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
+    <!-- lo studio, in 3D: una stanza vera (pareti, pavimento, soffitto). Davanti alla porta la parete con il
+         quadro dei fiori e, sotto, le due sedie -->
+    <div class="porta__studio" aria-hidden="true">
+      <!-- parete davanti alla porta, più larga: a sinistra il passaggio verso lo studio del Dottore -->
+      <div class="f f-fondo f-fondo--a"></div>
+      <div class="f f-fondo f-fondo--b"></div>
+      <div class="f f-fondo f-fondo--c">
+        <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#d4cbb8" />
+              <stop offset="0.6" stop-color="#bab19d" />
+              <stop offset="1" stop-color="#a8a496" />
+            </linearGradient>
+          </defs>
+          <rect width="1000" height="210" fill="url(#st-quadro)" />
+          {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 3} y2="210" stroke="#97978a" stroke-width="1.6" opacity="0.55" />)}
+          {
+            fiori.map((f) => (
+              <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
+                {[0, 72, 144, 216, 288].map((r) => (
+                  <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
+                ))}
+                <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
+              </g>
+            ))
+          }
+        </svg>
+      </div>
+      <!-- lo studio del Dottore, più in fondo: scrivania, poltrona, lettino -->
+      <div class="f f-ufficio">
+        <svg viewBox="0 0 900 1000" preserveAspectRatio="xMidYMax slice">
+          <defs>
+            <linearGradient id="uf-muro" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#f3f0ea" /><stop offset="1" stop-color="#e5e0d7" />
+            </linearGradient>
+            <linearGradient id="uf-legno" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#c79a6a" /><stop offset="1" stop-color="#a77a4b" />
+            </linearGradient>
+            <linearGradient id="uf-lettino" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffffff" /><stop offset="1" stop-color="#e7e5e2" />
+            </linearGradient>
+          </defs>
+          <rect width="900" height="1000" fill="url(#uf-muro)" />
+          <rect y="975" width="900" height="25" fill="#d9d2c6" />
+          <!-- finestra con luce -->
+          <rect x="70" y="170" width="250" height="330" fill="#fbfdff" stroke="#d7d2c9" stroke-width="8" />
+          <line x1="195" y1="170" x2="195" y2="500" stroke="#d7d2c9" stroke-width="6" />
+          <rect x="60" y="170" width="60" height="340" fill="#efe9df" opacity="0.9" />
+          <!-- diplomi -->
+          <rect x="420" y="300" width="90" height="70" fill="#fbfaf7" stroke="#b9a27a" stroke-width="5" />
+          <rect x="530" y="300" width="90" height="70" fill="#fbfaf7" stroke="#b9a27a" stroke-width="5" />
+          <g transform="translate(-20 0)">
+          <!-- scrivania con monitor e poltrona -->
+          <rect x="90" y="700" width="380" height="22" rx="3" fill="url(#uf-legno)" />
+          <rect x="110" y="722" width="16" height="255" fill="#8d6a43" />
+          <rect x="434" y="722" width="16" height="255" fill="#8d6a43" />
+          <rect x="300" y="722" width="150" height="150" fill="#b58a5c" />
+          <rect x="190" y="560" width="160" height="105" rx="6" fill="#2f2c2a" />
+          <rect x="198" y="568" width="144" height="89" rx="3" fill="#5d6a74" opacity="0.6" />
+          <rect x="262" y="665" width="16" height="35" fill="#3a3734" />
+          <path d="M170 640 q0 -40 40 -40 h20 q40 0 40 40 v110 h-100 z" fill="#3e3b39" />
+          <rect x="160" y="750" width="120" height="22" rx="8" fill="#353230" />
+          <rect x="214" y="772" width="12" height="150" fill="#2c2a28" />
+          <path d="M160 960 l60 -40 l60 40" stroke="#2c2a28" stroke-width="10" fill="none" />
           </g>
+          <g transform="translate(-230 0)">
+          <!-- lettino da visita -->
+          <path d="M540 735 h300 q14 0 14 14 v32 h-328 v-32 q0 -14 14 -14 z" fill="url(#uf-lettino)" stroke="#d6d3cf" stroke-width="3" />
+          <path d="M760 735 q40 -60 80 -40 l14 54 h-94 z" fill="#f4f3f1" stroke="#d6d3cf" stroke-width="3" />
+          <rect x="540" y="726" width="200" height="12" fill="#f8f8f6" opacity="0.9" />
+          <rect x="545" y="781" width="300" height="28" fill="#cfcac3" />
+          <rect x="560" y="809" width="14" height="168" fill="#b9b6b1" />
+          <rect x="815" y="809" width="14" height="168" fill="#b9b6b1" />
+          <rect x="560" y="900" width="270" height="10" fill="#c4c1bc" />
+          <!-- carrello e lampada -->
+          <rect x="870" y="760" width="20" height="215" fill="#d9d6d0" />
+          <line x1="700" y1="975" x2="700" y2="560" stroke="#a9a6a1" stroke-width="7" />
+          <path d="M700 560 q40 -20 80 10" stroke="#a9a6a1" stroke-width="7" fill="none" />
+          <ellipse cx="785" cy="580" rx="34" ry="16" fill="#efeee9" stroke="#bdb9b2" stroke-width="4" />
+          </g>
+        </svg>
+      </div>
+      <div class="f f-ufficio-pav"></div>
+      <div class="f f-stipite f-stipite--sx"></div>
+      <div class="f f-stipite f-stipite--dx"></div>
+      <div class="f f-pav"></div>
+      <div class="f f-soff"><span class="luce"></span></div>
+      <div class="f f-sx"><span class="tavolino"></span></div>
+      <div class="f f-dx"></div>
+      {/* due sedie in 3D: seduta, schienale con spessore, gambe, ombra a terra */}
+      {
+        ['sedia sedia--1', 'sedia sedia--2'].map((c) => (
+          <div class={c}>
+            <span class="sd-ombra" />
+            <span class="sd-gamba sd-gamba--1" />
+            <span class="sd-gamba sd-gamba--2" />
+            <span class="sd-gamba sd-gamba--3" />
+            <span class="sd-gamba sd-gamba--4" />
+            <span class="sd-sopra" />
+            <span class="sd-fronte" />
+            <span class="sd-lato sd-lato--sx" />
+            <span class="sd-lato sd-lato--dx" />
+            <span class="sd-schienale" />
+            <span class="sd-schienale-lato sd-schienale-lato--sx" />
+            <span class="sd-schienale-lato sd-schienale-lato--dx" />
+            <span class="sd-schienale-cima" />
+          </div>
         ))
       }
-      {/* le due sedie, appoggiate alla parete di fondo, con la loro ombra */}
-      {
-        [
-          { x: 520, s: 1 },
-          { x: 690, s: 1 },
-        ].map(({ x }) => (
-          <g>
-            <ellipse cx={x + 60} cy="612" rx="78" ry="10" fill="#000" opacity="0.12" />
-            <path d={`M${x} ${385} q0 -16 16 -16 h88 q16 0 16 16 v120 h-120 z`} fill="url(#st-sedia)" />
-            {[410, 435, 460, 485].map((y) => (
-              <line x1={x + 8} y1={y} x2={x + 112} y2={y} stroke="#56514c" stroke-width="2" opacity="0.45" />
-            ))}
-            <path d={`M${x - 8} 505 h136 l-10 26 h-116 z`} fill="#7c766f" />
-            <rect x={x + 2} y="531" width="6" height="78" fill="#4f4a45" />
-            <rect x={x + 112} y="531" width="6" height="78" fill="#4f4a45" />
-            <rect x={x + 22} y="531" width="5" height="64" fill="#5d5853" />
-            <rect x={x + 94} y="531" width="5" height="64" fill="#5d5853" />
-          </g>
-        ))
-      }
-      <rect width="1000" height="700" fill="url(#st-alone)" />
-    </svg>
+    </div>
 
     <div class="porta__anta" aria-hidden="true">
+      <div class="porta__spessore"></div>
       <div class="porta__venature"></div>
       <div class="porta__targa">
         <span class="porta__vite porta__vite--1"></span><span class="porta__vite porta__vite--2"></span>
@@ -133,26 +151,35 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
       <div class="porta__maniglia"></div>
     </div>
   </div>
+  <!-- il quadro a tutto schermo: si entra nei fiori ed è lì che la donna cammina -->
+  <svg class="porta__prato" viewBox="0 0 1000 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="1000" height="210" fill="url(#st-quadro)" />
+    {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 3} y2="210" stroke="#97978a" stroke-width="1.6" opacity="0.55" />)}
+    {
+      fiori.map((f) => (
+        <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
+          {[0, 72, 144, 216, 288].map((r) => (
+            <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
+          ))}
+          <circle r={(f.r * 0.22).toFixed(1)} fill="#c7a24a" />
+        </g>
+      ))
+    }
+  </svg>
   <a class="porta__entra" href="#benvenuta" data-porta-entra>ENTRA</a>
 </div>
 
 <script>
   const porta = document.querySelector<HTMLElement>('[data-porta]');
   if (porta) {
-    let vista = false;
-    try {
-      vista = sessionStorage.getItem('porta-vista') === '1';
-    } catch {
-      /* navigazione privata */
-    }
     const w = window as Window & { __portaChiusa?: boolean };
     const html = document.documentElement;
     const salta = () => {
       porta.classList.add('porta--salta');
       w.__portaChiusa = false;
-      html.classList.remove('porta-chiusa', 'camera-gira');
+      html.classList.remove('porta-chiusa');
     };
-    if (vista || matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
     else {
       w.__portaChiusa = true;
       html.classList.add('porta-chiusa'); // niente scroll finché non si entra
@@ -162,20 +189,18 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
         e?.preventDefault();
         if (porta.classList.contains('porta--aperta')) return;
         porta.classList.add('porta--aperta');
-        try {
-          sessionStorage.setItem('porta-vista', '1');
-        } catch {
-          /* ok */
-        }
-        // la porta si è socchiusa e si è intravisto lo studio: la camera si gira verso la ragazza
+        // la porta si è aperta: si va verso il quadro dei fiori…
+        setTimeout(() => porta.classList.add('porta--quadro'), 2000);
+        // …e ci si entra: la donna cammina tra i fiori
         setTimeout(() => {
-          porta.classList.add('porta--gira');
-          html.classList.add('camera-gira');
+          porta.classList.add('porta--dentro');
           html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 2300);
-        setTimeout(salta, 3700);
+        }, 3700);
+        // quando si è fermata i fiori lasciano il posto alla Home
+        setTimeout(() => porta.classList.add('porta--via'), 10200);
+        setTimeout(salta, 11800);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -200,27 +225,267 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
   .porta__scena {
     position: absolute;
     inset: 0;
-    perspective: 1600px;
-    perspective-origin: 100% 50%;
+    perspective: 75vmax;
+    perspective-origin: 50% 45%;
     transform-origin: 50% 50%;
   }
+  /* — la stanza: profondità P, la parete di fondo è davanti alla porta — */
   .porta__studio {
+    --P: 110vh;
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    transform-origin: 30% 55%;
+    transform-style: preserve-3d;
     transition: transform 2.6s cubic-bezier(0.45, 0, 0.2, 1);
   }
+  /* aprendo si avanza un poco nella stanza */
   .porta--aperta .porta__studio {
-    transform: scale(1.08);
+    transform: translateX(24vw) translateZ(8vh); /* un passo avanti, lo sguardo verso lo studio a sinistra */
+  }
+  .f {
+    position: absolute;
+  }
+  /* la parete di fondo va da x = -60vw a 100vw; il passaggio verso lo studio è tra -48vw e -14vw */
+  .f-fondo {
+    top: 0;
+    height: 100%;
+    transform: translateZ(calc(var(--P) * -1));
+    background: linear-gradient(180deg, #f7f4ef, #ece7df);
+    box-shadow: inset 0 0 8vh rgb(90 70 50 / 0.1);
+  }
+  .f-fondo::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2.6%;
+    background: #d9d2c6; /* battiscopa */
+  }
+  .f-fondo--a {
+    left: -60vw;
+    width: 12vw;
+  }
+  .f-fondo--b {
+    left: -48vw;
+    width: 34vw;
+    height: 24%;
+  }
+  .f-fondo--b::after {
+    display: none;
+  }
+  .f-fondo--c {
+    left: -14vw;
+    width: 114vw;
+  }
+  .f-fondo--c .quadro {
+    left: 24.6%; /* stesso posto di prima sullo schermo */
+    width: 63.2%;
+  }
+  .f-ufficio {
+    left: -100vw;
+    width: 100vw;
+    top: 0;
+    height: 100%;
+    transform: translateZ(calc(var(--P) * -1 - 75vh));
+  }
+  .f-ufficio svg {
+    width: 100%;
+    height: 100%;
+  }
+  .f-ufficio-pav {
+    left: -100vw;
+    width: 100vw;
+    top: 100%;
+    height: 75vh;
+    transform-origin: 50% 0;
+    transform: translateZ(calc(var(--P) * -1)) rotateX(-90deg);
+    background: linear-gradient(0deg, #a99273, #c2ae90);
+  }
+  .f-stipite {
+    top: 24%;
+    height: 76%;
+    width: 4vh; /* spessore del muro nel passaggio */
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg, #dcd6cc, #cfc8bd);
+  }
+  .f-stipite--sx {
+    left: -48vw;
+    transform: translateZ(calc(var(--P) * -1)) rotateY(90deg);
+  }
+  .f-stipite--dx {
+    left: -14vw;
+    transform: translateZ(calc(var(--P) * -1)) rotateY(90deg);
+  }
+  .quadro {
+    position: absolute;
+    left: 14%;
+    top: 22%;
+    width: 72%;
+    height: 19%;
+    box-shadow: 0 1.2vh 2.4vh rgb(60 50 40 / 0.18);
+    outline: 2px solid #a59d8b;
+  }
+  .f-pav {
+    left: -60vw;
+    top: 100%;
+    width: 160vw;
+    height: var(--P);
+    transform-origin: 50% 0;
+    transform: rotateX(-90deg);
+    background: linear-gradient(0deg, #b29c7d, #cdbb9f 70%, #d6c7ad);
+  }
+  .f-soff {
+    left: -60vw;
+    bottom: 100%;
+    width: 160vw;
+    height: var(--P);
+    transform-origin: 50% 100%;
+    transform: rotateX(90deg);
+    background: linear-gradient(0deg, #d6d1c8, #e4e0d9);
+  }
+  .luce {
+    position: absolute;
+    left: 50%;
+    width: 25%;
+    top: 30%;
+    height: 14%;
+    background: #fff;
+    box-shadow: 0 0 6vh 2vh rgb(255 252 235 / 0.9);
+  }
+  .f-sx {
+    top: 0;
+    right: calc(100% + 60vw);
+    width: var(--P);
+    height: 100%;
+    transform-origin: 100% 50%;
+    transform: rotateY(-90deg);
+    background: linear-gradient(90deg, #ece8e1, #d4cec4);
+    box-shadow: inset -2px 0 0 rgb(120 100 80 / 0.12);
+  }
+  .f-dx {
+    top: 0;
+    left: 100%;
+    width: var(--P);
+    height: 100%;
+    transform-origin: 0 50%;
+    transform: rotateY(90deg);
+    background: linear-gradient(270deg, #e3ded6, #c9c2b7);
+  }
+  .tavolino {
+    position: absolute;
+    left: 6%;
+    bottom: 26%;
+    width: 18%;
+    height: 2.2%;
+    background: #fbfbfa;
+    box-shadow: 0 1vh 1.5vh rgb(0 0 0 / 0.08);
+  }
+  /* sedie 3D: l'origine è sul pavimento, spigolo anteriore sinistro; W larghezza, D profondità, H altezza seduta */
+  .sedia {
+    --W: 17vh;
+    --D: 16vh;
+    --H: 17vh;
+    --S: 22vh; /* altezza dello schienale sopra la seduta */
+    position: absolute;
+    top: 100%;
+    width: var(--W);
+    transform-style: preserve-3d;
+    transform: translateZ(calc(var(--P) * -1 + var(--D) + 3vh));
+  }
+  .sedia > span {
+    position: absolute;
+    display: block;
+  }
+  .sedia--1 {
+    left: 35%;
+  }
+  .sedia--2 {
+    left: 53%;
+  }
+  .sd-ombra {
+    left: -3vh;
+    top: 0;
+    width: calc(var(--W) + 6vh);
+    height: calc(var(--D) + 6vh);
+    transform-origin: 50% 0;
+    transform: translateZ(3vh) rotateX(-90deg);
+    background: radial-gradient(closest-side, rgb(60 45 30 / 0.28), transparent);
+  }
+  .sd-gamba {
+    top: calc(var(--H) * -1);
+    width: 0.9vh;
+    height: var(--H);
+    background: linear-gradient(90deg, #3e3a36, #6a645e, #3e3a36);
+  }
+  .sd-gamba--1 { left: 0.6vh; transform: translateZ(-1vh); }
+  .sd-gamba--2 { left: calc(var(--W) - 1.5vh); transform: translateZ(-1vh); }
+  .sd-gamba--3 { left: 0.6vh; transform: translateZ(calc(var(--D) * -1 + 1vh)); }
+  .sd-gamba--4 { left: calc(var(--W) - 1.5vh); transform: translateZ(calc(var(--D) * -1 + 1vh)); }
+  .sd-sopra {
+    left: 0;
+    top: calc(var(--H) * -1 - 2.4vh);
+    width: var(--W);
+    height: var(--D);
+    transform-origin: 50% 0;
+    transform: rotateX(-90deg);
+    border-radius: 1.2vh;
+    background: linear-gradient(180deg, #8f8981, #a39d95);
+  }
+  .sd-fronte {
+    left: 0;
+    top: calc(var(--H) * -1 - 2.4vh);
+    width: var(--W);
+    height: 2.4vh;
+    border-radius: 0 0 0.8vh 0.8vh;
+    background: linear-gradient(180deg, #7a746d, #5f5a54);
+  }
+  .sd-lato {
+    top: calc(var(--H) * -1 - 2.4vh);
+    width: var(--D);
+    height: 2.4vh;
+    background: #66605a;
+    transform-origin: 0 50%;
+  }
+  .sd-lato--sx { left: 0; transform: rotateY(90deg); }
+  .sd-lato--dx { left: var(--W); transform: rotateY(90deg); }
+  .sd-schienale {
+    left: 0;
+    top: calc(var(--H) * -1 - 2.4vh - var(--S));
+    width: var(--W);
+    height: var(--S);
+    transform-origin: 50% 100%;
+    transform: translateZ(calc(var(--D) * -1 + 1.5vh)) rotateX(-7deg);
+    border-radius: 2.2vh 2.2vh 0.6vh 0.6vh;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 4.2vh, rgb(60 55 50 / 0.45) 4.2vh 4.45vh),
+      linear-gradient(90deg, #6f6963, #938d86 45%, #6a645e);
+    box-shadow: inset 0 -1vh 1.5vh rgb(0 0 0 / 0.15);
+  }
+  .sd-schienale-lato {
+    top: calc(var(--H) * -1 - 2.4vh - var(--S));
+    width: 1.8vh;
+    height: var(--S);
+    background: #5d5852;
+    transform-origin: 0 100%;
+  }
+  .sd-schienale-lato--sx { left: 0; transform: translateZ(calc(var(--D) * -1 + 1.5vh)) rotateX(-7deg) rotateY(90deg); }
+  .sd-schienale-lato--dx { left: var(--W); transform: translateZ(calc(var(--D) * -1 + 1.5vh)) rotateX(-7deg) rotateY(90deg); }
+  .sd-schienale-cima {
+    left: 0;
+    top: calc(var(--H) * -1 - 2.4vh - var(--S));
+    width: var(--W);
+    height: 1.8vh;
+    transform-origin: 50% 0;
+    transform: translateZ(calc(var(--D) * -1 + 1.5vh)) rotateX(-7deg) rotateX(-90deg);
+    border-radius: 1vh;
+    background: #7d776f;
   }
 
   /* — la porta: cardine a destra, maniglia a sinistra; si apre verso l'interno, solo socchiusa — */
   .porta__anta {
     position: absolute;
     inset: 0;
-    overflow: hidden;
+    transform-style: preserve-3d;
     transform-origin: 100% 50%;
     background:
       linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 3%, transparent 97%, rgb(0 0 0 / 0.22)),
@@ -234,6 +499,18 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
     inset: 0;
     background: rgb(20 12 6);
     opacity: 0;
+    pointer-events: none;
+  }
+  /* lo spessore della porta: il bordo che si vede mentre ruota */
+  .porta__spessore {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5vmin;
+    height: 100%;
+    transform-origin: 0 50%;
+    transform: rotateY(90deg);
+    background: linear-gradient(90deg, #8a5a2c, #a8733f 40%, #7d5127);
   }
   .porta--aperta .porta__anta,
   .porta:has(.porta__ancora:target) .porta__anta {
@@ -244,32 +521,39 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
     animation: porta-ombra 2.2s cubic-bezier(0.5, 0, 0.25, 1) forwards;
   }
 
-  /* — la camera si gira: la porta esce di lato, la Home (con la ragazza) entra dall'altro — */
-  .porta--gira {
+  /* — verso il quadro: la camera avanza fino a entrare nei fiori — */
+  .porta--quadro .porta__studio {
+    transition: transform 1.7s cubic-bezier(0.5, 0, 0.3, 1);
+    transform: translateY(18.5vh) translateZ(calc(var(--P) + 24vmax));
+  }
+  .porta--quadro .porta__anta {
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .porta__prato {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
     pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  /* dentro il quadro: i fiori diventano lo sfondo, leggeri, dietro alla donna e ai testi */
+  .porta--dentro {
+    z-index: -1;
     background: transparent;
+    pointer-events: none;
   }
-  .porta--gira .porta__scena {
-    animation: camera-via 1.3s cubic-bezier(0.55, 0, 0.3, 1) forwards;
+  .porta--dentro .porta__scena {
+    visibility: hidden;
   }
-  :global(html.camera-gira .esp__canvas),
-  :global(html.camera-gira .esp-hero) {
-    animation: camera-arriva 1.3s cubic-bezier(0.55, 0, 0.3, 1) both;
+  .porta--dentro .porta__prato {
+    opacity: 0.5;
   }
-  @keyframes camera-via {
-    to {
-      transform: perspective(1400px) translateX(-75%) rotateY(32deg);
-      opacity: 0;
-    }
-  }
-  @keyframes camera-arriva {
-    from {
-      transform: perspective(1400px) translateX(45%) rotateY(-24deg);
-      opacity: 0;
-    }
-    35% {
-      opacity: 1;
-    }
+  .porta--via .porta__prato {
+    opacity: 0;
+    transition-duration: 1.5s;
   }
 
   /* senza JavaScript: appena si entra la porta non blocca più nulla e lo studio sfuma */
@@ -395,7 +679,7 @@ const luce = quad([{ x: 120, y: 20 }, { x: 520, y: 20 }, { x: 600, y: 120 }, { x
   }
   @keyframes porta-apre {
     to {
-      transform: rotateY(-68deg);
+      transform: rotateY(-72deg);
     }
   }
   @keyframes porta-ombra {
