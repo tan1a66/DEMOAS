@@ -41,8 +41,8 @@ export type Comando = {
 };
 
 const CENTRO = new Vector3(0, 0.62, 0);
-const CENTRO_CORPO = new Vector3(0, -0.8, -0.1);
-const RAGGIO_CORPO = 9.4; // metà altezza della figura
+const CENTRO_CORPO = new Vector3(0, -0.55, -0.1);
+const RAGGIO_CORPO = 8.85; // metà altezza della figura
 const RAGGIO_MODELLO = 1.5; // sfera che contiene tutto il bacino
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
@@ -168,17 +168,17 @@ vec3 cammina(vec3 p) {
   float s = p.x >= 0.0 ? 1.0 : -1.0;
   float fi = uFase + (s > 0.0 ? 0.0 : 3.14159);
   // braccia (pesi calcolati prima: le mani, all'altezza delle cosce, non devono seguire le gambe)
-  vec3 sp = vec3(s * 1.36, 4.95, -0.2);
-  vec3 ab = vec3(s * 2.18, -0.4, 0.02) - sp;
+  vec3 sp = vec3(s * 1.62, 4.95, -0.2);
+  vec3 ab = vec3(s * 2.28, -0.35, 0.02) - sp;
   // asse del braccio prolungato oltre il polso, così anche la mano lo segue tutta
   float h = clamp(dot(p - sp, ab) / dot(ab, ab), 0.0, 1.32);
   float da = length(p - sp - ab * h);
-  float wa = (1.0 - smoothstep(0.3, 0.46, da)) * smoothstep(0.04, 0.22, h);
+  float wa = (1.0 - smoothstep(0.34, 0.5, da)) * smoothstep(0.04, 0.22, h);
   float we = smoothstep(0.34, 0.68, h) * wa; // transizione lunga: il gomito si piega senza spigolo
   // gambe: la piega è distribuita sulla coscia alta, così i fianchi non si deformano
   float wl = (1.0 - smoothstep(-1.7, -0.25, p.y)) * smoothstep(0.0, 0.05, abs(p.x)) * (1.0 - wa);
-  float wk = 1.0 - smoothstep(-5.5, -4.6, p.y);
-  p = rotX(p, vec3(0.0, -5.0, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
+  float wk = 1.0 - smoothstep(-5.1, -4.2, p.y);
+  p = rotX(p, vec3(0.0, -4.6, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
   p = rotX(p, vec3(0.0, 0.3, -0.06), -uPasso * 0.36 * sin(fi) * wl);
   // braccia: oscillano avanti e indietro, opposte alla gamba dello stesso lato, gomito appena piegato
   p = rotX(p, vec3(0.0, 2.15, -0.22), -uPasso * (0.06 + 0.2 * max(0.0, -sin(fi))) * we);
@@ -190,7 +190,7 @@ vec3 fC = mondoC.xyz - uGruppoPos;
 fC = vec3(cg * fC.x - sg * fC.z, fC.y, sg * fC.x + cg * fC.z);
 fC = cammina(fC);
 // capelli: più si scende verso le punte più ondeggiano; camminando restano un po' indietro
-float lunghi = uOnda * (1.0 - smoothstep(2.4, 7.4, fC.y));
+float lunghi = uOnda * (1.0 - smoothstep(2.4, 7.0, fC.y));
 fC.z -= lunghi * uPasso * 0.28;
 fC.x += lunghi * uOndaAmp * 0.12 * sin(uOndaT * 3.1 + fC.y * 1.7);
 fC.z += lunghi * uOndaAmp * 0.1 * sin(uOndaT * 2.3 + fC.x * 2.0 + 1.3);
@@ -210,7 +210,7 @@ float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2
 diffuseColor.rgb = mix(uPelleA, uPelleB, fres * 0.6);
 diffuseColor.a = mix(uPieno, max(0.62, uPieno), fres);
 // la testa è più piena: davanti ai capelli raccolti si vede il viso, non l'interno della capigliatura
-float testaW = uTesta * smoothstep(6.6, 6.95, vMondo.y);
+float testaW = uTesta * smoothstep(6.15, 6.5, vMondo.y);
 diffuseColor.a = max(diffuseColor.a, testaW);
 // il viso pieno prende il tono con cui la pelle traslucida appare sul fondo: chiaro, distinto dai capelli
 diffuseColor.rgb = mix(diffuseColor.rgb, uViso, testaW);
@@ -323,7 +323,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelle.uOndaAmp.value = onda;
     pelle.uOndaT.value += dt;
     comuni.uCentro.value.copy(CENTRO).add(gruppo.position);
-    comuni.uComparsa.value = lerp(-10.3, 8.7, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
+    comuni.uComparsa.value = lerp(-9.4, 8.3, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
 
     // Zoom: dalla figura intera all'apparato (interpolazione "logaritmica": velocità costante percepita)
     const z = smooth(0, 1, m);
