@@ -15,8 +15,7 @@ const gamba = (x, y, z, s) => {
 
 const braccio = (x, y, z, s) => {
   let d = cono(x, y, z, s * 1.62, 4.95, -0.2, s * 1.98, 2.15, -0.22, 0.38, 0.27); // omero
-  d = smin(d, cono(x, y, z, s * 1.98, 2.15, -0.22, s * 2.28, -0.35, 0.02, 0.27, 0.18), 0.22); // avambraccio (gomito morbido)
-  d = smin(d, ellissoide(x - s * 1.99, y - 2.17, z + 0.24, 0.24, 0.3, 0.25), 0.15); // gomito
+  d = smin(d, cono(x, y, z, s * 1.98, 2.15, -0.22, s * 2.28, -0.35, 0.02, 0.26, 0.18), 0.4); // avambraccio: il gomito è una curva continua, senza punta
   d = smin(d, ellissoide(x - s * 2.33, y + 0.85, z - 0.06, 0.13, 0.46, 0.25), 0.1); // mano
   return d;
 };
@@ -55,14 +54,23 @@ export function corpo(x, y, z) {
 export function capelli(x, y, z) {
   let d = ellissoide(x, y - 7.25, z + 0.08, 0.78, 0.95, 0.9); // calotta
   // un'unica chioma dalla nuca a metà schiena: segue la curva della testa e poi della schiena, senza giunture
-  const zc = -1.05 + 0.55 * smoothstep(4.0, 7.2, y) + 0.12 * smoothstep(3.6, 2.4, y);
-  const chioma = cono(x, y, (z - zc) * 2.3, 0, 7.3, 0, 0, 2.5, 0, 0.82, 0.82) / 1.7; // punte che si assottigliano
-  d = smin(d, chioma, 0.7);
-  d = smin(d, ellissoide(Math.abs(x) - 0.68, y - 6.0, z + 0.04, 0.24, 1.3, 0.36), 0.28); // ciocche ai lati del viso
+  const zc = -1.02 + 0.52 * smoothstep(4.0, 7.2, y) + 0.1 * smoothstep(3.6, 2.4, y);
+  const xc = 0.06 * Math.sin(y * 1.3); // una leggera S lungo la chioma
+  const largo = 0.8 + 0.12 * smoothstep(6.0, 3.5, y); // si apre appena verso le punte
+  const chioma = (Math.hypot((x - xc) / largo, (z - zc) / 0.26) - 1) * 0.26; // sezione ovale morbida
+  d = smin(d, smax(chioma, Math.max(y - 7.4, 2.3 - y), 0.2), 0.6);
+  // ciocche lunghe che scendono ai lati del viso e ricadono davanti alle spalle, sul petto
+  const ax = Math.abs(x);
+  const ciocca = smin(
+    cono(ax, y, z, 0.64, 6.7, 0.02, 0.9, 4.95, 0.12, 0.27, 0.23),
+    cono(ax, y, z, 0.9, 4.95, 0.12, 0.82, 3.45, 0.6, 0.23, 0.1),
+    0.35,
+  );
+  d = smin(d, ciocca, 0.45);
   d = smax(d, -ellissoide(x, y - 6.8, z - 0.6, 0.55, 0.85, 0.62), 0.08); // viso libero
   d = smax(d, -ellissoide(x, y - 8.12, z - 0.1, 0.03, 0.1, 0.6), 0.03); // riga in mezzo
   if (y < 7.3) d += 0.016 * Math.sin(Math.atan2(x, z + 0.3) * 30 + y * 0.6) * Math.min(1, (7.3 - y) * 1.5); // ciocche lisce
-  d = smax(d, 2.4 + 0.05 * Math.sin(x * 8) + 0.03 * Math.sin(x * 21) - y, 0.08); // punte a metà schiena
+  d = smax(d, 2.25 + 0.55 * x * x + 0.04 * Math.sin(x * 13) - y, 0.12); // punte morbide a V, più lunghe al centro
   d = smax(d, -(tronco(x, y, z) - 0.03), 0.04); // solo fuori dalla pelle
   return d;
 }

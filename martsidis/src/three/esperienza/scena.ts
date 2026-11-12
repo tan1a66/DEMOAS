@@ -338,7 +338,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelle.uOndaAmp.value = onda;
     pelle.uOndaT.value += dt;
     comuni.uCentro.value.copy(CENTRO).add(gruppo.position);
-    comuni.uComparsa.value = lerp(-9.4, 8.3, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
+    comuni.uComparsa.value = lerp(-9.4, 9.0, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
 
     // Zoom: dalla figura intera all'apparato (interpolazione "logaritmica": velocità costante percepita)
     const z = smooth(0, 1, m);
