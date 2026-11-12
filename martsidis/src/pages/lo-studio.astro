@@ -58,9 +58,8 @@ const punti = [
 
   <Section id="ambienti" title="Gli ambienti">
     <div class="galleria">
-      <Foto nome="studio-1" alt="La sala d’attesa dello studio" descrizione="sala d’attesa" ratio="4 / 3" sizes="(min-width: 56rem) 50vw, 100vw" />
-      <Foto nome="studio-2" alt="L’ambulatorio per le visite" descrizione="ambulatorio" ratio="4 / 3" sizes="(min-width: 56rem) 25vw, 100vw" />
-      <Foto nome="ecografo" alt={`L’ecografo ${strumentazione.ecografo}`} descrizione="ecografo Samsung HM70A Plus" ratio="4 / 3" sizes="(min-width: 56rem) 25vw, 100vw" />
+      <Foto nome="studio-1" alt="La sala d’attesa dello studio" descrizione="sala d’attesa" ratio="4 / 5" sizes="(min-width: 56rem) 40vw, 100vw" />
+      <Foto nome="ecografo" alt={`L’ecografo ${strumentazione.ecografo}`} descrizione="ecografo Samsung HM70A Plus" ratio="4 / 5" sizes="(min-width: 56rem) 40vw, 100vw" />
     </div>
   </Section>
 
@@ -96,7 +95,8 @@ const punti = [
   }
   @media (min-width: 56rem) {
     .galleria {
-      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
+      max-width: 52rem;
       align-items: start;
     }
   }
