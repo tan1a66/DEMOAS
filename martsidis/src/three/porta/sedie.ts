@@ -66,10 +66,14 @@ export async function montaSedie(scena: HTMLElement, mondo: HTMLElement, prima: 
   const F = new Matrix4().makeScale(1, -1, 1); // CSS ha la y verso il basso, Three.js verso l'alto
   const T = new Matrix4();
 
+  // 1vh misurato davvero (su iPhone 100vh ≠ innerHeight): le stesse unità usate dalla stanza in CSS
+  const sonda = document.createElement('div');
+  sonda.style.cssText = 'position:absolute;visibility:hidden;height:100vh;width:0';
+  scena.appendChild(sonda);
   const disponi = () => {
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = scena.clientWidth, h = scena.clientHeight;
     renderer.setSize(w, h, false);
-    const vh = h / 100;
+    const vh = sonda.getBoundingClientRect().height / 100;
     const scala = (35 * vh) / ALTEZZA_MODELLO;
     // appoggiate alla parete di destra (x = 17,4vh), girate verso la sala, sotto il quadro
     const x = 17.4 * vh - (PROFONDITA / 2) * scala + 0.4 * vh; // lo schienale tocca il muro
@@ -94,8 +98,16 @@ export async function montaSedie(scena: HTMLElement, mondo: HTMLElement, prima: 
 
   let raf = 0;
   let attivo = false;
+  // la camera CSS e quella WebGL avanzano con lo stesso orologio, nello stesso fotogramma:
+  // le animazioni CSS dei due mondi vengono messe in pausa e portate al tempo giusto da qui
+  let t0 = 0;
+  let animazioni: Animation[] = [];
   const fotogramma = () => {
     if (!attivo) return;
+    if (animazioni.length) {
+      const t = performance.now() - t0;
+      for (const a of animazioni) a.currentTime = t;
+    }
     const css = getComputedStyle(mondo).transform;
     if (css && css !== 'none') {
       M.fromArray(new DOMMatrix(css).toFloat64Array());
@@ -118,10 +130,14 @@ export async function montaSedie(scena: HTMLElement, mondo: HTMLElement, prima: 
     avvia() {
       if (attivo) return;
       attivo = true;
+      t0 = performance.now();
+      animazioni = [mondo, prima].flatMap((el) => el.getAnimations());
+      for (const a of animazioni) a.pause();
       fotogramma();
     },
     dispose() {
       attivo = false;
+      sonda.remove();
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', disponi);
       renderer.dispose();
