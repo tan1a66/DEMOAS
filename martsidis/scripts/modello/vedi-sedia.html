@@ -11,8 +11,8 @@ s.add(new THREE.HemisphereLight(0xffffff, 0x887766, 1.2)); const d = new THREE.D
 const c = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
 const l = new GLTFLoader(); l.setMeshoptDecoder(MeshoptDecoder);
 const g = await l.loadAsync(q.get('f') ?? '/public/models/sedia.glb');
-g.scene.traverse(o => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }); });
+if (!q.has('orig')) g.scene.traverse(o => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6 }); });
 s.add(g.scene); s.add(new THREE.AxesHelper(1));
-c.position.set(5 * Math.sin(az) * Math.cos(el), 5 * Math.sin(el), 5 * Math.cos(az) * Math.cos(el)); c.lookAt(0, 0, 0);
+c.position.set(+(q.get('d') ?? 5) * Math.sin(az) * Math.cos(el), +(q.get('d') ?? 5) * Math.sin(el), +(q.get('d') ?? 5) * Math.cos(az) * Math.cos(el)); c.lookAt(0, 0, 0);
 r.render(s, c); document.title = 'ok';
 </script>

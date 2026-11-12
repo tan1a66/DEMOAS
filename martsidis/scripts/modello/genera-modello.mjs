@@ -10,7 +10,11 @@ import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer
 import { mkdir } from 'node:fs/promises';
 import { surfaceNets } from './mesher.mjs';
 import { PARTI, ANCORE, pavimento, bacino } from './anatomia.mjs';
-import { PARTE_CORPO, PARTE_CAPELLI, corpo } from './corpo.mjs';
+import { PARTE_CORPO, PARTE_CAPELLI } from './corpo.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+// la figura: quella di Meshy preparata con prepara-donna.mjs, se c'è; altrimenti quella disegnata (corpo.mjs)
+const DONNA = 'scripts/modello/donna.json';
+const donna = existsSync(DONNA) ? JSON.parse(readFileSync(DONNA, 'utf8')) : null;
 
 await Promise.all([MeshoptEncoder.ready, MeshoptSimplifier.ready, MeshoptDecoder.ready]);
 const USCITA = 'public/models/pelvi.glb';
@@ -83,7 +87,7 @@ const accessore = (tipo, arr, normalizzato = false) =>
  * Crea nodo parte (trasformabile a runtime) + figlio "<nome>_mesh" con la scala di de-quantizzazione.
  * Le ancore sono figlie del nodo parte, quindi non risentono della scala della mesh.
  */
-function aggiungiParte(nome, { posizioni, normali, indici, uv, targets }, nodoInfo = {}) {
+function aggiungiParte(nome, { posizioni, normali, indici, uv, targets, colori }, nodoInfo = {}) {
   let min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < posizioni.length; i += 3)
     for (let k = 0; k < 3; k++) {
@@ -102,6 +106,7 @@ function aggiungiParte(nome, { posizioni, normali, indici, uv, targets }, nodoIn
     .createPrimitive()
     .setAttribute('POSITION', accessore('VEC3', q3, true))
     .setAttribute('NORMAL', accessore('VEC3', n3, true))
+    .setAttribute('COLOR_0', colori ? accessore('VEC4', colori, true) : null)
     .setIndices(accessore('SCALAR', posizioni.length / 3 < 65536 ? new Uint16Array(indici) : new Uint32Array(indici)));
   if (uv) prim.setAttribute('TEXCOORD_0', accessore('VEC2', Uint16Array.from(uv, (x) => Math.round(Math.min(Math.max(x, 0), 1) * 65535)), true));
   const mesh = doc.createMesh(nome).addPrimitive(prim);
@@ -121,21 +126,13 @@ function aggiungiParte(nome, { posizioni, normali, indici, uv, targets }, nodoIn
     const pLocale = nodoInfo.versoLocale ? nodoInfo.versoLocale(p) : p;
     nodo.addChild(doc.createNode(nomeAncora).setTranslation(pLocale));
   }
+  if (nodoInfo.extras) nodo.setExtras(nodoInfo.extras);
   radice.addChild(nodo);
   return { vertici: posizioni.length / 3, triangoli: indici.length / 3 };
 }
 
 const t0 = Date.now();
-// controllo: il bacino deve stare tutto dentro la figura
-{
-  let fuori = 0, tot = 0;
-  for (let x = -1.42; x <= 1.42; x += 0.04) for (let y = -0.2; y <= 1.62; y += 0.04) for (let z = -1; z <= 0.72; z += 0.04) {
-    if (bacino(x, y, z) < 0) { tot++; if (corpo(x, y, z) > -0.05) fuori++; }
-  }
-  console.log(`bacino fuori dalla figura: ${((fuori / tot) * 100).toFixed(2)}%`);
-}
-
-for (const parte of [...PARTI, PARTE_CORPO, PARTE_CAPELLI]) {
+for (const parte of donna ? PARTI : [...PARTI, PARTE_CORPO, PARTE_CAPELLI]) {
   const t = Date.now();
   const grezza = surfaceNets(parte.sdf, parte.min, parte.max, parte.passo);
   correggiAvvolgimento(grezza.posizioni, grezza.normali, grezza.indici);
@@ -149,6 +146,16 @@ for (const parte of [...PARTI, PARTE_CORPO, PARTE_CAPELLI]) {
   }
   const r = aggiungiParte(parte.nome, { posizioni: o.posizioni, normali: o.attributi.normali, indici: o.indici }, info);
   console.log(`${parte.nome.padEnd(9)} ${String(grezza.indici.length / 3).padStart(7)} → ${String(r.triangoli).padStart(6)} triangoli, ${r.vertici} vertici (${Date.now() - t} ms)`);
+}
+
+// La figura di Meshy: COLOR_0.r = 1 sui capelli; le articolazioni per la camminata negli extras del nodo
+if (donna) {
+  const posizioni = new Float32Array(donna.pos);
+  const indici = new Uint32Array(donna.ind);
+  const colori = new Uint8Array((posizioni.length / 3) * 4);
+  donna.capelli.forEach((c, i) => colori.set([c ? 255 : 0, 0, 0, 255], i * 4));
+  const r = aggiungiParte('corpo', { posizioni, normali: normaliDaMesh(posizioni, indici), indici, colori }, { extras: { articolazioni: donna.art } });
+  console.log(`corpo (Meshy) ${String(r.triangoli).padStart(6)} triangoli, ${r.vertici} vertici`);
 }
 
 // Pavimento pelvico: già a bassa risoluzione, con morph target

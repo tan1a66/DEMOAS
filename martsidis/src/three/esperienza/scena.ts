@@ -27,7 +27,6 @@ import { creaStage } from '../shared/stage';
 import { paletteBrand } from '../shared/palette';
 import { config } from '@/config';
 import { PARAMETRI, type IdStato, type Organo, type ParametriStato } from '../pelvi/stati';
-import { creaCapelli } from './capelli';
 
 export type Area = { x: number; y: number; w: number; h: number };
 export type Comando = {
@@ -42,8 +41,8 @@ export type Comando = {
 };
 
 const CENTRO = new Vector3(0, 0.62, 0);
-const CENTRO_CORPO = new Vector3(0, -0.55, -0.1);
-const RAGGIO_CORPO = 8.85; // metà altezza della figura
+const CENTRO_CORPO = new Vector3(0, 0, -0.1);
+const RAGGIO_CORPO = 8.7; // metà altezza della figura (alta 16,8)
 const RAGGIO_MODELLO = 1.5; // sfera che contiene tutto il bacino
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
@@ -154,17 +153,33 @@ if (vMondo.y > uComparsa) discard;`);
 
   // La pelle: traslucida (più piena sui bordi, come vetro), si apre dal bacino con un bordo luminoso.
   // Stesso shader per pelle e capelli: cambiano solo i colori e quanto sono "pieni".
+  // articolazioni della figura (dal modello: scripts/modello/prepara-donna.mjs)
+  type Art = { anca: number; ginocchio: number; spalla: number[]; mano: number[]; collo: number; vita: number; piedi: number };
+  const art: Art = (modello.getObjectByName('corpo')?.userData.articolazioni as Art) ?? {
+    anca: 0.3, ginocchio: -4.6, spalla: [1.62, 4.95, -0.2], mano: [2.28, -0.35, 0.02], collo: 5.9, vita: 2.2, piedi: -9.3,
+  };
+  const uArt = {
+    uAnca: { value: art.anca },
+    uGin: { value: art.ginocchio },
+    uSpalla: { value: new Vector3(...(art.spalla as [number, number, number])) },
+    uMano: { value: new Vector3(...(art.mano as [number, number, number])) },
+    uCollo: { value: art.collo },
+    uVita: { value: art.vita },
+    uPiedi: { value: art.piedi },
+    uCapelli: { value: tinta(c.plum500, 0.12).lerp(c.plum700, 0.25) },
+  };
   const materialePelle = (colA: Color, colB: Color, pieno: number, testa: number, scrive = false, onda = 0) => {
-    const mat = new MeshStandardMaterial({ roughness: 0.35, metalness: 0, transparent: true, depthWrite: scrive });
+    const mat = new MeshStandardMaterial({ roughness: 0.35, metalness: 0, transparent: true, depthWrite: scrive, vertexColors: true });
     mat.customProgramCacheKey = () => 'pelle'; // shader diverso da quello degli organi
     const propri = { uPelleA: { value: colA }, uPelleB: { value: colB }, uPieno: { value: pieno }, uTesta: { value: testa }, uOnda: { value: onda }, uDaY: { value: -100 }, uViso: { value: c.plum300.clone().lerp(c.ivory, 0.82) } };
     comparsa(mat, (shader) => {
-      Object.assign(shader.uniforms, pelle, propri);
+      Object.assign(shader.uniforms, pelle, propri, uArt);
       // Camminata: gambe, ginocchia e braccia ruotano attorno alle articolazioni (nello spazio della figura)
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', `#include <common>
 uniform float uFase; uniform float uPasso; uniform vec3 uGruppoPos; uniform float uGruppoRot;
 uniform float uOnda; uniform float uOndaAmp; uniform float uOndaT;
+uniform float uAnca; uniform float uGin; uniform vec3 uSpalla; uniform vec3 uMano; uniform float uCollo; uniform float uVita; uniform float uPiedi;
 vec3 rotX(vec3 p, vec3 c, float a) {
   vec3 d = p - c; float co = cos(a), si = sin(a);
   return c + vec3(d.x, d.y * co - d.z * si, d.y * si + d.z * co);
@@ -177,25 +192,26 @@ vec3 cammina(vec3 p) {
   float s = p.x >= 0.0 ? 1.0 : -1.0;
   float fi = uFase + (s > 0.0 ? 0.0 : 3.14159);
   // braccia (pesi calcolati prima: le mani, all'altezza delle cosce, non devono seguire le gambe)
-  vec3 sp = vec3(s * 1.62, 4.95, -0.2);
-  vec3 ab = vec3(s * 2.28, -0.35, 0.02) - sp;
+  vec3 sp = vec3(s * uSpalla.x, uSpalla.y, uSpalla.z);
+  vec3 ab = vec3(s * uMano.x, uMano.y, uMano.z) - sp;
   // asse del braccio prolungato oltre il polso, così anche la mano lo segue tutta
-  float h = clamp(dot(p - sp, ab) / dot(ab, ab), 0.0, 1.32);
+  float h = clamp(dot(p - sp, ab) / dot(ab, ab), 0.0, 1.15);
   float da = length(p - sp - ab * h);
   float wa = (1.0 - smoothstep(0.34, 0.5, da)) * smoothstep(0.04, 0.22, h);
   float we = smoothstep(0.34, 0.68, h) * wa; // transizione lunga: il gomito si piega senza spigolo
   // gambe: la piega è distribuita sulla coscia alta, così i fianchi non si deformano
-  float wl = (1.0 - smoothstep(-1.7, -0.25, p.y)) * smoothstep(0.0, 0.05, abs(p.x)) * (1.0 - wa);
-  float wk = 1.0 - smoothstep(-5.1, -4.2, p.y);
-  p = rotX(p, vec3(0.0, -4.6, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
-  p = rotX(p, vec3(0.0, 0.3, -0.06), -uPasso * 0.36 * sin(fi) * wl);
+  float wl = (1.0 - smoothstep(uAnca - 2.0, uAnca - 0.55, p.y)) * smoothstep(0.0, 0.05, abs(p.x)) * (1.0 - wa);
+  float wk = 1.0 - smoothstep(uGin - 0.5, uGin + 0.4, p.y);
+  p = rotX(p, vec3(0.0, uGin, 0.04), uPasso * 0.75 * max(0.0, cos(fi)) * wk * wl);
+  p = rotX(p, vec3(0.0, uAnca, -0.06), -uPasso * 0.36 * sin(fi) * wl);
   // un piede davanti all'altro: la gamba si porta verso il centro, come in passerella
-  p = rotZ(p, vec3(0.0, 0.3, 0.0), -s * uPasso * 0.075 * wl);
+  p = rotZ(p, vec3(0.0, uAnca, 0.0), -s * uPasso * 0.075 * wl);
   // braccia: oscillano avanti e indietro, opposte alla gamba dello stesso lato, gomito appena piegato
-  p = rotX(p, vec3(0.0, 2.15, -0.22), -uPasso * (0.06 + 0.2 * max(0.0, -sin(fi))) * we);
+  vec3 gomito = sp + ab * 0.5;
+  p = rotX(p, vec3(0.0, gomito.y, gomito.z), -uPasso * (0.06 + 0.2 * max(0.0, -sin(fi))) * we);
   p = rotX(p, sp, uPasso * 0.28 * sin(fi) * wa);
   // ondeggiare dei fianchi verso la gamba d'appoggio (svanisce verso i piedi e verso le spalle)
-  float fianchi = smoothstep(-8.5, -0.5, p.y) * (1.0 - smoothstep(2.0, 4.8, p.y));
+  float fianchi = smoothstep(uPiedi, uAnca - 0.8, p.y) * (1.0 - smoothstep(uVita, uVita + 2.8, p.y));
   p.x -= uPasso * 0.13 * sin(uFase) * fianchi;
   return p;
 }`)
@@ -203,11 +219,15 @@ vec3 cammina(vec3 p) {
 float cg = cos(uGruppoRot), sg = sin(uGruppoRot);
 vec3 fC = mondoC.xyz - uGruppoPos;
 fC = vec3(cg * fC.x - sg * fC.z, fC.y, sg * fC.x + cg * fC.z);
+float capello = 0.0;
+#ifdef USE_COLOR
+capello = color.r;
+#endif
 fC = cammina(fC);
 // capelli: ondeggiano come in acqua. Un'onda scende dalla nuca alle punte (sfasata con l'altezza),
 // segue l'ondeggiare dei fianchi e, camminando, la chioma scivola indietro. Le punte si muovono di più.
-float lunghi = uOnda * pow(1.0 - smoothstep(2.4, 7.0, fC.y), 1.4);
-float giu = 7.0 - fC.y;
+float lunghi = uOnda * capello * pow(1.0 - smoothstep(uVita - 0.5, uCollo + 0.8, fC.y), 1.4);
+float giu = uCollo + 1.0 - fC.y;
 fC.x += lunghi * uOndaAmp * 0.38 * sin(uOndaT * 2.1 - giu * 0.85);
 fC.x += lunghi * uPasso * 0.16 * sin(uFase - 0.9 - giu * 0.3);
 fC.z -= lunghi * uOndaAmp * 0.24 * (0.55 + 0.45 * sin(uOndaT * 1.6 - giu * 0.7 + 1.0));
@@ -220,7 +240,7 @@ gl_Position = projectionMatrix * mvPosition;`)
 vMondo = wC;`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
-uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo; uniform float uPieno; uniform float uTesta; uniform float uDaY; uniform vec3 uViso;`)
+uniform vec3 uPelleA; uniform vec3 uPelleB; uniform vec3 uBordo; uniform float uPieno; uniform float uTesta; uniform float uDaY; uniform vec3 uViso; uniform vec3 uCapelli; uniform float uCollo;`)
         .replace('#include <color_fragment>', `#include <color_fragment>
 float dTaglio = distance(vMondo, uCentro) - uTaglio;
 if (dTaglio < 0.0 || vMondo.y < uDaY) discard;
@@ -228,10 +248,17 @@ float fres = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2
 diffuseColor.rgb = mix(uPelleA, uPelleB, fres * 0.6);
 diffuseColor.a = mix(uPieno, max(0.62, uPieno), fres);
 // la testa è più piena: davanti ai capelli raccolti si vede il viso, non l'interno della capigliatura
-float testaW = uTesta * smoothstep(6.15, 6.5, vMondo.y);
+float capelloF = 0.0;
+#ifdef USE_COLOR
+capelloF = smoothstep(0.3, 0.7, vColor.r);
+#endif
+float testaW = uTesta * smoothstep(uCollo + 0.25, uCollo + 0.6, vMondo.y) * (1.0 - capelloF);
 diffuseColor.a = max(diffuseColor.a, testaW);
 // il viso pieno prende il tono con cui la pelle traslucida appare sul fondo: chiaro, distinto dai capelli
 diffuseColor.rgb = mix(diffuseColor.rgb, uViso, testaW);
+// i capelli: un viola profondo, quasi pieni, con un riflesso sui bordi
+diffuseColor.rgb = mix(diffuseColor.rgb, mix(uCapelli, uPelleB, fres * 0.35), capelloF);
+diffuseColor.a = mix(diffuseColor.a, 0.86, capelloF * uTesta);
 float bordo = (1.0 - smoothstep(0.0, 0.35, dTaglio)) * step(0.001, uTaglio);
 diffuseColor.rgb = mix(diffuseColor.rgb, uBordo, bordo);
 diffuseColor.a = max(diffuseColor.a, bordo * 0.9);`)
@@ -250,30 +277,19 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
         o.renderOrder = ordine;
       }
     });
-  vesti('corpo', materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 1), 5);
+  vesti('corpo', materialePelle(pelle.uPelleA.value, c.plum500.clone(), 0.07, 1, false, 1), 5);
   // Solo profondità della parte alta del corpo, disegnata prima dei capelli: la chioma dietro la schiena
   // resta nascosta dal corpo (la pelle è traslucida e da sola non la coprirebbe). Gli organi sono più in basso.
   const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;
   if (pelleCorpo) {
     const pre = materialePelle(pelle.uPelleA.value, c.plum500.clone(), 1, 0, true);
     pre.colorWrite = false;
-    (pre.userData.propri as { uDaY: { value: number } }).uDaY.value = 2.2;
+    (pre.userData.propri as { uDaY: { value: number } }).uDaY.value = art.piedi - 1; // tutta la figura: si vede solo la superficie davanti, niente doppi strati
     const sagoma = new Mesh(pelleCorpo.geometry, pre);
-    sagoma.renderOrder = 2;
+    sagoma.renderOrder = 4; // dopo le ossa del bacino (3), prima della pelle (5): l'apparato resta visibile
     pelleCorpo.add(sagoma);
   }
-  // capelli: stessa palette, un viola più profondo e pieno; scrivono la profondità e si disegnano prima della pelle
-  // i capelli sono solo fili: il volume solido del modello non si disegna (lasciava un velo chiaro ai lati)
-  const volumeCapelli = modello.getObjectByName('capelli');
-  if (volumeCapelli) volumeCapelli.visible = false;
-  // i fili: lisci, luminosi, leggeri
-  const capelli = creaCapelli(
-    { ...pelle, ...comuni },
-    tinta(c.plum300, 0.15),
-    c.plum500.clone().lerp(c.plum700, 0.35),
-    c.ivory.clone(),
-  );
-  modello.add(capelli);
+  // i capelli fanno parte della figura (maschera nel colore dei vertici): colore e ondeggiare nello shader della pelle
 
   const pavimento = parti.pavimento?.getObjectByName('pavimento_mesh') as Mesh | undefined;
   const morph = (nome: string, v: number) => {
@@ -353,7 +369,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     pelle.uOndaAmp.value = onda;
     pelle.uOndaT.value += dt;
     comuni.uCentro.value.copy(CENTRO).add(gruppo.position);
-    comuni.uComparsa.value = lerp(-9.4, 9.0, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
+    comuni.uComparsa.value = lerp(-8.8, 8.9, 1 - Math.pow(1 - nascita, 2)) + (nascita >= 1 ? 100 : 0);
 
     // Zoom: dalla figura intera all'apparato (interpolazione "logaritmica": velocità costante percepita)
     const z = smooth(0, 1, m);
