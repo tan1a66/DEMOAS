@@ -111,7 +111,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
             type="translate"
             from={`${f.x.toFixed(1)} ${f.y.toFixed(1)}`}
             to={`${f.x.toFixed(1)} ${f.yp.toFixed(1)}`}
-            dur="3s"
+            dur="2s"
             begin="indefinite"
             fill="freeze"
             calcMode="spline"
@@ -119,7 +119,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
           />
           <line x1="0" y1="0" x2="1" y2="40" stroke="#8f9480" stroke-width="1.4" class="prato__gambo" />
           <g transform={`rotate(${f.a.toFixed(0)})`}>
-            <animateTransform attributeName="transform" type="scale" additive="sum" from="1" to={f.sp.toFixed(2)} dur="3s" begin="indefinite" fill="freeze" />
+            <animateTransform attributeName="transform" type="scale" additive="sum" from="1" to={f.sp.toFixed(2)} dur="2s" begin="indefinite" fill="freeze" />
             {[0, 72, 144, 216, 288].map((r) => (
               <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
             ))}
@@ -186,10 +186,10 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
           html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 7000);
+        }, 4200);
         // quando si è fermata il prato lascia il posto alla Home
-        setTimeout(() => porta.classList.add('porta--via'), 14500);
-        setTimeout(salta, 16000);
+        setTimeout(() => porta.classList.add('porta--via'), 10500);
+        setTimeout(salta, 12000);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -230,7 +230,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
   .porta--aperta .mondo,
   .porta:has(.porta__ancora:target) .mondo {
-    animation: camera 7s linear forwards;
+    animation: camera 4.2s linear forwards;
   }
   /* rotateY(φ) translate3d(-C): C è il punto inquadrato al centro dello schermo, φ quanto si guarda a destra */
   /* un unico movimento, senza soste. Il primo arrivo è l'inquadratura della foto: la porta si apre verso di noi,
@@ -239,36 +239,37 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   /* camera: occhio E, sguardo φ (0 = dritto nella porta, 90° = verso la parete di destra);
      nel transform: rotateY(φ) translate3d(-C), con C = E + 100vh · direzione dello sguardo */
   /* lo sguardo punta sempre al centro del quadro (sulla parete a ~2,5 m a sinistra della porta) */
+  /* lo sguardo resta sempre sul centro del quadro: nessuna panoramica, si va dritti */
   @keyframes camera {
     0% {
-      /* davanti alla porta chiusa, sulla targa */
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
       animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
     14% {
-      /* la porta si apre: si avanza verso lo spiraglio, lo sguardo già verso il quadro */
       transform: rotateY(-30deg) translate3d(47vh, 51vh, 84.6vh);
     }
-    24% {
-      /* appena oltre la soglia: il quadro quasi di fronte, stipite e muro restano fuori dall'inquadratura */
-      transform: rotateY(-58.5deg) translate3d(80.3vh, 51vh, 58.2vh);
+    30% {
+      transform: rotateY(-58.5deg) translate3d(80.3vh, 51.0vh, 58.2vh);
     }
-    38% {
-      transform: rotateY(-58.8deg) translate3d(82.5vh, 51vh, 59.8vh);
-      animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+    40% {
+      transform: rotateY(-61.3deg) translate3d(100.8vh, 52.0vh, 71.2vh);
+    }
+    50% {
+      transform: rotateY(-65.7deg) translate3d(122.3vh, 53.0vh, 81.5vh);
     }
     60% {
-      transform: rotateY(-58.3deg) translate3d(120.1vh, 53vh, 82.6vh);
+      transform: rotateY(-73.5deg) translate3d(145.2vh, 54.0vh, 86.0vh);
     }
-    82% {
-      transform: rotateY(-68.4deg) translate3d(163vh, 54vh, 96.8vh);
-      animation-timing-function: cubic-bezier(0.3, 0.2, 0.3, 1);
+    70% {
+      transform: rotateY(-90.0deg) translate3d(167.4vh, 55.0vh, 74.8vh);
+      animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
     }
     100% {
       /* dritti davanti al quadro, così vicini che riempie lo schermo: coincide al pixel con il prato */
       transform: rotateY(-90deg) translate3d(191vh, 55vh, 74.8vh);
     }
   }
+
 
 
 
@@ -321,7 +322,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
 
   /* il corridoio sta nella scena davanti: varcata la soglia (dopo ~1,6 s) non serve più e si nasconde */
   .porta--aperta .fuori {
-    animation: fuori-via 0.01s linear 3.8s forwards;
+    animation: fuori-via 0.01s linear 1.5s forwards;
   }
   @keyframes fuori-via {
     to {
@@ -359,7 +360,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   .porta--aperta .luce-corridoio {
     animation:
       luce-entra 1.2s ease 0.3s forwards,
-      fuori-via 0.01s linear 3.8s forwards;
+      fuori-via 0.01s linear 1.5s forwards;
   }
   @keyframes luce-entra {
     to {
@@ -647,7 +648,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
   .porta--aperta .anta,
   .porta:has(.porta__ancora:target) .anta {
-    animation: porta-apre 7s linear forwards;
+    animation: porta-apre 4.2s linear forwards;
   }
   /* la porta: prima lo scatto della serratura, poi si apre verso l'interno con slancio e si ferma piano contro la parete di destra */
   /* la porta (cardine a destra, maniglia a sinistra) si apre verso l'interno: scatto, si socchiude come nella foto,
@@ -820,7 +821,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     transition: opacity 0.5s ease;
   }
   .porta--aperta .porta__prato {
-    transition: opacity 0.01s linear 7s;
+    transition: opacity 0.01s linear 4.2s;
     opacity: 1;
   }
   .porta--dentro {
@@ -854,7 +855,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   /* senza JavaScript: si entra, poi la porta non blocca più nulla */
   .porta:has(.porta__ancora:target) {
     pointer-events: none;
-    animation: studio-via 0.8s ease 7s forwards;
+    animation: studio-via 0.8s ease 4.2s forwards;
   }
 
   /* — ENTRA — */
