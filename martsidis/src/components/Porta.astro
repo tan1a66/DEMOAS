@@ -238,36 +238,38 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
      sedie. Poi si entra e si va nel quadro. */
   /* camera: occhio E, sguardo φ (0 = dritto nella porta, 90° = verso la parete di destra);
      nel transform: rotateY(φ) translate3d(-C), con C = E + 100vh · direzione dello sguardo */
+  /* lo sguardo punta sempre al centro del quadro (sulla parete a ~2,5 m a sinistra della porta) */
   @keyframes camera {
     0% {
       /* davanti alla porta chiusa, sulla targa */
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
       animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
-    22% {
-      /* la porta si socchiude: nello spiraglio si scorge già il quadro */
-      transform: rotateY(-8deg) translate3d(15.9vh, 51vh, 85vh);
+    14% {
+      /* la porta si apre: si avanza verso lo spiraglio, lo sguardo già verso il quadro */
+      transform: rotateY(-30deg) translate3d(47vh, 51vh, 84.6vh);
+    }
+    24% {
+      /* appena oltre la soglia: il quadro quasi di fronte, stipite e muro restano fuori dall'inquadratura */
+      transform: rotateY(-58.5deg) translate3d(80.3vh, 51vh, 58.2vh);
     }
     38% {
-      transform: rotateY(-9deg) translate3d(18.1vh, 51vh, 85.8vh);
+      transform: rotateY(-58.8deg) translate3d(82.5vh, 51vh, 59.8vh);
       animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
     }
-    50% {
-      /* oltre la soglia: lo sguardo resta sempre sul centro del quadro */
-      transform: rotateY(-19.3deg) translate3d(28.1vh, 53vh, 106.4vh);
+    60% {
+      transform: rotateY(-58.3deg) translate3d(120.1vh, 53vh, 82.6vh);
     }
-    68% {
-      transform: rotateY(-42.6deg) translate3d(52.7vh, 54vh, 113.6vh);
-    }
-    84% {
-      transform: rotateY(-59.4deg) translate3d(78.1vh, 55vh, 110.9vh);
+    82% {
+      transform: rotateY(-68.4deg) translate3d(163vh, 54vh, 96.8vh);
       animation-timing-function: cubic-bezier(0.3, 0.2, 0.3, 1);
     }
     100% {
       /* dritti davanti al quadro, così vicini che riempie lo schermo: coincide al pixel con il prato */
-      transform: rotateY(-90deg) translate3d(101vh, 55vh, 74.8vh);
+      transform: rotateY(-90deg) translate3d(191vh, 55vh, 74.8vh);
     }
   }
+
 
 
 

@@ -37,8 +37,8 @@ const SEDIA = '/models/sedia.glb';
 const ALTEZZA_SEDIA = 1.9; // il modello è alto 1,9 unità; la sedia vera ~95 cm = 35vh
 const PROF_SEDIA = 0.96;
 
-// la stanza (vh): parete di destra x = 17,4; sinistra x = -100; fondo z = -160,8; ingresso z = -0,8
-const X_DX = 17.4, X_SX = -100, Z_IN = -0.8, Z_FONDO = -160.8, H = 100;
+// la stanza (vh): la parete del quadro è a x = 107,4 (circa 2,5 m dalla porta, che va da -16,5 a 16,5); sinistra x = -100; fondo z = -160,8; ingresso z = -0,8
+const X_DX = 107.4, X_SX = -100, Z_IN = -0.8, Z_FONDO = -160.8, H = 100;
 // il quadro sulla parete di destra
 const QUADRO = { z0: -36.8, z1: -112.8, y0: -63, y1: -47 };
 
@@ -152,6 +152,7 @@ export async function montaStanza(scena: HTMLElement, mondoStanza: HTMLElement, 
   const tIn = gradiente(['#d9d1c4', '#cfc7ba']);
   mondo.add(piano(-16.5 - X_SX, H, V((X_SX - 16.5) / 2, -H / 2, Z_IN), V(1, 0, 0), V(0, -1, 0), base(tIn)));
   mondo.add(piano(33, H - 78, V(0, -78 - (H - 78) / 2, Z_IN), V(1, 0, 0), V(0, -1, 0), base(tIn)));
+  mondo.add(piano(X_DX - 16.5, H, V((X_DX + 16.5) / 2, -H / 2, Z_IN), V(1, 0, 0), V(0, -1, 0), base(tIn)));
   // ombra sul pavimento lungo le sedie
   const tOmbra = gradiente(['rgba(70,55,40,0)', 'rgba(70,55,40,0.28)'], true);
   mondo.add(piano(14, 72, V(X_DX - 7, -0.05, -76.5), V(1, 0, 0), V(0, 0, -1), new MeshBasicMaterial({ map: tOmbra, transparent: true, depthWrite: false, side: DoubleSide })));
