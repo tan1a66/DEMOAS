@@ -238,15 +238,15 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
     0% {
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
     }
-    30% {
-      /* la porta si socchiude: un passo indietro, uno sguardo appena a destra */
-      transform: rotateY(12deg) translate3d(-24vh, 52vh, 36vh);
+    24% {
+      /* come nella foto: vicini alla porta che si socchiude, la sala si vede già nello spiraglio a sinistra */
+      transform: rotateY(20deg) translate3d(-22vh, 51vh, 64vh);
     }
-    46% {
-      /* nello spiraglio, guardando avanti: la porta resta alle spalle */
-      transform: rotateY(15deg) translate3d(-18vh, 54vh, 141vh);
+    48% {
+      /* si avanza nello spiraglio (la porta continua ad aprirsi, ma ormai è alle spalle) */
+      transform: rotateY(10deg) translate3d(-10vh, 54vh, 141vh);
     }
-    66% {
+    68% {
       /* dentro, lo sguardo va a destra: il quadro e le sedie di scorcio */
       transform: rotateY(55deg) translate3d(-72vh, 55vh, 112vh);
     }
@@ -502,9 +502,12 @@ const steli = Array.from({ length: 60 }, () => ({ x: 10 + caso() * 980, y: 110 +
   }
   .porta--aperta .anta,
   .porta:has(.porta__ancora:target) .anta {
-    animation: porta-apre 1.6s cubic-bezier(0.5, 0, 0.3, 1) 0.15s forwards;
+    animation: porta-apre 2.8s cubic-bezier(0.35, 0, 0.25, 1) 0.1s forwards;
   }
   @keyframes porta-apre {
+    45% {
+      transform: translate3d(-16.5vh, -78vh, 0) rotateY(-55deg);
+    }
     to {
       /* socchiusa: circa 60 cm di passaggio */
       transform: translate3d(-16.5vh, -78vh, 0) rotateY(-72deg);
