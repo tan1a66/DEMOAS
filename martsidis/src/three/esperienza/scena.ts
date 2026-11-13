@@ -18,6 +18,7 @@ import {
   FrontSide,
   DoubleSide,
   Vector3,
+  Quaternion,
   AnimationMixer,
   Matrix4,
   SkinnedMesh,
@@ -305,6 +306,36 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   const corpoStatico = modello.getObjectByName('corpo');
   let mixer: AnimationMixer | null = null;
   let hips: Object3D | null = null;
+  const spalle: { clavicola: Object3D; braccio: Object3D; avambraccio: Object3D | null; base: Vector3; segno: number }[] = [];
+  // spalle più piccole e basse, gomiti appena piegati (braccia più morbide)
+  const SPALLE = { stringi: 0.82, abbassa: 0.2, gomito: 0.32 };
+  const qAsse = new Quaternion();
+  const qGen = new Quaternion();
+  const asseZ = new Vector3(0, 0, 1);
+  const asseX = new Vector3(1, 0, 0);
+  // ruota un osso attorno a un asse del corpo (non del suo sistema locale)
+  const ruotaNelCorpo = (osso: Object3D, asse: Vector3, angolo: number) => {
+    if (!osso.parent) return;
+    osso.parent.getWorldQuaternion(qGen);
+    const corpo = figuraRadice?.getWorldQuaternion(new Quaternion()) ?? new Quaternion();
+    const asseMondo = asse.clone().applyQuaternion(corpo);
+    qAsse.setFromAxisAngle(asseMondo, angolo);
+    // delta locale = genitore⁻¹ · rotazione · genitore
+    const delta = qGen.clone().invert().multiply(qAsse).multiply(qGen);
+    osso.quaternion.premultiply(delta);
+  };
+  let figuraRadice: Object3D | null = null;
+  const ritoccaSpalle = () => {
+    if (!spalle.length) return;
+    figuraRadice?.updateMatrixWorld(true);
+    for (const s of spalle) {
+      s.braccio.position.copy(s.base).multiplyScalar(SPALLE.stringi);
+      // la spalla di sinistra (x > 0) scende ruotando in senso orario attorno all'asse avanti-dietro
+      ruotaNelCorpo(s.clavicola, asseZ, -s.segno * SPALLE.abbassa);
+      s.clavicola.updateMatrixWorld(true);
+      if (s.avambraccio) ruotaNelCorpo(s.avambraccio, asseX, -SPALLE.gomito);
+    }
+  };
   const apparato = new Group();
   const H0 = new Matrix4();
   const Ht = new Matrix4();
@@ -332,6 +363,14 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       conSagoma(m);
     }
     hips = figura.getObjectByName('mixamorigHips') ?? null;
+    figuraRadice = figura;
+    // spalle più femminili: clavicole un po' più corte (spalle più strette) e inclinate in giù
+    for (const lato of ['Left', 'Right'] as const) {
+      const clavicola = figura.getObjectByName(`mixamorig${lato}Shoulder`);
+      const braccio = figura.getObjectByName(`mixamorig${lato}Arm`);
+      const avambraccio = figura.getObjectByName(`mixamorig${lato}ForeArm`) ?? null;
+      if (clavicola && braccio) spalle.push({ clavicola, braccio, avambraccio, base: braccio.position.clone(), segno: lato === 'Left' ? 1 : -1 });
+    }
     // l'apparato segue il bacino: riferimento = posa di partenza del modello (quella allineata all'apparato),
     // misurata prima che l'animazione muova le ossa
     const genitore = corpoStatico.parent;
@@ -343,7 +382,9 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (animata.animations[0]) {
       mixer = new AnimationMixer(figura);
       mixer.clipAction(animata.animations[0]).play();
+      mixer.update(0);
     }
+    ritoccaSpalle();
   } else {
     vesti('corpo', matPelle, 5);
     const pelleCorpo = modello.getObjectByName('corpo_mesh') as Mesh | undefined;
@@ -413,6 +454,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     const velocita = 1 - smooth(0, 0.25, att.montaggio);
     if (mixer && velocita > 0.001 && !attesa()) {
       mixer.update(dt * velocita);
+      ritoccaSpalle();
       if (hips && apparato.parent) {
         apparato.parent.updateMatrixWorld(true);
         Ht.copy(Pinv.copy(apparato.parent.matrixWorld).invert().multiply(hips.matrixWorld));
