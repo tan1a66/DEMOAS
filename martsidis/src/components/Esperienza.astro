@@ -490,7 +490,7 @@ const legenda = [
         // se c'è l'entrata dalla porta, la donna comincia a camminare quando la porta si è aperta
         const w = window as Window & { __portaChiusa?: boolean };
         scena = await monta(host, comando(leggi()), {
-          cammina: false, // senza scheletro la camminata non è naturale: la figura compare e resta ferma
+          cammina: true, // entra camminando di profilo, si gira verso di noi e si ferma
           ritardo: w.__portaChiusa ? 0.4 : 0,
           attesa: () => !!w.__portaChiusa,
         });

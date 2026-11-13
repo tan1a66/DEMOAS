@@ -19,6 +19,7 @@ import {
   DoubleSide,
   Vector3,
   Quaternion,
+  type AnimationAction,
   AnimationMixer,
   Matrix4,
   SkinnedMesh,
@@ -65,7 +66,7 @@ const PARTI: Record<string, { colore: string }> = {
 
 /** Andatura: dove la figura comincia a camminare, quanto dura la camminata, quante falcate al secondo. */
 // passo lento; il ciclo del passo segue lo spazio percorso (il piede d'appoggio resta fermo a terra)
-const CAMMINO = { partenza: -15, durata: 6.2, ampiezza: 0.27 };
+const CAMMINO = { partenza: -15, durata: 4.5, ampiezza: 0.27 };
 
 export async function monta(
   host: HTMLElement,
@@ -306,6 +307,15 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   const corpoStatico = modello.getObjectByName('corpo');
   let mixer: AnimationMixer | null = null;
   let hips: Object3D | null = null;
+  // camminata vera (Mixamo sul posto): il passo avanza con lo spazio percorso (i piedi non scivolano),
+  // all'arrivo si ferma su un fotogramma a piedi uniti; le braccia oscillano meno
+  let azione: AnimationAction | null = null;
+  let durataClip = 1;
+  let passoCiclo = 1; // spazio percorso in un ciclo (due passi), in unità del sito
+  let tPiediUniti = 0;
+  let mixerFermo = false;
+  const braccia: { osso: Object3D; media: Quaternion }[] = [];
+  const BRACCIA = { calma: 0.55 };
   const spalle: { clavicola: Object3D; braccio: Object3D; avambraccio: Object3D | null; base: Vector3; segno: number }[] = [];
   // spalle più piccole e basse, braccia sottili ed eleganti, gomiti appena morbidi
   const SPALLE = { stringi: 0.84, abbassa: 0.16, gomito: 0.14, sottili: 0.8 };
@@ -404,8 +414,46 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (hips) H0.copy(Pinv.copy(genitore.matrixWorld).invert().multiply(hips.matrixWorld)).invert();
     if (animata.animations[0]) {
       mixer = new AnimationMixer(figura);
-      mixer.clipAction(animata.animations[0]).play();
-      mixer.update(0);
+      const clip = animata.animations[0];
+      azione = mixer.clipAction(clip);
+      azione.play();
+      durataClip = clip.duration || 1;
+      // analisi della camminata: lunghezza del passo, fotogramma a piedi uniti, posa media delle braccia
+      const piedeS = figura.getObjectByName('mixamorigLeftFoot');
+      const piedeD = figura.getObjectByName('mixamorigRightFoot');
+      for (const n of ['LeftArm', 'LeftForeArm', 'LeftHand', 'RightArm', 'RightForeArm', 'RightHand']) {
+        const osso = figura.getObjectByName(`mixamorig${n}`);
+        if (osso) braccia.push({ osso, media: new Quaternion(0, 0, 0, 0) });
+      }
+      const v = new Vector3();
+      let zMin = Infinity, zMax = -Infinity, migliore = Infinity;
+      const N = 48;
+      for (let i = 0; i < N; i++) {
+        const t = (i / N) * durataClip;
+        mixer.setTime(t);
+        figura.updateMatrixWorld(true);
+        Pinv.copy(corpoStatico.parent.matrixWorld).invert();
+        if (piedeS && piedeD) {
+          const zs = v.setFromMatrixPosition(piedeS.matrixWorld).applyMatrix4(Pinv).z;
+          const zd = v.setFromMatrixPosition(piedeD.matrixWorld).applyMatrix4(Pinv).z;
+          zMin = Math.min(zMin, zs);
+          zMax = Math.max(zMax, zs);
+          if (Math.abs(zs - zd) < migliore) {
+            migliore = Math.abs(zs - zd);
+            tPiediUniti = t;
+          }
+        }
+        for (const b of braccia) {
+          const q = b.osso.quaternion;
+          const segno = b.media.dot(q) < 0 ? -1 : 1;
+          b.media.set(b.media.x + q.x * segno, b.media.y + q.y * segno, b.media.z + q.z * segno, b.media.w + q.w * segno);
+        }
+      }
+      for (const b of braccia) b.media.normalize();
+      if (Number.isFinite(zMax - zMin) && zMax > zMin) passoCiclo = 2 * (zMax - zMin);
+      // senza camminata d'ingresso (pagine interne) resta ferma a piedi uniti
+      mixer.setTime(cammina ? 0 : tPiediUniti);
+      mixerFermo = !cammina;
     }
     ritoccaSpalle();
   } else {
@@ -449,6 +497,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   window.addEventListener('pointermove', onPointer, { passive: true });
   const centro = new Vector3();
   let xPrima = CAMMINO.partenza;
+  let xPrimaClip = CAMMINO.partenza;
   let tCammino = -ritardo; // con l'entrata dalla porta, la figura compare e cammina quando la porta è aperta
   let onda = cammina ? 1 : 0;
   let fase = 0;
@@ -475,8 +524,29 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (tCammino > -0.4) nascita = Math.min(nascita + dt / 1.6, 1);
     // la figura si muove finché la si guarda intera; con lo zoom rallenta e si ferma
     const velocita = 1 - smooth(0, 0.25, att.montaggio);
-    if (mixer && velocita > 0.001 && !attesa()) {
-      mixer.update(dt * velocita);
+    void velocita;
+    if (mixer && azione && !mixerFermo && !attesa()) {
+      const qa = cammina ? Math.min(Math.max(tCammino, 0) / CAMMINO.durata, 1) : 1;
+      if (qa < 1) {
+        // il passo segue lo spazio percorso
+        const xa = CAMMINO.partenza * (1 - (1 - Math.pow(1 - qa, 2.2)));
+        mixer.update((Math.abs(xa - xPrimaClip) / passoCiclo) * durataClip);
+        xPrimaClip = xa;
+      } else {
+        // arrivata: finisce il passo e si ferma a piedi uniti
+        const prima = azione.time;
+        let dopo = prima + dt;
+        const attraversa = (prima <= tPiediUniti && dopo >= tPiediUniti) || (dopo >= durataClip && dopo - durataClip >= tPiediUniti);
+        if (attraversa) {
+          mixer.setTime(tPiediUniti);
+          mixerFermo = true;
+        } else {
+          if (dopo >= durataClip) dopo -= durataClip;
+          mixer.update(dt);
+        }
+      }
+      // mani più calme: le braccia restano più vicine alla loro posa media
+      for (const b of braccia) b.osso.quaternion.slerp(b.media, BRACCIA.calma);
       ritoccaSpalle();
       if (hips && apparato.parent) {
         apparato.parent.updateMatrixWorld(true);
@@ -498,10 +568,12 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     const ciclo = 4 * (art.anca - art.piedi) * Math.sin(CAMMINO.ampiezza);
     fase += (Math.abs(x - xPrima) / ciclo) * Math.PI * 2;
     xPrima = x;
-    gruppo.position.set(x, -Math.abs(Math.sin(fase)) * 0.05 * passo, 0);
-    gruppo.rotation.y = (Math.PI / 2) * (1 - smooth(0.55, 1, q));
+    // con la figura animata il passo lo fa lo scheletro: niente oscillazione disegnata
+    gruppo.position.set(x, mixer ? 0 : -Math.abs(Math.sin(fase)) * 0.05 * passo, 0);
+    // cammina di profilo; solo all'arrivo si gira verso di noi
+    gruppo.rotation.y = (Math.PI / 2) * (1 - smooth(mixer ? 0.8 : 0.55, 1, q));
     pelle.uFase.value = fase;
-    pelle.uPasso.value = passo;
+    pelle.uPasso.value = mixer ? 0 : passo;
     pelle.uGruppoPos.value.copy(gruppo.position);
     pelle.uGruppoRot.value = gruppo.rotation.y;
     // l'ondeggiare dei capelli segue il passo e si spegne piano dopo che la figura si è fermata
@@ -524,7 +596,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     const dist = (raggioMondo * h) / (2 * att.ar * tanMezzo);
     camera.setViewOffset(w, h, w / 2 - att.ax, h / 2 - att.ay, w, h);
     // di fronte da lontano, di tre quarti da vicino (come il modello di sempre)
-    const az = lerp(0.15, 0.8, smooth(0.2, 1, m)) + att.giro + yaw + mouse.x * 0.2;
+    const az = lerp(0.15, 0.8, smooth(0.2, 1, m)) + att.giro + yaw + mouse.x * 0.2 * smooth(0.6, 1, m);
     const el = lerp(0.05, 0.26, smooth(0.2, 1, m)) + pitch + mouse.y * 0.1;
     camera.position.set(
       centro.x + dist * Math.sin(az) * Math.cos(el),
@@ -570,7 +642,7 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       Math.abs(att.ay - ay) < 0.5 &&
       Math.abs(att.ar - ar) < 0.5 &&
       !evidenza &&
-      !(mixer && velocita > 0.001 && !attesa());
+      !(mixer && !mixerFermo && !attesa());
     if (!fermo) stage.sveglia(250);
   };
   stage.onFrame(fotogramma);
@@ -584,6 +656,8 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       stage.sveglia(800);
     },
     trascina(dx: number, dy: number) {
+      // la figura intera non si gira: si gira solo l'apparato, a zoom fatto
+      if (att.montaggio < 0.8) return;
       yaw -= dx * 0.006;
       pitch = Math.min(Math.max(pitch + dy * 0.003, -0.25), 0.45);
       stage.sveglia(800);
