@@ -31,12 +31,12 @@ const legenda = [
   <div class="esp__sipario" data-esp-sipario aria-hidden="true"></div>
   {/* guida: il modello si gira a 360° trascinandolo; sparisce dopo il primo giro */}
   <p class="esp-giro" data-esp-giro aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-    <span class="esp-solo-desktop">Trascini per girare il modello a 360°</span>
-    <span class="esp-solo-telefono">Giri il modello col dito, a 360°</span>
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    360°
   </p>
 
   <section class="esp-hero" data-esp="hero" aria-labelledby="hero-titolo">
+    <p class="esp-scroll" aria-hidden="true"><span>Scroll</span><i></i></p>
     {/* Telefono: dove sta la massa all'inizio, dietro al titolo */}
     <div class="esp-hero__zona" data-esp-zona aria-hidden="true">
       <div class="esp__statico"><HeroBlob uid="m" /></div>
@@ -93,10 +93,6 @@ const legenda = [
       <div class="esp-orbita__testo">
         <div class="esp-orbita__titolo">
           <h2 id="orbita-titolo">Si riconosce in una di queste situazioni?</h2>
-          <p class="esp-orbita__aiuto">
-            <span class="esp-solo-desktop">Scorra o scelga una voce: il cerchio gira attorno al modello.</span>
-            <span class="esp-solo-telefono">Scorra o faccia girare il cerchio col dito; il modello si gira trascinandolo.</span>
-          </p>
         </div>
         <div class="esp-orbita__pannello" id="esp-pannello" aria-live="polite" data-esp-pannello></div>
       </div>
@@ -383,7 +379,10 @@ const legenda = [
       guidaGiro.classList.toggle('is-visibile', mostraGiro);
       if (mostraGiro) {
         guidaGiro.style.left = `${(ora.area.x + ora.area.w / 2).toFixed(0)}px`;
-        guidaGiro.style.top = `${Math.min(ora.area.y + ora.area.h, window.innerHeight - 70).toFixed(0)}px`;
+        // telefono: in alto sul modello (in basso ci sono le voci del cerchio); computer: sotto il modello
+        guidaGiro.style.top = ora.mobile
+          ? `${(ora.area.y + 2).toFixed(0)}px`
+          : `${Math.min(ora.area.y + ora.area.h, window.innerHeight - 70).toFixed(0)}px`;
       }
       sipario.style.transform = ora.esce ? `translateY(${ora.esce.toFixed(1)}px)` : '';
       // quando l'area è uscita dallo schermo il disegno non serve più (esce scorrendo, senza dissolvenze)
@@ -642,6 +641,7 @@ const legenda = [
 
   /* — Hero — */
   .esp-hero {
+    position: relative;
     display: grid;
     align-items: end;
     min-height: calc(100svh - var(--header-h) - var(--contactbar-h));
@@ -696,17 +696,17 @@ const legenda = [
     z-index: 5;
     display: none;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.3rem;
     margin: 0;
-    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    padding: 0.25rem 0.55rem 0.25rem 0.45rem;
     translate: -50% 0;
     border-radius: 999px;
-    background: rgb(255 255 255 / 0.85);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 6px 18px rgb(45 30 60 / 0.12);
-    color: var(--c-plum-700);
-    font-size: var(--fs-small);
+    background: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(4px);
+    color: var(--c-plum-600);
+    font-size: 0.75rem;
     font-weight: 600;
+    letter-spacing: 0.04em;
     pointer-events: none;
     white-space: nowrap;
   }
@@ -730,6 +730,67 @@ const legenda = [
   }
   @media (prefers-reduced-motion: reduce) {
     .esp-giro svg {
+      animation: none;
+    }
+  }
+
+  /* invito a scorrere, in fondo alla prima schermata */
+  .esp-scroll {
+    position: absolute;
+    left: 50vw;
+    bottom: var(--space-4);
+    translate: -50% 0;
+    z-index: 4;
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--c-plum-600);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .esp-scroll i {
+    display: block;
+    width: 1px;
+    height: 2.4rem;
+    background: linear-gradient(var(--c-plum-500), transparent);
+    transform-origin: top;
+    animation: scroll-linea 1.8s ease-in-out infinite;
+  }
+  @keyframes scroll-linea {
+    0% {
+      transform: scaleY(0);
+    }
+    50% {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+    51% {
+      transform-origin: bottom;
+    }
+    100% {
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+  }
+  @media (max-width: 63.99rem) {
+    /* telefono: più in basso, sotto i testi, con la linea corta */
+    .esp-hero {
+      padding-bottom: calc(var(--space-7) + 2.2rem);
+    }
+    .esp-scroll {
+      bottom: var(--space-3);
+      gap: 0.25rem;
+    }
+    .esp-scroll i {
+      height: 1.3rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .esp-scroll i {
       animation: none;
     }
   }
