@@ -307,8 +307,8 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
   let mixer: AnimationMixer | null = null;
   let hips: Object3D | null = null;
   const spalle: { clavicola: Object3D; braccio: Object3D; avambraccio: Object3D | null; base: Vector3; segno: number }[] = [];
-  // spalle più piccole e basse, gomiti appena piegati (braccia più morbide)
-  const SPALLE = { stringi: 0.82, abbassa: 0.2, gomito: 0.32 };
+  // spalle più piccole e basse, braccia sottili ed eleganti, gomiti appena morbidi
+  const SPALLE = { stringi: 0.84, abbassa: 0.16, gomito: 0.14, sottili: 0.8 };
   const qAsse = new Quaternion();
   const qGen = new Quaternion();
   const asseZ = new Vector3(0, 0, 1);
@@ -330,6 +330,8 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     figuraRadice?.updateMatrixWorld(true);
     for (const s of spalle) {
       s.braccio.position.copy(s.base).multiplyScalar(SPALLE.stringi);
+      // braccia fini: più sottili (non più corte); vale anche per avambraccio e mano
+      s.braccio.scale.set(SPALLE.sottili, 1, SPALLE.sottili);
       // la spalla di sinistra (x > 0) scende ruotando in senso orario attorno all'asse avanti-dietro
       ruotaNelCorpo(s.clavicola, asseZ, -s.segno * SPALLE.abbassa);
       s.clavicola.updateMatrixWorld(true);
