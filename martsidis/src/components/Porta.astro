@@ -1,14 +1,9 @@
 ---
 /**
- * Entrata del sito, come un piccolo film in 3D (CSS 3D: un mondo con pareti, porta, sedie, e una camera che si muove).
- * 1. Primissimo piano della porta dello studio: legno, maniglia a sinistra, targa in ottone (stesse diciture della
- *    targa vera) al centro dello schermo, e il pulsante "ENTRA".
- * 2. La porta (misura normale, ~90 cm) si socchiude di ~60 cm; la camera arretra appena e passa nello spiraglio.
- * 3. Dentro, la camera guarda a destra: sulla parete di destra il quadro dei fiori bianchi e sotto le quattro sedie;
- *    in fondo a sinistra il passaggio verso lo studio del Dottore (scrivania, lettino). Inquadrature di scorcio.
- * 4. La camera entra nel quadro: i fiori diventano lo sfondo dove la ragazza cammina; poi resta la Home.
- * Ogni volta che si apre la Home; mai con "riduci movimento". Senza JavaScript "ENTRA" funziona lo stesso.
- * Unità: 1vh ≈ 2,7 cm (la stanza è alta 100vh). Origine: centro della porta sul pavimento; y verso il basso.
+ * Entrata del sito: primissimo piano della porta dello studio (legno, maniglia a sinistra, targa in ottone con le
+ * stesse diciture della targa vera) e il pulsante "ENTRA". La porta si apre verso l'interno su una luce accecante;
+ * dopo circa un secondo la luce si scioglie e compare la ragazza. Ogni volta che si apre la Home; mai con
+ * "riduci movimento". Senza JavaScript "ENTRA" funziona lo stesso.
  */
 
 // Fiori del quadro (sempre uguali): bianchi con il cuore dorato, su fondo tortora
@@ -31,43 +26,6 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   <div class="porta__scena" aria-hidden="true">
     <!-- due scene con la stessa camera: dietro la stanza, davanti corridoio e porta (così la porta non finisce mai
          dietro la stanza per un errore di ordinamento dei piani 3D) -->
-    <div class="mondo">
-      <!-- la sala d'attesa -->
-      <div class="m pav"><span class="ombre-pav"></span></div>
-      <div class="m soff"><span class="luce"></span></div>
-            <div class="m parete-sx"></div>
-<div class="m parete-dx">
-        <span class="ombre-sedie"></span>
-        <svg class="quadro" viewBox="0 0 1000 210" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="st-quadro" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#d4cbb8" />
-              <stop offset="0.6" stop-color="#bab19d" />
-              <stop offset="1" stop-color="#a8a496" />
-            </linearGradient>
-          </defs>
-          <rect width="1000" height="210" fill="url(#st-quadro)" />
-          {steli.map((s) => <line x1={s.x} y1={s.y} x2={s.x + 3} y2="210" stroke="#97978a" stroke-width="1.6" opacity="0.55" />)}
-          {
-            fiori.map((f) => (
-              <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)}) rotate(${f.a.toFixed(0)})`}>
-                {[0, 72, 144, 216, 288].map((r) => (
-                  <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
-                ))}
-                <circle r={(f.r * 0.22).toFixed(1)} fill="#9a78c2" />
-              </g>
-            ))
-          }
-        </svg>
-      </div>
-      <div class="m fondo fondo--a"></div>
-      <!-- quattro sedie sotto il quadro, contro la parete di destra -->
-      <div class="sedia sedia--1"><span class="sd-ombra"></span><span class="sd-ombra-muro"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span><span class="sd-schienale-retro"></span><span class="sd-ala sd-ala--sx"></span><span class="sd-ala sd-ala--dx"></span><span class="sd-retro"></span></div>
-        <div class="sedia sedia--2"><span class="sd-ombra"></span><span class="sd-ombra-muro"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span><span class="sd-schienale-retro"></span><span class="sd-ala sd-ala--sx"></span><span class="sd-ala sd-ala--dx"></span><span class="sd-retro"></span></div>
-        <div class="sedia sedia--3"><span class="sd-ombra"></span><span class="sd-ombra-muro"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span><span class="sd-schienale-retro"></span><span class="sd-ala sd-ala--sx"></span><span class="sd-ala sd-ala--dx"></span><span class="sd-retro"></span></div>
-        <div class="sedia sedia--4"><span class="sd-ombra"></span><span class="sd-ombra-muro"></span><span class="sd-gamba sd-gamba--1"></span><span class="sd-gamba sd-gamba--2"></span><span class="sd-gamba sd-gamba--3"></span><span class="sd-gamba sd-gamba--4"></span><span class="sd-sopra"></span><span class="sd-fronte"></span><span class="sd-lato sd-lato--sx"></span><span class="sd-lato sd-lato--dx"></span><span class="sd-schienale"></span><span class="sd-schienale-lato sd-schienale-lato--sx"></span><span class="sd-schienale-lato sd-schienale-lato--dx"></span><span class="sd-schienale-cima"></span><span class="sd-schienale-retro"></span><span class="sd-ala sd-ala--sx"></span><span class="sd-ala sd-ala--dx"></span><span class="sd-retro"></span></div>
-        
-    </div>
     <div class="mondo">
       <!-- corridoio: il muro con il vano della porta -->
       <div class="m fuori muro-fuori muro-fuori--sx"></div>
@@ -100,35 +58,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
     </div>
   </div>
   <!-- il quadro a tutto schermo: si entra nei fiori ed è lì che la donna cammina -->
-  <svg class="porta__prato" viewBox="0 0 1000 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <rect class="prato__fondo" width="1000" height="210" fill="url(#st-quadro)" />
-    {steli.map((s) => <line class="prato__stelo" x1={s.x} y1={s.y} x2={s.x + 3} y2="210" stroke="#97978a" stroke-width="1.6" opacity="0.55" />)}
-    {
-      prato.map((f) => (
-        <g transform={`translate(${f.x.toFixed(1)} ${f.y.toFixed(1)})`}>
-          <animateTransform
-            attributeName="transform"
-            type="translate"
-            from={`${f.x.toFixed(1)} ${f.y.toFixed(1)}`}
-            to={`${f.x.toFixed(1)} ${f.yp.toFixed(1)}`}
-            dur="2s"
-            begin="indefinite"
-            fill="freeze"
-            calcMode="spline"
-            keySplines="0.4 0 0.2 1"
-          />
-          <line x1="0" y1="0" x2="1" y2="40" stroke="#8f9480" stroke-width="1.4" class="prato__gambo" />
-          <g transform={`rotate(${f.a.toFixed(0)})`}>
-            <animateTransform attributeName="transform" type="scale" additive="sum" from="1" to={f.sp.toFixed(2)} dur="2s" begin="indefinite" fill="freeze" />
-            {[0, 72, 144, 216, 288].map((r) => (
-              <ellipse cx="0" cy={(-f.r * 0.55).toFixed(1)} rx={(f.r * 0.42).toFixed(1)} ry={(f.r * 0.6).toFixed(1)} fill="#fbfaf6" transform={`rotate(${r})`} />
-            ))}
-            <circle r={(f.r * 0.22).toFixed(1)} fill="#9a78c2" />
-          </g>
-        </g>
-      ))
-    }
-  </svg>
+  <div class="porta__luce" aria-hidden="true"></div>
   <!-- targa a piena risoluzione (nitida) sopra quella 3D, finché la porta è chiusa: stessa posizione e misura -->
   <div class="targa-nitida" aria-hidden="true">
     <span class="vite vite--1"></span><span class="vite vite--2"></span>
@@ -151,23 +81,8 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
       w.__portaChiusa = false;
       html.classList.remove('porta-chiusa');
     };
-    // le sedie vere (WebGL) tra la stanza e la porta: si preparano subito, si animano dopo "ENTRA"
-    let sedie: { avvia: () => void; dispose: () => void } | null = null;
-    const scena = porta.querySelector<HTMLElement>('.porta__scena');
-    const mondi = porta.querySelectorAll<HTMLElement>('.mondo');
-    const preparaSedie = async () => {
-      try {
-        if (!scena || mondi.length < 2 || !('WebGLRenderingContext' in window)) return;
-        const { montaStanza } = await import('@/three/porta/stanza');
-        sedie = await montaStanza(scena, mondi[0]!, mondi[1]!);
-        if (porta.classList.contains('porta--aperta')) sedie.avvia();
-      } catch {
-        /* restano le sedie disegnate in CSS */
-      }
-    };
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) salta();
     else {
-      void preparaSedie();
       w.__portaChiusa = true;
       html.classList.add('porta-chiusa'); // niente scroll finché non si entra
       const entra = porta.querySelector<HTMLAnchorElement>('[data-porta-entra]');
@@ -176,20 +91,14 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
         e?.preventDefault();
         if (porta.classList.contains('porta--aperta')) return;
         porta.classList.add('porta--aperta');
-        sedie?.avvia();
-        // la camera è entrata nel quadro: la donna cammina tra i fiori
+        // la porta si apre su una luce accecante; dopo circa un secondo, dalla luce compare la ragazza
         setTimeout(() => {
-          sedie?.dispose();
           porta.classList.add('porta--dentro');
-          // i fiori diventano grandi e scendono: il prato dove cammina la ragazza
-          porta.querySelectorAll<SVGAnimationElement>('.porta__prato animateTransform').forEach((a) => a.beginElement());
           html.classList.remove('porta-chiusa');
           w.__portaChiusa = false;
           window.dispatchEvent(new Event('porta-aperta'));
-        }, 4200);
-        // quando si è fermata il prato lascia il posto alla Home
-        setTimeout(() => porta.classList.add('porta--via'), 10500);
-        setTimeout(salta, 12000);
+        }, 1300);
+        setTimeout(salta, 2600);
       };
       porta.addEventListener('click', apri);
       document.addEventListener('keydown', (e) => {
@@ -230,7 +139,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
   .porta--aperta .mondo,
   .porta:has(.porta__ancora:target) .mondo {
-    animation: camera 4.2s linear forwards;
+    animation: camera 1.4s cubic-bezier(0.5, 0, 0.7, 1) forwards;
   }
   /* rotateY(φ) translate3d(-C): C è il punto inquadrato al centro dello schermo, φ quanto si guarda a destra */
   /* un unico movimento, senza soste. Il primo arrivo è l'inquadratura della foto: la porta si apre verso di noi,
@@ -240,40 +149,16 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
      nel transform: rotateY(φ) translate3d(-C), con C = E + 100vh · direzione dello sguardo */
   /* lo sguardo punta sempre al centro del quadro (sulla parete a ~2,5 m a sinistra della porta) */
   /* lo sguardo resta sempre sul centro del quadro: nessuna panoramica, si va dritti */
+  /* un passo verso la porta che si apre, dentro la luce */
   @keyframes camera {
-    0% {
+    from {
       transform: rotateY(0deg) translate3d(0vh, 50vh, 80vh);
-      animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
     }
-    14% {
-      transform: rotateY(-30deg) translate3d(47vh, 51vh, 84.6vh);
-      animation-timing-function: linear;
-    }
-    30% {
-      transform: rotateY(-58.5deg) translate3d(80.3vh, 51.0vh, 58.2vh);
-      animation-timing-function: linear;
-    }
-    40% {
-      transform: rotateY(-61.3deg) translate3d(100.8vh, 52.0vh, 71.2vh);
-      animation-timing-function: linear;
-    }
-    50% {
-      transform: rotateY(-65.7deg) translate3d(122.3vh, 53.0vh, 81.5vh);
-      animation-timing-function: linear;
-    }
-    60% {
-      transform: rotateY(-73.5deg) translate3d(145.2vh, 54.0vh, 86.0vh);
-      animation-timing-function: linear;
-    }
-    70% {
-      transform: rotateY(-90.0deg) translate3d(167.4vh, 55.0vh, 74.8vh);
-      animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
-    }
-    100% {
-      /* dritti davanti al quadro, così vicini che riempie lo schermo: coincide al pixel con il prato */
-      transform: rotateY(-90deg) translate3d(191vh, 55vh, 74.8vh);
+    to {
+      transform: rotateY(0deg) translate3d(0vh, 50vh, 96vh);
     }
   }
+
 
 
 
@@ -653,7 +538,7 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
   .porta--aperta .anta,
   .porta:has(.porta__ancora:target) .anta {
-    animation: porta-apre 4.2s linear forwards;
+    animation: porta-apre 1.4s cubic-bezier(0.45, 0, 0.3, 1) forwards;
   }
   /* la porta: prima lo scatto della serratura, poi si apre verso l'interno con slancio e si ferma piano contro la parete di destra */
   /* la porta (cardine a destra, maniglia a sinistra) si apre verso l'interno: scatto, si socchiude come nella foto,
@@ -661,27 +546,15 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   @keyframes porta-apre {
     0% {
       transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(0deg);
-      animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1);
     }
-    3% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-3.5deg);
-    }
-    5% {
+    12% {
       transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-4deg);
-      animation-timing-function: cubic-bezier(0.35, 0, 0.25, 1);
     }
-    24% {
+    100% {
       transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-75deg);
     }
-    40% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-76deg);
-      animation-timing-function: ease-in-out;
-    }
-    60%,
-    100% {
-      transform: translate3d(-16.1vh, -77.7vh, 0) rotateY(-87deg);
-    }
   }
+
 
 
   .anta__spessore {
@@ -816,51 +689,43 @@ const steli = Array.from({ length: 110 }, () => ({ x: 10 + caso() * 980, y: 110 
   }
 
   /* — dentro il quadro — */
-  .porta__prato {
+  /* la luce: entra dallo spiraglio, in un attimo è accecante, poi si scioglie sulla ragazza */
+  .porta__luce {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease;
+    opacity: 0;
+    background: radial-gradient(60% 75% at 50% 45%, #ffffff 0%, #fffdf8 45%, #fbf5ea 100%);
   }
-  .porta--aperta .porta__prato {
-    transition: opacity 0.01s linear 4.2s;
-    opacity: 1;
+  .porta--aperta .porta__luce {
+    animation: luce-accecante 1.1s cubic-bezier(0.6, 0, 0.9, 0.6) 0.15s forwards;
+  }
+  @keyframes luce-accecante {
+    to {
+      opacity: 1;
+    }
   }
   .porta--dentro {
-    z-index: -1;
     background: transparent;
     pointer-events: none;
   }
-  .porta--dentro .porta__scena {
+  .porta--dentro .porta__scena,
+  .porta--dentro .targa-nitida {
     visibility: hidden;
   }
-  .porta--dentro .porta__prato {
-    transition: none;
+  .porta--dentro .porta__luce {
     opacity: 1;
+    animation: luce-via 1.3s ease-out forwards;
   }
-  .porta--dentro .prato__fondo,
-  .porta--dentro .prato__stelo {
-    transition: opacity 1.2s ease;
-    opacity: 0;
-  }
-  .prato__gambo {
-    opacity: 0;
-    transition: opacity 1.2s ease 0.4s;
-  }
-  .porta--dentro .prato__gambo {
-    opacity: 0.8;
-  }
-  .porta--via .porta__prato {
-    opacity: 0;
-    transition: opacity 1.5s ease;
+  @keyframes luce-via {
+    to {
+      opacity: 0;
+    }
   }
   /* senza JavaScript: si entra, poi la porta non blocca più nulla */
   .porta:has(.porta__ancora:target) {
     pointer-events: none;
-    animation: studio-via 0.8s ease 4.2s forwards;
+    animation: studio-via 0.8s ease 1.4s forwards;
   }
 
   /* — ENTRA — */

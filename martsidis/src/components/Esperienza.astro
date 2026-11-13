@@ -29,6 +29,12 @@ const legenda = [
   <div class="esp__canvas" data-esp-canvas aria-hidden="true"></div>
   {/* Telefono: spazio del modello completo. Compare (senza occupare posto nella pagina) solo quando serve. */}
   <div class="esp__sipario" data-esp-sipario aria-hidden="true"></div>
+  {/* guida: il modello si gira a 360° trascinandolo; sparisce dopo il primo giro */}
+  <p class="esp-giro" data-esp-giro aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    <span class="esp-solo-desktop">Trascini per girare il modello a 360°</span>
+    <span class="esp-solo-telefono">Giri il modello col dito, a 360°</span>
+  </p>
 
   <section class="esp-hero" data-esp="hero" aria-labelledby="hero-titolo">
     {/* Telefono: dove sta la massa all'inizio, dietro al titolo */}
@@ -89,7 +95,7 @@ const legenda = [
           <h2 id="orbita-titolo">Si riconosce in una di queste situazioni?</h2>
           <p class="esp-orbita__aiuto">
             <span class="esp-solo-desktop">Scorra o scelga una voce: il cerchio gira attorno al modello.</span>
-            <span class="esp-solo-telefono">Scorra, oppure faccia girare il cerchio col dito.</span>
+            <span class="esp-solo-telefono">Scorra o faccia girare il cerchio col dito; il modello si gira trascinandolo.</span>
           </p>
         </div>
         <div class="esp-orbita__pannello" id="esp-pannello" aria-live="polite" data-esp-pannello></div>
@@ -156,6 +162,8 @@ const legenda = [
     const orbita = q('[data-esp="orbita"]');
     const percorso = q('[data-esp="percorso"]');
     const sipario = q('[data-esp-sipario]');
+    const guidaGiro = q('[data-esp-giro]');
+    let giroFatto = false;
     const zona = q('[data-esp-zona]');
     const fineTesto = q('[data-esp-fine-testo]');
     const scenaEl = q('[data-esp-scena]');
@@ -369,6 +377,14 @@ const legenda = [
       // telefono: finché si trasforma il disegno sta dietro ai testi; da completo passa davanti e ha il suo spazio
       radice.classList.toggle('is-dietro', ora.mobile && !ora.palco);
       radice.classList.toggle('is-palco', ora.palco);
+      // guida al giro: a modello completo, finché non lo si è girato (sul telefono non nel cerchio, dove il dito fa girare le voci)
+      const mostraGiro =
+        !giroFatto && (ora.mobile ? ora.palco && ora.montaggio > 0.85 : ora.montaggio > 0.97) && ora.area.y + ora.area.h > 80 && (ora.quale === 'compone' || ora.quale === 'orbita');
+      guidaGiro.classList.toggle('is-visibile', mostraGiro);
+      if (mostraGiro) {
+        guidaGiro.style.left = `${(ora.area.x + ora.area.w / 2).toFixed(0)}px`;
+        guidaGiro.style.top = `${Math.min(ora.area.y + ora.area.h, window.innerHeight - 70).toFixed(0)}px`;
+      }
       sipario.style.transform = ora.esce ? `translateY(${ora.esce.toFixed(1)}px)` : '';
       // quando l'area è uscita dallo schermo il disegno non serve più (esce scorrendo, senza dissolvenze)
       host.style.visibility = ora.area.y + ora.area.h < 0 ? 'hidden' : '';
@@ -397,13 +413,13 @@ const legenda = [
       });
     });
 
-    // Trascinare sul disegno: su desktop ruota il modello; su telefono, nel cerchio, lo fa girare col dito
+    // Trascinare sul modello lo fa girare a 360°; sul telefono, nel cerchio, trascinare le voci fa girare il cerchio
     // (solo in orizzontale: lo scroll verticale resta libero).
-    let drag: { x: number; y: number; id: number; fatto: number } | null = null;
+    let drag: { x: number; y: number; id: number; fatto: number; voci: boolean } | null = null;
     radice.addEventListener('pointerdown', (e) => {
       const bersaglio = e.target as HTMLElement;
       if (!bersaglio.closest('[data-esp-area], [data-esp-sipario], [data-esp-scena], .esp-voce')) return;
-      drag = { x: e.clientX, y: e.clientY, id: e.pointerId, fatto: 0 };
+      drag = { x: e.clientX, y: e.clientY, id: e.pointerId, fatto: 0, voci: !!bersaglio.closest('.esp-voce') };
     });
     window.addEventListener(
       'pointermove',
@@ -414,7 +430,8 @@ const legenda = [
         drag.x = e.clientX;
         drag.y = e.clientY;
         drag.fatto += Math.abs(dx);
-        if (ora.mobile && ora.quale === 'orbita') {
+        // sul telefono, nel cerchio: trascinando le voci gira il cerchio, trascinando il modello gira il modello
+        if (ora.mobile && ora.quale === 'orbita' && drag.voci) {
           window.scrollBy(0, (-dx * ora.corsa) / (N - 1) / 130); // 130 px di dito = una voce
         } else {
           scena?.trascina(dx, e.pointerType === 'touch' ? 0 : dy);
@@ -424,6 +441,10 @@ const legenda = [
     );
     const fineDrag = () => {
       if (drag && drag.fatto > 8) fineTrascinamento = performance.now();
+      if (drag && drag.fatto > 60 && !drag.voci) {
+        giroFatto = true;
+        guidaGiro.classList.remove('is-visibile');
+      }
       drag = null;
     };
     window.addEventListener('pointerup', fineDrag, { signal });
@@ -666,6 +687,50 @@ const legenda = [
     }
     .esp-hero__zona {
       display: none;
+    }
+  }
+
+  /* — guida al giro del modello — */
+  .esp-giro {
+    position: fixed;
+    z-index: 5;
+    display: none;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    translate: -50% 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgb(45 30 60 / 0.12);
+    color: var(--c-plum-700);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .esp.is-3d .esp-giro.is-visibile {
+    display: inline-flex;
+    animation: giro-entra 0.5s ease both;
+  }
+  .esp-giro svg {
+    animation: giro-gira 2.4s ease-in-out infinite;
+  }
+  @keyframes giro-entra {
+    from {
+      opacity: 0;
+      translate: -50% 0.5rem;
+    }
+  }
+  @keyframes giro-gira {
+    50% {
+      transform: rotate(-200deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .esp-giro svg {
+      animation: none;
     }
   }
 
