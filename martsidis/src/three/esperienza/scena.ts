@@ -325,9 +325,18 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     osso.quaternion.premultiply(delta);
   };
   let figuraRadice: Object3D | null = null;
+  // schiena da ballerina: busto e collo vicini alla posa eretta di partenza, petto appena in alto
+  const schiena: { osso: Object3D; dritto: Quaternion; quanto: number }[] = [];
+  const PORTAMENTO = { petto: 0.07 };
   const ritoccaSpalle = () => {
-    if (!spalle.length) return;
+    if (!spalle.length && !schiena.length) return;
+    for (const v of schiena) v.osso.quaternion.slerp(v.dritto, v.quanto);
     figuraRadice?.updateMatrixWorld(true);
+    const petto = schiena.find((v) => /Spine2$/.test(v.osso.name));
+    if (petto) {
+      ruotaNelCorpo(petto.osso, asseX, -PORTAMENTO.petto);
+      figuraRadice?.updateMatrixWorld(true);
+    }
     for (const s of spalle) {
       s.braccio.position.copy(s.base).multiplyScalar(SPALLE.stringi);
       // braccia fini: più sottili (non più corte); vale anche per avambraccio e mano
@@ -366,6 +375,10 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     }
     hips = figura.getObjectByName('mixamorigHips') ?? null;
     figuraRadice = figura;
+    for (const [nome, quanto] of [['Spine', 0.7], ['Spine1', 0.75], ['Spine2', 0.8], ['Neck', 0.8], ['Head', 0.6]] as const) {
+      const osso = figura.getObjectByName(`mixamorig${nome}`);
+      if (osso) schiena.push({ osso, dritto: osso.quaternion.clone(), quanto });
+    }
     // spalle più femminili: clavicole un po' più corte (spalle più strette) e inclinate in giù
     for (const lato of ['Left', 'Right'] as const) {
       const clavicola = figura.getObjectByName(`mixamorig${lato}Shoulder`);
