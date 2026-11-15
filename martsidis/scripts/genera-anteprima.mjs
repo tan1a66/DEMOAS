@@ -54,11 +54,10 @@ const riscriviImport = (codice) =>
     .replace(/__vite__mapDeps\(\[[\d,]*\]\)/g, '[]')
     .replace(/(["'`])(?:\.\/|\/_astro\/)([\w.\-]+\.js)\1/g, (_m, q, nome) => `${q}astro-chunk/${nome}${q}`);
 const glb = `data:model/gltf-binary;base64,${(await readFile(path.join(DIST, 'models/pelvi.glb'))).toString('base64')}`;
-const glbDonna = `data:model/gltf-binary;base64,${(await readFile(path.join(DIST, 'models/donna.glb'))).toString('base64')}`;
 const importMap = { imports: {} };
 const codiceChunk = {};
 for (const f of chunkFiles) {
-  const codice = riscriviImport(await readFile(path.join(astroDir, f), 'utf8')).replaceAll('/models/pelvi.glb', glb).replaceAll('/models/donna.glb', glbDonna);
+  const codice = riscriviImport(await readFile(path.join(astroDir, f), 'utf8')).replaceAll('/models/pelvi.glb', glb);
   codiceChunk[f] = codice;
   importMap.imports[`astro-chunk/${f}`] = `data:text/javascript;base64,${Buffer.from(codice).toString('base64')}`;
 }

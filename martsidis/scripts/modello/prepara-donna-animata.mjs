@@ -45,9 +45,10 @@ const allineamento = { scala: S, posizione: [0, -0.5 - cav * S, -0.12 - (zs / zn
 const scelta = process.argv[3] ?? 'Red_Carpet_Walk';
 const anims = root.listAnimations();
 const tenuta = anims.find((a) => a.getName() === scelta) ?? anims[0];
-for (const a of anims) if (a !== tenuta) a.dispose();
+// TUTTE=1: tiene tutte le animazioni (per scegliere una posa); altrimenti solo quella scelta
+if (!process.env.TUTTE) for (const a of anims) if (a !== tenuta) a.dispose();
 console.log('animazione:', tenuta.getName(), '(disponibili:', anims.map((a) => a.getName()).join(', ') + ')');
-for (const ch of tenuta.listChannels()) {
+for (const ch of (process.env.TUTTE ? anims : [tenuta]).flatMap((a) => a.listChannels())) {
   const nodo = ch.getTargetNode();
   if (ch.getTargetPath() !== 'translation' || !/Hips/.test(nodo?.getName() ?? '')) continue;
   const [bx, , bz] = nodo.getTranslation();
@@ -59,6 +60,7 @@ for (const ch of tenuta.listChannels()) {
 root.listScenes()[0].listChildren()[0].setExtras({ allineamento });
 doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
 await doc.transform(resample(), dedup(), prune(), quantize());
-await io.write('public/models/donna.glb', doc);
+const USCITA = process.env.USCITA ?? 'public/models/donna.glb';
+await io.write(USCITA, doc);
 const { statSync } = await import('node:fs');
-console.log('public/models/donna.glb', (statSync('public/models/donna.glb').size / 1024).toFixed(0), 'kB', JSON.stringify(allineamento), 'capelli', Array.from({ length: n }, (_, v) => col[v * 4]).filter(Boolean).length, '/', n);
+console.log(USCITA, (statSync(USCITA).size / 1024).toFixed(0), 'kB', JSON.stringify(allineamento), 'capelli', Array.from({ length: n }, (_, v) => col[v * 4]).filter(Boolean).length, '/', n);

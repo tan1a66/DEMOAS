@@ -91,10 +91,13 @@ export async function monta(
 
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  // la figura animata (Meshy + Mixamo, public/models/donna.glb) è facoltativa: senza, resta quella del modello
+  // la figura animata (Meshy + Mixamo) resta disponibile per prove; il sito usa la figura ferma del modello
   const [gltf, animata] = await Promise.all([
     loader.loadAsync(config.modelloPelviGlb ?? '/models/pelvi.glb'),
-    loader.loadAsync('/models/donna.glb').catch(() => null),
+    // figura scelta: quella ferma del modello (Meshy, posa iniziale). L'animata si prova solo con ?posa=…
+    new URLSearchParams(location.search).get('posa')?.includes('|')
+      ? loader.loadAsync('/models/donna.glb').catch(() => null)
+      : Promise.resolve(null),
   ]);
   const modello = gltf.scene;
 
@@ -414,7 +417,26 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
     if (hips) H0.copy(Pinv.copy(genitore.matrixWorld).invert().multiply(hips.matrixWorld)).invert();
     if (animata.animations[0]) {
       mixer = new AnimationMixer(figura);
-      const clip = animata.animations[0];
+      // ?posa=<file.glb>|<animazione>|<secondi>: mostra una posa ferma presa da un altro file (per sceglierla)
+      const posa = new URLSearchParams(location.search).get('posa');
+      let clip = animata.animations[0];
+      let tPosa: number | null = null;
+      if (posa) {
+        const [file, nome, t] = posa.split('|');
+        const altro = file ? await loader.loadAsync(file).catch(() => null) : null;
+        const trovato = altro?.animations.find((a) => a.name === nome);
+        if (trovato) {
+          // i file Mixamo in centimetri: le posizioni si portano in metri come il modello
+          for (const tr of trovato.tracks) {
+            if (!tr.name.endsWith('.position')) continue;
+            let max = 0;
+            for (const v of tr.values) max = Math.max(max, Math.abs(v));
+            if (max > 10) for (let i = 0; i < tr.values.length; i++) tr.values[i]! *= 0.01;
+          }
+          clip = trovato;
+        }
+        tPosa = nome === 'riposo' ? -1 : Number(t ?? 0);
+      }
       azione = mixer.clipAction(clip);
       azione.play();
       durataClip = clip.duration || 1;
@@ -454,6 +476,11 @@ totalEmissiveRadiance += uBordo * lineaComparsa * 0.8;`);
       // senza camminata d'ingresso (pagine interne) resta ferma a piedi uniti
       mixer.setTime(cammina ? 0 : tPiediUniti);
       mixerFermo = !cammina;
+      if (tPosa !== null) {
+        if (tPosa < 0) azione.stop(); // posa di partenza del modello
+        else mixer.setTime(tPosa);
+        mixerFermo = true;
+      }
     }
     ritoccaSpalle();
   } else {
