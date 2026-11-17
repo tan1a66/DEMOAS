@@ -1,10 +1,11 @@
 // Catalogo dei servizi da mandare ai clienti: 4 pagine 1080x1350 (4:5), in spagnolo.
 //   node tools/servicios-pdf.mjs [uscita.pdf]   (predefinito: brand/Alessia-Studio-Servicios.pdf)
-// Sfondo verde neon, titoli e nomi dei servizi in Syne ExtraBold rosa antico, testi in Inter rosa scuro;
-// i prezzi in Inter ExtraBold (in Syne lo zero sembra una "o"). Font da brand/fonts, incorporati nel PDF.
+// Sfondo verde e titoli e nomi dei servizi in Syne ExtraBold rosa, gli stessi colori del marchio
+// (brand/colori.json); testi in Inter rosa scuro; i prezzi in Inter ExtraBold (in Syne lo zero sembra
+// una "o"). Font da brand/fonts, incorporati nel PDF.
 // Prima di stampare controlla nel browser che nessun testo esca dai margini, venga tagliato o si
 // sovrapponga al prezzo; i titoli e i nomi troppo lunghi rimpiccioliscono (tutti insieme, per gruppo).
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
@@ -15,10 +16,11 @@ const tmp = `${root}tools/.cache/servicios`;
 mkdirSync(tmp, { recursive: true });
 const font = (f) => `file://${root}brand/fonts/${f}.ttf`;
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// nei testi in Syne le cifre vanno in Inter: in Syne sono "all'antica" (più basse, lo 0 sembra una o)
-const syne = (s) => esc(s).replace(/\d+/g, '<span class="fig">$&</span>');
+// nei testi in Syne le cifre sono quelle alte come le maiuscole (lnum), non quelle "all'antica"
+const syne = esc;
 
-const C = { verde: '#C5EE5E', rosa: '#CCA59D', scuro: '#7D514B' };
+const brandColor = Object.fromEntries(JSON.parse(readFileSync(`${root}brand/colori.json`, 'utf8')).colori.map((c) => [c.id, c.hex]));
+const C = { verde: brandColor.verde, rosa: brandColor.rosa, scuro: '#7D514B' };
 
 // titoli su due righe (il testo resta quello del catalogo)
 const SERVICES = [
@@ -88,7 +90,7 @@ const STEPS = {
 };
 
 const top = `<header class="top"><span class="logo">ALESSIA STUDIO</span><span class="tag">SERVICIOS 2026</span></header>`;
-const foot = (n) => `<footer class="foot"><span class="url">www.alessia.studio</span><span class="tag">${String(n).padStart(2, '0')}</span></footer>`;
+const foot = (n) => `<footer class="foot"><span class="url">alessia.studio</span><span class="tag">${String(n).padStart(2, '0')}</span></footer>`;
 const title = (rows) => `<h1 class="title fit" data-fit="title">${rows.map(syne).join('<br>')}</h1>`;
 
 const servicePage = (s, n) => `<section class="page">
@@ -138,11 +140,10 @@ body { background: ${C.verde}; color: ${C.scuro}; font: 400 21px/1.42 Inter; }
 .page { width: 1080px; height: 1350px; padding: 80px 88px 64px; background: ${C.verde}; display: flex; flex-direction: column; overflow: hidden; break-after: page; }
 .page:last-child { break-after: auto; }
 /* Syne: maiuscolo, spaziatura -3,5%, rosa antico */
-.logo, .title, .name, .cta { font-family: Syne; font-weight: 800; text-transform: uppercase; letter-spacing: -0.035em; color: ${C.rosa}; }
+.logo, .title, .name, .cta { font-family: Syne; font-weight: 800; text-transform: uppercase; letter-spacing: -0.035em; color: ${C.rosa}; font-variant-numeric: lining-nums; }
 /* etichette piccole in maiuscolo, spaziatura larga */
 .tag, .label, .url { font: 600 15px/1 Inter; letter-spacing: 0.22em; text-transform: uppercase; color: ${C.scuro}; }
 .url { text-transform: none; letter-spacing: 0.08em; }
-.fig { font-family: Inter; font-weight: 800; letter-spacing: -0.02em; }
 .fit { white-space: nowrap; }
 .fit.wrap { white-space: normal; }
 
