@@ -48,7 +48,7 @@ const SERVICES = [
     title: ['SITIOS', 'WEB.'],
     phrase: 'Sitios rápidos, pensados para celular y diseñados para que te recuerden.',
     priceLabel: 'DESDE · PAGO ÚNICO',
-    price: '$20,000',
+    price: '$15,000',
     items: [
       ['SITIO WEB A MEDIDA', 'Diseño y desarrollo de tu sitio, sección por sección.'],
       ['LANDING PAGE', 'Una sola página para una oferta o un lanzamiento.'],
