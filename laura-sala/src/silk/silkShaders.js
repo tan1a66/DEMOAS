@@ -90,6 +90,7 @@ uniform vec2 uClothSize;     // metri
 uniform vec2 uFog;           // inizio, fine
 uniform float uDetail;       // 0..1 quanto mostrare la micro-trama (inquadrature macro)
 uniform float uVeil;         // 0..1 la seta si ritira verso l'avorio (dentro le sezioni)
+uniform float uRound;        // 1 = fazzoletto tondo (disco ritagliato nella griglia)
 
 varying vec3 vWorld;
 varying vec3 vNormal;
@@ -145,6 +146,9 @@ vec3 studio(vec3 R) {
 }
 
 void main() {
+  vec2 cuv = vUv - 0.5;
+  float rr = length(cuv);
+  if (uRound > 0.5 && rr > 0.5) discard;
   bool front = gl_FrontFacing;
   vec3 N = normalize(vNormal) * (front ? 1.0 : -1.0);
   vec3 V = normalize(cameraPosition - vWorld);
@@ -184,6 +188,11 @@ void main() {
   vec3 Eout = dl < dr ? -normalize(vWeft) : normalize(vWeft);
   float dlr = min(dl, dr), dtb = min(dt, db);
   if (dtb < dlr) Eout = dt < db ? -normalize(vWarp) : normalize(vWarp);
+  if (uRound > 0.5) {
+    // orlo lungo il cerchio: distanza dal bordo e direzione verso l'esterno
+    dEdge = (0.5 - rr) * uClothSize.x * 1000.0;
+    Eout = normalize(normalize(vWeft) * cuv.x - normalize(vWarp) * cuv.y);
+  }
   float hemW = 5.0;
   float hemFar = smoothstep(1.2, 3.0, pxmm); // da lontano l'orlo è sotto il pixel: solo un filo più denso
   float roll = (1.0 - smoothstep(0.0, hemW, dEdge)) * (1.0 - hemFar);

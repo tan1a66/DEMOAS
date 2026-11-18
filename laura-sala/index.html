@@ -89,56 +89,95 @@
           </figure>
           <h2 class="chi-name" id="t-chi-sono"><span>Dott.ssa<br />Laura Sala</span></h2>
         </div>
-        <div class="page-inner chi-body">
-          <h3 class="sub">Presentazione</h3>
-          <div class="reveal">
-            <p>
-              Laurea nel 2011 presso la Facoltà di Medicina e Chirurgia dell'Università degli Studi di Milano,
-              Specializzazione in Chirurgia Plastica, Ricostruttiva ed Estetica nel 2017 presso lo stesso ateneo,
-              approfondendo le sue conoscenze in centri di alto livello e partecipando a congressi e corsi
-              nazionali e internazionali.
-            </p>
-            <p>Socio ordinario della società scientifica SICPRE (Società Italiana Chirurgia Plastica Ricostruttiva Estetica).</p>
-            <p>
-              Dal 2017 esercito la professione presso il reparto di Chirurgia Plastica della Fondazione IRCCS
-              Istituto Nazionale dei Tumori di Milano, dove mi occupo di Chirurgia Plastica Ricostruttiva in campo
-              oncologico e post-oncologico.
-            </p>
-            <p>
-              Nello specifico il mio ambito di competenza riguarda la Chirurgia Ricostruttiva della mammella dopo
-              mastectomia e quadrantectomia, Chirurgia Ricostruttiva per patologie oncologiche di cute e tessuti
-              molli come carcinomi cutanei, melanomi, sarcomi e anche di Chirurgia Ricostruttiva del distretto
-              uro-ginecologico.
-            </p>
-            <p>
-              Durante l'attività libero-professionale che svolgo a Milano e a Lecco, mi occupo di Chirurgia
-              Estetica e Medicina Estetica.
-            </p>
-            <p>
-              Grazie ad un approccio personalizzato, il paziente viene portato per mano dal consulto al trattamento
-              o intervento chirurgico, nel rispetto delle proprie esigenze e dell'armonia corporea, non solo con lo
-              scopo di ripristinare, esaltare e perfezionare il proprio profilo, ma anche di influenzarne
-              positivamente equilibrio psicologico e autostima.
-            </p>
-            <p>
-              L'utilizzo di tecniche all'avanguardia e presidi innovativi permettono di garantire prestazioni sicure
-              e in linea con le diverse esigenze dei pazienti.
-            </p>
-          </div>
+        <!-- Chi sono come una storia a capitoli: il testo è quello della dottoressa, tutto uguale
+             per carattere e grandezza; ogni capitolo ha il suo effetto, legato a ciò che racconta -->
+        <div class="chi-body chi-story">
+          <section class="ch ch-years" data-fx="years" style="--len: 2.4" aria-label="Formazione">
+            <div class="ch-stage">
+              <p class="ch-label">Formazione</p>
+              <div class="years" aria-hidden="true"><span class="y y1 num">2011</span><span class="y y2 num">2017</span></div>
+              <p class="ch-text fx-words">
+                Laurea nel 2011 presso la Facoltà di Medicina e Chirurgia dell'Università degli Studi di Milano,
+                Specializzazione in Chirurgia Plastica, Ricostruttiva ed Estetica nel 2017 presso lo stesso ateneo,
+                approfondendo le sue conoscenze in centri di alto livello e partecipando a congressi e corsi
+                nazionali e internazionali.
+              </p>
+            </div>
+          </section>
+
+          <section class="ch ch-sicpre" data-fx="letters" style="--len: 1.8" aria-label="Società scientifica">
+            <div class="ch-stage">
+              <p class="ch-label">Società scientifica</p>
+              <p class="big-word" aria-hidden="true">SICPRE</p>
+              <p class="ch-text fx-fade">Socio ordinario della società scientifica SICPRE (Società Italiana Chirurgia Plastica Ricostruttiva Estetica).</p>
+            </div>
+          </section>
+
+          <section class="ch ch-int" data-fx="lines" style="--len: 1.9" aria-label="Esperienza">
+            <div class="ch-stage">
+              <p class="ch-label">Esperienza</p>
+              <p class="big-lines fx-lines" aria-hidden="true">Istituto Nazionale dei Tumori di Milano</p>
+              <p class="ch-text fx-lines">
+                Dal 2017 esercito la professione presso il reparto di Chirurgia Plastica della Fondazione IRCCS
+                Istituto Nazionale dei Tumori di Milano, dove mi occupo di Chirurgia Plastica Ricostruttiva in campo
+                oncologico e post-oncologico.
+              </p>
+            </div>
+          </section>
+
+          <section class="ch ch-skills" data-fx="marks" style="--len: 2" aria-label="Competenze">
+            <div class="ch-stage">
+              <p class="ch-label">Competenze</p>
+              <p class="ch-text">
+                Nello specifico il mio ambito di competenza riguarda la <mark>Chirurgia Ricostruttiva della mammella
+                dopo mastectomia e quadrantectomia</mark>, <mark>Chirurgia Ricostruttiva per patologie oncologiche di
+                cute e tessuti molli</mark> come <mark>carcinomi cutanei, melanomi, sarcomi</mark> e anche di
+                <mark>Chirurgia Ricostruttiva del distretto uro-ginecologico</mark>.
+              </p>
+            </div>
+          </section>
+
+          <section class="ch ch-cities" data-fx="marquee" style="--len: 1.8" aria-label="Dove ricevo">
+            <div class="ch-stage">
+              <p class="ch-label">Dove ricevo</p>
+              <div class="marquee" aria-hidden="true"><span>Milano · Lecco · Milano · Lecco · Milano · Lecco · Milano · Lecco ·</span></div>
+              <p class="ch-text fx-fade">
+                Durante l'attività libero-professionale che svolgo a Milano e a Lecco, mi occupo di Chirurgia
+                Estetica e Medicina Estetica.
+              </p>
+            </div>
+          </section>
+
+          <section class="ch ch-path" data-fx="path" style="--len: 2.2" aria-label="Approccio">
+            <div class="ch-stage">
+              <p class="ch-label">Approccio</p>
+              <div class="journey" aria-hidden="true">
+                <svg viewBox="0 0 320 120" preserveAspectRatio="none">
+                  <path class="journey-line" d="M8 92 C 80 92, 90 24, 160 24 S 240 92, 312 92" />
+                  <circle class="journey-dot" r="5" cx="8" cy="92" />
+                </svg>
+                <span class="stop stop-a">Consulto</span>
+                <span class="stop stop-b">Trattamento o intervento</span>
+              </div>
+              <p class="ch-text fx-words">
+                Grazie ad un approccio personalizzato, il paziente viene portato per mano dal consulto al trattamento
+                o intervento chirurgico, nel rispetto delle proprie esigenze e dell'armonia corporea, non solo con lo
+                scopo di ripristinare, esaltare e perfezionare il proprio profilo, ma anche di influenzarne
+                positivamente equilibrio psicologico e autostima.
+              </p>
+            </div>
+          </section>
+
+          <section class="ch ch-tech" data-fx="focus" style="--len: 1.6" aria-label="Tecniche">
+            <div class="ch-stage">
+              <p class="ch-label">Tecniche</p>
+              <p class="ch-text fx-focus">
+                L'utilizzo di tecniche all'avanguardia e presidi innovativi permettono di garantire prestazioni sicure
+                e in linea con le diverse esigenze dei pazienti.
+              </p>
+            </div>
+          </section>
         </div>
-        <!-- il percorso: la pagina si ferma e le tappe scorrono di lato con lo scroll -->
-        <section class="track-wrap" aria-labelledby="t-percorso">
-          <div class="track-sticky">
-            <h3 class="sub track-title" id="t-percorso">Percorso</h3>
-            <ol class="track">
-              <li><span class="yr num">2011</span><span class="tx">Laurea in Medicina e Chirurgia, Università degli Studi di Milano</span></li>
-              <li><span class="yr num">2017</span><span class="tx">Specializzazione in Chirurgia Plastica, Ricostruttiva ed Estetica, Università degli Studi di Milano</span></li>
-              <li><span class="yr num"><small>dal</small> 2017</span><span class="tx">Reparto di Chirurgia Plastica, Fondazione IRCCS Istituto Nazionale dei Tumori di Milano</span></li>
-              <li><span class="yr">SICPRE</span><span class="tx">Socio ordinario della Società Italiana Chirurgia Plastica Ricostruttiva Estetica</span></li>
-              <li><span class="yr">Milano · Lecco</span><span class="tx">Attività libero-professionale: Chirurgia Estetica e Medicina Estetica</span></li>
-            </ol>
-          </div>
-        </section>
         <div class="page-inner chi-end">
           <a class="page-cta" href="#sedi" data-section="sedi">Prenota una visita</a>
         </div>

@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:anteprima": "vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/velata-anteprima.html')\""
+    "build:anteprima": "vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/velata-anteprima.html')\" && VITE_FORMA=tonda vite build --config vite.preview.config.js --emptyOutDir false --outDir anteprima-tonda && node -e \"require('fs').renameSync('anteprima-tonda/index.html','anteprima/velata-anteprima-tonda.html'); require('fs').rmSync('anteprima-tonda',{recursive:true})\""
   },
   "dependencies": {
     "gsap": "3.12.5",

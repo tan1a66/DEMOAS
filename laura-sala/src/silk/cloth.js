@@ -84,6 +84,58 @@ export class Cloth {
     this.compliance = [0, 2e-6, 2.5e-4]; // raso pesante: pieghe ampie, mai strette
   }
 
+  /**
+   * Ritaglia il telo (per esempio tondo): le particelle fuori dalla maschera non esistono
+   * per la fisica; per il disegno si prolungano dal bordo (così la B-spline resta liscia).
+   */
+  setMask(isIn) {
+    const { nx, ny, n } = this;
+    this.active = new Uint8Array(n);
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) this.active[j * nx + i] = isIn(i / (nx - 1), j / (ny - 1)) ? 1 : 0;
+    for (let p = 0; p < n; p++) if (!this.active[p]) this.invMass[p] = 0;
+    // vincoli solo tra particelle presenti
+    const keep = [];
+    for (let c = 0; c < this.cA.length; c++) if (this.active[this.cA[c]] && this.active[this.cB[c]]) keep.push(c);
+    const pick = (arr, T) => T.from(keep.map((c) => arr[c]));
+    this.cA = pick(this.cA, Int32Array);
+    this.cB = pick(this.cB, Int32Array);
+    this.cType = pick(this.cType, Uint8Array);
+    this.cRest = new Float32Array(keep.length);
+    // prolungamento: per ogni particella fuori, la più vicina dentro (a) e quella dopo (b)
+    const ci = (nx - 1) / 2, cj = (ny - 1) / 2;
+    this.ghost = [];
+    for (let j = 0; j < ny; j++)
+      for (let i = 0; i < nx; i++) {
+        const p = j * nx + i;
+        if (this.active[p]) continue;
+        let di = ci - i, dj = cj - j;
+        const l = Math.hypot(di, dj) || 1;
+        di /= l; dj /= l;
+        let a = -1, b = -1, steps = 0;
+        for (let t = 1; t < nx * 2; t++) {
+          const q = Math.round(j + dj * t) * nx + Math.round(i + di * t);
+          if (this.active[q]) {
+            a = q;
+            steps = t;
+            b = Math.round(j + dj * (t + 1.5)) * nx + Math.round(i + di * (t + 1.5));
+            break;
+          }
+        }
+        if (a >= 0) this.ghost.push([p, a, this.active[b] ? b : a, Math.min(steps, 3) / 1.5]);
+      }
+  }
+
+  _extendGhosts() {
+    if (!this.ghost) return;
+    const { pos } = this;
+    for (const [p, a, b, d] of this.ghost) {
+      const kp = p * 3, ka = a * 3, kb = b * 3;
+      pos[kp] = pos[ka] + (pos[ka] - pos[kb]) * d;
+      pos[kp + 1] = pos[ka + 1] + (pos[ka + 1] - pos[kb + 1]) * d;
+      pos[kp + 2] = pos[ka + 2] + (pos[ka + 2] - pos[kb + 2]) * d;
+    }
+  }
+
   /** Imposta la forma di riposo e posa il telo con una funzione (i, j, u, v) → [x, y, z]. */
   layout(fn) {
     const { nx, ny, pos, prev, vel } = this;
@@ -307,6 +359,7 @@ export class Cloth {
    * punti fantasma (estrapolazione lineare): così la B-spline arriva esattamente ai bordi.
    */
   writeTexture(out) {
+    this._extendGhosts();
     const { nx, ny, pos } = this;
     const W = nx + 2;
     const P = (i, j, c) => pos[(j * nx + i) * 3 + c];

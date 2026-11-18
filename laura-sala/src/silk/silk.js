@@ -19,7 +19,10 @@ const easeInOut = (t) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, 
  * e un'onda scende lungo il telo. Con il dito la si può afferrare e tirare, o sfiorare.
  */
 export class Silk {
-  constructor({ quality = 'high', width = 1.4, height = 1.4 } = {}) {
+  constructor({ quality = 'high', shape = 'square', width, height } = {}) {
+    this.round = shape === 'round';
+    width = width ?? (this.round ? 1.62 : 1.4);
+    height = height ?? width;
     const mobile = quality !== 'high';
     // un grande fazzoletto quadrato tenuto per i due angoli alti
     this.nx = mobile ? 48 : 60;
@@ -27,6 +30,8 @@ export class Silk {
     this.width = width;
     this.height = height;
     this.cloth = new Cloth({ nx: this.nx, ny: this.ny, width, height, density: 0.085 });
+    // fazzoletto tondo: un disco ritagliato nella griglia
+    if (this.round) this.cloth.setMask((u, v) => (u - 0.5) ** 2 + (v - 0.5) ** 2 <= 0.25 + 1e-6);
     this.cloth.substeps = mobile ? 9 : 11;
     this.cloth.selfThickness = 0; // telo disteso: niente collisione con se stesso (non blocca nodi)
     this.wind = createWind();
@@ -70,6 +75,7 @@ export class Silk {
       uTime: { value: 0 },
       uRipple: { value: 0.006 }, // onde larghe nello shader (metri), appena accennate
       uStudio: { value: new THREE.Matrix3() },
+      uRound: { value: this.round ? 1 : 0 },
     };
     this.material = new THREE.ShaderMaterial({
       vertexShader: silkVertex,
@@ -129,12 +135,24 @@ export class Silk {
     this.rodW = 0.96; // distanza tra le prese (il telo è largo 1,4 m)
     c.layout((i, j, u, v) => [(u - 0.5) * width * 0.7, 1.3 - v * height, 0.05 * Math.sin(u * Math.PI) + 0.03 * Math.sin(u * 9 + v * 3)]);
     for (const side of [-1, 1]) {
-      const i0 = side < 0 ? 0 : nx - 1;
+      let i0 = side < 0 ? 0 : nx - 1, j0 = 0;
       const di = side < 0 ? 1 : -1;
-      for (const [i, j] of [[i0, 0], [i0 + di, 0], [i0, 1]]) {
+      if (this.round) {
+        // il punto del bordo a 45° dall'alto, da quel lato
+        const u = 0.5 + side * 0.5 * Math.SQRT1_2, v = 0.5 - 0.5 * Math.SQRT1_2;
+        let best = 1e9;
+        for (let p = 0; p < c.n; p++) {
+          if (!c.active[p]) continue;
+          const pi = p % nx, pj = (p / nx) | 0;
+          const d = (pi / (nx - 1) - u) ** 2 + (pj / (this.ny - 1) - v) ** 2;
+          if (d < best) { best = d; i0 = pi; j0 = pj; }
+        }
+      }
+      for (const [i, j] of [[i0, j0], [i0 + di, j0], [i0, j0 + 1]]) {
         const p = j * nx + i;
+        if (c.active && !c.active[p]) continue;
         const offX = (i - i0) * c.dx;
-        const offY = -j * c.dy;
+        const offY = -(j - j0) * c.dy;
         c.setPinned(p, true);
         c.pins.set(p, (t) => {
           const a = this._anchor(side, t);

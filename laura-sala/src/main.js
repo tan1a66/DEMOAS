@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Silk, SILK_COLORS } from './silk/silk.js';
+import { createChiStory } from './chi.js';
 import './styles.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -25,7 +26,9 @@ renderer.setClearColor(new THREE.Color(SILK_COLORS.ivory));
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 40);
-const silk = new Silk({ quality });
+// ?forma=tonda: la variante con il fazzoletto tondo
+const tonda = params.get('forma') === 'tonda' || import.meta.env.VITE_FORMA === 'tonda';
+const silk = new Silk({ quality, shape: tonda ? 'round' : 'square' });
 scene.add(silk.mesh);
 
 // ---------- inquadratura ----------
@@ -88,7 +91,7 @@ const screenFrame = (dt) => {
       _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
       if (_v.y > rim) rim = _v.y;
     }
-    const rimT = 1 - 2 * 0.1;
+    const rimT = 1.1; // il bordo alto e le prese appena fuori dallo schermo
     heroVis.h *= Math.exp((rim - rimT) * Math.min(1, dt * 1.4));
     heroVis.h = Math.min(4.2, Math.max(1.6, heroVis.h));
   }
@@ -509,75 +512,13 @@ chi.addEventListener('scroll', () => {
   breath.lastT = now;
 }, { passive: true });
 
-// ---------- Chi sono: lettura guidata e percorso orizzontale ----------
-// Le parole sono tenui e si accendono quando arrivano all'altezza di lettura (stesso
-// carattere e grandezza, cambia solo l'inchiostro). Il percorso: la pagina si ferma e le
-// tappe scorrono di lato con lo scroll verticale.
+// ---------- Chi sono: una storia a capitoli, ognuno con il suo effetto ----------
 const breath = { target: 0, lastTop: 0, lastT: 0 };
-const words = [];
-if (!reduceMotion) {
-  for (const p of chi.querySelectorAll('.reveal p')) {
-    const text = p.textContent.replace(/\s+/g, ' ').trim().split(' ');
-    p.textContent = '';
-    text.forEach((w, i) => {
-      const span = document.createElement('span');
-      span.className = 'w';
-      span.textContent = w;
-      p.appendChild(span);
-      if (i < text.length - 1) p.appendChild(document.createTextNode(' '));
-      words.push({ el: span, y: 0, o: -1 });
-    });
-  }
-}
-const trackWrap = chi.querySelector('.track-wrap');
-const trackSticky = chi.querySelector('.track-sticky');
-const track = chi.querySelector('.track');
-const trackItems = [...track.children];
-const tg = { start: 0, dist: 0, vw: 0, centers: [] };
+const story = createChiStory(chi, chiHead, reduceMotion);
 const measureChiScroll = () => {
-  if (chi.hidden) return;
-  const cr = chi.getBoundingClientRect();
-  const st = chi.scrollTop;
-  for (const w of words) {
-    const r = w.el.getBoundingClientRect();
-    w.y = r.top - cr.top + st + r.height / 2;
-    w.o = -1;
-  }
-  if (!reduceMotion) {
-    const headH = chiHead.offsetHeight;
-    const vh = chi.clientHeight - headH;
-    trackSticky.style.top = `${headH}px`;
-    trackSticky.style.height = `${vh}px`;
-    tg.vw = trackSticky.clientWidth;
-    tg.dist = Math.max(0, track.scrollWidth - tg.vw);
-    trackWrap.style.height = `${vh + tg.dist}px`;
-    tg.start = trackWrap.offsetTop - headH;
-    tg.centers = trackItems.map((li) => li.offsetLeft + li.offsetWidth * 0.32);
-  }
-  updateChiScroll();
+  if (!chi.hidden) story.measure();
 };
-const updateChiScroll = () => {
-  if (chi.hidden || reduceMotion) return;
-  const st = chi.scrollTop, vh = chi.clientHeight;
-  const line = st + vh * 0.74, band = vh * 0.24;
-  for (const w of words) {
-    const k = Math.min(1, Math.max(0, (line - w.y) / band));
-    const o = Math.round((0.16 + 0.84 * k * k * (3 - 2 * k)) * 40) / 40;
-    if (o !== w.o) {
-      w.o = o;
-      w.el.style.opacity = o;
-    }
-  }
-  const p = tg.dist ? Math.min(1, Math.max(0, (st - tg.start) / tg.dist)) : 0;
-  const x = -p * tg.dist;
-  track.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
-  trackItems.forEach((li, i) => {
-    const c = tg.centers[i] + x;
-    const a = 1 - Math.min(1, Math.abs(c - tg.vw * 0.4) / (tg.vw * 0.75));
-    li.style.opacity = (0.28 + 0.72 * a).toFixed(3);
-    li.style.transform = `translate3d(0,${((1 - a) * 18).toFixed(1)}px,0)`;
-  });
-};
+const updateChiScroll = () => story.update();
 addEventListener('resize', () => !chi.hidden && measureChiScroll());
 document.fonts?.ready.then(() => !chi.hidden && measureChiScroll());
 addEventListener('resize', () => !chi.hidden && measureChi());
