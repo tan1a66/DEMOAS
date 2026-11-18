@@ -32,5 +32,11 @@ npm run build:anteprima  # anteprima in UN file: anteprima/velata-anteprima.html
 - Scroll continuo (tutto segue il dito): il nome sale al centro della barra, compare il menu; "Scorri" invita a scorrere.
 - Se per 2 s si sta sotto 45 fps, la mesh passa a metà dei segmenti.
 
+## Anteprima del link
+`public/og.jpg` (1200×630) è l'immagine che compare quando si manda il link (WhatsApp,
+iMessage…); `public/apple-touch-icon.png` e `public/favicon-96.png` il monogramma LS.
+I tag in `index.html` puntano a `https://demo-laurasala-alessiastudio.vercel.app/`: se il
+dominio cambia, aggiornare `og:url` e `og:image`.
+
 ## Da completare con la cliente
 Monogramma ufficiale, ritratto in alta risoluzione, link Instagram e MioDottore, testi tra [parentesi].

@@ -56,6 +56,7 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
     stage: el.querySelector('.ch-stage'),
     fx: el.dataset.fx,
     p: -1,
+    gain: 1,
   }));
   if (reduceMotion) {
     chi.classList.add('story-static');
@@ -101,10 +102,15 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
     for (const ch of chapters) {
       if (ch.fx === 'lines') ch.lines = ch.lineEls.map(({ el, text }) => wrapLines(el, text));
     }
+    // gli ultimi capitoli non salgono abbastanza per finire l'effetto (la pagina finisce prima):
+    // il loro avanzamento si riscala, così alla fine dello scroll sono sempre completi
+    const maxSt = Math.max(0, chi.scrollHeight - vh);
     for (const ch of chapters) {
       ch.top = ch.el.offsetTop;
       ch.h = ch.el.offsetHeight;
       ch.p = -1;
+      const pEnd = (maxSt + vh * 0.95 - ch.top) / (ch.h + vh * 0.45);
+      ch.gain = pEnd > 0.05 && pEnd < 1 ? 1 / pEnd : 1;
     }
     update();
   };
@@ -114,7 +120,7 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
     const st = chi.scrollTop;
     for (const ch of chapters) {
       // 0 quando il capitolo affiora dal basso, 1 quando la sua fine è a metà schermo
-      const p = clamp01((st + vh * 0.95 - ch.top) / (ch.h + vh * 0.45));
+      const p = clamp01(((st + vh * 0.95 - ch.top) / (ch.h + vh * 0.45)) * ch.gain);
       // il capitolo successivo può già entrare: si aggiorna solo se è cambiato
       if (Math.abs(p - ch.p) < 0.002) continue;
       ch.p = p;
@@ -177,10 +183,10 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
       ch.cv[0].style.opacity = ch.cv[1].style.opacity = (0.15 + 0.85 * k).toFixed(3);
       paintWords(ch.words, seg(p, 0.38, 0.95));
     },
-    // dallo sfocato al nitido
+    // dallo sfocato al nitido (presto: il testo si legge nitido già a metà schermo)
     focus(ch, p) {
-      const k = ease(seg(p, 0.05, 0.6));
-      ch.focus.style.filter = k < 1 ? `blur(${((1 - k) * 12).toFixed(1)}px)` : 'none';
+      const k = ease(seg(p, 0.02, 0.42));
+      ch.focus.style.filter = k < 0.995 ? `blur(${((1 - k) * 7).toFixed(1)}px)` : 'none';
       ch.focus.style.opacity = (0.2 + 0.8 * k).toFixed(3);
       ch.focus.style.letterSpacing = `${((1 - k) * 0.12).toFixed(3)}em`;
     },

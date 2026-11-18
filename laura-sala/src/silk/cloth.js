@@ -394,9 +394,11 @@ export class Cloth {
    * Scrive posizioni + cavità in una texture RGBA float (nx+2)×(ny+2) con un bordo di
    * punti fantasma (estrapolazione lineare): così la B-spline arriva esattamente ai bordi.
    */
-  writeTexture(out) {
+  /** `src`: posizioni da scrivere (di norma quelle della simulazione; da calma, quelle filtrate). */
+  writeTexture(out, src = this.pos) {
     this._extendGhosts();
-    const { nx, ny, pos } = this;
+    const { nx, ny } = this;
+    const pos = src;
     const W = nx + 2;
     const P = (i, j, c) => pos[(j * nx + i) * 3 + c];
     // interno

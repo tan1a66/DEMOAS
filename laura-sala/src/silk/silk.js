@@ -52,6 +52,9 @@ export class Silk {
     this.memK = 8; // memoria della forma (pieghe e curve) [1/s²]
     this.memKGlobal = 0.8; // richiamo leggero della posizione d'insieme [1/s²]
     this.memDamp = 0.6; // smorzamento verso la forma [1/s]
+    this.baseDamping = this.cloth.damping;
+    this.baseBend = this.cloth.compliance[2];
+    this.disp = null; // posizioni mostrate quando la seta è calma (filtrate: niente guizzi)
 
     // texture della simulazione (posizioni + cavità), bordo di punti fantasma incluso
     const tw = this.nx + 2, th = this.ny + 2;
@@ -442,10 +445,11 @@ export class Silk {
     }
     // verso la figura la memoria è più decisa (la forma deve leggersi), ma sempre morbida
     const fbk = this.figBlend;
-    const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost + 26 * fbk; // forma [1/s²]
+    // da calma la forma tiene di più: la seta respira, non si agita
+    const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost + 26 * fbk + 10 * this.calm; // forma [1/s²]
     const kg = (busy ? 0 : this.memKGlobal) + 2 * boost + 16 * fbk; // posizione [1/s²]
     const ky = 0.5 + 0.5 * fbk; // in figura la forma regge anche in verticale
-    const damp = (busy ? 0.1 : this.memDamp) + 1.8 * boost; // [1/s]
+    const damp = (busy ? 0.1 : this.memDamp) + 1.8 * boost + 1.2 * this.calm; // [1/s]
     for (let p = 0; p < n; p++) {
       if (c.invMass[p] === 0) continue;
       const k3 = p * 3;
@@ -484,7 +488,11 @@ export class Silk {
   }
 
   _simulate(dtReal) {
-    const dt = Math.min(dtReal, 1 / 30) * this.timeScale;
+    // calma (dentro le sezioni, sotto Chi sono): più lenta, più pesante, pieghe più ampie
+    const calm = this.calm;
+    const dt = Math.min(dtReal, 1 / 30) * this.timeScale * (1 - 0.6 * calm);
+    this.cloth.compliance[2] = this.baseBend * (1 - 0.85 * calm);
+    this.cloth.damping = this.baseDamping + 1.1 * calm;
     if (!(dt > 0)) return;
     const t0 = this.time;
     this.time += dt;
@@ -512,8 +520,22 @@ export class Silk {
     });
   }
 
-  _upload() {
-    this.cloth.writeTexture(this.texData);
+  _upload(dtReal = 0) {
+    // Da calma si mostra la seta filtrata nel tempo (media mobile, ~0,8 s): i movimenti lenti
+    // restano, i piccoli guizzi e le grinze che compaiono e spariscono no.
+    const calm = this.calm;
+    const pos = this.cloth.pos;
+    if (calm > 0.001 && dtReal > 0) {
+      if (!this.disp) this.disp = Float32Array.from(pos);
+      const d = this.disp;
+      // (quando la si tira con il dito il filtro si stringe: la seta risponde subito)
+      const k = 1 - Math.exp(-dtReal / (0.04 + 0.8 * calm * (this.grabbed ? 0.15 : 1)));
+      for (let i = 0; i < d.length; i++) d[i] += (pos[i] - d[i]) * k;
+      this.cloth.writeTexture(this.texData, d);
+    } else {
+      if (calm <= 0.001) this.disp = null;
+      this.cloth.writeTexture(this.texData, this.disp || pos);
+    }
     this.posTex.needsUpdate = true;
   }
 
@@ -521,7 +543,7 @@ export class Silk {
     const t = performance.now();
     this._simulate(dt);
     this.uniforms.uTime.value = this.time;
-    this._upload();
+    this._upload(dt);
     this.simMs = performance.now() - t;
   }
 }

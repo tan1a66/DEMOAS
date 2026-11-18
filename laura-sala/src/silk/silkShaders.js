@@ -168,7 +168,8 @@ void main() {
   slubA *= 1.0 - smoothstep(2.5, 6.0, pxmm);
   // (B) fili più spessi della trama (millimetrici)
   float slubB = vnoise(vec2(mm.x * 0.035, mm.y * 1.6));
-  slubB = smoothstep(0.62, 0.95, slubB) * (1.0 - smoothstep(0.35, 1.1, pxmm));
+  // (periodo ~0,6 mm: si vede solo se il pixel è ben più piccolo, altrimenti diventa graffi)
+  slubB = smoothstep(0.62, 0.95, slubB) * (1.0 - smoothstep(0.1, 0.22, pxmm));
   // (C) micro-trama del raso: fili d'ordito flottanti, punti di legatura sfalsati (raso da 5)
   float pitchW = 0.24, pitchP = 0.2;
   float warpIdx = floor(mm.x / pitchW);

@@ -938,6 +938,11 @@ html.in-section,
 html.in-section body {
   overflow: hidden;
 }
+/* dentro una sezione il nome della prima pagina non c'è mai (anche se si entra senza scorrere) */
+html.in-section .hero,
+html.in-section .scroll-hint {
+  visibility: hidden;
+}
 
 @media (min-aspect-ratio: 1/1) {
   .page {

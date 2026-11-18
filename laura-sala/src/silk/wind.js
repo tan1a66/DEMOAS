@@ -27,12 +27,15 @@ export const createWind = () => {
   wind.sample = (x, y, z, out) => {
     const t = wind.t;
     const quiet = 1 - 0.55 * wind.calm;
-    const s = wind.speed * quiet * (envelope(t) * (1 - 0.4 * wind.calm) + 0.4 * wind.calm * 0.6 + wind.gust * 1.4 + wind.breath * 0.5);
+    // da calma la brezza è quasi costante: niente raffiche che gonfiano e svuotano il telo
+    const env = envelope(t);
+    const e = env + (0.62 - env) * 0.85 * wind.calm;
+    const s = wind.speed * quiet * (e * (1 - 0.4 * wind.calm) + 0.4 * wind.calm * 0.6 + wind.gust * 1.4 + wind.breath * 0.5);
     const [dx, dy, dz] = wind.dir;
     // coordinata lungo il vento: le perturbazioni viaggiano con l'aria
     // onde larghe e lente che attraversano la seta (niente componenti fitte che la fanno tremare)
     const a = x * dx + y * dy + z * dz - t * wind.speed * 0.6;
-    const tb = wind.turbulence * wind.speed * (1 - 0.7 * wind.calm);
+    const tb = wind.turbulence * wind.speed * (1 - 0.9 * wind.calm);
     const ux = Math.sin(a * 1.6 + y * 0.9 + 0.4) * 0.7 + Math.sin(a * 2.7 - y * 1.6 + t * 0.2) * 0.15;
     const uy = Math.sin(a * 1.3 + x * 1.5 + 1.9) * 0.6;
     const uz = Math.sin(a * 1.9 - x * 1.2 + y * 0.5 + 2.6) * 0.65 + Math.sin(a * 3.1 + y * 1.8) * 0.12;

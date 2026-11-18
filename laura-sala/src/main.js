@@ -203,8 +203,10 @@ const gyroStep = (dt) => {
 
 const aimLight = (x, y, type) => {
   if (gyro.on && type !== 'mouse') return; // con il giroscopio attivo la luce la guida l'inclinazione
-  light.tYaw = (x / innerWidth - 0.5) * 2 * MAX;
-  light.tPitch = (y / innerHeight - 0.5) * 2 * MAX;
+  // dentro le sezioni si legge: il mouse sposta la luce la metà (i riflessi non distraggono)
+  const amp = MAX * (1 - 0.5 * silk.calm);
+  light.tYaw = (x / innerWidth - 0.5) * 2 * amp;
+  light.tPitch = (y / innerHeight - 0.5) * 2 * amp;
 };
 addEventListener('pointermove', (e) => aimLight(e.clientX, e.clientY, e.pointerType), { passive: true });
 
@@ -526,7 +528,8 @@ const stationPose = (st, dt, out) => {
   _pt.multiplyScalar(1 / n);
   // la camera segue il punto con calma (la seta si muove, la camera respira con lei)
   if (!st.p) st.p = _pt.clone();
-  else st.p.lerp(_pt, 1 - Math.exp(-dt * 0.6)); // molto calma: la camera non trema con la seta
+  // molto calma: la camera non trema con la seta; da calma (dentro le sezioni) quasi ferma
+  else st.p.lerp(_pt, 1 - Math.exp(-dt * 0.6 * (1 - 0.8 * silk.calm)));
   out.target.copy(st.p);
   out.pos.copy(st.p).addScaledVector(st.d, st.dist);
   out.fov = st.fov;
