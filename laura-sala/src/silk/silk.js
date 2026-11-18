@@ -37,6 +37,7 @@ export class Silk {
     this.grabbed = null;
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
     this.move = null; // una figura delle prese (la capriola)
+    this.untangle = 0; // 0..1: forza che scioglie i nodi (alta subito dopo capriole e tirate)
 
     // texture della simulazione (posizioni + cavità), bordo di punti fantasma incluso
     const tw = this.nx + 2, th = this.ny + 2;
@@ -157,6 +158,7 @@ export class Silk {
       },
     };
     this.nextGesture = this.time + dur + 8;
+    this.untangle = 1; // parte appena finisce la figura
   }
 
   /** Il gesto: un'onda che scende lungo la seta. */
@@ -226,6 +228,38 @@ export class Silk {
     if (!this.grabbed) return;
     for (const { q } of this.grabbed.group) this.cloth.setPinned(q, false);
     this.grabbed = null;
+    this.untangle = Math.max(this.untangle, 0.7);
+  }
+
+  /**
+   * Scioglie i nodi: una molla leggera verso il drappeggio naturale (il telo che scende
+   * dalle due prese), sempre attiva al minimo e forte per un paio di secondi dopo una
+   * capriola, una tirata o un passaggio. Senza collisione del telo con se stesso è questo
+   * che impedisce alla seta di restare attorcigliata.
+   */
+  _applyUntangle(dt) {
+    const c = this.cloth;
+    const { nx, ny } = this;
+    const busy = this.grabbed || (this.move && this.time < this.move.start + this.move.dur + this.move.lag);
+    if (!busy) this.untangle = Math.max(0, this.untangle - dt / 2.4);
+    const boost = busy ? 0 : this.untangle;
+    const k = 0.3 + 7 * boost; // [1/s²]
+    const damp = 2.2 * boost; // [1/s]
+    const halfW = 0.36, top = 1.24, len = this.height * 0.93;
+    for (let j = 0; j < ny; j++) {
+      const v = j / (ny - 1);
+      const ty = top - v * len;
+      for (let i = 0; i < nx; i++) {
+        const p = j * nx + i;
+        if (c.invMass[p] === 0) continue;
+        const u = i / (nx - 1);
+        const tx = this.panX + (u - 0.5) * 2 * halfW;
+        const k3 = p * 3;
+        c.acc[k3] += k * (tx - c.pos[k3]) - damp * c.vel[k3];
+        c.acc[k3 + 1] += k * 0.4 * (ty - c.pos[k3 + 1]) - damp * c.vel[k3 + 1];
+        c.acc[k3 + 2] += k * (0.05 - c.pos[k3 + 2]) - damp * c.vel[k3 + 2];
+      }
+    }
   }
 
   /** Sfiorare: spinta morbida nella direzione `dir` attorno alla particella p. */
@@ -267,6 +301,7 @@ export class Silk {
     this.wind.t = t1;
 
     this.cloth.computeAero(this.wind.sample);
+    this._applyUntangle(dt);
     this.cloth.step(dt, (p, alpha) => {
       this.time = t0 + (t1 - t0) * alpha;
       const r = this.cloth.pins.get(p)(this.time);

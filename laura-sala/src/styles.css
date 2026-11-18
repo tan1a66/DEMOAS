@@ -395,16 +395,89 @@ body {
   color: var(--ink-soft);
 }
 .portrait {
-  width: min(100%, 300px);
-  aspect-ratio: 4 / 5;
+  /* foto rotonda con un filetto oro a distanza */
+  width: min(60vw, 236px);
   max-width: 100%;
-  margin: 0 auto 30px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, #f6dccb, var(--silk) 55%, #e7c2aa);
+  aspect-ratio: 1;
+  margin: 8px auto 34px;
+  border-radius: 50%;
+  outline: 1px solid var(--gold);
+  outline-offset: 7px;
+}
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+/* ---------- Chi sono: foto grande che diventa piccola accanto al nome ---------- */
+.chi-head {
+  --ph: min(60vw, 236px); /* diametro della foto grande */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 132px;
+  max-width: 620px;
+  margin: 0 auto;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+  background: var(--ivory);
+}
+.chi-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 26px;
+  background: linear-gradient(var(--ivory), rgba(247, 242, 236, 0));
+  pointer-events: none;
+  opacity: var(--fade, 0);
+}
+.chi-head .page-kicker {
+  position: static;
+  background: none;
+}
+.chi-head .page-kicker::after {
+  display: none;
+}
+.chi-photo {
+  position: absolute;
+  top: 60px;
+  left: calc(50% - var(--ph) / 2);
+  width: var(--ph);
+  margin: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+.chi-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(60px + var(--ph) + 30px);
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.chi-name span {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+.page .chi-body {
+  padding-top: var(--chi-space, 320px);
+}
+.page .sub {
+  margin: 34px 0 10px;
+  text-align: left;
+  font: 600 0.72rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: var(--ink-soft);
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
 }
 .facts {
   margin: 30px auto 34px;

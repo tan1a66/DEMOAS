@@ -275,6 +275,7 @@ const guide = (toX) => {
   if (reduceMotion) return;
   const dir = Math.sign(toX - silk.panX) || 1;
   guiding = true;
+  gsap.delayedCall(1.2, () => (silk.untangle = Math.max(silk.untangle, 0.8)));
   gsap.to(silk, { panX: toX, duration: 1.7, ease: 'sine.inOut', overwrite: true, onComplete: () => gsap.delayedCall(1.6, () => (guiding = false)) });
   gsap.timeline({ overwrite: true })
     .to(silk.wind.push, { x: 1.9 * dir, z: 0.4, duration: 0.7, ease: 'sine.out' })
@@ -292,6 +293,7 @@ const openSection = (id, { push = true } = {}) => {
   backBtn.hidden = false;
   el.hidden = false;
   el.scrollTop = 0;
+  if (id === 'chi-sono') requestAnimationFrame(() => measureChi());
   // Chi sono: la seta fa una capriola attorno al titolo, poi si ritira.
   // Le altre sezioni: la seta guida verso destra e si ritira.
   const scenic = id === 'chi-sono' && !reduceMotion;
@@ -355,6 +357,47 @@ mono.addEventListener('click', (e) => {
   if (current) history.state?.s ? history.back() : closeSection();
   else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
 });
+
+// ---------- Chi sono: la foto grande si mette piccola accanto al nome, scorrendo ----------
+const chi = pages.get('chi-sono');
+const chiHead = chi.querySelector('.chi-head');
+const chiPhoto = chi.querySelector('.chi-photo');
+const chiName = chi.querySelector('.chi-name span');
+const chiGeo = {};
+const measureChi = () => {
+  gsap.set([chiPhoto, chiName], { clearProps: 'transform' });
+  const h = chiHead.getBoundingClientRect();
+  const ph = chiPhoto.getBoundingClientRect();
+  const nm = chiName.getBoundingClientRect();
+  const padL = parseFloat(getComputedStyle(chiHead).paddingLeft);
+  // stato piccolo: foto da 58 px a sinistra, nome a destra, nella fascia sotto "CHI SONO"
+  const small = 58, rowY = 46 + 43;
+  const sPhoto = small / ph.width;
+  const sName = 23 / parseFloat(getComputedStyle(chiName.parentElement).fontSize);
+  chiGeo.photo = { dx: h.left + padL + small / 2 - (ph.left + ph.width / 2), dy: h.top + rowY - (ph.top + ph.height / 2), s: sPhoto };
+  chiGeo.name = {
+    dx: h.left + padL + small + 14 + (nm.width * sName) / 2 - (nm.left + nm.width / 2),
+    dy: h.top + rowY - (nm.top + nm.height / 2),
+    s: sName,
+  };
+  // spazio sotto l'intestazione: il testo comincia dopo il nome grande
+  const space = nm.bottom - h.top + 34 - h.height;
+  chi.style.setProperty('--chi-space', `${Math.max(0, space)}px`);
+  // il nome sale almeno veloce quanto il testo: niente sovrapposizioni durante il passaggio
+  chiGeo.range = Math.max(120, Math.abs(chiGeo.name.dy) * 0.92);
+  updateChi();
+};
+const updateChi = () => {
+  if (!chiGeo.photo) return;
+  const k = Math.min(1, Math.max(0, chi.scrollTop / chiGeo.range));
+  const e = 1 - (1 - k) * (1 - k); // parte deciso, si posa piano
+  const { photo, name } = chiGeo;
+  gsap.set(chiPhoto, { x: photo.dx * e, y: photo.dy * e, scale: 1 + (photo.s - 1) * e });
+  gsap.set(chiName, { x: name.dx * e, y: name.dy * e, scale: 1 + (name.s - 1) * e });
+  chiHead.style.setProperty('--fade', e.toFixed(3));
+};
+chi.addEventListener('scroll', updateChi, { passive: true });
+addEventListener('resize', () => !chi.hidden && measureChi());
 
 // link diretto a una sezione (#chi-sono…): si parte dal menu e si entra
 const startHash = location.hash.slice(1);
