@@ -42,6 +42,7 @@ export class Silk {
     this.nextGesture = 7;
     this.grabbed = null;
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
+    this.calm = 0; // 0..1: dentro le sezioni la seta si placa (meno vento, niente gesti)
     this.move = null; // una figura delle prese (la capriola)
     this.untangle = 0; // 0..1: forza che scioglie i nodi (alta subito dopo capriole e tirate)
     this.memK = 8; // memoria della forma (pieghe e curve) [1/s²]
@@ -390,7 +391,11 @@ export class Silk {
     this.time += dt;
     const t1 = this.time;
 
-    if (t1 > this.nextGesture && !this.grabbed) this.flick(0.7 + Math.random() * 0.3);
+    if (t1 > this.nextGesture && !this.grabbed) {
+      if (this.calm < 0.5) this.flick(0.7 + Math.random() * 0.3);
+      else this.nextGesture = t1 + 6;
+    }
+    this.wind.calm = this.calm;
     if (this.gesture && t1 - this.gesture.start > this.gesture.dur + 0.5) this.gesture = null;
     this.wind.t = t1;
 

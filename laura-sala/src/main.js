@@ -91,7 +91,7 @@ const screenFrame = (dt) => {
       _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
       if (_v.y > rim) rim = _v.y;
     }
-    const rimT = 1.1; // il bordo alto e le prese appena fuori dallo schermo
+    const rimT = 1.32; // il bordo alto fuori dallo schermo: la seta è grande e riempie la larghezza
     heroVis.h *= Math.exp((rim - rimT) * Math.min(1, dt * 1.4));
     heroVis.h = Math.min(4.2, Math.max(1.6, heroVis.h));
   }
@@ -325,7 +325,7 @@ let current = null;
 
 // luoghi: punto sul fazzoletto (u da sinistra, v dall'alto), direzione e distanza della camera
 const STATIONS = {
-  'chi-sono': { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.0, fov: 30 }, // sotto il drappeggio a cappuccio
+  'chi-sono': { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.4, fov: 30 }, // sotto il drappeggio a cappuccio
   'chirurgia-ricostruttiva': { u: 0.8, v: 0.45, dir: [0.6, 0.05, 1], dist: 1.0, fov: 30 }, // la piega sul lato destro
   'chirurgia-estetica': { u: 0.5, v: 0.55, dir: [0.1, -0.25, 1], dist: 1.1, fov: 30 }, // il centro del telo
   'medicina-estetica': { u: 0.32, v: 0.68, dir: [-0.2, 0.1, 1], dist: 0.3, fov: 30 }, // macro sulla trama
@@ -355,7 +355,7 @@ const stationPose = (st, dt, out) => {
   _pt.multiplyScalar(1 / n);
   // la camera segue il punto con calma (la seta si muove, la camera respira con lei)
   if (!st.p) st.p = _pt.clone();
-  else st.p.lerp(_pt, 1 - Math.exp(-dt * 1.8));
+  else st.p.lerp(_pt, 1 - Math.exp(-dt * 0.6)); // molto calma: la camera non trema con la seta
   out.target.copy(st.p);
   out.pos.copy(st.p).addScaledVector(st.d, st.dist);
   out.fov = st.fov;
@@ -428,6 +428,7 @@ const openSection = (id, { push = true } = {}) => {
       .to(silk.wind.push, { x: 0, z: 0, duration: 1.4, ease: 'sine.inOut' });
   }
   flyTo(id);
+  gsap.to(silk, { calm: 1, duration: 3, delay: 1.2, ease: 'sine.inOut', overwrite: true });
   gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1, overwrite: true });
   gsap.to(menu, { opacity: 0, y: -16, duration: 0.6, ease: 'sine.in', overwrite: true });
   if (prev) gsap.to(prev, { opacity: 0, y: -20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
@@ -443,6 +444,7 @@ const closeSection = () => {
   menu.inert = false;
   backBtn.hidden = true;
   if (!reduceMotion) silk.flick(0.5);
+  gsap.to(silk, { calm: 0, duration: 2.5, ease: 'sine.inOut', overwrite: true });
   flyTo(null);
   gsap.to(el, { opacity: 0, y: 20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (el.hidden = true) });
   gsap.fromTo(menu, { y: 16 }, { y: 0, opacity: 1, duration: 1.0, delay: reduceMotion ? 0 : 1.6, ease: 'power3.out', overwrite: true });
@@ -507,7 +509,7 @@ chi.addEventListener('scroll', () => {
   // la seta respira con lo scroll: la velocità diventa un soffio di vento
   const now = performance.now();
   const v = Math.abs(chi.scrollTop - breath.lastTop) / Math.max(8, now - breath.lastT); // px/ms
-  breath.target = Math.min(0.6, Math.max(breath.target, v * 0.3));
+  // (nessun soffio: dentro Chi sono la seta resta calma)
   breath.lastTop = chi.scrollTop;
   breath.lastT = now;
 }, { passive: true });

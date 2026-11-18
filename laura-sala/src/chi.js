@@ -65,7 +65,7 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
   // preparazione di ogni effetto
   for (const ch of chapters) {
     const q = (s) => ch.el.querySelector(s);
-    if (ch.fx === 'years' || ch.fx === 'path') ch.words = splitWords(q('.fx-words'));
+    if (ch.fx === 'years' || ch.fx === 'converge') ch.words = splitWords(q('.fx-words'));
     if (ch.fx === 'years') {
       ch.y1 = q('.y1');
       ch.y2 = q('.y2');
@@ -91,13 +91,7 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
       ch.track = q('.marquee span');
       ch.fade = q('.fx-fade');
     }
-    if (ch.fx === 'path') {
-      ch.line = q('.journey-line');
-      ch.dot = q('.journey-dot');
-      ch.len = ch.line.getTotalLength();
-      ch.line.style.strokeDasharray = `${ch.len}`;
-      ch.stops = [q('.stop-a'), q('.stop-b')];
-    }
+    if (ch.fx === 'converge') ch.cv = [q('.cv-a'), q('.cv-b')];
     if (ch.fx === 'focus') ch.focus = q('.fx-focus');
   }
 
@@ -178,16 +172,13 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
       ch.fade.style.opacity = f.toFixed(3);
       ch.fade.style.transform = `translate3d(0,${((1 - f) * 18).toFixed(1)}px,0)`;
     },
-    // dal consulto al trattamento: la linea d'oro si disegna e un punto la percorre
-    path(ch, p) {
-      const k = ease(seg(p, 0.08, 0.6));
-      ch.line.style.strokeDashoffset = `${(ch.len * (1 - k)).toFixed(1)}`;
-      const pt = ch.line.getPointAtLength(ch.len * k);
-      ch.dot.setAttribute('cx', pt.x.toFixed(1));
-      ch.dot.setAttribute('cy', pt.y.toFixed(1));
-      ch.stops[0].style.opacity = ease(seg(p, 0.02, 0.12)).toFixed(3);
-      ch.stops[1].style.opacity = ease(seg(p, 0.5, 0.62)).toFixed(3);
-      paintWords(ch.words, seg(p, 0.35, 0.95));
+    // "Dal consulto" da sinistra e "al trattamento" da destra si vengono incontro
+    converge(ch, p) {
+      const k = ease(seg(p, 0.04, 0.5));
+      ch.cv[0].style.transform = `translate3d(${(-(1 - k) * 55).toFixed(2)}%,0,0)`;
+      ch.cv[1].style.transform = `translate3d(${((1 - k) * 55).toFixed(2)}%,0,0)`;
+      ch.cv[0].style.opacity = ch.cv[1].style.opacity = (0.15 + 0.85 * k).toFixed(3);
+      paintWords(ch.words, seg(p, 0.38, 0.95));
     },
     // dallo sfocato al nitido
     focus(ch, p) {
