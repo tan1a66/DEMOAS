@@ -7,7 +7,7 @@
   --ink: #1f1a17;
   --ink-soft: #5b4f48;
   --gold: #b39260;
-  --serif: 'Cormorant Garamond', 'Cormorant', Georgia, 'Times New Roman', serif;
+  --serif: 'Bodoni Moda', 'Bodoni 72', 'Didot', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --head-h: 64px;
   color-scheme: light;
@@ -64,7 +64,7 @@ body {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 500;
-  font-size: 1.9rem;
+  font-size: 1.7rem;
   line-height: 1;
   padding: 6px 4px;
 }
@@ -85,7 +85,7 @@ body {
   bottom: 0;
   z-index: 3;
   text-align: center;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 40px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
   padding-left: max(22px, env(safe-area-inset-left, 0px));
   padding-right: max(22px, env(safe-area-inset-right, 0px));
   pointer-events: none;
@@ -94,16 +94,16 @@ body {
   margin: 0 auto;
   font-family: var(--serif);
   font-weight: 600;
-  font-size: clamp(2.6rem, 11.5vw, 4.4rem);
-  line-height: 0.98;
-  letter-spacing: -0.01em;
+  font-optical-sizing: auto;
+  font-size: clamp(2.5rem, 11vw, 4.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.02em;
   transform-origin: 50% 50%;
   will-change: transform;
 }
 .hero-name em {
   display: block;
-  font-style: italic;
-  font-weight: 600;
+  font-style: normal;
 }
 .hero-role {
   margin: 14px auto 0;
@@ -114,6 +114,53 @@ body {
   color: var(--ink-soft);
   max-width: 30ch;
   line-height: 1.6;
+}
+
+/* invito a scorrere: una parola e una linea che scende, sparisce al primo scroll */
+.scroll-hint {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  z-index: 3;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.scroll-hint > * {
+  animation: hint-in 1.2s 1.2s both ease-out;
+}
+.scroll-hint i {
+  position: relative;
+  width: 1px;
+  height: 34px;
+  overflow: hidden;
+  background: rgba(31, 26, 23, 0.14);
+}
+.scroll-hint i::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -40%;
+  width: 1px;
+  height: 40%;
+  background: var(--ink);
+  animation: hint-drop 2.2s 1.6s infinite cubic-bezier(0.45, 0, 0.25, 1);
+}
+@keyframes hint-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hint-drop {
+  0% { top: -40%; }
+  70%, 100% { top: 100%; }
 }
 
 /* seconda "pagina": il menu al centro, Prenota nella zona del pollice */
@@ -148,13 +195,15 @@ body {
 }
 .menu li a {
   font-family: var(--serif);
-  font-weight: 600;
-  font-size: clamp(2rem, 8.6vw, 3.1rem);
+  font-weight: 500;
+  font-size: clamp(1.85rem, 8vw, 2.9rem);
   line-height: 1.05;
+  letter-spacing: -0.015em;
   display: inline-block;
   padding: 4px 10px;
 }
-.menu li a:hover {
+.menu li a:hover,
+.menu li a:focus-visible {
   font-style: italic;
 }
 .menu-cta {
@@ -183,12 +232,12 @@ body {
 }
 
 .scroll-space {
-  height: 160vh;
+  height: 200vh;
 }
 
 @media (min-aspect-ratio: 1/1) {
   .hero {
-    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh + 64px);
   }
   .menu ul {
     margin-top: 40vh;
@@ -212,5 +261,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #scene {
     cursor: default;
+  }
+  .scroll-hint > *,
+  .scroll-hint i::after {
+    animation: none;
   }
 }

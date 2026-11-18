@@ -19,11 +19,11 @@ const easeInOut = (t) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, 
  * e un'onda scende lungo il telo. Con il dito la si può afferrare e tirare, o sfiorare.
  */
 export class Silk {
-  constructor({ quality = 'high', width = 2.2, height = 1.1 } = {}) {
+  constructor({ quality = 'high', width = 1.4, height = 2.8 } = {}) {
     const mobile = quality !== 'high';
-    // telo 1:2 appeso per il lato lungo: in alto il drappeggio, sotto l'orlo libero
-    this.nx = mobile ? 80 : 104;
-    this.ny = mobile ? 40 : 52;
+    // telo 1:2 in verticale, appeso dall'alto come una tenda: pieghe verticali
+    this.nx = mobile ? 40 : 52;
+    this.ny = mobile ? 80 : 104;
     this.width = width;
     this.height = height;
     this.cloth = new Cloth({ nx: this.nx, ny: this.ny, width, height, density: 0.085 });
@@ -43,7 +43,7 @@ export class Silk {
     this.posTex.minFilter = this.posTex.magFilter = THREE.NearestFilter;
     this.posTex.generateMipmaps = false;
 
-    const seg = mobile ? [512, 256] : [768, 384];
+    const seg = mobile ? [256, 512] : [384, 768];
     this.segments = seg;
     const geo = new THREE.PlaneGeometry(1, 1, seg[0], seg[1]);
     this.uniforms = {
@@ -85,20 +85,20 @@ export class Silk {
   }
 
   // --------------------------------------------------------------------------------
-  // Posa: velo appeso per due angoli
+  // Posa: seta verticale tenuta per i due angoli alti, molto vicini tra loro e fuori
+  // quadro. Il tessuto in eccesso scende in pieghe a cascata per tutta la lunghezza.
   // --------------------------------------------------------------------------------
 
   _hang() {
     const { width, height, nx } = this;
     const c = this.cloth;
-    c.layout((i, j, u, v) => [(u - 0.5) * width * 0.9, 1.3 - v * height, 0.03 * Math.sin(u * 9 + v * 3)]);
-    // due prese di tre particelle: l'angolo tenuto tra le dita
+    c.layout((i, j, u, v) => [(u - 0.5) * width * 0.5, 1.3 - v * height, 0.06 * Math.sin(u * 14 + v * 2)]);
     for (const side of [-1, 1]) {
       const i0 = side < 0 ? 0 : nx - 1;
       const di = side < 0 ? 1 : -1;
       for (const [i, j] of [[i0, 0], [i0 + di, 0], [i0, 1]]) {
         const p = j * nx + i;
-        const offX = (i - i0) * c.dx;
+        const offX = (i - i0) * c.dx * 0.6;
         const offY = -j * c.dy;
         c.setPinned(p, true);
         c.pins.set(p, (t) => {
@@ -109,30 +109,28 @@ export class Silk {
     }
   }
 
-  /** Posizione della presa sinistra (-1) o destra (+1), con il gesto del polso. */
+  /** Presa sinistra (-1) o destra (+1): vicine, appena sfalsate, con il gesto del polso. */
   _anchor(s, t) {
-    // prese asimmetriche: la sinistra più alta, il drappeggio scende in diagonale
-    let x = s * 0.86 + 0.035 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
-    let y = (s < 0 ? 1.3 : 1.12) + 0.045 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
-    let z = 0.05 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
+    let x = s * 0.27 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
+    let y = (s < 0 ? 1.32 : 1.2) + 0.035 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
+    let z = (s < 0 ? -0.04 : 0.05) + 0.04 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
     const g = this.gesture;
     if (g) {
-      // sollevare, portare in avanti, lasciar ricadere (il destro con un attimo di ritardo)
-      const k = (t - g.start - (s > 0 ? 0.22 : 0)) / g.dur;
+      const k = (t - g.start - (s > 0 ? 0.25 : 0)) / g.dur;
       if (k > 0 && k < 1) {
         const up = Math.sin(Math.PI * easeInOut(k));
         const fwd = Math.sin(Math.PI * Math.min(1, k * 1.15));
-        y += up * 0.2 * g.amp;
-        z += fwd * 0.28 * g.amp;
-        x -= s * up * 0.05 * g.amp;
+        y += up * 0.16 * g.amp;
+        z += fwd * 0.26 * g.amp;
+        x += s * up * 0.05 * g.amp;
       }
     }
     return [x, y, z];
   }
 
-  /** Il gesto del fazzoletto: un'onda che scende lungo il telo. */
+  /** Il gesto: un'onda che scende lungo la seta. */
   flick(amp = 1) {
-    this.gesture = { start: this.time, dur: 2.0, amp };
+    this.gesture = { start: this.time, dur: 2.2, amp };
     this.nextGesture = this.time + 11 + Math.random() * 5;
   }
 

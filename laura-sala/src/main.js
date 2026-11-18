@@ -88,15 +88,16 @@ const screenGuard = (dt) => {
 const computeFrame = () => {
   const aspect = innerWidth / innerHeight;
   const dist = 6.1;
-  const visW = aspect < 0.85 ? 0.82 : 1.9;
-  const visH = visW / aspect;
-  // in alto il drappeggio (con un filo d'avorio sopra); poi interviene il limite sullo schermo
-  const topY = aspect < 0.85 ? follow.rimY + 0.24 : follow.hemLow + visH * 0.56;
+  // telefono: la tenda riempie la larghezza; desktop: una colonna di seta al centro
+  const visH = aspect < 0.85 ? 1.45 / aspect : 2.45;
+  const visW = visH * aspect;
+  // il bordo alto resta fuori quadro; l'orlo sopra il nome (poi interviene il limite sullo schermo)
+  const topY = follow.hemLow + visH * (aspect < 0.85 ? 0.6 : 0.56);
   const tanV = visW / aspect / 2 / dist;
   camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanV));
   const cy = topY - dist * tanV + guard.off;
   frame.target.set(follow.cx * 0.9, cy, 0.2);
-  frame.pos.set(follow.cx * 0.9 + 0.9, cy + 0.1, dist);
+  frame.pos.set(follow.cx * 0.9 + 0.75, cy + 0.15, dist);
   camera.updateProjectionMatrix();
 };
 
@@ -193,6 +194,7 @@ const roleEl = document.querySelector('.hero-role');
 const menu = document.querySelector('.menu');
 const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
+const hint = document.querySelector('.scroll-hint');
 const headCenterY = () => {
   const r = head.getBoundingClientRect();
   return r.bottom - parseFloat(getComputedStyle(head).height) / 2;
@@ -209,13 +211,11 @@ const intro = gsap.timeline({
   defaults: { ease: 'sine.inOut' },
   scrollTrigger: {
     start: 0,
-    end: () => innerHeight * 0.6,
-    scrub: reduceMotion ? true : 1,
-    // un gesto basta: si arriva sempre a una delle due "pagine"
-    snap: { snapTo: [0, 1], duration: { min: 0.5, max: 1.1 }, delay: 0.05, ease: 'sine.inOut' },
+    end: () => innerHeight * 0.95,
+    // tutto segue lo scroll (nessuno scatto automatico); solo un filo di morbidezza
+    scrub: reduceMotion ? true : 0.6,
     invalidateOnRefresh: true,
     onUpdate: (st) => {
-      page.p = st.progress;
       menu.style.visibility = st.progress > 0.02 ? 'visible' : 'hidden';
       if (st.progress > 0.1 && !intro._flicked) {
         intro._flicked = true;
@@ -227,6 +227,7 @@ const intro = gsap.timeline({
 });
 intro
   .to(nameEl, { y: () => headCenterY() - nameRestCenterY(), scale: nameScale, duration: 1 }, 0)
+  .to(hint, { opacity: 0, duration: 0.12, ease: 'none' }, 0)
   .to(roleEl, { opacity: 0, y: -14, duration: 0.3, ease: 'sine.out' }, 0)
   .to(menuItems, { opacity: 1, y: 0, duration: 0.45, stagger: 0.09, ease: 'sine.out' }, 0.42)
   .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6);
@@ -255,7 +256,8 @@ const loop = () => {
 
   silk.update(reduceMotion ? dt * 0.35 : dt);
   measureSilk(dt);
-  page.shown += (page.p - page.shown) * (1 - Math.exp(-dt * 5));
+  page.p = intro.progress();
+  page.shown += (page.p - page.shown) * (1 - Math.exp(-dt * 6));
   screenGuard(dt);
   computeFrame();
 
