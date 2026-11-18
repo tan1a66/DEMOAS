@@ -36,6 +36,7 @@ export class Silk {
     this.nextGesture = 7;
     this.grabbed = null;
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
+    this.move = null; // una figura delle prese (la capriola)
 
     // texture della simulazione (posizioni + cavità), bordo di punti fantasma incluso
     const tw = this.nx + 2, th = this.ny + 2;
@@ -60,6 +61,7 @@ export class Silk {
       uClothSize: { value: new THREE.Vector2(width, height) },
       uFog: { value: new THREE.Vector2(6.5, 13) },
       uDetail: { value: 1 },
+      uVeil: { value: 0 },
       uTime: { value: 0 },
       uRipple: { value: 0.0008 },
       uStudio: { value: new THREE.Matrix3() },
@@ -115,6 +117,16 @@ export class Silk {
     let x = this.panX + s * 0.31 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
     let y = (s < 0 ? 1.32 : 1.2) + 0.035 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
     let z = (s < 0 ? -0.04 : 0.05) + 0.04 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
+    const m = this.move;
+    if (m) {
+      const k = (t - m.start - (s > 0 ? m.lag : 0)) / m.dur;
+      if (k > 0 && k < 1) {
+        const o = m.path(easeInOut(k));
+        x += o[0];
+        y += o[1];
+        z += o[2];
+      }
+    }
     const g = this.gesture;
     if (g) {
       const k = (t - g.start - (s > 0 ? 0.25 : 0)) / g.dur;
@@ -127,6 +139,24 @@ export class Silk {
       }
     }
     return [x, y, z];
+  }
+
+  /**
+   * La capriola: le prese disegnano un grande anello (a destra e in basso venendo verso
+   * la camera, poi su a sinistra) e il telo vola attorno al titolo. Durata in secondi reali.
+   */
+  capriola(realSeconds = 3.0) {
+    const dur = realSeconds * this.timeScale;
+    this.move = {
+      start: this.time,
+      dur,
+      lag: dur * 0.06,
+      path: (k) => {
+        const a = Math.PI * 2 * k;
+        return [0.5 * Math.sin(a), -0.95 * (1 - Math.cos(a)), 0.4 * (1 - Math.cos(a))];
+      },
+    };
+    this.nextGesture = this.time + dur + 8;
   }
 
   /** Il gesto: un'onda che scende lungo la seta. */

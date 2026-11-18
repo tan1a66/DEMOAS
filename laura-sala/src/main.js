@@ -36,7 +36,9 @@ scene.add(silk.mesh);
 const frame = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
 const cam = { x: 0, y: -0.6 }; // punto inquadrato (mondo)
 let guiding = false;
+let hold = false; // durante la capriola l'inquadratura resta ferma
 const page = { p: 0, shown: 0 }; // 0 = nome, 1 = menu / sezioni
+const sect = { v: 0 }; // 1 = dentro una sezione: la seta si ritira (fascia sottile, schiarita)
 const DIST = 6.1;
 const viewSize = () => {
   const aspect = innerWidth / innerHeight;
@@ -46,11 +48,13 @@ const viewSize = () => {
 };
 const hemTarget = () => {
   const { portrait } = viewSize();
-  return portrait ? 0.6 - 0.29 * page.shown : 0.56 - 0.29 * page.shown;
+  const menuT = portrait ? 0.6 - 0.29 * page.shown : 0.56 - 0.29 * page.shown;
+  return menuT + (0.11 - menuT) * sect.v;
 };
 const _v = new THREE.Vector3();
 const hemYs = [];
 const screenFrame = (dt) => {
+  if (hold) return;
   const c = silk.cloth;
   const { visH, visW } = viewSize();
   // orlo (ultime righe) e punto più basso tra quelli in vista
@@ -185,6 +189,7 @@ const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
 const hint = document.querySelector('.scroll-hint');
 const mono = document.querySelector('.mono');
+const social = document.querySelector('.social');
 const keepL = nameEl.querySelector('.k-l');
 const keepS = nameEl.querySelector('.k-s');
 const fades = nameEl.querySelectorAll('.fade');
@@ -220,6 +225,7 @@ const fly = (from, to) => ({
 
 gsap.set(menuItems, { opacity: 0, y: 22 });
 gsap.set(menuCta, { opacity: 0, y: 16 });
+gsap.set(social.children, { opacity: 0, y: -6 });
 intro = gsap.timeline({
   defaults: { ease: 'sine.inOut' },
   scrollTrigger: {
@@ -232,6 +238,7 @@ intro = gsap.timeline({
     onUpdate: (st) => {
       menu.style.visibility = st.progress > 0.02 ? 'visible' : 'hidden';
       mono.style.visibility = st.progress > 0.9 ? 'visible' : 'hidden';
+      social.style.visibility = st.progress > 0.55 ? 'visible' : 'hidden';
       if (st.progress > 0.1 && !intro._flicked) {
         intro._flicked = true;
         silk.flick(0.5);
@@ -249,7 +256,8 @@ intro
   .to(keepL, { ...fly('L0', 'L1'), duration: 0.85 }, 0.08)
   .to(keepS, { ...fly('S0', 'S1'), duration: 0.85 }, 0.11)
   .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 0.42)
-  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6);
+  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6)
+  .to(social.children, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'sine.out' }, 0.62);
 
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
@@ -284,7 +292,23 @@ const openSection = (id, { push = true } = {}) => {
   backBtn.hidden = false;
   el.hidden = false;
   el.scrollTop = 0;
-  guide(silk.panX + GUIDE);
+  // Chi sono: la seta fa una capriola attorno al titolo, poi si ritira.
+  // Le altre sezioni: la seta guida verso destra e si ritira.
+  const scenic = id === 'chi-sono' && !reduceMotion;
+  const retreat = scenic ? 2.7 : 0.5;
+  if (scenic) {
+    hold = true;
+    silk.capriola(3.0);
+    gsap.timeline({ overwrite: true })
+      .to(silk.wind.push, { z: 1.1, x: 0.5, duration: 1.0, ease: 'sine.out' })
+      .to(silk.wind.push, { z: 0, x: 0, duration: 1.6, ease: 'sine.inOut' });
+    gsap.delayedCall(2.8, () => (hold = false));
+  } else {
+    guide(silk.panX + GUIDE);
+  }
+  // poi la seta si ritira: il contenuto è il protagonista
+  gsap.to(sect, { v: 1, duration: 2.2, delay: retreat, ease: 'sine.inOut', overwrite: true });
+  gsap.to(silk.uniforms.uVeil, { value: 0.55, duration: 2.2, delay: retreat + 0.3, ease: 'sine.inOut', overwrite: true });
   if (reduceMotion) {
     gsap.set(menu, { opacity: 0 });
     if (prev) prev.hidden = true;
@@ -293,7 +317,7 @@ const openSection = (id, { push = true } = {}) => {
   }
   gsap.to(menu, { x: -70, opacity: 0, duration: 0.8, ease: 'sine.in', overwrite: true });
   if (prev) gsap.to(prev, { xPercent: -40, opacity: 0, duration: 0.9, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
-  gsap.fromTo(el, { xPercent: 100, opacity: 1 }, { xPercent: 0, duration: 1.5, delay: 0.3, ease: 'power3.out', overwrite: true });
+  gsap.fromTo(el, { xPercent: 100, opacity: 1 }, { xPercent: 0, duration: scenic ? 1.8 : 1.5, delay: scenic ? 0.5 : 0.3, ease: 'power3.out', overwrite: true });
 };
 
 const closeSection = () => {
@@ -303,7 +327,11 @@ const closeSection = () => {
   html.classList.remove('in-section');
   menu.inert = false;
   backBtn.hidden = true;
+  hold = false;
+  silk.move = null;
   guide(0);
+  gsap.to(sect, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
+  gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1.4, ease: 'sine.inOut', overwrite: true });
   if (reduceMotion) {
     el.hidden = true;
     gsap.to(menu, { opacity: 1, duration: 0.5 });
@@ -407,4 +435,4 @@ const loop = () => {
 };
 requestAnimationFrame(loop);
 
-window.__velata = { silk, camera, renderer, cam, page };
+window.__velata = { silk, camera, renderer, cam, page, gsap };

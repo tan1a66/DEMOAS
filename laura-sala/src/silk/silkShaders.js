@@ -90,6 +90,7 @@ uniform vec3 uIvory;         // fondo / nebbia
 uniform vec2 uClothSize;     // metri
 uniform vec2 uFog;           // inizio, fine
 uniform float uDetail;       // 0..1 quanto mostrare la micro-trama (inquadrature macro)
+uniform float uVeil;         // 0..1 la seta si ritira verso l'avorio (dentro le sezioni)
 
 varying vec3 vWorld;
 varying vec3 vNormal;
@@ -258,6 +259,7 @@ void main() {
   // nebbia leggera verso l'avorio
   float d = length(cameraPosition - vWorld);
   col = mix(col, uIvory, smoothstep(uFog.x, uFog.y, d) * 0.65);
+  col = mix(col, uIvory, uVeil);
 
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
