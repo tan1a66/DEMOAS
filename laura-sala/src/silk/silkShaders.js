@@ -30,13 +30,12 @@ vec4 dbs(float t) {
 // Pieghe fini: onde che scendono lungo l'ordito e scorrono con il vento, più ampie verso
 // l'orlo (dove la seta è libera). Restituisce lo spostamento lungo la normale.
 float ripple(vec2 m) {
-  // m = coordinate in metri: x lungo la trama, y lungo l'ordito (dall'alto)
+  // onde larghe e lente (70-110 cm) che scorrono nel tessuto, più ampie verso l'orlo libero
   float t = uTime;
-  float free = smoothstep(0.2, 1.0, m.y / uClothSize.y);
-  float a = sin(m.x * 17.0 + sin(m.y * 1.7 + t * 0.5) * 2.2 - t * 0.9) * 0.6;
-  a += sin(m.x * 29.0 - m.y * 4.0 + t * 1.3 + sin(m.x * 2.3 + 1.0) * 3.0) * 0.3;
-  float env = smoothstep(-0.2, 1.0, sin(m.y * 2.1 - t * 0.6 + m.x * 1.3) * 0.5 + sin(m.x * 3.7 + 2.0) * 0.5);
-  return a * env * (0.25 + 0.75 * free);
+  float free = smoothstep(0.1, 1.0, m.y / uClothSize.y);
+  float a = sin(m.x * 9.0 + t * 0.8 + sin(m.y * 1.3 + t * 0.3) * 1.5) * 0.6;
+  a += sin(m.x * 5.6 - m.y * 2.0 - t * 0.55) * 0.4;
+  return a * (0.35 + 0.65 * free);
 }
 
 void main() {
@@ -61,7 +60,7 @@ void main() {
   vec3 N0 = normalize(cross(Pv, Pu));
   // pieghe fini con derivate numeriche → normale corretta
   vec2 m = vec2(uv.x * uClothSize.x, (1.0 - uv.y) * uClothSize.y);
-  float e = 0.004;
+  float e = 0.01;
   float r0 = ripple(m), rx = ripple(m + vec2(e, 0.0)), ry = ripple(m + vec2(0.0, e));
   // Pu, Pv sono per unità di particella: le converto in "per metro"
   vec3 Tu = Pu / (uClothSize.x / (uSim.x - 1.0));
@@ -204,7 +203,7 @@ void main() {
   float diff = clamp((NL + wrap) / (1.0 + wrap), 0.0, 1.0);
   diff = mix(diff, diff * diff * (3.0 - 2.0 * diff), 0.5);
   vec3 base = front ? uSilk : uBack;
-  base *= 1.0 + slubA * 0.012 + slubB * 0.05 + threadVar * 0.08;
+  base *= 1.0 + slubB * 0.05 + threadVar * 0.08;
   base *= mix(1.0, 0.94, roll) * (1.0 - hemLine * 0.08);
   vec3 col = mix(uShadow, base, diff) * (0.5 + 0.4 * diff) * uLightColor;
 
@@ -225,7 +224,7 @@ void main() {
   // --- speculare: il raso sul diritto, opaco sul rovescio ---
   // Strisce lunghe lungo l'ordito (tolleranti in T), nette di traverso (strette in B):
   // il riflesso corre lungo le pieghe come sulle tende di raso.
-  float specMask = 1.0 + slubA * 0.15 + slubB * 0.4 + threadVar * 0.6;
+  float specMask = 1.0 + slubB * 0.4 + threadVar * 0.6;
   float NV0 = clamp(dot(Np, V), 0.0, 1.0);
   vec3 spec;
   if (front) {

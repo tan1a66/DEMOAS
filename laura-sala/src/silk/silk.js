@@ -19,15 +19,16 @@ const easeInOut = (t) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, 
  * e un'onda scende lungo il telo. Con il dito la si può afferrare e tirare, o sfiorare.
  */
 export class Silk {
-  constructor({ quality = 'high', width = 1.6, height = 3.2 } = {}) {
+  constructor({ quality = 'high', width = 1.4, height = 1.4 } = {}) {
     const mobile = quality !== 'high';
-    // telo 1:2 in verticale, appeso dall'alto come una tenda: pieghe verticali
-    this.nx = mobile ? 40 : 52;
-    this.ny = mobile ? 80 : 104;
+    // un grande fazzoletto quadrato tenuto per i due angoli alti
+    this.nx = mobile ? 48 : 60;
+    this.ny = mobile ? 48 : 60;
     this.width = width;
     this.height = height;
     this.cloth = new Cloth({ nx: this.nx, ny: this.ny, width, height, density: 0.085 });
     this.cloth.substeps = mobile ? 9 : 11;
+    this.cloth.selfThickness = 0; // telo disteso: niente collisione con se stesso (non blocca nodi)
     this.wind = createWind();
     this.timeScale = 0.6; // rallentatore: si muove come in un fashion film
     this.time = 0;
@@ -49,7 +50,7 @@ export class Silk {
     this.posTex.minFilter = this.posTex.magFilter = THREE.NearestFilter;
     this.posTex.generateMipmaps = false;
 
-    const seg = mobile ? [256, 512] : [384, 768];
+    const seg = mobile ? [320, 320] : [448, 448];
     this.segments = seg;
     const geo = new THREE.PlaneGeometry(1, 1, seg[0], seg[1]);
     this.uniforms = {
@@ -67,7 +68,7 @@ export class Silk {
       uDetail: { value: 1 },
       uVeil: { value: 0 },
       uTime: { value: 0 },
-      uRipple: { value: 0.0003 },
+      uRipple: { value: 0.006 }, // onde larghe nello shader (metri), appena accennate
       uStudio: { value: new THREE.Matrix3() },
     };
     this.material = new THREE.ShaderMaterial({
@@ -117,20 +118,22 @@ export class Silk {
   }
 
   // --------------------------------------------------------------------------------
-  // Posa: seta verticale tenuta per i due angoli alti, molto vicini tra loro e fuori
-  // quadro. Il tessuto in eccesso scende in pieghe a cascata per tutta la lunghezza.
+  // Posa: il grande fazzoletto dei primi prototipi, tenuto per i due angoli alti (un poco
+  // sfalsati) da "dita" invisibili. Tra le prese il tessuto scende a cappuccio; il gioco è
+  // moderato, così si drappeggia ma non si attorciglia.
   // --------------------------------------------------------------------------------
 
   _hang() {
     const { width, height, nx } = this;
     const c = this.cloth;
-    c.layout((i, j, u, v) => [(u - 0.5) * width * 0.5, 1.3 - v * height, 0.06 * Math.sin(u * 14 + v * 2)]);
+    this.rodW = 0.96; // distanza tra le prese (il telo è largo 1,4 m)
+    c.layout((i, j, u, v) => [(u - 0.5) * width * 0.7, 1.3 - v * height, 0.05 * Math.sin(u * Math.PI) + 0.03 * Math.sin(u * 9 + v * 3)]);
     for (const side of [-1, 1]) {
       const i0 = side < 0 ? 0 : nx - 1;
       const di = side < 0 ? 1 : -1;
       for (const [i, j] of [[i0, 0], [i0 + di, 0], [i0, 1]]) {
         const p = j * nx + i;
-        const offX = (i - i0) * c.dx * 0.6;
+        const offX = (i - i0) * c.dx;
         const offY = -j * c.dy;
         c.setPinned(p, true);
         c.pins.set(p, (t) => {
@@ -141,11 +144,11 @@ export class Silk {
     }
   }
 
-  /** Presa sinistra (-1) o destra (+1): vicine, appena sfalsate, con il gesto del polso. */
+  /** Presa sinistra (-1) o destra (+1), con il gesto del polso e la capriola. */
   _anchor(s, t) {
-    let x = this.panX + s * 0.31 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
-    let y = (s < 0 ? 1.32 : 1.2) + 0.035 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
-    let z = (s < 0 ? -0.04 : 0.05) + 0.04 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
+    let x = this.panX + s * 0.48 + 0.03 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
+    let y = (s < 0 ? 1.32 : 1.1) + 0.04 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
+    let z = 0.045 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
     const m = this.move;
     if (m) {
       const k = (t - m.start - (s > 0 ? m.lag : 0)) / m.dur;
@@ -158,13 +161,13 @@ export class Silk {
     }
     const g = this.gesture;
     if (g) {
-      const k = (t - g.start - (s > 0 ? 0.25 : 0)) / g.dur;
+      const k = (t - g.start - (s > 0 ? 0.22 : 0)) / g.dur;
       if (k > 0 && k < 1) {
         const up = Math.sin(Math.PI * easeInOut(k));
         const fwd = Math.sin(Math.PI * Math.min(1, k * 1.15));
-        y += up * 0.16 * g.amp;
+        y += up * 0.18 * g.amp;
         z += fwd * 0.26 * g.amp;
-        x += s * up * 0.05 * g.amp;
+        x -= s * up * 0.04 * g.amp;
       }
     }
     return [x, y, z];
@@ -283,7 +286,7 @@ export class Silk {
         target[k3 + 2] = rest[k3 + 2];
       } else {
         const i = p % nx, j = (p / nx) | 0;
-        target[k3] = this.panX + (i / (nx - 1) - 0.5) * 0.72;
+        target[k3] = this.panX + (i / (nx - 1) - 0.5) * (this.rodW || 1.4);
         target[k3 + 1] = 1.24 - (j / (ny - 1)) * this.height * 0.93;
         target[k3 + 2] = 0.05;
       }
@@ -297,6 +300,31 @@ export class Silk {
       dz += pos[k3 + 2] - target[k3 + 2];
     }
     dx /= n; dy /= n; dz /= n;
+    // sicurezza: se la forma resta lontana dal riferimento per un paio di secondi, la
+    // memoria si rafforza da sola finché la seta non è di nuovo distesa
+    if (rest && !busy) {
+      let err = 0, m = 0;
+      for (let p = 0; p < n; p += 7) {
+        const k3 = p * 3;
+        err += Math.hypot(pos[k3] - target[k3] - dx, pos[k3 + 1] - target[k3 + 1] - dy, pos[k3 + 2] - target[k3 + 2] - dz);
+        m++;
+      }
+      err /= m;
+      this.shapeErr = err;
+      // segni di nodo: pieghe strette (curvatura alta) o deformazione molto grande
+      let sharp = 0, tot = 0;
+      const lim = 18 * c.dx * c.dx;
+      for (let j = 1; j < ny - 1; j += 2)
+        for (let i = 1; i < nx - 1; i += 2) {
+          const q = (j * nx + i) * 3, l = q - 3, r = q + 3, u = q - nx * 3, d = q + nx * 3;
+          tot += 2;
+          if (Math.hypot(pos[l] + pos[r] - 2 * pos[q], pos[l + 1] + pos[r + 1] - 2 * pos[q + 1], pos[l + 2] + pos[r + 2] - 2 * pos[q + 2]) > lim) sharp++;
+          if (Math.hypot(pos[u] + pos[d] - 2 * pos[q], pos[u + 1] + pos[d + 1] - 2 * pos[q + 1], pos[u + 2] + pos[d + 2] - 2 * pos[q + 2]) > lim) sharp++;
+        }
+      const knotty = sharp / tot > 0.015 || err > 0.4;
+      this._farFor = knotty ? (this._farFor || 0) + dt : 0;
+      if (this._farFor > 0.8) this.untangle = Math.max(this.untangle, 0.9);
+    }
     const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost; // forma [1/s²]
     const kg = (busy ? 0 : this.memKGlobal) + 2 * boost; // posizione [1/s²]
     const damp = (busy ? 0.1 : this.memDamp) + 1.8 * boost; // [1/s]

@@ -41,11 +41,15 @@ const page = { p: 0, shown: 0 }; // 0 = nome, 1 = menu / sezioni
 const sect = { v: 0 }; // 1 = dentro una sezione: la seta si ritira (fascia sottile, schiarita)
 const bg = { v: 0 }; // 1 = Chi sono: la seta diventa lo sfondo a tutta pagina (vicina, schiarita)
 const DIST = 6.1;
+const heroVis = { h: 2.6 }; // altezza visibile nella prima pagina (si adatta al fazzoletto)
 const viewSize = () => {
   const aspect = innerWidth / innerHeight;
   // telefono: la seta riempie la larghezza; desktop: una fascia ampia al centro.
   // Come sfondo (Chi sono) la camera si avvicina: la seta copre tutto lo schermo.
-  const visNormal = aspect < 0.85 ? 0.8 / aspect : 1.75;
+  // prima pagina: l'altezza visibile la decide il controllo (fazzoletto intero); menu e
+  // sezioni: inquadratura stretta sulla seta
+  const visMenu = aspect < 0.85 ? 0.8 / aspect : 1.75;
+  const visNormal = heroVis.h + (visMenu - heroVis.h) * page.shown;
   const visBg = aspect < 0.85 ? 0.42 / aspect : 0.5;
   const visH = visNormal + (visBg - visNormal) * bg.v;
   return { visH, visW: visH * aspect, portrait: aspect < 0.85 };
@@ -76,6 +80,18 @@ const screenFrame = (dt) => {
       if (j >= c.ny - 3) hemYs.push(_v.y);
       if (_v.y < lowest) lowest = _v.y;
     }
+  // prima pagina: lo zoom tiene il drappeggio appena sotto il bordo alto (il fazzoletto intero)
+  if (page.shown < 0.999) {
+    let rim = -2;
+    for (let i = Math.round(c.nx * 0.3); i < c.nx * 0.7; i++) {
+      const k = i * 3;
+      _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
+      if (_v.y > rim) rim = _v.y;
+    }
+    const rimT = 1 - 2 * 0.1;
+    heroVis.h *= Math.exp((rim - rimT) * Math.min(1, dt * 1.4));
+    heroVis.h = Math.min(4.2, Math.max(1.6, heroVis.h));
+  }
   // orizzontale: il centro della seta verso il centro dello schermo
   const cx = sx / sn;
   cam.x += cx * (visW / 2) * Math.min(1, dt * (guiding ? 1.8 : 0.5));
@@ -119,7 +135,7 @@ const camPos = frame.pos.clone();
 const camTarget = frame.target.clone();
 
 // ---------- luce: segue il dito / il mouse (±30°), sempre smorzata ----------
-const baseLight = new THREE.Vector3(-0.55, 0.38, 0.75).normalize();
+const baseLight = new THREE.Vector3(-0.6, 0.42, 0.68).normalize(); // softbox laterale da sinistra
 const MAX = THREE.MathUtils.degToRad(30);
 const light = { yaw: 0, pitch: 0, tYaw: 0, tPitch: 0 };
 const aimLight = (x, y) => {
@@ -194,6 +210,31 @@ const menu = document.querySelector('.menu');
 const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
 const hint = document.querySelector('.scroll-hint');
+const manifesto = document.querySelector('.manifesto');
+// le parole della frase si accendono una dopo l'altra mentre si scorre
+const mWords = [];
+if (!reduceMotion) {
+  for (const p of manifesto.querySelectorAll('p')) {
+    const text = p.textContent.replace(/\s+/g, ' ').trim().split(' ');
+    p.textContent = '';
+    text.forEach((w, i) => {
+      const span = document.createElement('span');
+      span.textContent = w;
+      span.style.opacity = '0.16';
+      p.appendChild(span);
+      if (i < text.length - 1) p.appendChild(document.createTextNode(' '));
+      mWords.push(span);
+    });
+  }
+}
+const mReveal = { k: 0 };
+const paintWords = () => {
+  const n = mWords.length;
+  mWords.forEach((w, i) => {
+    const a = Math.min(1, Math.max(0, mReveal.k * (n + 6) - i) / 6);
+    w.style.opacity = (0.16 + 0.84 * a).toFixed(2);
+  });
+};
 const mono = document.querySelector('.mono');
 const social = document.querySelector('.social');
 const keepL = nameEl.querySelector('.k-l');
@@ -236,16 +277,14 @@ intro = gsap.timeline({
   defaults: { ease: 'sine.inOut' },
   scrollTrigger: {
     start: 0,
-    end: () => innerHeight * 0.95,
+    // tre tempi: il nome diventa LS, la frase sulla chirurgia, il menu
+    end: () => innerHeight * 2.2,
     // tutto segue lo scroll (nessuno scatto automatico); solo un filo di morbidezza
     scrub: reduceMotion ? true : 0.6,
     invalidateOnRefresh: true,
     onRefresh: () => measureName(),
     onUpdate: (st) => {
-      menu.style.visibility = st.progress > 0.02 ? 'visible' : 'hidden';
-      mono.style.visibility = st.progress > 0.9 ? 'visible' : 'hidden';
-      social.style.visibility = st.progress > 0.55 ? 'visible' : 'hidden';
-      if (st.progress > 0.1 && !intro._flicked) {
+      if (st.progress > 0.03 && !intro._flicked) {
         intro._flicked = true;
         silk.flick(0.5);
       }
@@ -261,31 +300,104 @@ intro
   // la L e la S salgono, si avvicinano e diventano il monogramma
   .to(keepL, { ...fly('L0', 'L1'), duration: 0.85 }, 0.08)
   .to(keepS, { ...fly('S0', 'S1'), duration: 0.85 }, 0.11)
-  .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 0.42)
-  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6)
-  .to(social.children, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'sine.out' }, 0.62);
+  .to(social.children, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'sine.out' }, 0.62)
+  // la frase sulla chirurgia: entra, le parole si accendono, poi lascia il posto al menu
+  .fromTo(manifesto, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.3, ease: 'sine.out' }, 1.0)
+  .to(mReveal, { k: 1, duration: 0.75, ease: 'none', onUpdate: paintWords }, 1.1)
+  .to(manifesto, { opacity: 0, y: -26, duration: 0.25, ease: 'sine.in' }, 2.0)
+  .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 2.2)
+  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 2.45);
 
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
-// ---------- sezioni: la seta guida verso destra ----------
-// Si sceglie una voce: un colpo di vento porta la seta a destra, la camera la segue con
-// un attimo di ritardo, il menu scivola via e la sezione entra da destra. Indietro (anche
-// con il gesto del browser) la seta riporta tutto a sinistra.
+// ---------- sezioni: ogni voce è un luogo sulla seta ----------
+// Fino al menu la camera la governa l'inquadratura. Scelta una voce, la seta fa un gesto
+// che indica la via e la camera vola lungo il tessuto (sale, plana, scende) fino al luogo
+// di quella voce; poi il contenuto appare. Tra una voce e l'altra si viaggia sulla seta;
+// con le tre linee (o il gesto indietro) si torna all'inquadratura del menu.
 const html = document.documentElement;
 const backBtn = document.querySelector('.back-btn');
 const pages = new Map([...document.querySelectorAll('.page')].map((el) => [el.id, el]));
-const GUIDE = 1.35; // metri percorsi dalla seta a ogni passaggio
 let current = null;
 
-const guide = (toX) => {
-  if (reduceMotion) return;
-  const dir = Math.sign(toX - silk.panX) || 1;
-  guiding = true;
-  gsap.delayedCall(1.2, () => (silk.untangle = Math.max(silk.untangle, 0.8)));
-  gsap.to(silk, { panX: toX, duration: 1.7, ease: 'sine.inOut', overwrite: true, onComplete: () => gsap.delayedCall(1.6, () => (guiding = false)) });
-  gsap.timeline({ overwrite: true })
-    .to(silk.wind.push, { x: 1.9 * dir, z: 0.4, duration: 0.7, ease: 'sine.out' })
-    .to(silk.wind.push, { x: 0, z: 0, duration: 1.4, ease: 'sine.inOut' });
+// luoghi: punto sul fazzoletto (u da sinistra, v dall'alto), direzione e distanza della camera
+const STATIONS = {
+  'chi-sono': { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.0, fov: 30 }, // sotto il drappeggio a cappuccio
+  'chirurgia-ricostruttiva': { u: 0.8, v: 0.45, dir: [0.6, 0.05, 1], dist: 1.0, fov: 30 }, // la piega sul lato destro
+  'chirurgia-estetica': { u: 0.5, v: 0.55, dir: [0.1, -0.25, 1], dist: 1.1, fov: 30 }, // il centro del telo
+  'medicina-estetica': { u: 0.32, v: 0.68, dir: [-0.2, 0.1, 1], dist: 0.3, fov: 30 }, // macro sulla trama
+  'medicina-rigenerativa': { u: 0.6, v: 0.96, dir: [0.25, -0.45, 1], dist: 0.95, fov: 30 }, // l'orlo libero
+  sedi: { u: 0.5, v: 0.5, dir: [0.3, 0.75, 1], dist: 3.4, fov: 30 }, // il fazzoletto intero, dall'alto
+};
+for (const st of Object.values(STATIONS)) {
+  st.d = new THREE.Vector3(...st.dir).normalize();
+  st.p = null;
+}
+const trip = { mode: 'menu', to: null, k: 1, A: { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 30 } };
+const B = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 30 };
+const _pt = new THREE.Vector3();
+const stationPose = (st, dt, out) => {
+  const c = silk.cloth;
+  const i0 = Math.round(st.u * (c.nx - 1)), j0 = Math.round(st.v * (c.ny - 1));
+  _pt.set(0, 0, 0);
+  let n = 0;
+  for (let j = Math.max(0, j0 - 1); j <= Math.min(c.ny - 1, j0 + 1); j++)
+    for (let i = Math.max(0, i0 - 1); i <= Math.min(c.nx - 1, i0 + 1); i++) {
+      const k = (j * c.nx + i) * 3;
+      _pt.x += c.pos[k];
+      _pt.y += c.pos[k + 1];
+      _pt.z += c.pos[k + 2];
+      n++;
+    }
+  _pt.multiplyScalar(1 / n);
+  // la camera segue il punto con calma (la seta si muove, la camera respira con lei)
+  if (!st.p) st.p = _pt.clone();
+  else st.p.lerp(_pt, 1 - Math.exp(-dt * 1.8));
+  out.target.copy(st.p);
+  out.pos.copy(st.p).addScaledVector(st.d, st.dist);
+  out.fov = st.fov;
+};
+const flyTo = (dest) => {
+  // dest: id di una voce, oppure null = ritorno all'inquadratura del menu
+  trip.A.pos.copy(camPos);
+  trip.A.target.copy(camTarget);
+  trip.A.fov = camera.fov;
+  trip.to = dest;
+  trip.mode = 'flying';
+  hold = true;
+  if (dest && STATIONS[dest]) STATIONS[dest].p = null;
+  trip.k = 0;
+  gsap.to(trip, {
+    k: 1,
+    duration: reduceMotion ? 0.01 : 2.3,
+    ease: 'sine.inOut',
+    overwrite: true,
+    onComplete: () => {
+      if (dest === null) {
+        trip.mode = 'menu';
+        hold = false;
+      } else trip.mode = 'station';
+    },
+  });
+};
+// posa della camera durante il volo o ferma in un luogo (chiamata nel ciclo)
+const flyPose = (dt) => {
+  if (trip.mode === 'menu') return false;
+  if (trip.to) stationPose(STATIONS[trip.to], dt, B);
+  else {
+    B.pos.copy(frame.pos);
+    B.target.copy(frame.target);
+    B.fov = camera.fov; // quella dell'inquadratura del menu
+  }
+  const e = trip.k;
+  const arc = Math.sin(Math.PI * e);
+  camPos.lerpVectors(trip.A.pos, B.pos, e);
+  camPos.y += 0.35 * arc; // sale, plana, scende
+  camPos.z += 0.45 * arc;
+  camTarget.lerpVectors(trip.A.target, B.target, e);
+  camera.fov = trip.A.fov + (B.fov - trip.A.fov) * e;
+  camera.updateProjectionMatrix();
+  return true;
 };
 
 const openSection = (id, { push = true } = {}) => {
@@ -303,40 +415,21 @@ const openSection = (id, { push = true } = {}) => {
     measureChi();
     measureChiScroll();
   });
-  // Chi sono: la seta fa una capriola attorno al titolo, poi si ritira.
-  // Le altre sezioni: la seta guida verso destra e si ritira.
-  const scenic = id === 'chi-sono' && !reduceMotion;
-  const retreat = scenic ? 2.7 : 0.5;
-  if (scenic) {
-    hold = true;
-    silk.capriola(3.0);
+  // la seta indica la via (un gesto e un soffio verso il luogo), la camera ci vola
+  const st = STATIONS[id];
+  if (!reduceMotion) {
+    silk.flick(0.6);
+    const side = Math.sign(st.u - 0.5) || 1;
     gsap.timeline({ overwrite: true })
-      .to(silk.wind.push, { z: 1.1, x: 0.5, duration: 1.0, ease: 'sine.out' })
-      .to(silk.wind.push, { z: 0, x: 0, duration: 1.6, ease: 'sine.inOut' });
-    gsap.delayedCall(2.8, () => (hold = false));
-  } else {
-    guide(silk.panX + GUIDE);
+      .to(silk.wind.push, { x: 1.0 * side, z: 0.5, duration: 0.6, ease: 'sine.out' })
+      .to(silk.wind.push, { x: 0, z: 0, duration: 1.4, ease: 'sine.inOut' });
   }
-  // poi la seta si ritira: il contenuto è il protagonista
-  if (id === 'chi-sono') {
-    // Chi sono: dopo la capriola la seta resta come sfondo a tutta pagina, chiara e leggera
-    gsap.to(sect, { v: 0, duration: 1, overwrite: true });
-    gsap.to(bg, { v: 1, duration: 2.6, delay: retreat, ease: 'sine.inOut', overwrite: true });
-    gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1.2, overwrite: true }); // del suo colore pieno
-  } else {
-    gsap.to(bg, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
-    gsap.to(sect, { v: 1, duration: 2.2, delay: retreat, ease: 'sine.inOut', overwrite: true });
-    gsap.to(silk.uniforms.uVeil, { value: 0.55, duration: 2.2, delay: retreat + 0.3, ease: 'sine.inOut', overwrite: true });
-  }
-  if (reduceMotion) {
-    gsap.set(menu, { opacity: 0 });
-    if (prev) prev.hidden = true;
-    gsap.fromTo(el, { opacity: 0, xPercent: 0 }, { opacity: 1, duration: 0.5 });
-    return;
-  }
-  gsap.to(menu, { x: -70, opacity: 0, duration: 0.8, ease: 'sine.in', overwrite: true });
-  if (prev) gsap.to(prev, { xPercent: -40, opacity: 0, duration: 0.9, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
-  gsap.fromTo(el, { xPercent: 100, opacity: 1 }, { xPercent: 0, duration: scenic ? 1.8 : 1.5, delay: scenic ? 0.5 : 0.3, ease: 'power3.out', overwrite: true });
+  flyTo(id);
+  gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1, overwrite: true });
+  gsap.to(menu, { opacity: 0, y: -16, duration: 0.6, ease: 'sine.in', overwrite: true });
+  if (prev) gsap.to(prev, { opacity: 0, y: -20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
+  // il contenuto appare quando si arriva
+  gsap.fromTo(el, { opacity: 0, y: 30, xPercent: 0 }, { opacity: 1, y: 0, duration: 1.0, delay: reduceMotion ? 0 : 1.5, ease: 'power3.out', overwrite: true });
 };
 
 const closeSection = () => {
@@ -346,19 +439,10 @@ const closeSection = () => {
   html.classList.remove('in-section');
   menu.inert = false;
   backBtn.hidden = true;
-  hold = false;
-  silk.move = null;
-  guide(0);
-  gsap.to(sect, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
-  gsap.to(bg, { v: 0, duration: 1.8, ease: 'sine.inOut', overwrite: true });
-  gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1.4, ease: 'sine.inOut', overwrite: true });
-  if (reduceMotion) {
-    el.hidden = true;
-    gsap.to(menu, { opacity: 1, duration: 0.5 });
-    return;
-  }
-  gsap.to(el, { xPercent: 100, duration: 1.1, ease: 'power2.in', overwrite: true, onComplete: () => (el.hidden = true) });
-  gsap.fromTo(menu, { x: 70 }, { x: 0, opacity: 1, duration: 1.3, delay: 0.45, ease: 'power3.out', overwrite: true });
+  if (!reduceMotion) silk.flick(0.5);
+  flyTo(null);
+  gsap.to(el, { opacity: 0, y: 20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (el.hidden = true) });
+  gsap.fromTo(menu, { y: 16 }, { y: 0, opacity: 1, duration: 1.0, delay: reduceMotion ? 0 : 1.6, ease: 'power3.out', overwrite: true });
 };
 
 document.querySelectorAll('[data-section]').forEach((a) =>
@@ -502,7 +586,7 @@ addEventListener('resize', () => !chi.hidden && measureChi());
 const startHash = location.hash.slice(1);
 if (pages.has(startHash)) {
   history.replaceState({}, '', location.pathname + location.search);
-  scrollTo(0, innerHeight);
+  scrollTo(0, innerHeight * 2.3);
   setTimeout(() => openSection(startHash), 400);
 }
 
@@ -524,7 +608,19 @@ const loop = () => {
   const time = clock.elapsedTime;
 
   silk.update(reduceMotion ? dt * 0.35 : dt);
-  page.p = intro.progress();
+  page.p = Math.min(1, intro.time() / 1.0); // la seta va in alto già quando si forma LS
+  // cosa è visibile lo decide il tempo reale dell'animazione (che segue lo scroll con morbidezza)
+  {
+    const t = intro.time();
+    const vis = (el, on) => {
+      const v = on ? 'visible' : 'hidden';
+      if (el.style.visibility !== v) el.style.visibility = v;
+    };
+    vis(menu, t > 2.12);
+    vis(manifesto, t > 0.95 && t < 2.35);
+    vis(mono, t > 0.9);
+    vis(social, t > 0.55);
+  }
   breath.target *= Math.exp(-dt * 1.6);
   silk.wind.breath += (breath.target - silk.wind.breath) * (1 - Math.exp(-dt * 2.5));
   page.shown += (page.p - page.shown) * (1 - Math.exp(-dt * 6));
@@ -542,9 +638,12 @@ const loop = () => {
 
   // camera smorzata con un piccolissimo respiro
   const drift = reduceMotion ? 0 : 1;
-  // la morbidezza la dà già il controllo dell'inquadratura: qui nessun secondo ritardo
-  camPos.copy(frame.pos);
-  camTarget.copy(frame.target);
+  // la morbidezza la dà già il controllo dell'inquadratura: qui nessun secondo ritardo;
+  // durante un volo (o fermi in un luogo della seta) comanda il volo
+  if (!flyPose(dt)) {
+    camPos.copy(frame.pos);
+    camTarget.copy(frame.target);
+  }
   camera.position.set(
     camPos.x + Math.sin(time * 0.21) * 0.03 * drift,
     camPos.y + Math.sin(time * 0.17 + 1.3) * 0.02 * drift,
@@ -579,4 +678,4 @@ const loop = () => {
 };
 requestAnimationFrame(loop);
 
-window.__velata = { silk, camera, renderer, cam, page, gsap };
+window.__velata = { silk, camera, renderer, cam, page, gsap, trip };

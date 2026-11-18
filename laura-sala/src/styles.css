@@ -137,6 +137,12 @@ body {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
   z-index: 3;
   transform: translateX(-50%);
+}
+/* anche sotto la frase sulla chirurgia: dopo c'è il menu */
+.hint-inline {
+  margin-top: 1.4em;
+}
+.hint {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -151,14 +157,14 @@ body {
 .scroll-hint > * {
   animation: hint-in 1.2s 1.2s both ease-out;
 }
-.scroll-hint i {
+.hint i {
   position: relative;
   width: 1px;
   height: 34px;
   overflow: hidden;
   background: rgba(31, 26, 23, 0.14);
 }
-.scroll-hint i::after {
+.hint i::after {
   content: '';
   position: absolute;
   left: 0;
@@ -175,6 +181,34 @@ body {
 @keyframes hint-drop {
   0% { top: -40%; }
   70%, 100% { top: 100%; }
+}
+
+/* la frase sulla chirurgia: dopo il monogramma, prima del menu */
+.manifesto {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 36vh;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1.1em;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6vh);
+  padding-left: max(26px, env(safe-area-inset-left, 0px));
+  padding-right: max(26px, env(safe-area-inset-right, 0px));
+  text-align: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+.manifesto p {
+  margin: 0;
+  max-width: 28ch;
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 /* seconda "pagina": il menu al centro, Prenota nella zona del pollice */
@@ -246,7 +280,7 @@ body {
 }
 
 .scroll-space {
-  height: 200vh;
+  height: 330vh;
 }
 
 /* ---------- sezioni: entrano da destra, sotto la fascia di seta ---------- */
@@ -683,6 +717,49 @@ body {
   margin-top: 16px;
 }
 /* dentro una sezione la pagina non scorre (si scorre la sezione) */
+/* sezioni in lavorazione: grande, centrato, direttamente sulla seta (niente fasce bianche) */
+.page-wip .wip {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 max(24px, env(safe-area-inset-left, 0px)) 14vh;
+}
+.wip-kicker {
+  margin: 0;
+  font: 600 0.72rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.wip-title {
+  margin: 20px 0 16px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(2.9rem, 14vw, 6rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.wip-studio {
+  margin: 0;
+  font: 600 clamp(0.95rem, 4.4vw, 1.3rem)/1.2 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.page .wip-note {
+  margin: 26px 0 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
 html.in-section,
 html.in-section body {
   overflow: hidden;
@@ -722,7 +799,7 @@ html.in-section body {
     cursor: default;
   }
   .scroll-hint > *,
-  .scroll-hint i::after {
+  .hint i::after {
     animation: none;
   }
 }

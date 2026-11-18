@@ -5,7 +5,7 @@
 export const createWind = () => {
   const wind = {
     speed: 1.35, // m/s di base: una brezza decisa
-    dir: [0.3, 0.1, 0.92], // da dietro-sinistra: gonfia il telo come una vela
+    dir: [0.42, 0.1, 0.9], // da dietro-sinistra: gonfia il fazzoletto come una vela
     turbulence: 0.32, // poca turbolenza: la seta si muove sicura, non tremola
     gust: 0, // raffica attiva (0..1), animata da fuori
     push: { x: 0, y: 0, z: 0 }, // vento aggiuntivo (m/s), per i passaggi tra le sezioni
