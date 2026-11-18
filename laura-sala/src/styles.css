@@ -9,6 +9,7 @@
   --gold: #b39260;
   --serif: 'Bodoni Moda', 'Bodoni 72', 'Didot', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --wide: 'Archivo', 'Helvetica Neue', Arial, sans-serif; /* menu: largo, maiuscolo, deciso */
   --head-h: 64px;
   color-scheme: light;
 }
@@ -55,33 +56,36 @@ body {
   pointer-events: auto;
 }
 
-/* monogramma provvisorio (in attesa del file ufficiale) */
+/* monogramma: la L di Laura e la S di Sala, al centro della barra. Le lettere visibili
+   sono quelle del nome che volano qui; questo link dà solo il punto d'arrivo e il clic. */
 .mono {
+  position: absolute;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + var(--head-h) / 2);
+  transform: translate(-50%, -50%);
   display: inline-flex;
-  align-items: baseline;
   text-decoration: none;
-  color: var(--ink);
+  color: transparent;
   font-family: var(--serif);
-  font-style: italic;
-  font-weight: 500;
-  font-size: 1.7rem;
+  font-weight: 600;
+  font-size: 2.1rem;
   line-height: 1;
-  padding: 6px 4px;
-}
-.mono-s {
-  margin-left: -0.14em;
-  transform: translateY(0.12em);
-}
-.mono {
-  /* il monogramma si forma solo quando si entra nel menu */
+  letter-spacing: -0.06em;
+  padding: 6px 8px;
   visibility: hidden;
-}
-.mono > span {
-  display: inline-block;
 }
 .mono:focus-visible {
   outline: 1px solid var(--gold);
   outline-offset: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* il nome: al centro, sull'avorio sotto la seta */
@@ -105,12 +109,14 @@ body {
   font-size: clamp(2.5rem, 11vw, 4.6rem);
   line-height: 0.96;
   letter-spacing: -0.02em;
-  transform-origin: 50% 50%;
-  will-change: transform;
 }
-.hero-name em {
+.hero-name .nl {
   display: block;
-  font-style: normal;
+}
+.hero-name .keep,
+.hero-name .fade {
+  display: inline-block;
+  transform-origin: 50% 50%;
 }
 .hero-role {
   margin: 14px auto 0;
@@ -190,9 +196,9 @@ body {
   margin: 0 0 auto;
   padding: 0;
   /* le voci occupano la fascia libera sotto la seta */
-  margin-top: 37vh;
+  margin-top: 38vh;
   display: grid;
-  gap: clamp(4px, 1.1vh, 12px);
+  gap: clamp(8px, 1.7vh, 16px);
   text-align: center;
 }
 .menu a {
@@ -201,17 +207,17 @@ body {
   text-decoration: none;
 }
 .menu li a {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(1.45rem, 6.3vw, 2.3rem);
-  line-height: 1.1;
-  letter-spacing: -0.015em;
+  font-family: var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  font-weight: 600;
+  font-size: clamp(0.88rem, 4vw, 1.35rem);
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
   display: inline-block;
-  padding: 4px 10px;
-}
-.menu li a:hover,
-.menu li a:focus-visible {
-  font-style: italic;
+  padding: 6px 8px;
 }
 .menu-cta {
   font-family: var(--sans);
@@ -242,7 +248,220 @@ body {
   height: 200vh;
 }
 
+/* ---------- sezioni: entrano da destra, sotto la fascia di seta ---------- */
+.back-btn {
+  /* tre linee sottili: riportano sempre al menu */
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right, 0px));
+  top: calc(env(safe-area-inset-top, 0px) + var(--head-h) / 2);
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  align-content: center;
+  justify-items: end;
+  gap: 6px;
+  padding: 0 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.back-btn[hidden] {
+  display: none;
+}
+.back-btn i {
+  display: block;
+  height: 1px;
+  background: var(--ink);
+}
+.back-btn i:nth-child(1) { width: 22px; }
+.back-btn i:nth-child(2) { width: 16px; }
+.back-btn i:nth-child(3) { width: 22px; }
+.back-btn:focus-visible {
+  outline: 1px solid var(--gold);
+}
+.page {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 35vh;
+  bottom: 0;
+  z-index: 4;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* il testo che scorre sfuma prima di arrivare alla seta (niente testo sopra la tela) */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 34px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 34px);
+}
+.page-inner {
+  max-width: 620px;
+  margin: 0 auto;
+  padding-top: 26px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 48px);
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  text-align: center;
+}
+.page-kicker {
+  margin: 0;
+  font: 600 0.72rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.page h2 {
+  margin: 12px 0 26px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(2.3rem, 10.5vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.page p {
+  margin: 0 auto 1.1em;
+  max-width: 60ch;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink);
+  text-align: left;
+}
+.page .lead {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 5.2vw, 1.6rem);
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+}
+.page .soon {
+  margin: 30px 0 40px;
+  text-align: center;
+  font: 600 0.74rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.portrait {
+  width: min(100%, 300px);
+  aspect-ratio: 4 / 5;
+  max-width: 100%;
+  margin: 0 auto 30px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #f6dccb, var(--silk) 55%, #e7c2aa);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+.facts {
+  margin: 30px auto 34px;
+  display: grid;
+  gap: 0;
+  text-align: left;
+  border-top: 1px solid var(--gold);
+}
+.facts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(179, 146, 96, 0.45);
+}
+.facts dt {
+  font: 600 0.68rem/1.5 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.facts dd {
+  margin: 0;
+  font-size: 0.98rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.facts a {
+  color: var(--ink);
+}
+.groups {
+  display: grid;
+  gap: 30px;
+  margin: 0 0 36px;
+  text-align: left;
+}
+.group h3 {
+  margin: 0 0 8px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.1;
+}
+.group p {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+.group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.group li {
+  font: 600 0.68rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 9px 12px;
+  border: 1px solid rgba(31, 26, 23, 0.18);
+  border-radius: 999px;
+}
+.page-cta {
+  display: inline-block;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--ivory);
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 18px 30px;
+  width: min(100%, 340px);
+  box-sizing: border-box;
+}
+.page-cta:focus-visible,
+.page a:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 4px;
+}
+.page .demo-note {
+  text-align: center;
+  margin-top: 16px;
+}
+/* dentro una sezione la pagina non scorre (si scorre la sezione) */
+html.in-section,
+html.in-section body {
+  overflow: hidden;
+}
+
 @media (min-aspect-ratio: 1/1) {
+  .page {
+    top: 30vh;
+  }
+  .groups {
+    grid-template-columns: 1fr 1fr;
+  }
   .hero {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh + 64px);
   }

@@ -11,36 +11,111 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Manrope:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Manrope:wght@400;500;600&display=swap"
     />
   </head>
   <body>
     <canvas id="scene" aria-hidden="true"></canvas>
 
     <header class="site-head">
-      <a class="mono" href="#" aria-label="Torna all'inizio">
-        <span class="mono-l">L</span><span class="mono-s">S</span>
+      <button class="back-btn" type="button" aria-label="Torna al menu" hidden><i></i><i></i><i></i></button>
+      <!-- il monogramma: qui arrivano la L di Laura e la S di Sala (questo link è solo il punto d'arrivo) -->
+      <a class="mono" href="#" aria-label="Dott.ssa Laura Sala, torna all'inizio" tabindex="-1">
+        <span class="m-l">L</span><span class="m-s">S</span>
       </a>
     </header>
 
     <main>
       <div class="hero">
-        <h1 class="hero-name">Dott.ssa <em>Laura Sala</em></h1>
+        <h1 class="hero-name">
+          <span class="sr-only">Dott.ssa Laura Sala</span>
+          <span class="nl" aria-hidden="true"><span class="fade">Dott.ssa</span></span>
+          <span class="nl" aria-hidden="true"><span class="keep k-l">L</span><span class="fade">aura</span> <span class="keep k-s">S</span><span class="fade">ala</span></span>
+        </h1>
         <p class="hero-role">Chirurgo plastico, ricostruttivo ed estetico</p>
       </div>
       <div class="scroll-hint" aria-hidden="true"><span>Scorri</span><i></i></div>
+
       <nav class="menu" aria-label="Sezioni del sito">
         <ul>
-          <li><a href="#chi-sono">Chi sono</a></li>
-          <li><a href="#chirurgia-ricostruttiva">Chirurgia ricostruttiva</a></li>
-          <li><a href="#chirurgia-estetica">Chirurgia estetica</a></li>
-          <li><a href="#medicina-estetica">Medicina estetica</a></li>
-          <li><a href="#medicina-rigenerativa">Medicina rigenerativa</a></li>
-          <li><a href="#sedi">Sedi e contatti</a></li>
+          <li><a href="#chi-sono" data-section="chi-sono">Chi sono</a></li>
+          <li><a href="#chirurgia-ricostruttiva" data-section="chirurgia-ricostruttiva">Chirurgia ricostruttiva</a></li>
+          <li><a href="#chirurgia-estetica" data-section="chirurgia-estetica">Chirurgia estetica</a></li>
+          <li><a href="#medicina-estetica" data-section="medicina-estetica">Medicina estetica</a></li>
+          <li><a href="#medicina-rigenerativa" data-section="medicina-rigenerativa">Medicina rigenerativa</a></li>
+          <li><a href="#sedi" data-section="sedi">Sedi e contatti</a></li>
         </ul>
-        <a class="menu-cta" href="#prenota">Prenota una visita</a>
+        <a class="menu-cta" href="#sedi" data-section="sedi">Prenota una visita</a>
         <p class="demo-note">Demo di Alessia Studio · non è il sito ufficiale</p>
       </nav>
+
+      <!-- Sezioni: entrano da destra, guidate dalla seta -->
+      <section class="page" id="chi-sono" aria-labelledby="t-chi-sono" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Chi sono</p>
+          <h2 id="t-chi-sono">Dott.ssa Laura Sala</h2>
+          <div class="portrait" role="img" aria-label="Ritratto della Dott.ssa Laura Sala (immagine da inserire)">
+            <span>[Ritratto]</span>
+          </div>
+          <p class="lead">
+            La Chirurgia Plastica è una disciplina che permette di migliorare l'armonia con se stessi,
+            valorizzando aspetti del proprio viso e del proprio corpo e ripristinare un equilibrio perso
+            dopo interventi, traumi o patologie.
+          </p>
+          <p>
+            Troppo spesso la nostra disciplina è associata a qualcosa di artefatto e che possa potenzialmente
+            alterare negativamente l'aspetto fisico della persona. Grazie ad un approccio personalizzato, è
+            possibile raggiungere risultati naturali e armoniosi.
+          </p>
+          <dl class="facts">
+            <div><dt>Formazione</dt><dd>[formazione]</dd></div>
+            <div><dt>Esperienza</dt><dd>[esperienza]</dd></div>
+            <div><dt>Iscrizione all'Ordine</dt><dd>[iscrizione Ordine]</dd></div>
+          </dl>
+          <a class="page-cta" href="#sedi" data-section="sedi">Prenota una visita</a>
+        </div>
+      </section>
+
+      <section class="page" id="chirurgia-ricostruttiva" aria-labelledby="t-ricostruttiva" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Chirurgia</p>
+          <h2 id="t-ricostruttiva">Ricostruttiva</h2>
+          <p class="soon">Work in progress</p>
+        </div>
+      </section>
+
+      <section class="page" id="chirurgia-estetica" aria-labelledby="t-estetica" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Chirurgia</p>
+          <h2 id="t-estetica">Estetica</h2>
+          <p class="soon">Work in progress</p>
+        </div>
+      </section>
+
+      <section class="page" id="medicina-estetica" aria-labelledby="t-med-estetica" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Medicina</p>
+          <h2 id="t-med-estetica">Estetica</h2>
+          <p class="soon">Work in progress</p>
+        </div>
+      </section>
+
+      <section class="page" id="medicina-rigenerativa" aria-labelledby="t-rigenerativa" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Medicina</p>
+          <h2 id="t-rigenerativa">Rigenerativa</h2>
+          <p class="soon">Work in progress</p>
+        </div>
+      </section>
+
+      <section class="page" id="sedi" aria-labelledby="t-sedi" hidden>
+        <div class="page-inner">
+          <p class="page-kicker">Sedi e contatti</p>
+          <h2 id="t-sedi">Prenota una visita</h2>
+          <p class="soon">Work in progress</p>
+        </div>
+      </section>
+
       <div class="scroll-space" aria-hidden="true"></div>
     </main>
 

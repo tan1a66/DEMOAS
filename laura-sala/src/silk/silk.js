@@ -35,6 +35,7 @@ export class Silk {
     this.gesture = null;
     this.nextGesture = 7;
     this.grabbed = null;
+    this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
 
     // texture della simulazione (posizioni + cavità), bordo di punti fantasma incluso
     const tw = this.nx + 2, th = this.ny + 2;
@@ -111,7 +112,7 @@ export class Silk {
 
   /** Presa sinistra (-1) o destra (+1): vicine, appena sfalsate, con il gesto del polso. */
   _anchor(s, t) {
-    let x = s * 0.31 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
+    let x = this.panX + s * 0.31 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
     let y = (s < 0 ? 1.32 : 1.2) + 0.035 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
     let z = (s < 0 ? -0.04 : 0.05) + 0.04 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
     const g = this.gesture;

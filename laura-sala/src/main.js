@@ -29,75 +29,66 @@ const silk = new Silk({ quality });
 scene.add(silk.mesh);
 
 // ---------- inquadratura ----------
-// Telefono: in alto il drappeggio (un filo d'avorio sopra), i lati fuori dallo schermo,
-// l'orlo che ondeggia sopra il nome. Desktop: la seta attraversa lo schermo come una fascia,
-// bordo alto e lati fuori, l'orlo sopra il nome. La camera segue con molta calma.
+// La seta si misura direttamente sullo schermo a ogni fotogramma: la camera la tiene in alto
+// con l'orlo a una quota fissa (60% sotto il nome nella prima pagina, ~31% nel menu e nelle
+// sezioni), così la parte alta è sempre piena di seta e il testo resta sull'avorio.
+// In orizzontale la camera segue la seta: quando la seta guida verso destra, le va dietro.
 const frame = { pos: new THREE.Vector3(), target: new THREE.Vector3() };
-const follow = { rimY: 0.9, hemY: -0.2, hemLow: -0.3, cx: 0, ready: false };
-const page = { p: 0, shown: 0 }; // 0 = nome, 1 = menu
-const measureSilk = (dt) => {
-  const c = silk.cloth;
-  let ry = 0, hy = 0, n = 0, sx = 0, sn = 0, low = Infinity;
-  for (let i = Math.round(c.nx * 0.3); i < Math.round(c.nx * 0.7); i++) {
-    ry += c.pos[i * 3 + 1];
-    hy += c.pos[((c.ny - 1) * c.nx + i) * 3 + 1];
-    n++;
-  }
-  // il punto più basso della seta nella parte inquadrata (orlo e angoli che scendono)
-  for (let j = Math.round(c.ny * 0.6); j < c.ny; j++)
-    for (let i = Math.round(c.nx * 0.25); i < c.nx * 0.75; i += 2) low = Math.min(low, c.pos[(j * c.nx + i) * 3 + 1]);
-  for (let j = 0; j < c.ny; j += 2)
-    for (let i = Math.round(c.nx * 0.2); i < c.nx * 0.8; i += 2) {
-      sx += c.pos[(j * c.nx + i) * 3];
-      sn++;
-    }
-  const k = follow.ready ? 1 - Math.exp(-dt / 2.8) : 1;
-  follow.rimY += (ry / n - follow.rimY) * k;
-  follow.hemY += (hy / n - follow.hemY) * k;
-  const kl = follow.ready ? 1 - Math.exp(-dt / (low < follow.hemLow ? 0.6 : 2.5)) : 1;
-  follow.hemLow += (low - follow.hemLow) * kl;
-  follow.cx += (sx / sn - follow.cx) * k;
-  follow.ready = true;
+const cam = { x: 0, y: -0.6 }; // punto inquadrato (mondo)
+let guiding = false;
+const page = { p: 0, shown: 0 }; // 0 = nome, 1 = menu / sezioni
+const DIST = 6.1;
+const viewSize = () => {
+  const aspect = innerWidth / innerHeight;
+  // telefono: la seta riempie la larghezza; desktop: una fascia ampia al centro
+  const visH = aspect < 0.85 ? 0.8 / aspect : 1.75;
+  return { visH, visW: visH * aspect, portrait: aspect < 0.85 };
 };
-
-// Limite sullo schermo: il punto più basso della seta (proiettato, quindi anche quando si
-// gonfia verso la camera) non scende oltre questa frazione dell'altezza.
-const hemLimit = () => {
-  const portrait = innerWidth / innerHeight < 0.85;
-  const pg = page.shown;
-  return portrait ? 0.58 - 0.29 * pg : 0.56 - 0.3 * pg;
+const hemTarget = () => {
+  const { portrait } = viewSize();
+  return portrait ? 0.6 - 0.29 * page.shown : 0.56 - 0.29 * page.shown;
 };
-const guard = { off: 0 };
 const _v = new THREE.Vector3();
-const screenGuard = (dt) => {
+const hemYs = [];
+const screenFrame = (dt) => {
   const c = silk.cloth;
-  let lowest = 2;
-  for (let j = Math.round(c.ny * 0.45); j < c.ny; j++)
+  const { visH, visW } = viewSize();
+  // orlo (ultime righe) e punto più basso tra quelli in vista
+  hemYs.length = 0;
+  let lowest = 2, sx = 0, sn = 0;
+  for (let j = 0; j < c.ny; j += 2)
     for (let i = 0; i < c.nx; i += 2) {
       const k = (j * c.nx + i) * 3;
       _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
-      if (_v.x > -1.02 && _v.x < 1.02 && _v.y < lowest) lowest = _v.y;
+      sx += _v.x;
+      sn++;
+      const inView = _v.x > -1 && _v.x < 1;
+      if (!inView) continue;
+      if (j >= c.ny - 3) hemYs.push(_v.y);
+      if (_v.y < lowest) lowest = _v.y;
     }
-  const yLimit = 1 - 2 * hemLimit();
-  const visH = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.distanceTo(camTarget);
-  const err = (lowest - yLimit) * (visH / 2); // < 0: la seta scende troppo
-  if (err < 0) guard.off += err * Math.min(1, dt * 5.0);
-  else guard.off += Math.min(err, -guard.off) * Math.min(1, dt * 0.35); // rilascio lento
+  // orizzontale: il centro della seta verso il centro dello schermo
+  const cx = sx / sn;
+  cam.x += cx * (visW / 2) * Math.min(1, dt * (guiding ? 1.8 : 0.5));
+  // verticale: l'orlo "tipico" (un quarto dei punti più in basso può scendere di più)
+  const yT = 1 - 2 * hemTarget();
+  if (hemYs.length) {
+    hemYs.sort((a, b) => a - b);
+    const hem = hemYs[Math.floor(hemYs.length * 0.25)];
+    cam.y += (hem - yT) * (visH / 2) * Math.min(1, dt * 2.4);
+  }
+  // sicurezza: niente seta sul testo (una piega può scendere al massimo di un 3,5% in più)
+  const yLimit = yT - 0.07;
+  if (lowest < yLimit) cam.y += (lowest - yLimit) * (visH / 2) * Math.min(1, dt * 8);
 };
 
 const computeFrame = () => {
+  const { visW } = viewSize();
   const aspect = innerWidth / innerHeight;
-  const dist = 6.1;
-  // telefono: la tenda riempie la larghezza; desktop: una colonna di seta al centro
-  const visH = aspect < 0.85 ? 0.8 / aspect : 1.75;
-  const visW = visH * aspect;
-  // il bordo alto resta fuori quadro; l'orlo sopra il nome (poi interviene il limite sullo schermo)
-  const topY = follow.hemLow + visH * (aspect < 0.85 ? 0.6 : 0.56);
-  const tanV = visW / aspect / 2 / dist;
+  const tanV = visW / aspect / 2 / DIST;
   camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(tanV));
-  const cy = topY - dist * tanV + guard.off;
-  frame.target.set(follow.cx * 0.9, cy, 0.2);
-  frame.pos.set(follow.cx * 0.9 + 0.75, cy + 0.15, dist);
+  frame.target.set(cam.x, cam.y, 0.2);
+  frame.pos.set(cam.x + 0.75, cam.y + 0.15, DIST);
   camera.updateProjectionMatrix();
 };
 
@@ -113,7 +104,6 @@ const resize = () => {
   computeFrame();
 };
 addEventListener('resize', resize);
-measureSilk(0);
 resize();
 const camPos = frame.pos.clone();
 const camTarget = frame.target.clone();
@@ -188,7 +178,6 @@ canvas.addEventListener('pointerup', endTouch);
 canvas.addEventListener('pointercancel', endTouch);
 
 // ---------- scroll come cambio pagina: il nome sale nella barra, compare il menu ----------
-const head = document.querySelector('.site-head');
 const nameEl = document.querySelector('.hero-name');
 const roleEl = document.querySelector('.hero-role');
 const menu = document.querySelector('.menu');
@@ -196,23 +185,42 @@ const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
 const hint = document.querySelector('.scroll-hint');
 const mono = document.querySelector('.mono');
-const monoL = mono.querySelector('.mono-l');
-const monoS = mono.querySelector('.mono-s');
-const headCenterY = () => {
-  const r = head.getBoundingClientRect();
-  return r.bottom - parseFloat(getComputedStyle(head).height) / 2;
+const keepL = nameEl.querySelector('.k-l');
+const keepS = nameEl.querySelector('.k-s');
+const fades = nameEl.querySelectorAll('.fade');
+const targetL = mono.querySelector('.m-l');
+const targetS = mono.querySelector('.m-s');
+
+// Il nome si trasforma nel monogramma: le altre lettere svaniscono, la L e la S volano al
+// centro della barra. Le posizioni si misurano a riposo (e a ogni ridimensionamento).
+const geo = {};
+const centerOf = (el) => {
+  const b = el.getBoundingClientRect();
+  return { x: b.left + b.width / 2, y: b.top + b.height / 2, fs: parseFloat(getComputedStyle(el).fontSize) };
 };
-const nameRestCenterY = () => {
-  const r = nameEl.getBoundingClientRect();
-  return r.top + r.height / 2 - gsap.getProperty(nameEl, 'y');
+const measureName = () => {
+  const p = intro ? intro.progress() : 0;
+  if (intro) intro.progress(0);
+  geo.L0 = centerOf(keepL);
+  geo.S0 = centerOf(keepS);
+  geo.L1 = centerOf(targetL);
+  geo.S1 = centerOf(targetS);
+  if (intro) {
+    intro.invalidate();
+    intro.progress(p);
+  }
 };
-const nameScale = () => 17 / parseFloat(getComputedStyle(nameEl).fontSize);
+let intro = null;
+measureName();
+const fly = (from, to) => ({
+  x: () => geo[to].x - geo[from].x,
+  y: () => geo[to].y - geo[from].y,
+  scale: () => geo[to].fs / geo[from].fs,
+});
 
 gsap.set(menuItems, { opacity: 0, y: 22 });
-gsap.set(monoL, { opacity: 0, x: -14 });
-gsap.set(monoS, { opacity: 0, x: 14, y: '0.12em' });
 gsap.set(menuCta, { opacity: 0, y: 16 });
-const intro = gsap.timeline({
+intro = gsap.timeline({
   defaults: { ease: 'sine.inOut' },
   scrollTrigger: {
     start: 0,
@@ -220,9 +228,10 @@ const intro = gsap.timeline({
     // tutto segue lo scroll (nessuno scatto automatico); solo un filo di morbidezza
     scrub: reduceMotion ? true : 0.6,
     invalidateOnRefresh: true,
+    onRefresh: () => measureName(),
     onUpdate: (st) => {
       menu.style.visibility = st.progress > 0.02 ? 'visible' : 'hidden';
-      mono.style.visibility = st.progress > 0.6 ? 'visible' : 'hidden';
+      mono.style.visibility = st.progress > 0.9 ? 'visible' : 'hidden';
       if (st.progress > 0.1 && !intro._flicked) {
         intro._flicked = true;
         silk.flick(0.5);
@@ -232,18 +241,100 @@ const intro = gsap.timeline({
   },
 });
 intro
-  .to(nameEl, { y: () => headCenterY() - nameRestCenterY(), scale: nameScale, duration: 1 }, 0)
   .to(hint, { opacity: 0, duration: 0.12, ease: 'none' }, 0)
   .to(roleEl, { opacity: 0, y: -14, duration: 0.3, ease: 'sine.out' }, 0)
-  .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 0.4)
-  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6)
-  // LS si forma a lato: le due lettere arrivano da direzioni opposte e si uniscono
-  .to([monoL, monoS], { opacity: 1, x: 0, duration: 0.35, ease: 'sine.out' }, 0.65);
+  // le lettere che non restano svaniscono salendo appena
+  .to(fades, { opacity: 0, y: -10, duration: 0.38, ease: 'sine.out', stagger: 0.02 }, 0.02)
+  // la L e la S salgono, si avvicinano e diventano il monogramma
+  .to(keepL, { ...fly('L0', 'L1'), duration: 0.85 }, 0.08)
+  .to(keepS, { ...fly('S0', 'S1'), duration: 0.85 }, 0.11)
+  .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 0.42)
+  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6);
 
-document.querySelector('.mono').addEventListener('click', (e) => {
+document.fonts?.ready.then(() => ScrollTrigger.refresh());
+
+// ---------- sezioni: la seta guida verso destra ----------
+// Si sceglie una voce: un colpo di vento porta la seta a destra, la camera la segue con
+// un attimo di ritardo, il menu scivola via e la sezione entra da destra. Indietro (anche
+// con il gesto del browser) la seta riporta tutto a sinistra.
+const html = document.documentElement;
+const backBtn = document.querySelector('.back-btn');
+const pages = new Map([...document.querySelectorAll('.page')].map((el) => [el.id, el]));
+const GUIDE = 1.35; // metri percorsi dalla seta a ogni passaggio
+let current = null;
+
+const guide = (toX) => {
+  if (reduceMotion) return;
+  const dir = Math.sign(toX - silk.panX) || 1;
+  guiding = true;
+  gsap.to(silk, { panX: toX, duration: 1.7, ease: 'sine.inOut', overwrite: true, onComplete: () => gsap.delayedCall(1.6, () => (guiding = false)) });
+  gsap.timeline({ overwrite: true })
+    .to(silk.wind.push, { x: 1.9 * dir, z: 0.4, duration: 0.7, ease: 'sine.out' })
+    .to(silk.wind.push, { x: 0, z: 0, duration: 1.4, ease: 'sine.inOut' });
+};
+
+const openSection = (id, { push = true } = {}) => {
+  const el = pages.get(id);
+  if (!el || current === id) return;
+  const prev = current ? pages.get(current) : null;
+  current = id;
+  if (push) history.pushState({ s: id }, '', '#' + id);
+  html.classList.add('in-section');
+  menu.inert = true;
+  backBtn.hidden = false;
+  el.hidden = false;
+  el.scrollTop = 0;
+  guide(silk.panX + GUIDE);
+  if (reduceMotion) {
+    gsap.set(menu, { opacity: 0 });
+    if (prev) prev.hidden = true;
+    gsap.fromTo(el, { opacity: 0, xPercent: 0 }, { opacity: 1, duration: 0.5 });
+    return;
+  }
+  gsap.to(menu, { x: -70, opacity: 0, duration: 0.8, ease: 'sine.in', overwrite: true });
+  if (prev) gsap.to(prev, { xPercent: -40, opacity: 0, duration: 0.9, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
+  gsap.fromTo(el, { xPercent: 100, opacity: 1 }, { xPercent: 0, duration: 1.5, delay: 0.3, ease: 'power3.out', overwrite: true });
+};
+
+const closeSection = () => {
+  if (!current) return;
+  const el = pages.get(current);
+  current = null;
+  html.classList.remove('in-section');
+  menu.inert = false;
+  backBtn.hidden = true;
+  guide(0);
+  if (reduceMotion) {
+    el.hidden = true;
+    gsap.to(menu, { opacity: 1, duration: 0.5 });
+    return;
+  }
+  gsap.to(el, { xPercent: 100, duration: 1.1, ease: 'power2.in', overwrite: true, onComplete: () => (el.hidden = true) });
+  gsap.fromTo(menu, { x: 70 }, { x: 0, opacity: 1, duration: 1.3, delay: 0.45, ease: 'power3.out', overwrite: true });
+};
+
+document.querySelectorAll('[data-section]').forEach((a) =>
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSection(a.dataset.section);
+  }),
+);
+backBtn.addEventListener('click', () => (history.state?.s ? history.back() : closeSection()));
+addEventListener('popstate', (e) => (e.state?.s ? openSection(e.state.s, { push: false }) : closeSection()));
+
+mono.addEventListener('click', (e) => {
   e.preventDefault();
-  scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  if (current) history.state?.s ? history.back() : closeSection();
+  else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
 });
+
+// link diretto a una sezione (#chi-sono…): si parte dal menu e si entra
+const startHash = location.hash.slice(1);
+if (pages.has(startHash)) {
+  history.replaceState({}, '', location.pathname + location.search);
+  scrollTo(0, innerHeight);
+  setTimeout(() => openSection(startHash), 400);
+}
 
 // ---------- misura (solo con ?debug) ----------
 const fpsEl = document.getElementById('fps');
@@ -263,10 +354,9 @@ const loop = () => {
   const time = clock.elapsedTime;
 
   silk.update(reduceMotion ? dt * 0.35 : dt);
-  measureSilk(dt);
   page.p = intro.progress();
   page.shown += (page.p - page.shown) * (1 - Math.exp(-dt * 6));
-  screenGuard(dt);
+  screenFrame(dt);
   computeFrame();
 
   const kL = 1 - Math.exp(-dt * 2.5);
@@ -279,10 +369,10 @@ const loop = () => {
   silk.uniforms.uStudio.value.setFromMatrix4(studioM);
 
   // camera smorzata con un piccolissimo respiro
-  const kC = 1 - Math.exp(-dt * 2.2);
   const drift = reduceMotion ? 0 : 1;
-  camPos.lerp(frame.pos, kC);
-  camTarget.lerp(frame.target, kC);
+  // la morbidezza la dà già il controllo dell'inquadratura: qui nessun secondo ritardo
+  camPos.copy(frame.pos);
+  camTarget.copy(frame.target);
   camera.position.set(
     camPos.x + Math.sin(time * 0.21) * 0.03 * drift,
     camPos.y + Math.sin(time * 0.17 + 1.3) * 0.02 * drift,
@@ -317,4 +407,4 @@ const loop = () => {
 };
 requestAnimationFrame(loop);
 
-window.__velata = { silk, camera, renderer, guard, page, follow };
+window.__velata = { silk, camera, renderer, cam, page };
