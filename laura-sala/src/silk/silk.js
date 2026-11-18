@@ -67,7 +67,7 @@ export class Silk {
       uDetail: { value: 1 },
       uVeil: { value: 0 },
       uTime: { value: 0 },
-      uRipple: { value: 0.0008 },
+      uRipple: { value: 0.0003 },
       uStudio: { value: new THREE.Matrix3() },
     };
     this.material = new THREE.ShaderMaterial({
@@ -80,15 +80,31 @@ export class Silk {
     this.mesh.frustumCulled = false;
 
     this._hang();
-    this.prewarm(2.0);
-    // memoria della forma: il drappeggio naturale, mediato sull'ultimo secondo di assestamento
-    const acc = new Float32Array(this.cloth.pos.length);
+    // Memoria della forma: prima la seta si assesta solo con il peso e una brezza costante
+    // (niente raffiche né turbolenza, molto smorzata), poi si memorizza la media dell'ultimo
+    // secondo. Così il riferimento è un drappeggio pulito, senza pieghe casuali.
+    const w = this.wind, cl = this.cloth;
+    const saved = { turbulence: w.turbulence, speed: w.speed, damping: cl.damping, memK: this.memK, memKGlobal: this.memKGlobal };
+    w.turbulence = 0;
+    w.speed = saved.speed * 0.55;
+    cl.damping = 2.5;
+    this.memK = 0;
+    this.memKGlobal = 0;
+    this.nextGesture = Infinity;
+    this.prewarm(3.0);
+    const acc = new Float32Array(cl.pos.length);
     const steps = 60;
-    for (let s = 0; s < steps; s++) {
+    for (let k = 0; k < steps; k++) {
       this._simulate(1 / 60);
-      for (let i = 0; i < acc.length; i++) acc[i] += this.cloth.pos[i] / steps;
+      for (let i = 0; i < acc.length; i++) acc[i] += cl.pos[i] / steps;
     }
     this.restShape = acc;
+    Object.assign(w, { turbulence: saved.turbulence, speed: saved.speed });
+    cl.damping = saved.damping;
+    this.memK = saved.memK;
+    this.memKGlobal = saved.memKGlobal;
+    this.nextGesture = this.time + 7;
+    this.prewarm(1.0); // la seta riparte nel vento vero, già viva
     this._upload();
   }
 

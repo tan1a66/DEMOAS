@@ -46,7 +46,7 @@ const viewSize = () => {
   // telefono: la seta riempie la larghezza; desktop: una fascia ampia al centro.
   // Come sfondo (Chi sono) la camera si avvicina: la seta copre tutto lo schermo.
   const visNormal = aspect < 0.85 ? 0.8 / aspect : 1.75;
-  const visBg = aspect < 0.85 ? 0.5 / aspect : 0.62;
+  const visBg = aspect < 0.85 ? 0.42 / aspect : 0.5;
   const visH = visNormal + (visBg - visNormal) * bg.v;
   return { visH, visW: visH * aspect, portrait: aspect < 0.85 };
 };
@@ -299,7 +299,10 @@ const openSection = (id, { push = true } = {}) => {
   backBtn.hidden = false;
   el.hidden = false;
   el.scrollTop = 0;
-  if (id === 'chi-sono') requestAnimationFrame(() => measureChi());
+  if (id === 'chi-sono') requestAnimationFrame(() => {
+    measureChi();
+    measureChiScroll();
+  });
   // Chi sono: la seta fa una capriola attorno al titolo, poi si ritira.
   // Le altre sezioni: la seta guida verso destra e si ritira.
   const scenic = id === 'chi-sono' && !reduceMotion;
@@ -319,7 +322,7 @@ const openSection = (id, { push = true } = {}) => {
     // Chi sono: dopo la capriola la seta resta come sfondo a tutta pagina, chiara e leggera
     gsap.to(sect, { v: 0, duration: 1, overwrite: true });
     gsap.to(bg, { v: 1, duration: 2.6, delay: retreat, ease: 'sine.inOut', overwrite: true });
-    gsap.to(silk.uniforms.uVeil, { value: 0.6, duration: 2.4, delay: retreat + 0.2, ease: 'sine.inOut', overwrite: true });
+    gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1.2, overwrite: true }); // del suo colore pieno
   } else {
     gsap.to(bg, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
     gsap.to(sect, { v: 1, duration: 2.2, delay: retreat, ease: 'sine.inOut', overwrite: true });
@@ -411,7 +414,88 @@ const updateChi = () => {
   gsap.set(chiName, { x: name.dx * e, y: name.dy * e, scale: 1 + (name.s - 1) * e });
   chiHead.style.setProperty('--fade', e.toFixed(3));
 };
-chi.addEventListener('scroll', updateChi, { passive: true });
+chi.addEventListener('scroll', () => {
+  updateChi();
+  updateChiScroll();
+  // la seta respira con lo scroll: la velocità diventa un soffio di vento
+  const now = performance.now();
+  const v = Math.abs(chi.scrollTop - breath.lastTop) / Math.max(8, now - breath.lastT); // px/ms
+  breath.target = Math.min(0.6, Math.max(breath.target, v * 0.3));
+  breath.lastTop = chi.scrollTop;
+  breath.lastT = now;
+}, { passive: true });
+
+// ---------- Chi sono: lettura guidata e percorso orizzontale ----------
+// Le parole sono tenui e si accendono quando arrivano all'altezza di lettura (stesso
+// carattere e grandezza, cambia solo l'inchiostro). Il percorso: la pagina si ferma e le
+// tappe scorrono di lato con lo scroll verticale.
+const breath = { target: 0, lastTop: 0, lastT: 0 };
+const words = [];
+if (!reduceMotion) {
+  for (const p of chi.querySelectorAll('.reveal p')) {
+    const text = p.textContent.replace(/\s+/g, ' ').trim().split(' ');
+    p.textContent = '';
+    text.forEach((w, i) => {
+      const span = document.createElement('span');
+      span.className = 'w';
+      span.textContent = w;
+      p.appendChild(span);
+      if (i < text.length - 1) p.appendChild(document.createTextNode(' '));
+      words.push({ el: span, y: 0, o: -1 });
+    });
+  }
+}
+const trackWrap = chi.querySelector('.track-wrap');
+const trackSticky = chi.querySelector('.track-sticky');
+const track = chi.querySelector('.track');
+const trackItems = [...track.children];
+const tg = { start: 0, dist: 0, vw: 0, centers: [] };
+const measureChiScroll = () => {
+  if (chi.hidden) return;
+  const cr = chi.getBoundingClientRect();
+  const st = chi.scrollTop;
+  for (const w of words) {
+    const r = w.el.getBoundingClientRect();
+    w.y = r.top - cr.top + st + r.height / 2;
+    w.o = -1;
+  }
+  if (!reduceMotion) {
+    const headH = chiHead.offsetHeight;
+    const vh = chi.clientHeight - headH;
+    trackSticky.style.top = `${headH}px`;
+    trackSticky.style.height = `${vh}px`;
+    tg.vw = trackSticky.clientWidth;
+    tg.dist = Math.max(0, track.scrollWidth - tg.vw);
+    trackWrap.style.height = `${vh + tg.dist}px`;
+    tg.start = trackWrap.offsetTop - headH;
+    tg.centers = trackItems.map((li) => li.offsetLeft + li.offsetWidth * 0.32);
+  }
+  updateChiScroll();
+};
+const updateChiScroll = () => {
+  if (chi.hidden || reduceMotion) return;
+  const st = chi.scrollTop, vh = chi.clientHeight;
+  const line = st + vh * 0.74, band = vh * 0.24;
+  for (const w of words) {
+    const k = Math.min(1, Math.max(0, (line - w.y) / band));
+    const o = Math.round((0.16 + 0.84 * k * k * (3 - 2 * k)) * 40) / 40;
+    if (o !== w.o) {
+      w.o = o;
+      w.el.style.opacity = o;
+    }
+  }
+  const p = tg.dist ? Math.min(1, Math.max(0, (st - tg.start) / tg.dist)) : 0;
+  const x = -p * tg.dist;
+  track.style.transform = `translate3d(${x.toFixed(1)}px,0,0)`;
+  trackItems.forEach((li, i) => {
+    const c = tg.centers[i] + x;
+    const a = 1 - Math.min(1, Math.abs(c - tg.vw * 0.4) / (tg.vw * 0.75));
+    li.style.opacity = (0.28 + 0.72 * a).toFixed(3);
+    li.style.transform = `translate3d(0,${((1 - a) * 18).toFixed(1)}px,0)`;
+  });
+};
+addEventListener('resize', () => !chi.hidden && measureChiScroll());
+document.fonts?.ready.then(() => !chi.hidden && measureChiScroll());
 addEventListener('resize', () => !chi.hidden && measureChi());
 
 // link diretto a una sezione (#chi-sono…): si parte dal menu e si entra
@@ -441,6 +525,8 @@ const loop = () => {
 
   silk.update(reduceMotion ? dt * 0.35 : dt);
   page.p = intro.progress();
+  breath.target *= Math.exp(-dt * 1.6);
+  silk.wind.breath += (breath.target - silk.wind.breath) * (1 - Math.exp(-dt * 2.5));
   page.shown += (page.p - page.shown) * (1 - Math.exp(-dt * 6));
   screenFrame(dt);
   computeFrame();

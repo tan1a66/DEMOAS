@@ -32,11 +32,19 @@ export class Cloth {
     this.gravity = -9.81;
     this.drag = 1.35; // coefficiente aerodinamico sulla componente normale
     this.skinDrag = 0.06; // attrito d'aria tangenziale
-    this.damping = 0.22; // smorzamento globale [1/s]
+    this.damping = 0.32; // smorzamento globale [1/s]
     this.substeps = 10;
     this.floorY = -Infinity;
     this.floorFriction = 0.6;
     this.sphere = null; // {x,y,z,r} per il tocco
+    // collisione della seta con se stessa: i punti di strati diversi restano a questa distanza
+    this.selfThickness = Math.min(this.dx, this.dy) * 0.9;
+    this.selfEvery = 99; // ogni quanti sotto-passi (99 = solo all'ultimo)
+    let size = 1024;
+    while (size < this.n * 2) size *= 2;
+    this._hashMask = size - 1;
+    this._cellStart = new Int32Array(size);
+    this._cellNext = new Int32Array(this.n);
 
     this._buildConstraints();
 
@@ -73,7 +81,7 @@ export class Cloth {
       this.cType[k] = t;
     });
     // cedevolezza (compliance) per tipo: 0 = rigido
-    this.compliance = [0, 2e-6, 6e-4];
+    this.compliance = [0, 2e-6, 2.5e-4]; // raso pesante: pieghe ampie, mai strette
   }
 
   /** Imposta la forma di riposo e posa il telo con una funzione (i, j, u, v) → [x, y, z]. */
@@ -210,6 +218,8 @@ export class Cloth {
         pos[ka] -= wa * f * dx; pos[ka + 1] -= wa * f * dy; pos[ka + 2] -= wa * f * dz;
         pos[kb] += wb * f * dx; pos[kb + 1] += wb * f * dy; pos[kb + 2] += wb * f * dz;
       }
+      // la seta non attraversa se stessa (ogni 3 sotto-passi e all'ultimo)
+      if (s % this.selfEvery === this.selfEvery - 1 || s === S - 1) this._selfCollide();
       // collisioni: pavimento e sfera del tocco
       const sp = this.sphere;
       for (let p = 0; p < n; p++) {
@@ -241,6 +251,54 @@ export class Cloth {
         vel[k + 1] = (pos[k + 1] - prev[k + 1]) * ih;
         vel[k + 2] = (pos[k + 2] - prev[k + 2]) * ih;
       }
+    }
+  }
+
+  /**
+   * Collisione con se stessa: griglia spaziale (hash) di lato pari allo spessore; i punti
+   * vicini nello spazio ma lontani sul telo (strati diversi) vengono separati. I vicini sul
+   * telo (fino a due file di distanza) si ignorano: sono tenuti dai vincoli.
+   */
+  _selfCollide() {
+    const { pos, invMass, n, nx } = this;
+    const r = this.selfThickness;
+    if (!r) return;
+    const inv = 1 / r;
+    const mask = this._hashMask;
+    const start = this._cellStart, next = this._cellNext;
+    start.fill(-1);
+    const hash = (x, y, z) => (Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ Math.imul(z, 83492791)) & mask;
+    for (let p = 0; p < n; p++) {
+      const k = p * 3;
+      const h = hash(Math.floor(pos[k] * inv), Math.floor(pos[k + 1] * inv), Math.floor(pos[k + 2] * inv));
+      next[p] = start[h];
+      start[h] = p;
+    }
+    const r2 = r * r;
+    for (let p = 0; p < n; p++) {
+      const k = p * 3;
+      const ip = p % nx, jp = (p / nx) | 0;
+      const cx = Math.floor(pos[k] * inv), cy = Math.floor(pos[k + 1] * inv), cz = Math.floor(pos[k + 2] * inv);
+      for (let ox = -1; ox <= 1; ox++)
+        for (let oy = -1; oy <= 1; oy++)
+          for (let oz = -1; oz <= 1; oz++) {
+            for (let q = start[hash(cx + ox, cy + oy, cz + oz)]; q !== -1; q = next[q]) {
+              if (q <= p) continue;
+              const iq = q % nx, jq = (q / nx) | 0;
+              if (Math.abs(ip - iq) <= 2 && Math.abs(jp - jq) <= 2) continue;
+              const kq = q * 3;
+              const dx = pos[kq] - pos[k], dy = pos[kq + 1] - pos[k + 1], dz = pos[kq + 2] - pos[k + 2];
+              const d2 = dx * dx + dy * dy + dz * dz;
+              if (d2 >= r2 || d2 < 1e-12) continue;
+              const wa = invMass[p], wb = invMass[q];
+              const w = wa + wb;
+              if (w === 0) continue;
+              const d = Math.sqrt(d2);
+              const c = ((r - d) / d / w) * 0.8;
+              pos[k] -= wa * c * dx; pos[k + 1] -= wa * c * dy; pos[k + 2] -= wa * c * dz;
+              pos[kq] += wb * c * dx; pos[kq + 1] += wb * c * dy; pos[kq + 2] += wb * c * dz;
+            }
+          }
     }
   }
 

@@ -7,6 +7,7 @@
   --ink: #1f1a17;
   --ink-soft: #5b4f48;
   --gold: #b39260;
+  --gold-deep: #8a6a3c; /* oro dei numeri: stesso tono, abbastanza scuro per il contrasto */
   --serif: 'Bodoni Moda', 'Bodoni 72', 'Didot', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --wide: 'Archivo', 'Helvetica Neue', Arial, sans-serif; /* menu: largo, maiuscolo, deciso */
@@ -411,6 +412,109 @@ body {
   border-radius: 50%;
   object-fit: cover;
 }
+/* ---------- Chi sono: percorso orizzontale ---------- */
+.reveal .w {
+  will-change: opacity;
+}
+.track-wrap {
+  position: relative;
+}
+.track-sticky {
+  position: sticky;
+  top: 132px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.track-sticky .track-title {
+  max-width: 620px;
+  width: 100%;
+  margin: 0 auto 30px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+}
+.track {
+  position: relative;
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0 max(24px, env(safe-area-inset-left, 0px));
+  list-style: none;
+  will-change: transform;
+}
+.track li {
+  position: relative;
+  width: min(74vw, 400px);
+  padding: 30px 32px 0 0;
+  box-sizing: border-box;
+  border-top: 1px solid var(--gold);
+  will-change: transform, opacity;
+}
+.track li::before {
+  /* un punto oro su ogni tappa */
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.track .yr {
+  display: block;
+  margin-bottom: 16px;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(2.4rem, 12vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.track .yr.num {
+  /* numeri in oro (più profondo dell'oro dei filetti, per il contrasto sulla seta) */
+  font-size: clamp(3.4rem, 18vw, 7rem);
+  color: var(--gold-deep);
+}
+.track .yr small {
+  font: 600 0.2em/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  vertical-align: 0.9em;
+  margin-right: 0.3em;
+  color: var(--ink-soft);
+}
+.track .tx {
+  display: block;
+  max-width: 30ch;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.chi-end {
+  padding-top: 40px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .track-wrap {
+    height: auto !important;
+  }
+  .track-sticky {
+    position: static;
+    height: auto !important;
+  }
+  .track {
+    flex-direction: column;
+    width: auto;
+    gap: 34px;
+  }
+  .track li {
+    width: auto;
+  }
+}
+
 /* ---------- Chi sono: foto grande che diventa piccola accanto al nome ---------- */
 .chi-head {
   --ph: min(60vw, 236px); /* diametro della foto grande */
