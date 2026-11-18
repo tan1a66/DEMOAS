@@ -29,4 +29,4 @@ npm run build:anteprima  # anteprima in UN file: anteprima/velata-anteprima.html
 - Se per 2 s si sta sotto 45 fps, la mesh passa a metà dei segmenti.
 
 ## Da completare con la cliente
-Monogramma ufficiale (ora provvisorio in testo), ritratto, testi tra [parentesi].
+Monogramma ufficiale, ritratto in alta risoluzione, link Instagram e MioDottore, testi tra [parentesi].
