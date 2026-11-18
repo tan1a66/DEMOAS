@@ -23,7 +23,11 @@ npm run build:anteprima  # anteprima in UN file: anteprima/velata-anteprima.html
   lighting e trasmissione, rovescio opaco, orlo arrotolato, trama visibile solo da vicino.
 
 ## Interazioni
-- Luce (e riflessi) seguono mouse / dito (±30°). Giroscopio: passo 5.
+- Luce (e riflessi) seguono il mouse (±30°). Su telefono e tablet la guida il giroscopio:
+  inclinando il dispositivo i riflessi scorrono sul raso; il "centro" è come lo si tiene e si
+  riadatta piano. iPhone e iPad chiedono il permesso con un tocco: per questo all'apertura c'è
+  una soglia (LS che respira, "Tocca per entrare") che poi si scioglie nel nome. Il giroscopio
+  funziona solo su https (Vercel), non aprendo il file in locale.
 - Dito: trascinamento orizzontale = tira la seta; tocco = onda; verticale = scroll.
 - Scroll continuo (tutto segue il dito): il nome sale al centro della barra, compare il menu; "Scorri" invita a scorrere.
 - Se per 2 s si sta sotto 45 fps, la mesh passa a metà dei segmenti.

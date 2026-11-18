@@ -74,7 +74,8 @@ const filt = (key, v, dt, tau) => {
 };
 const dead = (e, d) => (Math.abs(e) <= d ? 0 : e - Math.sign(e) * d); // zona morta
 const screenFrame = (dt) => {
-  if (hold) return;
+  // (al primo fotogramma non è passato tempo: una misura lì entrerebbe nei filtri e li falserebbe)
+  if (hold || !(dt > 0)) return;
   const c = silk.cloth;
   const { visH, visW } = viewSize();
   // orlo (ultime righe) e punto più basso tra quelli in vista
@@ -146,16 +147,66 @@ addEventListener('resize', resize);
 resize();
 const camPos = frame.pos.clone();
 const camTarget = frame.target.clone();
+// la camera è già al suo posto prima del primo fotogramma: le prime misure della seta
+// sullo schermo (che guidano l'inquadratura) devono partire giuste
+camera.position.copy(camPos);
+camera.lookAt(camTarget);
+camera.updateMatrixWorld();
 
 // ---------- luce: segue il dito / il mouse (±30°), sempre smorzata ----------
 const baseLight = new THREE.Vector3(-0.6, 0.42, 0.68).normalize(); // softbox laterale da sinistra
 const MAX = THREE.MathUtils.degToRad(30);
 const light = { yaw: 0, pitch: 0, tYaw: 0, tPitch: 0 };
-const aimLight = (x, y) => {
+
+// ---------- giroscopio (telefono e tablet): inclinando il dispositivo la luce scorre sul raso ----------
+// Il "centro" è come lo si tiene all'inizio; se si cambia postura si riadatta piano (5 s).
+// Funziona in verticale e in orizzontale (l'iPad soprattutto): l'inclinazione si legge nel
+// riferimento dello schermo, non del dispositivo.
+const gyro = { listening: false, on: false, fresh: false, init: false, rx: 0, ry: 0, bx: 0, by: 0 };
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const onOrient = (e) => {
+  if (e.beta == null || e.gamma == null) return;
+  const D = Math.PI / 180;
+  const b = e.beta * D, g = e.gamma * D;
+  // la direzione "su" vista dal dispositivo (x a destra, y verso l'alto dello schermo, z verso chi guarda)
+  const ux = -Math.cos(b) * Math.sin(g), uy = Math.sin(b), uz = Math.cos(b) * Math.cos(g);
+  // ...e vista dallo schermo, che in orizzontale è ruotato rispetto al dispositivo
+  const a = (screen.orientation?.angle ?? window.orientation ?? 0) * D;
+  const sx = ux * Math.cos(a) - uy * Math.sin(a);
+  const sy = ux * Math.sin(a) + uy * Math.cos(a);
+  gyro.rx = Math.asin(Math.max(-1, Math.min(1, -sx))); // inclinato a destra: positivo
+  gyro.ry = Math.atan2(sy, uz); // 0 in piano, 90° in piedi
+  gyro.fresh = gyro.on = true;
+};
+const listenGyro = () => {
+  if (gyro.listening || reduceMotion) return;
+  gyro.listening = true;
+  addEventListener('deviceorientation', onOrient, { passive: true });
+};
+// dove non serve un permesso si ascolta subito; altrimenti lo chiede la soglia, al tocco
+if (coarse && !document.documentElement.classList.contains('soglia-on')) listenGyro();
+const gyroStep = (dt) => {
+  if (!gyro.fresh) return;
+  if (!gyro.init) {
+    gyro.bx = gyro.rx;
+    gyro.by = gyro.ry;
+    gyro.init = true;
+  }
+  const kb = 1 - Math.exp(-dt / 5);
+  gyro.bx = wrapA(gyro.bx + wrapA(gyro.rx - gyro.bx) * kb);
+  gyro.by = wrapA(gyro.by + wrapA(gyro.ry - gyro.by) * kb);
+  // 20° d'inclinazione ≈ 30° di luce, con un arrivo morbido al limite
+  const G = 1.5;
+  light.tYaw = MAX * Math.tanh((wrapA(gyro.rx - gyro.bx) * G) / MAX);
+  light.tPitch = MAX * Math.tanh((-wrapA(gyro.ry - gyro.by) * G) / MAX);
+};
+
+const aimLight = (x, y, type) => {
+  if (gyro.on && type !== 'mouse') return; // con il giroscopio attivo la luce la guida l'inclinazione
   light.tYaw = (x / innerWidth - 0.5) * 2 * MAX;
   light.tPitch = (y / innerHeight - 0.5) * 2 * MAX;
 };
-addEventListener('pointermove', (e) => aimLight(e.clientX, e.clientY), { passive: true });
+addEventListener('pointermove', (e) => aimLight(e.clientX, e.clientY, e.pointerType), { passive: true });
 
 // ---------- il dito sulla seta ----------
 const ndc = (x, y) => [(x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1];
@@ -165,7 +216,7 @@ const ray = new THREE.Raycaster();
 let touch = null;
 
 canvas.addEventListener('pointerdown', (e) => {
-  aimLight(e.clientX, e.clientY);
+  aimLight(e.clientX, e.clientY, e.pointerType);
   if (reduceMotion) return;
   const [nx, ny] = ndc(e.clientX, e.clientY);
   const p = silk.pick(nx, ny, camera, coarse ? 70 : 50, [innerWidth, innerHeight]);
@@ -322,6 +373,97 @@ intro
   .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 2.45);
 
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
+
+// ---------- la soglia (telefono e tablet) ----------
+// iPhone, iPad (e i browser recenti) danno il giroscopio solo dopo un tocco della persona:
+// il tocco sulla soglia lo chiede.
+// Poi la L e la S del monogramma vanno a posarsi sulle loro lettere nel nome, il fondo avorio
+// si apre sulla seta e il resto del nome compare intorno.
+if (document.documentElement.classList.contains('soglia-on')) {
+  const soglia = document.querySelector('.soglia');
+  const btn = soglia.querySelector('.soglia-btn');
+  const monoEl = soglia.querySelector('.soglia-mono');
+  const sL = soglia.querySelector('.s-l'), sS = soglia.querySelector('.s-s');
+  const heroEl = document.querySelector('.hero');
+  const behind = [document.querySelector('main'), document.querySelector('.site-head')];
+  behind.forEach((el) => (el.inert = true));
+  gsap.set(heroEl, { opacity: 0 });
+  gsap.set([keepL, keepS], { visibility: 'hidden' });
+
+  const finish = () => {
+    document.documentElement.classList.remove('soglia-on');
+    behind.forEach((el) => (el.inert = false));
+    soglia.remove();
+    ScrollTrigger.refresh();
+  };
+  const enter = () => {
+    // il respiro si ferma dov'è e torna alla misura piena, come una risposta al tocco
+    // (le animazioni CSS prevalgono sugli stili in linea: si fermano prima, lasciando ogni cosa dov'è)
+    const label = soglia.querySelectorAll('.soglia-rule, .soglia-label');
+    for (const el of [monoEl, ...label]) {
+      const cs = getComputedStyle(el);
+      const from = { transform: cs.transform, opacity: cs.opacity };
+      el.style.animation = 'none';
+      gsap.set(el, from);
+    }
+    // ogni lettera va sulla sua nel nome (misurato quando parte, a misura piena)
+    const path = new Map();
+    const to = (a, b) => () => {
+      if (!path.has(a)) {
+        const A = centerOf(a), B = centerOf(b);
+        path.set(a, { x: B.x - A.x, y: B.y - A.y, scale: B.fs / A.fs });
+      }
+      return path.get(a);
+    };
+    const pL = to(sL, keepL), pS = to(sS, keepS);
+    gsap
+      .timeline({ onComplete: finish })
+      .to(monoEl, { scale: 1, opacity: 1, duration: 0.28, ease: 'sine.out' }, 0)
+      .to(label, { opacity: 0, y: 8, duration: 0.4, ease: 'sine.in' }, 0)
+      .to(sL, { x: () => pL().x, y: () => pL().y, scale: () => pL().scale, duration: 1.35, ease: 'power3.inOut' }, 0.28)
+      .to(sS, { x: () => pS().x, y: () => pS().y, scale: () => pS().scale, duration: 1.35, ease: 'power3.inOut' }, 0.32)
+      .to(soglia, { backgroundColor: 'rgba(247, 242, 236, 0)', duration: 1.2, ease: 'sine.inOut' }, 0.45)
+      .add(() => silk.flick(0.55), 0.5)
+      .to(heroEl, { opacity: 1, duration: 0.7, ease: 'sine.out' }, 1.15)
+      // passaggio di consegne: le lettere della soglia lasciano il posto a quelle del nome
+      .add(() => {
+        gsap.set([keepL, keepS], { visibility: 'visible' });
+        gsap.set([sL, sS], { opacity: 0 });
+      }, 1.92);
+  };
+
+  let asked = false;
+  btn.addEventListener('click', () => {
+    if (asked) return;
+    asked = true;
+    let ask = null;
+    try {
+      ask = window.DeviceOrientationEvent?.requestPermission?.();
+    } catch {
+      ask = null;
+    }
+    if (!ask || typeof ask.then !== 'function') {
+      listenGyro();
+      enter();
+      return;
+    }
+    // la soglia resta finché si risponde alla richiesta di iOS (che appare sopra la pagina)
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      enter();
+    };
+    // se il permesso non c'è, i dati semplicemente non arrivano: ascoltare non costa nulla
+    ask
+      .catch(() => {})
+      .finally(() => {
+        listenGyro();
+        start();
+      });
+    setTimeout(start, 9000);
+  });
+}
 
 // ---------- sezioni: ogni voce è un luogo sulla seta ----------
 // Fino al menu la camera la governa l'inquadratura. Scelta una voce, la seta fa un gesto
@@ -619,6 +761,7 @@ const loop = () => {
   screenFrame(dt);
   computeFrame();
 
+  gyroStep(dt);
   const kL = 1 - Math.exp(-dt * 2.5);
   light.yaw += (light.tYaw - light.yaw) * kL;
   light.pitch += (light.tPitch - light.pitch) * kL;
@@ -670,4 +813,4 @@ const loop = () => {
 };
 requestAnimationFrame(loop);
 
-window.__velata = { silk, camera, renderer, cam, page, gsap, trip };
+window.__velata = { silk, camera, renderer, cam, page, gsap, trip, light, gyro };

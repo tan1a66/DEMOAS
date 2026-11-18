@@ -13,9 +13,31 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,400&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..800&family=Manrope:wght@400;500;600&display=swap"
     />
+    <script>
+      // telefono e tablet (iPhone, iPad): il giroscopio si attiva solo con un tocco → la soglia d'ingresso
+      try {
+        var D = window.DeviceOrientationEvent;
+        if (
+          /[?&]soglia=1/.test(location.search) ||
+          (matchMedia('(pointer: coarse)').matches &&
+            !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+            D && typeof D.requestPermission === 'function')
+        )
+          document.documentElement.classList.add('soglia-on');
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <canvas id="scene" aria-hidden="true"></canvas>
+
+    <!-- solo su telefono e tablet: il tocco che attiva il giroscopio, poi si dissolve nel nome -->
+    <div class="soglia">
+      <button class="soglia-btn" type="button">
+        <span class="soglia-mono" aria-hidden="true"><span class="s-l">L</span><span class="s-s">S</span></span>
+        <span class="soglia-rule" aria-hidden="true"></span>
+        <span class="soglia-label">Tocca per entrare</span>
+      </button>
+    </div>
 
     <header class="site-head">
       <div class="head-right">

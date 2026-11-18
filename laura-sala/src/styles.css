@@ -977,3 +977,101 @@ html.in-section body {
     animation: none;
   }
 }
+
+/* ---------- la soglia (telefono e tablet): il tocco che attiva il giroscopio ----------
+   Fondo avorio, il monogramma che respira piano. Al tocco la L e la S vanno al loro posto
+   nel nome e il fondo si apre sulla seta. */
+.soglia {
+  display: none;
+}
+html.soglia-on,
+html.soglia-on body {
+  overflow: hidden;
+}
+html.soglia-on .soglia {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--ivory);
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+.soglia-btn {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 6vh;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.soglia-btn:focus-visible {
+  outline: none;
+}
+.soglia-btn:focus-visible .soglia-label {
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 6px;
+}
+.soglia-mono {
+  display: inline-flex;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-optical-sizing: auto;
+  font-size: clamp(5rem, 26vw, 8rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  animation: soglia-breath 4.2s ease-in-out infinite;
+}
+.soglia-mono > span {
+  display: inline-block;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+.soglia-rule {
+  display: block;
+  width: 28px;
+  height: 1px;
+  margin: 30px 0 20px;
+  background: var(--gold);
+}
+.soglia-label {
+  font-family: var(--wide);
+  font-stretch: 125%;
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-left: 0.32em; /* compensa la spaziatura dell'ultima lettera: resta centrata */
+  animation: soglia-label 4.2s ease-in-out infinite;
+}
+@keyframes soglia-breath {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.965);
+    opacity: 0.82;
+  }
+}
+@keyframes soglia-label {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
