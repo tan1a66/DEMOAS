@@ -19,7 +19,7 @@ const easeInOut = (t) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, 
  * e un'onda scende lungo il telo. Con il dito la si può afferrare e tirare, o sfiorare.
  */
 export class Silk {
-  constructor({ quality = 'high', width = 1.4, height = 2.8 } = {}) {
+  constructor({ quality = 'high', width = 1.6, height = 3.2 } = {}) {
     const mobile = quality !== 'high';
     // telo 1:2 in verticale, appeso dall'alto come una tenda: pieghe verticali
     this.nx = mobile ? 40 : 52;
@@ -111,7 +111,7 @@ export class Silk {
 
   /** Presa sinistra (-1) o destra (+1): vicine, appena sfalsate, con il gesto del polso. */
   _anchor(s, t) {
-    let x = s * 0.27 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
+    let x = s * 0.31 + 0.025 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
     let y = (s < 0 ? 1.32 : 1.2) + 0.035 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
     let z = (s < 0 ? -0.04 : 0.05) + 0.04 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
     const g = this.gesture;

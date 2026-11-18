@@ -72,6 +72,13 @@ body {
   margin-left: -0.14em;
   transform: translateY(0.12em);
 }
+.mono {
+  /* il monogramma si forma solo quando si entra nel menu */
+  visibility: hidden;
+}
+.mono > span {
+  display: inline-block;
+}
 .mono:focus-visible {
   outline: 1px solid var(--gold);
   outline-offset: 4px;
@@ -183,9 +190,9 @@ body {
   margin: 0 0 auto;
   padding: 0;
   /* le voci occupano la fascia libera sotto la seta */
-  margin-top: 44vh;
+  margin-top: 37vh;
   display: grid;
-  gap: clamp(10px, 2.6vh, 22px);
+  gap: clamp(4px, 1.1vh, 12px);
   text-align: center;
 }
 .menu a {
@@ -196,8 +203,8 @@ body {
 .menu li a {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: clamp(1.85rem, 8vw, 2.9rem);
-  line-height: 1.05;
+  font-size: clamp(1.45rem, 6.3vw, 2.3rem);
+  line-height: 1.1;
   letter-spacing: -0.015em;
   display: inline-block;
   padding: 4px 10px;
@@ -240,7 +247,7 @@ body {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7vh + 64px);
   }
   .menu ul {
-    margin-top: 40vh;
+    margin-top: 35vh;
   }
   .menu {
     padding-bottom: 7vh;

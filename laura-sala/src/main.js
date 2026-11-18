@@ -65,7 +65,7 @@ const measureSilk = (dt) => {
 const hemLimit = () => {
   const portrait = innerWidth / innerHeight < 0.85;
   const pg = page.shown;
-  return portrait ? 0.58 - 0.25 * pg : 0.56 - 0.27 * pg;
+  return portrait ? 0.58 - 0.29 * pg : 0.56 - 0.3 * pg;
 };
 const guard = { off: 0 };
 const _v = new THREE.Vector3();
@@ -89,7 +89,7 @@ const computeFrame = () => {
   const aspect = innerWidth / innerHeight;
   const dist = 6.1;
   // telefono: la tenda riempie la larghezza; desktop: una colonna di seta al centro
-  const visH = aspect < 0.85 ? 1.45 / aspect : 2.45;
+  const visH = aspect < 0.85 ? 0.8 / aspect : 1.75;
   const visW = visH * aspect;
   // il bordo alto resta fuori quadro; l'orlo sopra il nome (poi interviene il limite sullo schermo)
   const topY = follow.hemLow + visH * (aspect < 0.85 ? 0.6 : 0.56);
@@ -195,6 +195,9 @@ const menu = document.querySelector('.menu');
 const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
 const hint = document.querySelector('.scroll-hint');
+const mono = document.querySelector('.mono');
+const monoL = mono.querySelector('.mono-l');
+const monoS = mono.querySelector('.mono-s');
 const headCenterY = () => {
   const r = head.getBoundingClientRect();
   return r.bottom - parseFloat(getComputedStyle(head).height) / 2;
@@ -206,6 +209,8 @@ const nameRestCenterY = () => {
 const nameScale = () => 17 / parseFloat(getComputedStyle(nameEl).fontSize);
 
 gsap.set(menuItems, { opacity: 0, y: 22 });
+gsap.set(monoL, { opacity: 0, x: -14 });
+gsap.set(monoS, { opacity: 0, x: 14, y: '0.12em' });
 gsap.set(menuCta, { opacity: 0, y: 16 });
 const intro = gsap.timeline({
   defaults: { ease: 'sine.inOut' },
@@ -217,6 +222,7 @@ const intro = gsap.timeline({
     invalidateOnRefresh: true,
     onUpdate: (st) => {
       menu.style.visibility = st.progress > 0.02 ? 'visible' : 'hidden';
+      mono.style.visibility = st.progress > 0.6 ? 'visible' : 'hidden';
       if (st.progress > 0.1 && !intro._flicked) {
         intro._flicked = true;
         silk.flick(0.5);
@@ -229,8 +235,10 @@ intro
   .to(nameEl, { y: () => headCenterY() - nameRestCenterY(), scale: nameScale, duration: 1 }, 0)
   .to(hint, { opacity: 0, duration: 0.12, ease: 'none' }, 0)
   .to(roleEl, { opacity: 0, y: -14, duration: 0.3, ease: 'sine.out' }, 0)
-  .to(menuItems, { opacity: 1, y: 0, duration: 0.45, stagger: 0.09, ease: 'sine.out' }, 0.42)
-  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6);
+  .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 0.4)
+  .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 0.6)
+  // LS si forma a lato: le due lettere arrivano da direzioni opposte e si uniscono
+  .to([monoL, monoS], { opacity: 1, x: 0, duration: 0.35, ease: 'sine.out' }, 0.65);
 
 document.querySelector('.mono').addEventListener('click', (e) => {
   e.preventDefault();
