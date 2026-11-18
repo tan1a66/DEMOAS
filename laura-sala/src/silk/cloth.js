@@ -32,11 +32,13 @@ export class Cloth {
     this.gravity = -9.81;
     this.drag = 1.35; // coefficiente aerodinamico sulla componente normale
     this.skinDrag = 0.06; // attrito d'aria tangenziale
-    this.damping = 0.32; // smorzamento globale [1/s]
+    this.damping = 0.55; // smorzamento globale [1/s]
     this.substeps = 10;
     this.floorY = -Infinity;
     this.floorFriction = 0.6;
     this.sphere = null; // {x,y,z,r} per il tocco
+    this.collider = null; // { sdf(x,y,z) } una forma su cui la seta si appoggia (la figura)
+    this.colliderThickness = 0.014;
     // collisione della seta con se stessa: i punti di strati diversi restano a questa distanza
     this.selfThickness = Math.min(this.dx, this.dy) * 0.9;
     this.selfEvery = 99; // ogni quanti sotto-passi (99 = solo all'ultimo)
@@ -272,6 +274,8 @@ export class Cloth {
       }
       // la seta non attraversa se stessa (ogni 3 sotto-passi e all'ultimo)
       if (s % this.selfEvery === this.selfEvery - 1 || s === S - 1) this._selfCollide();
+      // la seta si appoggia sulla figura (se c'è)
+      if (this.collider && (s % 3 === 2 || s === S - 1)) this._collide();
       // collisioni: pavimento e sfera del tocco
       const sp = this.sphere;
       for (let p = 0; p < n; p++) {
@@ -303,6 +307,38 @@ export class Cloth {
         vel[k + 1] = (pos[k + 1] - prev[k + 1]) * ih;
         vel[k + 2] = (pos[k + 2] - prev[k + 2]) * ih;
       }
+    }
+  }
+
+  /** Spinge fuori dalla figura i punti che ci entrano, con un poco di attrito. */
+  _collide() {
+    const { pos, prev, invMass, n } = this;
+    const sdf = this.collider.sdf;
+    const th = this.colliderThickness, e = 0.004;
+    // attrazione: entro questa distanza la seta viene richiamata sulla forma (panneggio bagnato)
+    const reach = 0.16 * (this.collider.attract || 0);
+    for (let p = 0; p < n; p++) {
+      if (invMass[p] === 0) continue;
+      const k = p * 3;
+      const x = pos[k], y = pos[k + 1], z = pos[k + 2];
+      const d = sdf(x, y, z);
+      if (d >= th + reach) continue;
+      // gradiente con quattro campioni a tetraedro (invece di sei)
+      const a = sdf(x + e, y - e, z - e), b = sdf(x - e, y - e, z + e);
+      const c = sdf(x - e, y + e, z - e), dd = sdf(x + e, y + e, z + e);
+      let gx = a - b - c + dd, gy = -a - b + c + dd, gz = -a + b - c + dd;
+      const gl = Math.hypot(gx, gy, gz) || 1;
+      gx /= gl; gy /= gl; gz /= gl;
+      // dentro: fuori del tutto; vicino: un richiamo morbido verso la superficie
+      const push = d < th ? th - d : -(d - th) * 0.22;
+      pos[k] = x + gx * push;
+      pos[k + 1] = y + gy * push;
+      pos[k + 2] = z + gz * push;
+      if (d >= th) continue;
+      // attrito: la seta non scivola via dalla forma
+      pos[k] += (prev[k] - pos[k]) * 0.12;
+      pos[k + 1] += (prev[k + 1] - pos[k + 1]) * 0.12;
+      pos[k + 2] += (prev[k + 2] - pos[k + 2]) * 0.12;
     }
   }
 

@@ -65,6 +65,14 @@ const hemTarget = () => {
 };
 const _v = new THREE.Vector3();
 const hemYs = [];
+// misure filtrate: la camera reagisce solo alle medie lente, non alle piccole oscillazioni
+const meas = { hem: null, low: null, rim: null, cx: null };
+const filt = (key, v, dt, tau) => {
+  if (meas[key] === null || !isFinite(meas[key])) meas[key] = v;
+  else meas[key] += (v - meas[key]) * (1 - Math.exp(-dt / tau));
+  return meas[key];
+};
+const dead = (e, d) => (Math.abs(e) <= d ? 0 : e - Math.sign(e) * d); // zona morta
 const screenFrame = (dt) => {
   if (hold) return;
   const c = silk.cloth;
@@ -75,6 +83,7 @@ const screenFrame = (dt) => {
   for (let j = 0; j < c.ny; j += 2)
     for (let i = 0; i < c.nx; i += 2) {
       const k = (j * c.nx + i) * 3;
+      if (c.active && !c.active[j * c.nx + i]) continue;
       _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
       sx += _v.x;
       sn++;
@@ -83,7 +92,7 @@ const screenFrame = (dt) => {
       if (j >= c.ny - 3) hemYs.push(_v.y);
       if (_v.y < lowest) lowest = _v.y;
     }
-  // prima pagina: lo zoom tiene il drappeggio appena sotto il bordo alto (il fazzoletto intero)
+  // prima pagina: lo zoom tiene il bordo alto appena fuori dallo schermo (misura lenta)
   if (page.shown < 0.999) {
     let rim = -2;
     for (let i = Math.round(c.nx * 0.3); i < c.nx * 0.7; i++) {
@@ -91,24 +100,25 @@ const screenFrame = (dt) => {
       _v.set(c.pos[k], c.pos[k + 1], c.pos[k + 2]).project(camera);
       if (_v.y > rim) rim = _v.y;
     }
+    const rimF = filt('rim', rim, dt, 1.6);
     const rimT = 1.32; // il bordo alto fuori dallo schermo: la seta è grande e riempie la larghezza
-    heroVis.h *= Math.exp((rim - rimT) * Math.min(1, dt * 1.4));
+    heroVis.h *= Math.exp(dead(rimF - rimT, 0.04) * Math.min(1, dt * 0.8));
     heroVis.h = Math.min(4.2, Math.max(1.6, heroVis.h));
   }
-  // orizzontale: il centro della seta verso il centro dello schermo
-  const cx = sx / sn;
-  cam.x += cx * (visW / 2) * Math.min(1, dt * (guiding ? 1.8 : 0.5));
+  // orizzontale: il centro della seta verso il centro dello schermo (misura lenta)
+  const cx = filt('cx', sx / sn, dt, guiding ? 0.5 : 1.6);
+  cam.x += dead(cx, 0.03) * (visW / 2) * Math.min(1, dt * (guiding ? 1.8 : 0.5));
   // verticale: l'orlo "tipico" (un quarto dei punti più in basso può scendere di più)
   const yT = 1 - 2 * hemTarget();
   if (hemYs.length) {
     hemYs.sort((a, b) => a - b);
-    const hem = hemYs[Math.floor(hemYs.length * 0.25)];
-    cam.y += (hem - yT) * (visH / 2) * Math.min(1, dt * 2.4);
+    const hem = filt('hem', hemYs[Math.floor(hemYs.length * 0.25)], dt, 1.2);
+    cam.y += dead(hem - yT, 0.025) * (visH / 2) * Math.min(1, dt * 1.6);
   }
   // sicurezza: niente seta sul testo (una piega può scendere al massimo di un 3,5% in più)
   const yLimit = yT - 0.07;
   // (come sfondo la seta sta dietro al testo per scelta: niente limite)
-  if (bg.v < 0.5 && lowest < yLimit) cam.y += (lowest - yLimit) * (visH / 2) * Math.min(1, dt * 8);
+  if (bg.v < 0.5 && lowest < yLimit) cam.y += (lowest - yLimit) * (visH / 2) * Math.min(1, dt * 5);
 };
 
 const computeFrame = () => {
@@ -326,12 +336,23 @@ let current = null;
 // luoghi: punto sul fazzoletto (u da sinistra, v dall'alto), direzione e distanza della camera
 const STATIONS = {
   'chi-sono': { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.4, fov: 30 }, // sotto il drappeggio a cappuccio
+  // le quattro aree: luoghi sulla seta (con ?figura=1, la sperimentazione della seta che
+  // prende forma di figura: vedi FIG_STATIONS)
   'chirurgia-ricostruttiva': { u: 0.8, v: 0.45, dir: [0.6, 0.05, 1], dist: 1.0, fov: 30 }, // la piega sul lato destro
   'chirurgia-estetica': { u: 0.5, v: 0.55, dir: [0.1, -0.25, 1], dist: 1.1, fov: 30 }, // il centro del telo
   'medicina-estetica': { u: 0.32, v: 0.68, dir: [-0.2, 0.1, 1], dist: 0.3, fov: 30 }, // macro sulla trama
   'medicina-rigenerativa': { u: 0.6, v: 0.96, dir: [0.25, -0.45, 1], dist: 0.95, fov: 30 }, // l'orlo libero
   sedi: { u: 0.5, v: 0.5, dir: [0.3, 0.75, 1], dist: 3.4, fov: 30 }, // il fazzoletto intero, dall'alto
 };
+// sperimentale (?figura=1): la seta che prende la forma di una figura femminile
+const FIGURE_ON = params.has('figura');
+const FIG_STATIONS = {
+  'chirurgia-ricostruttiva': { fig: [0, -0.2, 0], dir: [-0.5, -0.04, 1], dist: 3.3, fov: 30 },
+  'chirurgia-estetica': { fig: [0, -0.2, 0], dir: [0.03, -0.04, 1], dist: 3.3, fov: 30 },
+  'medicina-estetica': { fig: [0, 0.1, 0], dir: [0.35, -0.02, 1], dist: 2.3, fov: 30 },
+  'medicina-rigenerativa': { fig: [0, -0.2, 0], dir: [-0.85, -0.04, 0.8], dist: 3.2, fov: 30 },
+};
+if (FIGURE_ON) Object.assign(STATIONS, FIG_STATIONS);
 for (const st of Object.values(STATIONS)) {
   st.d = new THREE.Vector3(...st.dir).normalize();
   st.p = null;
@@ -340,6 +361,14 @@ const trip = { mode: 'menu', to: null, k: 1, A: { pos: new THREE.Vector3(), targ
 const B = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 30 };
 const _pt = new THREE.Vector3();
 const stationPose = (st, dt, out) => {
+  if (st.fig) {
+    // luogo sulla figura (ferma): la camera non segue le pieghe, guarda la forma
+    const f = silk.figure;
+    out.target.set(f.x + st.fig[0], f.y + st.fig[1], f.z + st.fig[2]);
+    out.pos.copy(out.target).addScaledVector(st.d, st.dist);
+    out.fov = st.fov;
+    return;
+  }
   const c = silk.cloth;
   const i0 = Math.round(st.u * (c.nx - 1)), j0 = Math.round(st.v * (c.ny - 1));
   _pt.set(0, 0, 0);
@@ -403,6 +432,16 @@ const flyPose = (dt) => {
   return true;
 };
 
+// la seta che diventa figura (e torna fazzoletto): è sempre seta, cambia solo forma
+const setFigure = (on) => {
+  const d = reduceMotion ? 0.01 : on ? 2.8 : 2.4;
+  gsap.to(silk.figure, { amount: on ? 1 : 0, duration: d, delay: on ? 0.3 : 0, ease: 'sine.inOut', overwrite: true });
+  gsap.to(silk, { figBlend: on ? 1 : 0, duration: d, delay: on ? 0.3 : 0, ease: 'sine.inOut', overwrite: 'auto' });
+  // un vento leggero da davanti preme la seta sulla forma (il panneggio delle statue classiche)
+  gsap.to(silk.wind.push, { x: 0, z: on ? -0.4 : 0, duration: d, ease: 'sine.inOut', overwrite: true });
+  if (!on) silk.untangle = Math.max(silk.untangle, 0.8);
+};
+
 const openSection = (id, { push = true } = {}) => {
   const el = pages.get(id);
   if (!el || current === id) return;
@@ -414,21 +453,26 @@ const openSection = (id, { push = true } = {}) => {
   backBtn.hidden = false;
   el.hidden = false;
   el.scrollTop = 0;
+  const sc = el.querySelector('.chi-scroll');
+  if (sc) sc.scrollTop = 0;
   if (id === 'chi-sono') requestAnimationFrame(() => {
     measureChi();
     measureChiScroll();
   });
-  // la seta indica la via (un gesto e un soffio verso il luogo), la camera ci vola
+  // la seta indica la via (un gesto e un soffio verso il luogo), la camera ci vola;
+  // nelle quattro aree la seta prende la forma di una figura femminile
   const st = STATIONS[id];
-  if (!reduceMotion) {
+  const figure = Boolean(st.fig);
+  setFigure(figure);
+  if (!reduceMotion && !figure) {
     silk.flick(0.6);
-    const side = Math.sign(st.u - 0.5) || 1;
+    const side = Math.sign((st.u ?? 0.5) - 0.5) || 1;
     gsap.timeline({ overwrite: true })
       .to(silk.wind.push, { x: 1.0 * side, z: 0.5, duration: 0.6, ease: 'sine.out' })
       .to(silk.wind.push, { x: 0, z: 0, duration: 1.4, ease: 'sine.inOut' });
   }
   flyTo(id);
-  gsap.to(silk, { calm: 1, duration: 3, delay: 1.2, ease: 'sine.inOut', overwrite: true });
+  gsap.to(silk, { calm: 1, duration: 3, delay: 1.2, ease: 'sine.inOut', overwrite: 'auto' });
   gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1, overwrite: true });
   gsap.to(menu, { opacity: 0, y: -16, duration: 0.6, ease: 'sine.in', overwrite: true });
   if (prev) gsap.to(prev, { opacity: 0, y: -20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (prev.hidden = true) });
@@ -443,8 +487,10 @@ const closeSection = () => {
   html.classList.remove('in-section');
   menu.inert = false;
   backBtn.hidden = true;
-  if (!reduceMotion) silk.flick(0.5);
-  gsap.to(silk, { calm: 0, duration: 2.5, ease: 'sine.inOut', overwrite: true });
+  const wasFigure = silk.figBlend > 0.01;
+  setFigure(false);
+  if (!reduceMotion && !wasFigure) silk.flick(0.5);
+  gsap.to(silk, { calm: 0, duration: 2.5, ease: 'sine.inOut', overwrite: 'auto' });
   flyTo(null);
   gsap.to(el, { opacity: 0, y: 20, duration: 0.6, ease: 'sine.in', overwrite: true, onComplete: () => (el.hidden = true) });
   gsap.fromTo(menu, { y: 16 }, { y: 0, opacity: 1, duration: 1.0, delay: reduceMotion ? 0 : 1.6, ease: 'power3.out', overwrite: true });
@@ -465,30 +511,34 @@ mono.addEventListener('click', (e) => {
   else scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
 });
 
-// ---------- Chi sono: la foto grande si mette piccola accanto al nome, scorrendo ----------
-const chi = pages.get('chi-sono');
-const chiHead = chi.querySelector('.chi-head');
-const chiPhoto = chi.querySelector('.chi-photo');
-const chiName = chi.querySelector('.chi-name span');
+// ---------- Chi sono: la foto grande scivola piccola in alto a destra, il nome accanto ----------
+// Niente placca: foto e nome restano liberi sulla seta; il testo che scorre sfuma prima
+// di arrivare alla loro riga (maschera sul contenitore che scorre).
+const chiPage = pages.get('chi-sono');
+const chi = chiPage.querySelector('.chi-scroll');
+const chiHead = chiPage.querySelector('.chi-head');
+const chiPhoto = chiPage.querySelector('.chi-photo');
+const chiName = chiPage.querySelector('.chi-name span');
 const chiGeo = {};
 const measureChi = () => {
   gsap.set([chiPhoto, chiName], { clearProps: 'transform' });
   const h = chiHead.getBoundingClientRect();
   const ph = chiPhoto.getBoundingClientRect();
   const nm = chiName.getBoundingClientRect();
-  const padL = parseFloat(getComputedStyle(chiHead).paddingLeft);
-  // stato piccolo: foto da 58 px a sinistra, nome a destra, nella fascia sotto "CHI SONO"
-  const small = 58, rowY = 46 + 43;
+  const padR = parseFloat(getComputedStyle(chiHead).paddingRight);
+  // stato piccolo: sulla riga di "CHI SONO", la foto in alto a destra e il nome alla sua sinistra
+  const small = 46, rowY = 30;
   const sPhoto = small / ph.width;
-  const sName = 23 / parseFloat(getComputedStyle(chiName.parentElement).fontSize);
-  chiGeo.photo = { dx: h.left + padL + small / 2 - (ph.left + ph.width / 2), dy: h.top + rowY - (ph.top + ph.height / 2), s: sPhoto };
+  const sName = 17 / parseFloat(getComputedStyle(chiName.parentElement).fontSize);
+  const photoCx = h.right - padR - small / 2;
+  chiGeo.photo = { dx: photoCx - (ph.left + ph.width / 2), dy: h.top + rowY - (ph.top + ph.height / 2), s: sPhoto };
   chiGeo.name = {
-    dx: h.left + padL + small + 14 + (nm.width * sName) / 2 - (nm.left + nm.width / 2),
+    dx: photoCx - small / 2 - 12 - (nm.width * sName) / 2 - (nm.left + nm.width / 2),
     dy: h.top + rowY - (nm.top + nm.height / 2),
     s: sName,
   };
-  // spazio sotto l'intestazione: il testo comincia dopo il nome grande
-  const space = nm.bottom - h.top + 34 - h.height;
+  // il testo comincia dopo il nome grande
+  const space = nm.bottom - h.top + 34;
   chi.style.setProperty('--chi-space', `${Math.max(0, space)}px`);
   // il nome sale almeno veloce quanto il testo: niente sovrapposizioni durante il passaggio
   chiGeo.range = Math.max(120, Math.abs(chiGeo.name.dy) * 0.92);
@@ -501,7 +551,6 @@ const updateChi = () => {
   const { photo, name } = chiGeo;
   gsap.set(chiPhoto, { x: photo.dx * e, y: photo.dy * e, scale: 1 + (photo.s - 1) * e });
   gsap.set(chiName, { x: name.dx * e, y: name.dy * e, scale: 1 + (name.s - 1) * e });
-  chiHead.style.setProperty('--fade', e.toFixed(3));
 };
 chi.addEventListener('scroll', () => {
   updateChi();
@@ -518,12 +567,12 @@ chi.addEventListener('scroll', () => {
 const breath = { target: 0, lastTop: 0, lastT: 0 };
 const story = createChiStory(chi, chiHead, reduceMotion);
 const measureChiScroll = () => {
-  if (!chi.hidden) story.measure();
+  if (!chiPage.hidden) story.measure();
 };
 const updateChiScroll = () => story.update();
-addEventListener('resize', () => !chi.hidden && measureChiScroll());
-document.fonts?.ready.then(() => !chi.hidden && measureChiScroll());
-addEventListener('resize', () => !chi.hidden && measureChi());
+addEventListener('resize', () => !chiPage.hidden && measureChiScroll());
+document.fonts?.ready.then(() => !chiPage.hidden && measureChiScroll());
+addEventListener('resize', () => !chiPage.hidden && measureChi());
 
 // link diretto a una sezione (#chi-sono…): si parte dal menu e si entra
 const startHash = location.hash.slice(1);

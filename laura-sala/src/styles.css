@@ -11,6 +11,7 @@
   --serif: 'Bodoni Moda', 'Bodoni 72', 'Didot', Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --wide: 'Archivo', 'Helvetica Neue', Arial, sans-serif; /* menu: largo, maiuscolo, deciso */
+  --text: 'Newsreader', 'Iowan Old Style', Georgia, serif; /* testi lunghi: da rivista */
   --head-h: 64px;
   color-scheme: light;
 }
@@ -207,8 +208,10 @@ body {
 .manifesto p {
   margin: 0;
   max-width: 28ch;
-  font-size: 1rem;
-  line-height: 1.7;
+  font-family: var(--text);
+  font-optical-sizing: auto;
+  font-size: 1.14rem;
+  line-height: 1.6;
 }
 
 /* seconda "pagina": il menu al centro, Prenota nella zona del pollice */
@@ -449,19 +452,16 @@ body {
 /* ---------- Chi sono: i capitoli (ognuno con una scena ferma mentre lo si scorre) ---------- */
 .ch {
   position: relative;
+  padding: 26px 0 30px;
 }
 .ch-stage {
-  position: sticky;
-  top: 132px;
   max-width: 620px;
   margin: 0 auto;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   padding-left: max(24px, env(safe-area-inset-left, 0px));
   padding-right: max(24px, env(safe-area-inset-right, 0px));
-  padding-bottom: 6vh;
   overflow: hidden;
 }
 .page .ch-label {
@@ -478,8 +478,11 @@ body {
 .page .ch-text {
   max-width: none;
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.7;
+  font-family: var(--text);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: 1.12rem;
+  line-height: 1.6;
   text-align: left;
 }
 .ch-text .w {
@@ -723,42 +726,38 @@ body {
 }
 
 /* ---------- Chi sono: foto grande che diventa piccola accanto al nome ---------- */
+.page-chi {
+  overflow: hidden;
+}
+/* il contenuto scorre qui; sfuma in alto prima della riga di "CHI SONO" (niente placca) */
+.chi-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 50px, #000 104px);
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 50px, #000 104px);
+}
 .chi-head {
   --ph: min(60vw, 236px); /* diametro della foto grande */
-  position: sticky;
-  top: 0;
+  position: absolute;
   z-index: 2;
-  height: 132px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
   max-width: 620px;
   margin: 0 auto;
   padding-left: max(24px, env(safe-area-inset-left, 0px));
   padding-right: max(24px, env(safe-area-inset-right, 0px));
   box-sizing: border-box;
-  background: var(--ivory);
-}
-.chi-head {
-  background: none;
-}
-/* quando foto e nome sono piccoli, l'intestazione diventa vetro smerigliato sulla seta */
-.chi-head::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
-  background: rgba(247, 242, 236, 0.62);
-  -webkit-backdrop-filter: blur(16px) saturate(1.05);
-  backdrop-filter: blur(16px) saturate(1.05);
-  border-bottom: 1px solid rgba(179, 146, 96, 0.35);
-  opacity: var(--fade, 0);
   pointer-events: none;
 }
 .chi-head .page-kicker {
   position: static;
   background: none;
+  padding-top: 24px;
 }
 .chi-head .page-kicker::after {
   display: none;
@@ -892,14 +891,15 @@ body {
 /* dentro una sezione la pagina non scorre (si scorre la sezione) */
 /* sezioni in lavorazione: grande, centrato, direttamente sulla seta (niente fasce bianche) */
 .page-wip .wip {
+  /* in basso: sopra c'è la seta che prende forma */
   min-height: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   text-align: center;
-  padding: 0 max(24px, env(safe-area-inset-left, 0px)) 14vh;
+  padding: 0 max(24px, env(safe-area-inset-left, 0px)) calc(env(safe-area-inset-bottom, 0px) + 7vh);
 }
 .wip-kicker {
   margin: 0;
@@ -911,10 +911,10 @@ body {
   color: var(--ink-soft);
 }
 .wip-title {
-  margin: 20px 0 16px;
+  margin: 14px 0 12px;
   font-family: var(--serif);
   font-weight: 600;
-  font-size: clamp(2.9rem, 14vw, 6rem);
+  font-size: clamp(2.4rem, 11.5vw, 5rem);
   line-height: 0.92;
   letter-spacing: -0.02em;
   text-wrap: balance;
@@ -930,7 +930,8 @@ body {
 .page .wip-note {
   margin: 26px 0 0;
   text-align: center;
-  font-size: 1rem;
+  font-family: var(--text);
+  font-size: 1.12rem;
 }
 
 html.in-section,

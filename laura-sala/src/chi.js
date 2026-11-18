@@ -1,6 +1,6 @@
-// Chi sono come una storia a capitoli. Ogni capitolo è alto più dello schermo e ha una
-// "scena" che resta ferma (sticky) mentre lo si scorre: il suo effetto avanza con lo
-// scroll, in entrambe le direzioni. Il testo è sempre lo stesso per carattere e grandezza;
+// Chi sono come un unico racconto a capitoli, vicini tra loro (niente "diapositive"):
+// ogni effetto parte quando il capitolo entra dal basso e si completa mentre attraversa lo
+// schermo; avanza con lo scroll, in entrambe le direzioni. Il testo è sempre lo stesso per carattere e grandezza;
 // gli effetti stanno negli accenti (numeri, parole grandi, filetti, la linea del percorso).
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -95,29 +95,26 @@ export const createChiStory = (chi, chiHead, reduceMotion) => {
     if (ch.fx === 'focus') ch.focus = q('.fx-focus');
   }
 
-  let headH = 0, vh = 0;
+  let vh = 0;
   const measure = () => {
-    headH = chiHead.offsetHeight;
     vh = chi.clientHeight;
-    const stageH = vh - headH;
     for (const ch of chapters) {
-      const len = parseFloat(getComputedStyle(ch.el).getPropertyValue('--len')) || 2;
-      ch.stage.style.top = `${headH}px`;
-      ch.stage.style.height = `${stageH}px`;
-      ch.el.style.height = `${stageH * len}px`;
-      ch.top = ch.el.offsetTop;
-      ch.range = ch.el.offsetHeight - stageH;
-      ch.p = -1;
       if (ch.fx === 'lines') ch.lines = ch.lineEls.map(({ el, text }) => wrapLines(el, text));
+    }
+    for (const ch of chapters) {
+      ch.top = ch.el.offsetTop;
+      ch.h = ch.el.offsetHeight;
+      ch.p = -1;
     }
     update();
   };
 
   const update = () => {
-    if (chi.hidden) return;
+    if (chi.offsetParent === null) return; // sezione nascosta
     const st = chi.scrollTop;
     for (const ch of chapters) {
-      const p = clamp01((st - (ch.top - headH)) / ch.range);
+      // 0 quando il capitolo affiora dal basso, 1 quando la sua fine è a metà schermo
+      const p = clamp01((st + vh * 0.95 - ch.top) / (ch.h + vh * 0.45));
       // il capitolo successivo può già entrare: si aggiorna solo se è cambiato
       if (Math.abs(p - ch.p) < 0.002) continue;
       ch.p = p;

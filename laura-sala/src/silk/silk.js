@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Cloth } from './cloth.js';
 import { createWind } from './wind.js';
 import { silkVertex, silkFragment } from './silkShaders.js';
+import { createFigure, gownSdf } from './figure.js';
 
 export const SILK_COLORS = {
   silk: '#F2CFB8', // cipria chiara, appena pesca
@@ -35,7 +36,7 @@ export class Silk {
     this.cloth.substeps = mobile ? 9 : 11;
     this.cloth.selfThickness = 0; // telo disteso: niente collisione con se stesso (non blocca nodi)
     this.wind = createWind();
-    this.timeScale = 0.6; // rallentatore: si muove come in un fashion film
+    this.timeScale = 0.45; // rallentatore: lenta e sicura, come in un fashion film
     this.time = 0;
     this.anchorBlend = new Map();
     this.gesture = null;
@@ -43,6 +44,9 @@ export class Silk {
     this.grabbed = null;
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
     this.calm = 0; // 0..1: dentro le sezioni la seta si placa (meno vento, niente gesti)
+    // la seta che prende forma di figura femminile (le quattro aree: chirurgie e medicine)
+    this.figure = createFigure();
+    this.figBlend = 0; // 0 = fazzoletto, 1 = la seta modellata sulla figura
     this.move = null; // una figura delle prese (la capriola)
     this.untangle = 0; // 0..1: forza che scioglie i nodi (alta subito dopo capriole e tirate)
     this.memK = 8; // memoria della forma (pieghe e curve) [1/s²]
@@ -112,8 +116,85 @@ export class Silk {
     this.memK = saved.memK;
     this.memKGlobal = saved.memKGlobal;
     this.nextGesture = this.time + 7;
+    this._buildFigureTarget();
     this.prewarm(1.0); // la seta riparte nel vento vero, già viva
     this._upload();
+  }
+
+  /**
+   * La seta che diventa figura: un abito di seta indossato da una figura invisibile.
+   * Ogni colonna del telo è un angolo attorno al corpo (il centro del telo davanti, i bordi
+   * che si incontrano dietro), ogni riga un'altezza: dalle spalle fin sotto le ginocchia.
+   * Il punto è sulla superficie del busto (spalle, seno, vita, fianchi), poi la gonna scende
+   * appena svasata. Il contorno della seta disegna la silhouette.
+   */
+  _buildFigureTarget() {
+    const c = this.cloth, f = this.figure;
+    const { nx, ny } = this;
+    const top = 0.4, bottom = -0.98; // altezze locali (0 = vita)
+    const R = new Float32Array(c.n);
+    let lastR = new Float32Array(nx).fill(0.15), lastY = new Float32Array(nx).fill(top);
+    for (let j = 0; j < ny; j++) {
+      const Y = top + (bottom - top) * (j / (ny - 1));
+      for (let i = 0; i < nx; i++) {
+        const th = (i / (nx - 1) - 0.5) * Math.PI * 1.35; // davanti e fianchi, schiena aperta
+        const dx = Math.sin(th), dz = Math.cos(th);
+        // dal di fuori verso l'asse, finché si tocca la forma
+        let r = 0.5, hit = false;
+        for (let it = 0; it < 70; it++) {
+          const d = gownSdf(dx * r, Y, dz * r);
+          if (d < 0.002) { hit = true; break; }
+          r -= Math.max(d * 0.9, 0.003);
+          if (r < 0.02) break;
+        }
+        if (hit && Y > -0.6) {
+          lastR[i] = r;
+          lastY[i] = Y;
+        } else {
+          // sotto i fianchi: la gonna scende appena svasata
+          r = lastR[i] + (lastY[i] - Y) * 0.12;
+        }
+        R[j * nx + i] = r + 0.014;
+      }
+    }
+    // ammorbidire attorno e in altezza: è tessuto, non pelle
+    const tmp = new Float32Array(c.n);
+    for (let pass = 0; pass < 2; pass++) {
+      for (let j = 0; j < ny; j++)
+        for (let i = 0; i < nx; i++) {
+          let a = 0, w = 0;
+          for (let o = -2; o <= 2; o++) {
+            const ii = Math.min(nx - 1, Math.max(0, i + o));
+            const ww = 3 - Math.abs(o);
+            a += R[j * nx + ii] * ww;
+            w += ww;
+          }
+          tmp[j * nx + i] = a / w;
+        }
+      for (let j = 0; j < ny; j++)
+        for (let i = 0; i < nx; i++) {
+          let a = 0, w = 0;
+          for (let o = -1; o <= 1; o++) {
+            const jj = Math.min(ny - 1, Math.max(0, j + o));
+            const ww = 2 - Math.abs(o);
+            a += tmp[jj * nx + i] * ww;
+            w += ww;
+          }
+          R[j * nx + i] = a / w;
+        }
+    }
+    const T = new Float32Array(c.n * 3);
+    for (let j = 0; j < ny; j++) {
+      const Y = top + (bottom - top) * (j / (ny - 1));
+      for (let i = 0; i < nx; i++) {
+        const p = j * nx + i, k = p * 3;
+        const th = (i / (nx - 1) - 0.5) * Math.PI * 1.35;
+        T[k] = Math.sin(th) * R[p]; // rispetto a figure.x
+        T[k + 1] = f.y + Y;
+        T[k + 2] = f.z + Math.cos(th) * R[p];
+      }
+    }
+    this.figTarget = T;
   }
 
   /** Cambia la densità della mesh (la simulazione resta la stessa). */
@@ -168,6 +249,15 @@ export class Silk {
     let x = this.panX + s * 0.48 + 0.03 * Math.sin(t * 0.37 + (s > 0 ? 1.7 : 0));
     let y = (s < 0 ? 1.32 : 1.1) + 0.04 * Math.sin(t * 0.29 + (s > 0 ? 0.6 : 2.2));
     let z = 0.045 * Math.sin(t * 0.23 + (s > 0 ? 2.9 : 0.4));
+    // quando la seta diventa figura le prese vanno sopra le spalle, appena dietro
+    const fb = this.figBlend;
+    if (fb > 0 && this.figTarget) {
+      const T = this.figTarget, kk = (s < 0 ? 0 : this.nx - 1) * 3;
+      const ex = this.figure.x + T[kk], ey = T[kk + 1], ez = T[kk + 2];
+      x += (ex - x) * fb;
+      y += (ey - y) * fb;
+      z += (ez - z) * fb;
+    }
     const m = this.move;
     if (m) {
       const k = (t - m.start - (s > 0 ? m.lag : 0)) / m.dur;
@@ -297,12 +387,18 @@ export class Silk {
     const n = c.n, pos = c.pos, vel = c.vel, acc = c.acc;
     // forma di riferimento: il drappeggio memorizzato, spostato con la seta che guida
     const target = this._target || (this._target = new Float32Array(n * 3));
+    const fb = this.figBlend, FT = this.figTarget, fx = this.figure.x;
     for (let p = 0; p < n; p++) {
       const k3 = p * 3;
       if (rest) {
         target[k3] = rest[k3] + this.panX;
         target[k3 + 1] = rest[k3 + 1];
         target[k3 + 2] = rest[k3 + 2];
+        if (fb > 0 && FT) {
+          target[k3] += (FT[k3] + fx - target[k3]) * fb;
+          target[k3 + 1] += (FT[k3 + 1] - target[k3 + 1]) * fb;
+          target[k3 + 2] += (FT[k3 + 2] - target[k3 + 2]) * fb;
+        }
       } else {
         const i = p % nx, j = (p / nx) | 0;
         target[k3] = this.panX + (i / (nx - 1) - 0.5) * (this.rodW || 1.4);
@@ -321,7 +417,7 @@ export class Silk {
     dx /= n; dy /= n; dz /= n;
     // sicurezza: se la forma resta lontana dal riferimento per un paio di secondi, la
     // memoria si rafforza da sola finché la seta non è di nuovo distesa
-    if (rest && !busy) {
+    if (rest && !busy && this.figBlend < 0.01) {
       let err = 0, m = 0;
       for (let p = 0; p < n; p += 7) {
         const k3 = p * 3;
@@ -344,15 +440,18 @@ export class Silk {
       this._farFor = knotty ? (this._farFor || 0) + dt : 0;
       if (this._farFor > 0.8) this.untangle = Math.max(this.untangle, 0.9);
     }
-    const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost; // forma [1/s²]
-    const kg = (busy ? 0 : this.memKGlobal) + 2 * boost; // posizione [1/s²]
+    // verso la figura la memoria è più decisa (la forma deve leggersi), ma sempre morbida
+    const fbk = this.figBlend;
+    const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost + 26 * fbk; // forma [1/s²]
+    const kg = (busy ? 0 : this.memKGlobal) + 2 * boost + 16 * fbk; // posizione [1/s²]
+    const ky = 0.5 + 0.5 * fbk; // in figura la forma regge anche in verticale
     const damp = (busy ? 0.1 : this.memDamp) + 1.8 * boost; // [1/s]
     for (let p = 0; p < n; p++) {
       if (c.invMass[p] === 0) continue;
       const k3 = p * 3;
       // verso la forma (traslata dello spostamento medio) + richiamo leggero d'insieme
       acc[k3] += kl * (target[k3] + dx - pos[k3]) - kg * dx - damp * vel[k3];
-      acc[k3 + 1] += 0.5 * kl * (target[k3 + 1] + dy - pos[k3 + 1]) - kg * dy - damp * vel[k3 + 1];
+      acc[k3 + 1] += ky * kl * (target[k3 + 1] + dy - pos[k3 + 1]) - kg * dy - damp * vel[k3 + 1];
       acc[k3 + 2] += kl * (target[k3 + 2] + dz - pos[k3 + 2]) - kg * dz - damp * vel[k3 + 2];
     }
   }
@@ -399,6 +498,10 @@ export class Silk {
     if (this.gesture && t1 - this.gesture.start > this.gesture.dur + 0.5) this.gesture = null;
     this.wind.t = t1;
 
+    this.figure.x = this.panX;
+    this.cloth.collider = null; // la figura ora è la forma di destinazione della seta
+    // in figura la seta diventa leggera: la forma la tiene sospesa
+    this.cloth.gravity = -9.81 * (1 - 0.9 * this.figBlend);
     this.cloth.computeAero(this.wind.sample);
     this._applyUntangle(dt);
     this.cloth.step(dt, (p, alpha) => {
