@@ -38,6 +38,9 @@ export class Silk {
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
     this.move = null; // una figura delle prese (la capriola)
     this.untangle = 0; // 0..1: forza che scioglie i nodi (alta subito dopo capriole e tirate)
+    this.memK = 8; // memoria della forma (pieghe e curve) [1/s²]
+    this.memKGlobal = 0.8; // richiamo leggero della posizione d'insieme [1/s²]
+    this.memDamp = 0.6; // smorzamento verso la forma [1/s]
 
     // texture della simulazione (posizioni + cavità), bordo di punti fantasma incluso
     const tw = this.nx + 2, th = this.ny + 2;
@@ -78,6 +81,15 @@ export class Silk {
 
     this._hang();
     this.prewarm(2.0);
+    // memoria della forma: il drappeggio naturale, mediato sull'ultimo secondo di assestamento
+    const acc = new Float32Array(this.cloth.pos.length);
+    const steps = 60;
+    for (let s = 0; s < steps; s++) {
+      this._simulate(1 / 60);
+      for (let i = 0; i < acc.length; i++) acc[i] += this.cloth.pos[i] / steps;
+    }
+    this.restShape = acc;
+    this._upload();
   }
 
   /** Cambia la densità della mesh (la simulazione resta la stessa). */
@@ -232,10 +244,10 @@ export class Silk {
   }
 
   /**
-   * Scioglie i nodi: una molla leggera verso il drappeggio naturale (il telo che scende
-   * dalle due prese), sempre attiva al minimo e forte per un paio di secondi dopo una
-   * capriola, una tirata o un passaggio. Senza collisione del telo con se stesso è questo
-   * che impedisce alla seta di restare attorcigliata.
+   * Memoria della forma: una molla morbida, sempre attiva, riporta ogni punto della seta al
+   * suo drappeggio naturale (memorizzato all'avvio). Vento e dito la muovono, ma non restano
+   * pieghe ferme né nodi: torna sempre, piano, alla forma originale. Dopo una capriola, una
+   * tirata o un passaggio la molla è più forte per un paio di secondi.
    */
   _applyUntangle(dt) {
     const c = this.cloth;
@@ -243,22 +255,42 @@ export class Silk {
     const busy = this.grabbed || (this.move && this.time < this.move.start + this.move.dur + this.move.lag);
     if (!busy) this.untangle = Math.max(0, this.untangle - dt / 2.4);
     const boost = busy ? 0 : this.untangle;
-    const k = 0.3 + 7 * boost; // [1/s²]
-    const damp = 2.2 * boost; // [1/s]
-    const halfW = 0.36, top = 1.24, len = this.height * 0.93;
-    for (let j = 0; j < ny; j++) {
-      const v = j / (ny - 1);
-      const ty = top - v * len;
-      for (let i = 0; i < nx; i++) {
-        const p = j * nx + i;
-        if (c.invMass[p] === 0) continue;
-        const u = i / (nx - 1);
-        const tx = this.panX + (u - 0.5) * 2 * halfW;
-        const k3 = p * 3;
-        c.acc[k3] += k * (tx - c.pos[k3]) - damp * c.vel[k3];
-        c.acc[k3 + 1] += k * 0.4 * (ty - c.pos[k3 + 1]) - damp * c.vel[k3 + 1];
-        c.acc[k3 + 2] += k * (0.05 - c.pos[k3 + 2]) - damp * c.vel[k3 + 2];
+    const rest = this.restShape;
+    const n = c.n, pos = c.pos, vel = c.vel, acc = c.acc;
+    // forma di riferimento: il drappeggio memorizzato, spostato con la seta che guida
+    const target = this._target || (this._target = new Float32Array(n * 3));
+    for (let p = 0; p < n; p++) {
+      const k3 = p * 3;
+      if (rest) {
+        target[k3] = rest[k3] + this.panX;
+        target[k3 + 1] = rest[k3 + 1];
+        target[k3 + 2] = rest[k3 + 2];
+      } else {
+        const i = p % nx, j = (p / nx) | 0;
+        target[k3] = this.panX + (i / (nx - 1) - 0.5) * 0.72;
+        target[k3 + 1] = 1.24 - (j / (ny - 1)) * this.height * 0.93;
+        target[k3 + 2] = 0.05;
       }
+    }
+    // spostamento medio: la memoria della forma non frena l'oscillazione d'insieme
+    let dx = 0, dy = 0, dz = 0;
+    for (let p = 0; p < n; p++) {
+      const k3 = p * 3;
+      dx += pos[k3] - target[k3];
+      dy += pos[k3 + 1] - target[k3 + 1];
+      dz += pos[k3 + 2] - target[k3 + 2];
+    }
+    dx /= n; dy /= n; dz /= n;
+    const kl = (busy ? 0.2 * this.memK : this.memK) + 6 * boost; // forma [1/s²]
+    const kg = (busy ? 0 : this.memKGlobal) + 2 * boost; // posizione [1/s²]
+    const damp = (busy ? 0.1 : this.memDamp) + 1.8 * boost; // [1/s]
+    for (let p = 0; p < n; p++) {
+      if (c.invMass[p] === 0) continue;
+      const k3 = p * 3;
+      // verso la forma (traslata dello spostamento medio) + richiamo leggero d'insieme
+      acc[k3] += kl * (target[k3] + dx - pos[k3]) - kg * dx - damp * vel[k3];
+      acc[k3 + 1] += 0.5 * kl * (target[k3 + 1] + dy - pos[k3 + 1]) - kg * dy - damp * vel[k3 + 1];
+      acc[k3 + 2] += kl * (target[k3 + 2] + dz - pos[k3 + 2]) - kg * dz - damp * vel[k3 + 2];
     }
   }
 

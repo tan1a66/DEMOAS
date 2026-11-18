@@ -425,16 +425,25 @@ body {
   box-sizing: border-box;
   background: var(--ivory);
 }
-.chi-head::after {
+.chi-head {
+  background: none;
+}
+/* quando foto e nome sono piccoli, l'intestazione diventa vetro smerigliato sulla seta */
+.chi-head::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  height: 26px;
-  background: linear-gradient(var(--ivory), rgba(247, 242, 236, 0));
-  pointer-events: none;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: rgba(247, 242, 236, 0.62);
+  -webkit-backdrop-filter: blur(16px) saturate(1.05);
+  backdrop-filter: blur(16px) saturate(1.05);
+  border-bottom: 1px solid rgba(179, 146, 96, 0.35);
   opacity: var(--fade, 0);
+  pointer-events: none;
 }
 .chi-head .page-kicker {
   position: static;

@@ -39,17 +39,22 @@ let guiding = false;
 let hold = false; // durante la capriola l'inquadratura resta ferma
 const page = { p: 0, shown: 0 }; // 0 = nome, 1 = menu / sezioni
 const sect = { v: 0 }; // 1 = dentro una sezione: la seta si ritira (fascia sottile, schiarita)
+const bg = { v: 0 }; // 1 = Chi sono: la seta diventa lo sfondo a tutta pagina (vicina, schiarita)
 const DIST = 6.1;
 const viewSize = () => {
   const aspect = innerWidth / innerHeight;
-  // telefono: la seta riempie la larghezza; desktop: una fascia ampia al centro
-  const visH = aspect < 0.85 ? 0.8 / aspect : 1.75;
+  // telefono: la seta riempie la larghezza; desktop: una fascia ampia al centro.
+  // Come sfondo (Chi sono) la camera si avvicina: la seta copre tutto lo schermo.
+  const visNormal = aspect < 0.85 ? 0.8 / aspect : 1.75;
+  const visBg = aspect < 0.85 ? 0.5 / aspect : 0.62;
+  const visH = visNormal + (visBg - visNormal) * bg.v;
   return { visH, visW: visH * aspect, portrait: aspect < 0.85 };
 };
 const hemTarget = () => {
   const { portrait } = viewSize();
   const menuT = portrait ? 0.6 - 0.29 * page.shown : 0.56 - 0.29 * page.shown;
-  return menuT + (0.11 - menuT) * sect.v;
+  const t = menuT + (0.11 - menuT) * sect.v;
+  return t + (1.35 - t) * bg.v; // come sfondo l'orlo scende sotto lo schermo
 };
 const _v = new THREE.Vector3();
 const hemYs = [];
@@ -83,7 +88,8 @@ const screenFrame = (dt) => {
   }
   // sicurezza: niente seta sul testo (una piega può scendere al massimo di un 3,5% in più)
   const yLimit = yT - 0.07;
-  if (lowest < yLimit) cam.y += (lowest - yLimit) * (visH / 2) * Math.min(1, dt * 8);
+  // (come sfondo la seta sta dietro al testo per scelta: niente limite)
+  if (bg.v < 0.5 && lowest < yLimit) cam.y += (lowest - yLimit) * (visH / 2) * Math.min(1, dt * 8);
 };
 
 const computeFrame = () => {
@@ -309,8 +315,16 @@ const openSection = (id, { push = true } = {}) => {
     guide(silk.panX + GUIDE);
   }
   // poi la seta si ritira: il contenuto è il protagonista
-  gsap.to(sect, { v: 1, duration: 2.2, delay: retreat, ease: 'sine.inOut', overwrite: true });
-  gsap.to(silk.uniforms.uVeil, { value: 0.55, duration: 2.2, delay: retreat + 0.3, ease: 'sine.inOut', overwrite: true });
+  if (id === 'chi-sono') {
+    // Chi sono: dopo la capriola la seta resta come sfondo a tutta pagina, chiara e leggera
+    gsap.to(sect, { v: 0, duration: 1, overwrite: true });
+    gsap.to(bg, { v: 1, duration: 2.6, delay: retreat, ease: 'sine.inOut', overwrite: true });
+    gsap.to(silk.uniforms.uVeil, { value: 0.6, duration: 2.4, delay: retreat + 0.2, ease: 'sine.inOut', overwrite: true });
+  } else {
+    gsap.to(bg, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
+    gsap.to(sect, { v: 1, duration: 2.2, delay: retreat, ease: 'sine.inOut', overwrite: true });
+    gsap.to(silk.uniforms.uVeil, { value: 0.55, duration: 2.2, delay: retreat + 0.3, ease: 'sine.inOut', overwrite: true });
+  }
   if (reduceMotion) {
     gsap.set(menu, { opacity: 0 });
     if (prev) prev.hidden = true;
@@ -333,6 +347,7 @@ const closeSection = () => {
   silk.move = null;
   guide(0);
   gsap.to(sect, { v: 0, duration: 1.6, ease: 'sine.inOut', overwrite: true });
+  gsap.to(bg, { v: 0, duration: 1.8, ease: 'sine.inOut', overwrite: true });
   gsap.to(silk.uniforms.uVeil, { value: 0, duration: 1.4, ease: 'sine.inOut', overwrite: true });
   if (reduceMotion) {
     el.hidden = true;
