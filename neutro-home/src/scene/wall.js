@@ -3,6 +3,7 @@
 // suaves en cada parada y variaciones de tono a gran escala evitan que se note la repetición.
 
 import * as THREE from 'three';
+import { patchSunlight } from '../gl/sunlight.js';
 
 export const TILE = 1.4; // metros que cubre una repetición de la textura
 
@@ -55,6 +56,7 @@ reflectedLight.directDiffuse *= mix(0.7, 1.1, pool);
 reflectedLight.indirectDiffuse *= mix(0.86, 1.04, pool);`
           : '#include <aomap_fragment>'
       );
+    patchSunlight(shader);
   };
   mat.customProgramCacheKey = () => (pools ? 'plaster-pools' : 'plaster');
   return mat;

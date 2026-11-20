@@ -17,6 +17,8 @@ uniform float uPushR;
 uniform float uTime;
 uniform float uBreeze;
 uniform float uHang;   // longitud típica de los hilos (para el peso del balanceo)
+uniform float uSpin;   // al girar la pieza los hilos se quedan atrás (radianes en la punta)
+uniform float uFlare;  // y se abren por la fuerza centrífuga
 varying float vAO;
 varying float vTint;
 varying float vT;
@@ -24,6 +26,10 @@ vec3 frRotZ(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(c * p.x
 vec3 frRotX(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(p.x, c * p.y - s * p.z, s * p.y + c * p.z); }
 vec3 fringeDisplace(vec3 p, float t, float seed) {
   float w = pow(t, 1.35);
+  // giro: retraso y apertura de los hilos alrededor del eje de la pieza
+  float sa = -uSpin * w;
+  float cs = cos(sa), sn = sin(sa);
+  p.xz = vec2(cs * p.x + sn * p.z, -sn * p.x + cs * p.z) * (1.0 + uFlare * w);
   // el dedo aparta los hilos (sobre todo la parte libre)
   vec3 d = p - uPush.xyz;
   float dist = length(d.xz);
@@ -51,6 +57,8 @@ export function fringeUniforms({ pivot, hang, pushR = 0.12 }) {
     uTime: { value: 0 },
     uBreeze: { value: 1 },
     uHang: { value: hang },
+    uSpin: { value: 0 },
+    uFlare: { value: 0 },
     // tinte: el color nuevo baja por los hilos (de arriba abajo)
     uColA: { value: new THREE.Color() },
     uColB: { value: new THREE.Color() },
@@ -227,6 +235,46 @@ export class FringeDye {
   }
 }
 
+// Plato giratorio: la pieza se queda en su sitio y se hace girar con el dedo (con inercia).
+export class Turntable {
+  constructor(group, swing) {
+    this.g = group;
+    this.swing = swing;
+    this.base = group.rotation.y;
+    this.angle = 0;
+    this.omega = 0;
+    this.held = false;
+  }
+
+  drag(dAngle, dt) {
+    this.angle += dAngle;
+    const w = dAngle / Math.max(dt, 1 / 120);
+    this.omega += (w - this.omega) * 0.5;
+    this.held = true;
+  }
+
+  release() {
+    this.held = false;
+  }
+
+  impulse(w) {
+    this.omega += w;
+  }
+
+  step(dt) {
+    if (!this.held) {
+      this.angle += this.omega * dt;
+      this.omega *= Math.exp(-0.9 * dt);
+      if (Math.abs(this.omega) < 0.01) this.omega = 0;
+    } else {
+      this.omega *= Math.exp(-6 * dt); // dedo quieto: la pieza se para
+    }
+    this.g.rotation.y = this.base + this.angle;
+    this.swing.setSpin(this.omega);
+    return this.held || this.omega !== 0;
+  }
+}
+
 // Balanceo del conjunto + dedo. Péndulo lento y pesado (flecos de algodón).
 export class FringeSwing {
   constructor(uniforms, { omega = 2.6, zeta = 0.16 } = {}) {
@@ -235,7 +283,16 @@ export class FringeSwing {
     this.sz = new Spring(0, omega * 1.07, zeta);
     this.push = 0;
     this.pushTarget = 0;
+    this.lag = new Spring(0, 4.2, 0.32); // retraso de los hilos al girar
+    this.flare = 0;
+    this.spin = 0;
     this.active = false;
+  }
+
+  // velocidad de giro de la pieza (rad/s)
+  setSpin(omega) {
+    this.spin = omega;
+    if (Math.abs(omega) > 1e-3 || !this.lag.resting) this.active = true;
   }
 
   // impulso (por ejemplo, el aire que mueve la cámara al pasar o el gesto del dedo)
@@ -260,16 +317,30 @@ export class FringeSwing {
     this.u.uTime.value = time;
     if (!this.active) return false;
     const h = Math.min(dt, 1 / 30);
+    this.lag.target = Math.max(-0.9, Math.min(0.9, this.spin * 0.3));
     for (let i = 0; i < 4; i++) {
       this.sx.step(h / 4);
       this.sz.step(h / 4);
+      this.lag.step(h / 4);
     }
+    const flareT = Math.min(0.45, 0.05 * this.spin * this.spin);
+    this.flare += (flareT - this.flare) * (1 - Math.exp(-dt * 5));
+    this.u.uSpin.value = this.lag.x;
+    this.u.uFlare.value = this.flare;
     this.sx.x = Math.max(-0.5, Math.min(0.5, this.sx.x));
     this.sz.x = Math.max(-0.5, Math.min(0.5, this.sz.x));
     this.push += (this.pushTarget - this.push) * (1 - Math.exp(-dt * (this.pushTarget > this.push ? 14 : 4)));
     this.u.uSwing.value.set(this.sx.x, this.sz.x);
     this.u.uPush.value.w = this.push;
-    this.active = !(this.sx.resting && this.sz.resting && this.push < 0.002 && this.pushTarget === 0);
+    this.active = !(
+      this.sx.resting &&
+      this.sz.resting &&
+      this.lag.resting &&
+      this.flare < 0.002 &&
+      Math.abs(this.spin) < 1e-3 &&
+      this.push < 0.002 &&
+      this.pushTarget === 0
+    );
     return true;
   }
 }

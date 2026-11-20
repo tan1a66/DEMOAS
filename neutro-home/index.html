@@ -73,56 +73,25 @@
     </div>
 
     <main id="app">
-      <canvas id="gl" aria-label="Una casa de Mérida con piezas de Neutro Home tejidas a mano. Arrastra las ondas o las colas de la trenza; desliza para recorrer la casa."></canvas>
+      <canvas id="gl" aria-label="Piezas de Neutro Home tejidas a mano: la Trenza Maya y las lámparas Makech y Xux. Arrastra la trenza o haz girar las lámparas; desliza para pasar a la siguiente pieza."></canvas>
       <div class="vignette" aria-hidden="true"></div>
       <div class="grain" aria-hidden="true"></div>
 
       <header class="brand" id="brand">
         <a class="logo" href="https://neutro.com.mx" target="_blank" rel="noopener">NEUTRO HOME</a>
-        <p class="brand-sub">Una muestra</p>
       </header>
 
       <p class="intro-line" id="introLine" aria-hidden="true">Yucatán, tejido a mano.</p>
 
 
-      <section class="piece" id="piece" aria-live="polite">
-        <p class="piece-hint" id="pieceHint"></p>
-        <p class="piece-meta"><span class="piece-no" id="pieceNo"></span><span class="piece-kicker" id="pieceKicker"></span></p>
-        <h2 class="piece-title" id="pieceTitle"></h2>
-        <p class="piece-text" id="pieceText"></p>
-        <div class="piece-colors" id="pieceColors">
-          <div class="swatches" id="swatches" role="radiogroup" aria-label="Color"></div>
-          <p class="swatch-name" id="swatchName" aria-hidden="true"></p>
-        </div>
-        <div class="piece-actions">
-          <a class="cta" id="cta" target="_blank" rel="noopener" hidden></a>
-          <a class="piece-link" id="pieceLink" rel="noopener"></a>
-        </div>
-        <p class="piece-note" id="pieceNote"></p>
+      <section class="piece" id="piece">
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Color"></div>
       </section>
-
-      <nav class="journey-nav" id="journeyNav" aria-label="Recorrido">
-        <button type="button" data-go="historia">Nuestra historia</button>
-        <button type="button" data-go="catalogo">Catálogo</button>
-        <button type="button" data-go="next" id="navNext">Continúa el viaje</button>
-      </nav>
+      <button type="button" class="next-hint" id="nextHint" aria-label="Siguiente pieza"><span></span></button>
       <nav class="dots" id="dots" aria-label="Paradas"></nav>
 
-      <div class="catalog-overlay" id="catalogOverlay" role="dialog" aria-modal="true" aria-labelledby="catalogTitle" hidden>
-        <div class="catalog-sheet">
-          <header class="catalog-head">
-            <p class="catalog-kicker">Neutro Home</p>
-            <h2 class="catalog-title" id="catalogTitle">Catálogo</h2>
-            <button type="button" class="catalog-close" id="catalogClose" aria-label="Cerrar catálogo">Cerrar</button>
-          </header>
-          <div class="catalog-grid" id="catalogGrid"></div>
-          <a class="catalog-all" id="catalogAll" target="_blank" rel="noopener">Ver todo en neutro.com.mx</a>
-        </div>
-      </div>
-
-      <p class="credit">Demo · Alessia Studio</p>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
-      <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-label" id="cursorLabel"></span></div>
+      <div class="cursor" id="cursor" aria-hidden="true"></div>
     </main>
 
     <script type="module" src="/src/main.js"></script>

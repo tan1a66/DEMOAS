@@ -8,7 +8,7 @@ import { createDyeUniforms } from './gl/fiberMaterial.js';
 import { buildRoom, ROOM } from './scene/room.js';
 import { Makech } from './scene/makech.js';
 import { XuxFamily } from './scene/xux.js';
-import { Studio } from './scene/studio.js';
+import { Turntable } from './scene/fringe.js';
 import { Journey, buildPath } from './journey.js';
 import { STOPS } from './stops.js';
 import { JourneyUI } from './ui/journeyUi.js';
@@ -19,6 +19,7 @@ import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
 import { clamp, lerp } from './model/spring.js';
 import { PieceUI } from './ui/ui.js';
+import { sunlight } from './gl/sunlight.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
@@ -87,12 +88,13 @@ scene.add(makech.group);
 const XUX_POS = [new THREE.Vector3(9.25, 0, 0.5), new THREE.Vector3(9.85, 0, 0.62), new THREE.Vector3(10.45, 0, 0.5)];
 const xux = new XuxFamily({ textures, floorY: ROOM.floor, positions: XUX_POS });
 scene.add(xux.group);
-const studio = new Studio({ textures, position: new THREE.Vector3(12.75, ROOM.floor, 3.0) });
-scene.add(studio.group);
 const fringes = [
   { obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 },
   ...xux.lamps.map((l) => ({ obj: l, swing: l.swing, group: l.group, hit: l.hit, stop: 2, lamp: true })),
 ];
+// cada pieza gira sobre sí misma (plato giratorio): se ve a 360° y los flecos responden
+for (const f of fringes) f.turn = new Turntable(f.group, f.swing);
+const demoSpin = {};
 
 const HUNG_PHASE = 0.4;
 const rig = new Rig();
@@ -106,18 +108,13 @@ function setSheen(target, hex) {
 // ---------------------------------------------------------------- encuadre
 const brandEl = $('brand');
 const pieceEl = $('piece');
-const navEl = $('journeyNav');
 
-// Zona libre de la pantalla para encuadrar la pieza: la cartela vive de lado (a la izquierda en
-// horizontal, abajo a la izquierda en vertical) y nunca se monta sobre la pieza.
+// Zona libre de la pantalla para encuadrar la pieza: entre el logotipo y los colores.
 function freeArea() {
   const w = window.innerWidth;
-  const h = window.innerHeight;
   const top = brandEl.getBoundingClientRect().bottom + 10;
   const pr = pieceEl.getBoundingClientRect();
-  const navTop = navEl.getBoundingClientRect().top;
-  if (w > h * 1.25) return { x0: pr.right + 24, x1: w - 36, y0: top, y1: navTop - 4 };
-  return { x0: 0, x1: w, y0: top, y1: pr.top - 6 };
+  return { x0: 36, x1: w - 36, y0: top, y1: pr.top - 8 };
 }
 const CONTENT = { x0: -0.55, x1: 0.55, y0: -0.93, y1: 0.19 };
 const finalCam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), pxpm: 300 };
@@ -154,7 +151,6 @@ const STOP_FRAMES = [
   null, // la trenza usa computeFinalCamera
   { focus: new THREE.Vector3(6.1, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
   { focus: new THREE.Vector3(9.85, -0.95, 0.55), dir: new THREE.Vector3(0, 0, -1), w: 1.8, h: 2.3 },
-  { focus: new THREE.Vector3(13.0, -0.95, 3.0), dir: new THREE.Vector3(1, 0, 0), w: 1.45, h: 2.0 },
 ];
 let cameraPath = null;
 const up = new THREE.Vector3(0, 1, 0);
@@ -183,9 +179,7 @@ function computeStops() {
   const S0 = { pos: finalCam.pos.clone(), look: finalCam.look.clone(), fov: 26, stop: 0 };
   const S1 = { ...frameStop(STOP_FRAMES[1], fov), stop: 1 };
   const S2 = { ...frameStop(STOP_FRAMES[2], fov), stop: 2 };
-  const S3 = { ...frameStop(STOP_FRAMES[3], fov), stop: 3 };
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  const mid = (a, b, t) => a.clone().lerp(b, t);
   const keys = [
     S0,
     { pos: V(0.6, -0.35, 3.7), look: V(2.6, -0.3, 3.35), fov: (26 + fov) / 2 },
@@ -194,8 +188,6 @@ function computeStops() {
     { pos: V(6.1, -0.5, 4.65), look: V(8.0, -0.6, 3.2), fov },
     { pos: V(7.2, -0.6, 3.55), look: V(9.5, -0.8, 1.6), fov },
     S2,
-    { pos: mid(S2.pos, S3.pos, 0.5).add(V(0, 0, 0.2)), look: V(12.2, -1.0, 2.0), fov },
-    S3,
   ];
   cameraPath = buildPath(keys);
 }
@@ -222,9 +214,6 @@ const piece = new PieceUI({
     else if (stopId === 'makech') makech.setColor(c.hex);
     else if (stopId === 'xux') xux.setColor(c ? c.hex : null);
   },
-  onLink: (action) => {
-    if (action === 'catalogo') jui.openCatalog();
-  },
 });
 
 // ---------------------------------------------------------------- recorrido
@@ -238,7 +227,6 @@ const STOP_FOCUS = [
   new THREE.Vector3(0, -0.35, 0),
   new THREE.Vector3(6.1, -0.25, 3.25),
   new THREE.Vector3(9.85, -1.0, 0.55),
-  new THREE.Vector3(12.8, -1.3, 3.0),
 ];
 const sunOffset = sun.position.clone().sub(sun.target.position);
 const shadowFocus = new THREE.Vector3();
@@ -526,8 +514,10 @@ function pickFringe(cx, cy, only) {
     fringeN.normalize().negate();
     fringePlane.setFromNormalAndCoplanarPoint(fringeN, o);
     if (!raycaster.ray.intersectPlane(fringePlane, fringeHit)) continue;
-    const local = fringeHit.clone().sub(o);
-    const inside = Math.hypot(local.x, local.z) < f.hit.r + 0.06 && local.y > f.hit.y0 - 0.05 && local.y < f.hit.y1;
+    const rel = fringeHit.clone().sub(o);
+    const inside = Math.hypot(rel.x, rel.z) < f.hit.r + 0.06 && rel.y > f.hit.y0 - 0.05 && rel.y < f.hit.y1;
+    // el punto del dedo en coordenadas de la pieza (que puede estar girada)
+    const local = f.group.worldToLocal(fringeHit.clone());
     if (inside || only) return { f, local, world: fringeHit.clone() };
   }
   return null;
@@ -537,13 +527,11 @@ let swipe = null;
 let fringeTouch = null;
 let hoverFringe = null;
 
-// Cursor propio en escritorio: anillo fino que crece y dice "Tócala" sobre lo que se puede tocar.
+// Cursor propio en escritorio: anillo fino que crece sobre lo que se puede tocar.
 const cursorEl = $('cursor');
-const cursorLabel = $('cursorLabel');
 function setGrab(on) {
   canvas.classList.toggle('can-grab', on);
   cursorEl.classList.toggle('big', on || !!drag || !!fringeTouch);
-  cursorLabel.textContent = journey.index === 2 ? 'Tócalas' : 'Tócala';
 }
 window.addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
@@ -580,8 +568,9 @@ canvas.addEventListener('pointerdown', (e) => {
   if (atStop) {
     const hit = pickFringe(e.clientX, e.clientY);
     if (hit) {
-      fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now() };
-      hit.f.swing.touch(hit.local, 1);
+      fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now(), x: e.clientX };
+      hit.f.swing.touch(hit.local, 0.7);
+      hit.f.turn.drag(0, 1 / 60);
       piece.touchedPiece(STOPS[hit.f.stop].id);
       canvas.classList.add('grabbing');
     }
@@ -600,15 +589,15 @@ canvas.addEventListener('pointermove', (e) => {
   }
   if (fringeTouch && e.pointerId === fringeTouch.id) {
     const hit = pickFringe(e.clientX, e.clientY, fringeTouch.f);
+    const now = performance.now();
+    const dt = Math.max(8, now - fringeTouch.t) / 1000;
+    // arrastrar en horizontal hace girar la pieza; el dedo sigue apartando los hilos
+    fringeTouch.f.turn.drag((e.clientX - fringeTouch.x) / 110, dt);
+    fringeTouch.x = e.clientX;
+    fringeTouch.t = now;
     if (hit) {
-      const now = performance.now();
-      const dt = Math.max(8, now - fringeTouch.t) / 1000;
-      const dx = (hit.world.x - fringeTouch.last.x) / dt;
-      const dz = (hit.world.z - fringeTouch.last.z) / dt;
-      fringeTouch.f.swing.kick(clamp(dx * 0.35, -0.6, 0.6), clamp(-dz * 0.35, -0.6, 0.6));
-      fringeTouch.f.swing.touch(hit.local, 1);
+      fringeTouch.f.swing.touch(hit.local, 0.7);
       fringeTouch.last = hit.world;
-      fringeTouch.t = now;
     }
   }
   if (swipe && e.pointerId === swipe.id) {
@@ -651,6 +640,7 @@ function endPointer(e) {
   }
   if (fringeTouch && (!e || e.pointerId === fringeTouch.id)) {
     fringeTouch.f.swing.release();
+    fringeTouch.f.turn.release();
     fringeTouch = null;
     canvas.classList.remove('grabbing');
   }
@@ -726,12 +716,19 @@ window.addEventListener('keydown', () => {
 let needsRender = true;
 let last = performance.now();
 
+let lastLeaf = 0;
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   let dirty = needsRender;
   needsRender = false;
+  // las hojas se mecen muy despacio: basta con 30 imágenes por segundo cuando nada más se mueve
+  sunlight.uTime.value = now / 1000;
+  if (phase !== 'loading' && now - lastLeaf > 33) {
+    lastLeaf = now;
+    dirty = true;
+  }
 
   if (phase === 'intro') {
     updateIntro(dt);
@@ -783,15 +780,20 @@ function updateJourney(dt, time) {
   const on = (i) => clamp(1 - Math.abs(p - i) * 1.4, 0, 1);
   makech.setOn(on(1));
   xux.setOn(on(2));
-  studio.setOn(on(3), time);
-  if (on(3) > 0) dirty = true; // la llama de la vela
   // sólo se dibuja lo que puede verse
   const showBraid = p < 1.45;
   braid.mesh.visible = pegs.visible = showBraid;
   tassels.L.mesh.visible = tassels.R.mesh.visible = showBraid;
   makech.group.visible = p > 0.25 && p < 2.6;
   xux.group.visible = p > 1.15;
-  studio.group.visible = p > 1.6;
+  // al llegar a una pieza por primera vez, media vuelta suave: invita a girarla
+  if (!moving && (idx === 1 || idx === 2) && Math.abs(p - idx) < 0.02 && !demoSpin[idx]) {
+    demoSpin[idx] = true;
+    fringes
+      .filter((f) => f.stop === idx)
+      .forEach((f, k) => setTimeout(() => f.turn.impulse(idx === 1 ? 1.5 : 1.2), 700 + k * 220));
+  }
+  for (const f of fringes) if (f.turn.step(dt)) dirty = true;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
   if (makech.dye.step(dt)) dirty = true;
   if (xux.dye.step(dt)) dirty = true;

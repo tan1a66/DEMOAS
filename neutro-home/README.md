@@ -1,19 +1,15 @@
 # Neutro Home · La Trenza — demo 3D (Alessia Studio)
 
-Un viaggio in una casa di Mérida, pensato per iPhone in verticale.
+Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
+di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena).
 1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa, si apre in
-   moltissimi fili, diventa tre capi grossi che si intrecciano (lento), zoom sul dettaglio; la camera
-   si allontana e la treccia è già al suo posto.
-2. **La treccia si tocca:** si tirano le onde e anche le code e le nappe (la treccia scorre sui
-   ganci, le code oscillano). Sei colori che scorrono da una nappa all'altra.
-3. **Il viaggio:** scorrendo (o con "Continúa el viaje") la camera passa sotto gli archi e scopre un
-   pezzo alla volta: lampada **Makech**, famiglia **Xux**, l'angolo della **storia** con i coni di filo.
-   Le frange si toccano (il dito le sposta, poi oscillano) e si muovono anche al passaggio della camera.
-4. **È una mostra:** ogni pezzo ha la sua cartella (Nº, nome, materiale, colori della casa) di lato,
-   senza fondi, e un link alla sua scheda su neutro.com.mx; alla fine "Entrar a la tienda".
-   Navigazione: "Nuestra historia", "Catálogo" (pannello con i loro pezzi), "Continúa el viaje".
-   Anche Makech e Xux cambiano colore: la tinta scende lungo i fili.
-Tutti i testi dell'interfaccia sono in spagnolo.
+   moltissimi fili, diventa tre capi grossi che si intrecciano; zoom sul dettaglio, poi la camera si
+   allontana e la treccia è già al suo posto.
+2. **Trenza Maya:** si tirano le onde, le code e le nappe; sei colori che scorrono da una nappa all'altra.
+3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
+   inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
+   colore (la tinta scende lungo i fili).
+Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
 
 ```bash
 cd neutro-home
@@ -53,9 +49,9 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
 - `src/scene/tassel.js` — nappe: collo avvolto + centinaia di fili; oscillazione nel vertex shader.
 - `src/scene/room.js` — la casa (muri a calce, archi, travi, finestra); `src/journey.js` — percorso
   della camera (Catmull-Rom con punti di passaggio negli archi) e fermate.
-- `src/scene/fringe.js` — frange toccabili (Makech, Xux): migliaia di fili, spostati dal dito e
-  dall'oscillazione nel vertex shader. `makech.js`, `xux.js`, `studio.js` — i pezzi.
-- `src/stops.js` — testi delle fermate e del catalogo; foto in `src/assets/catalogo/` (dal loro sito).
+- `src/scene/fringe.js` — frange toccabili (Makech, Xux): migliaia di fili, spostati dal dito,
+  dall'oscillazione e dal giro (piatto rotante con inerzia) nel vertex shader. `makech.js`, `xux.js`.
+- `src/stops.js` — i pezzi della mostra; `src/gl/sunlight.js` — luce filtrata dalle foglie.
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.
 

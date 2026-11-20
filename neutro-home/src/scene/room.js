@@ -8,6 +8,7 @@
 
 import * as THREE from 'three';
 import { plasterMaterial, TILE } from './wall.js';
+import { patchSunlight } from '../gl/sunlight.js';
 
 export const ROOM = {
   floor: -2.0,
@@ -141,6 +142,8 @@ export function buildRoom(textures) {
     metalness: 0,
     envMapIntensity: 0.55,
   });
+  floorMat.onBeforeCompile = (shader) => patchSunlight(shader);
+  floorMat.customProgramCacheKey = () => 'floor-sun';
   const floorMesh = new THREE.Mesh(floorGeo, floorMat);
   floorMesh.receiveShadow = true;
   group.add(floorMesh);
