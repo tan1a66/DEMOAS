@@ -5,7 +5,13 @@ import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, 
 import { bakeTextures } from './gl/textures.js';
 import { buildEnvironment } from './gl/environment.js';
 import { createDyeUniforms } from './gl/fiberMaterial.js';
-import { buildWall } from './scene/wall.js';
+import { buildRoom, ROOM } from './scene/room.js';
+import { Makech } from './scene/makech.js';
+import { XuxFamily } from './scene/xux.js';
+import { Studio } from './scene/studio.js';
+import { Journey, buildPath } from './journey.js';
+import { STOPS } from './stops.js';
+import { JourneyUI } from './ui/journeyUi.js';
 import { buildPegs } from './scene/pegs.js';
 import { Braid, hungStructure, introStructure } from './scene/braid.js';
 import { Tassel } from './scene/tassel.js';
@@ -30,7 +36,8 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PALETTE.earth);
-const camera = new THREE.PerspectiveCamera(26, window.innerWidth / window.innerHeight, 0.05, 40);
+const BRAID_FOV = 26; // la trenza se mira como en una foto de producto
+const camera = new THREE.PerspectiveCamera(BRAID_FOV, window.innerWidth / window.innerHeight, 0.05, 40);
 
 // ---------------------------------------------------------------- luz de tarde
 const sun = new THREE.DirectionalLight('#fff3e6', 3.3);
@@ -55,8 +62,8 @@ scene.environment = buildEnvironment(renderer);
 scene.environmentIntensity = 0.6;
 
 // ---------------------------------------------------------------- escena
-const wall = buildWall(textures);
-scene.add(wall);
+const room = buildRoom(textures);
+scene.add(room);
 const pegX = [-PEGS.spacing, 0, PEGS.spacing];
 const pegs = buildPegs(textures, pegX);
 scene.add(pegs);
@@ -73,6 +80,19 @@ scene.add(tassels.L.mesh, tassels.R.mesh);
 // Entrada: un hilo que se abre en muchísimas hebras, que luego forman los tres cabos.
 let threads = new Threads({ perStrand: IS_TOUCH ? 54 : 66, braid, dye });
 scene.add(threads.mesh);
+
+// Las otras piezas de la casa (se descubren al recorrerla).
+const makech = new Makech({ position: new THREE.Vector3(5.5, 0.45, 3.25), ceilY: ROOM.ceil });
+scene.add(makech.group);
+const XUX_POS = [new THREE.Vector3(9.25, 0, 0.5), new THREE.Vector3(9.85, 0, 0.62), new THREE.Vector3(10.45, 0, 0.5)];
+const xux = new XuxFamily({ textures, floorY: ROOM.floor, positions: XUX_POS });
+scene.add(xux.group);
+const studio = new Studio({ textures, position: new THREE.Vector3(11.75, ROOM.floor, 3.0) });
+scene.add(studio.group);
+const fringes = [
+  { obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 },
+  ...xux.lamps.map((l) => ({ obj: l, swing: l.swing, group: l.group, hit: l.hit, stop: 2, lamp: true })),
+];
 
 const HUNG_PHASE = 0.4;
 const rig = new Rig();
@@ -100,7 +120,7 @@ function computeFinalCamera() {
   const ch = CONTENT.y1 - CONTENT.y0;
   let pxpm = Math.min(((area.x1 - area.x0) * 0.94) / cw, ((area.y1 - area.y0) * 0.97) / ch);
   pxpm = Math.max(pxpm, 120);
-  const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const tanH = Math.tan(THREE.MathUtils.degToRad(BRAID_FOV / 2));
   const D = h / (pxpm * 2 * tanH);
   const cx = (CONTENT.x0 + CONTENT.x1) / 2;
   const cy = (CONTENT.y0 + CONTENT.y1) / 2;
@@ -118,6 +138,61 @@ function applyCamera(pos, look) {
   camera.lookAt(look);
 }
 
+// Paradas de las piezas: encuadre que respeta el logotipo y el texto inferior.
+const stopPanelEl = $('stopPanel');
+const STOP_FRAMES = [
+  null, // la trenza usa computeFinalCamera
+  { focus: new THREE.Vector3(5.5, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
+  { focus: new THREE.Vector3(9.85, -0.95, 0.55), dir: new THREE.Vector3(0, 0, -1), w: 1.8, h: 2.3 },
+  { focus: new THREE.Vector3(12.0, -0.95, 3.0), dir: new THREE.Vector3(1, 0, 0), w: 1.45, h: 2.0 },
+];
+let cameraPath = null;
+const up = new THREE.Vector3(0, 1, 0);
+
+function frameStop(f, fov) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const top = brandEl.getBoundingClientRect().bottom + 8;
+  const pr = stopPanelEl.getBoundingClientRect();
+  const side = pr.width < w * 0.8;
+  const area = side ? { x0: 0, x1: pr.left, y0: top, y1: h - 50 } : { x0: 0, x1: w, y0: top, y1: pr.top };
+  const tanH = Math.tan(THREE.MathUtils.degToRad(fov / 2));
+  const pxpm = Math.max(60, Math.min(((area.x1 - area.x0) * 0.92) / f.w, ((area.y1 - area.y0) * 0.96) / f.h));
+  const D = h / (pxpm * 2 * tanH);
+  const right = new THREE.Vector3().crossVectors(f.dir, up).normalize();
+  const sx = (area.x0 + area.x1) / 2 - w / 2;
+  const sy = (area.y0 + area.y1) / 2 - h / 2;
+  const look = f.focus.clone().addScaledVector(right, -sx / pxpm).addScaledVector(up, sy / pxpm);
+  const pos = look.clone().addScaledVector(f.dir, -D);
+  // la cámara nunca sale de la casa
+  pos.x = clamp(pos.x, ROOM.left + 0.2, ROOM.right - 0.2);
+  pos.z = clamp(pos.z, ROOM.back + 0.3, ROOM.front - 0.2);
+  return { pos, look: pos.clone().add(f.dir), fov };
+}
+
+function computeStops() {
+  const portrait = window.innerWidth < window.innerHeight;
+  const fov = portrait ? 44 : 38;
+  const S0 = { pos: finalCam.pos.clone(), look: finalCam.look.clone(), fov: 26, stop: 0 };
+  const S1 = { ...frameStop(STOP_FRAMES[1], fov), stop: 1 };
+  const S2 = { ...frameStop(STOP_FRAMES[2], fov), stop: 2 };
+  const S3 = { ...frameStop(STOP_FRAMES[3], fov), stop: 3 };
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const mid = (a, b, t) => a.clone().lerp(b, t);
+  const keys = [
+    S0,
+    { pos: V(0.6, -0.35, 3.7), look: V(2.6, -0.3, 3.35), fov: (26 + fov) / 2 },
+    { pos: V(1.5, -0.3, 3.28), look: V(5.5, -0.12, 3.25), fov },
+    S1,
+    { pos: V(5.5, -0.5, 4.65), look: V(7.8, -0.6, 3.2), fov },
+    { pos: V(7.2, -0.6, 3.55), look: V(9.5, -0.8, 1.6), fov },
+    S2,
+    { pos: mid(S2.pos, S3.pos, 0.5).add(V(0, 0, 0.2)), look: V(11.2, -1.0, 2.0), fov },
+    S3,
+  ];
+  cameraPath = buildPath(keys);
+}
+
 function onResize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
@@ -125,8 +200,9 @@ function onResize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   computeFinalCamera();
+  computeStops();
   if (phase === 'intro') computeCloseCamera();
-  if (phase === 'main') applyCamera(finalCam.pos, finalCam.look);
+  if (phase === 'main') placeJourneyCamera();
   needsRender = true;
 }
 window.addEventListener('resize', onResize);
@@ -139,6 +215,39 @@ const ui = new UI({
     requestColor(c.hex);
   },
 });
+
+// ---------------------------------------------------------------- recorrido
+const journey = new Journey(STOPS.length);
+const jui = new JourneyUI({ onGo: (i) => goStop(i) });
+function goStop(i) {
+  if (phase !== 'main') return;
+  journey.go(i);
+}
+const STOP_FOCUS = [
+  new THREE.Vector3(0, -0.35, 0),
+  new THREE.Vector3(5.5, -0.25, 3.25),
+  new THREE.Vector3(9.85, -1.0, 0.55),
+  new THREE.Vector3(11.8, -1.3, 3.0),
+];
+const sunOffset = sun.position.clone().sub(sun.target.position);
+const shadowFocus = new THREE.Vector3();
+function placeJourneyCamera() {
+  if (!cameraPath) return;
+  const c = cameraPath(journey.p);
+  camera.position.copy(c.pos);
+  camera.lookAt(c.look);
+  if (Math.abs(camera.fov - c.fov) > 1e-3) {
+    camera.fov = c.fov;
+    camera.updateProjectionMatrix();
+  }
+  // el sol (y su sombra) acompaña a la zona que se mira
+  const p = journey.p;
+  const i = Math.min(STOP_FOCUS.length - 2, Math.floor(p));
+  shadowFocus.lerpVectors(STOP_FOCUS[i], STOP_FOCUS[i + 1], clamp(p - i, 0, 1));
+  sun.target.position.copy(shadowFocus);
+  sun.position.copy(shadowFocus).add(sunOffset);
+  sun.target.updateMatrixWorld();
+}
 
 const flow = { active: false, t: 0, queued: null };
 function requestColor(hex) {
@@ -205,7 +314,7 @@ const closeCam = { x: 0, tipY: 0, A: null, W: null, Z: null };
 // Encuadre cercano sobre la cola izquierda (adaptado al formato de pantalla).
 function computeCloseCamera() {
   const info = rig.info;
-  const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const tanH = Math.tan(THREE.MathUtils.degToRad(BRAID_FOV / 2));
   const aspect = window.innerWidth / window.innerHeight;
   // altura visible de cada encuadre (en horizontal manda el ancho)
   const fit = (h, w) => Math.min(h, w / aspect);
@@ -290,7 +399,8 @@ function disposeThreads() {
 function endIntro() {
   phase = 'main';
   disposeThreads();
-  applyCamera(finalCam.pos, finalCam.look);
+  journey.jump(0);
+  placeJourneyCamera();
   rim.intensity = 0;
   introLine.classList.remove('on');
   document.body.classList.add('lit');
@@ -312,8 +422,10 @@ function showMainUI() {
   if (uiShown) return;
   uiShown = true;
   ui.show();
+  jui.setStop(0);
+  document.body.classList.add('ui-on');
   nudgeTimer = setTimeout(() => {
-    if (!interacted && !REDUCED_MOTION) rig.nudge(0);
+    if (!interacted && !REDUCED_MOTION && journey.index === 0) rig.nudge(0);
   }, 2600);
 }
 
@@ -388,58 +500,200 @@ function markInteracted() {
   ui.hideHint();
 }
 
+// Flecos de las otras piezas: el dedo los aparta y los hace balancear.
+const fringePlane = new THREE.Plane();
+const fringeN = new THREE.Vector3();
+const fringeHit = new THREE.Vector3();
+function pickFringe(cx, cy, only) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  for (const f of fringes) {
+    if (only ? f !== only : f.stop !== journey.index) continue;
+    const o = f.group.position;
+    camera.getWorldDirection(fringeN);
+    fringeN.y = 0;
+    fringeN.normalize().negate();
+    fringePlane.setFromNormalAndCoplanarPoint(fringeN, o);
+    if (!raycaster.ray.intersectPlane(fringePlane, fringeHit)) continue;
+    const local = fringeHit.clone().sub(o);
+    const inside = Math.hypot(local.x, local.z) < f.hit.r + 0.06 && local.y > f.hit.y0 - 0.05 && local.y < f.hit.y1;
+    if (inside || only) return { f, local, world: fringeHit.clone() };
+  }
+  return null;
+}
+
+let swipe = null;
+let fringeTouch = null;
+let hoverFringe = null;
+
 canvas.addEventListener('pointerdown', (e) => {
   if (phase === 'intro') {
     skipIntro();
     return;
   }
-  if (phase !== 'main' || drag) return;
-  const target = pickTarget(e.clientX, e.clientY);
-  if (!target) return;
-  const p = toWorld(e.clientX, e.clientY);
-  if (!p) return;
-  e.preventDefault();
+  if (phase !== 'main' || drag || jui.catalogOpen) return;
   canvas.setPointerCapture(e.pointerId);
-  if (target.type === 'wave') {
-    drag = { id: e.pointerId, type: 'wave', wave: target.i, y0: p.y, d0: rig.depth[target.i].x };
-    rig.grab(target.i);
-  } else {
-    drag = { id: e.pointerId, type: 'tail', side: target.side };
-    rig.grabTail(target.side, target.grab);
-    rig.dragTail(p.x, p.y);
+  const atStop = !journey.moving;
+  if (atStop && journey.index === 0) {
+    const target = pickTarget(e.clientX, e.clientY);
+    const p = target && toWorld(e.clientX, e.clientY);
+    if (target && p) {
+      e.preventDefault();
+      if (target.type === 'wave') {
+        drag = { id: e.pointerId, type: 'wave', wave: target.i, y0: p.y, d0: rig.depth[target.i].x };
+        rig.grab(target.i);
+      } else {
+        drag = { id: e.pointerId, type: 'tail', side: target.side };
+        rig.grabTail(target.side, target.grab);
+        rig.dragTail(p.x, p.y);
+      }
+      canvas.classList.add('grabbing');
+      markInteracted();
+      return;
+    }
   }
-  canvas.classList.add('grabbing');
-  markInteracted();
+  if (atStop) {
+    const hit = pickFringe(e.clientX, e.clientY);
+    if (hit) {
+      fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now() };
+      hit.f.swing.touch(hit.local, 1);
+      canvas.classList.add('grabbing');
+    }
+  }
+  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), dy: 0, onObject: !!fringeTouch };
 });
 
 canvas.addEventListener('pointermove', (e) => {
-  if (!drag) {
-    if (phase === 'main' && e.pointerType === 'mouse') canvas.classList.toggle('can-grab', !!pickTarget(e.clientX, e.clientY));
+  if (drag) {
+    if (e.pointerId !== drag.id) return;
+    const p = toWorld(e.clientX, e.clientY);
+    if (!p) return;
+    if (drag.type === 'wave') rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
+    else rig.dragTail(p.x, p.y);
     return;
   }
-  if (e.pointerId !== drag.id) return;
-  const p = toWorld(e.clientX, e.clientY);
-  if (!p) return;
-  if (drag.type === 'wave') rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
-  else rig.dragTail(p.x, p.y);
+  if (fringeTouch && e.pointerId === fringeTouch.id) {
+    const hit = pickFringe(e.clientX, e.clientY, fringeTouch.f);
+    if (hit) {
+      const now = performance.now();
+      const dt = Math.max(8, now - fringeTouch.t) / 1000;
+      const dx = (hit.world.x - fringeTouch.last.x) / dt;
+      const dz = (hit.world.z - fringeTouch.last.z) / dt;
+      fringeTouch.f.swing.kick(clamp(dx * 0.35, -0.6, 0.6), clamp(-dz * 0.35, -0.6, 0.6));
+      fringeTouch.f.swing.touch(hit.local, 1);
+      fringeTouch.last = hit.world;
+      fringeTouch.t = now;
+    }
+  }
+  if (swipe && e.pointerId === swipe.id) {
+    swipe.dy = e.clientY - swipe.y0;
+    const dx = e.clientX - swipe.x0;
+    // sobre una pieza, el gesto es para tocarla: el recorrido sólo se mueve con un gesto claro
+    const k = swipe.onObject ? 1100 : 650;
+    if (Math.abs(swipe.dy) > 14 && Math.abs(swipe.dy) > Math.abs(dx)) journey.preview(clamp(-swipe.dy / k, -0.3, 0.3));
+    return;
+  }
+  // ratón sin pulsar: los flecos se apartan al pasar por encima
+  if (phase === 'main' && e.pointerType === 'mouse') {
+    if (journey.index === 0 && !journey.moving) {
+      canvas.classList.toggle('can-grab', !!pickTarget(e.clientX, e.clientY));
+      return;
+    }
+    const hit = !journey.moving && pickFringe(e.clientX, e.clientY);
+    if (hit) {
+      if (hoverFringe && hoverFringe.f === hit.f) {
+        const dx = hit.world.x - hoverFringe.last.x;
+        const dz = hit.world.z - hoverFringe.last.z;
+        hit.f.swing.kick(clamp(dx * 4, -0.25, 0.25), clamp(-dz * 4, -0.25, 0.25));
+      } else if (hoverFringe) hoverFringe.f.swing.release();
+      hit.f.swing.touch(hit.local, 0.55);
+      hoverFringe = { f: hit.f, last: hit.world };
+    } else if (hoverFringe) {
+      hoverFringe.f.swing.release();
+      hoverFringe = null;
+    }
+    canvas.classList.toggle('can-grab', !!hit);
+  }
 });
 
-function endDrag(e) {
-  if (!drag || (e && e.pointerId !== drag.id)) return;
-  if (drag.type === 'wave') rig.release();
-  else rig.releaseTail();
-  drag = null;
-  canvas.classList.remove('grabbing');
+function endPointer(e) {
+  if (drag && (!e || e.pointerId === drag.id)) {
+    if (drag.type === 'wave') rig.release();
+    else rig.releaseTail();
+    drag = null;
+    canvas.classList.remove('grabbing');
+  }
+  if (fringeTouch && (!e || e.pointerId === fringeTouch.id)) {
+    fringeTouch.f.swing.release();
+    fringeTouch = null;
+    canvas.classList.remove('grabbing');
+  }
+  if (swipe && (!e || e.pointerId === swipe.id)) {
+    const dt = Math.max(1, performance.now() - swipe.t0);
+    const v = swipe.dy / dt; // px/ms
+    const need = swipe.onObject ? 140 : 56;
+    if ((swipe.dy < -need || (v < -0.9 && swipe.dy < -30)) && !swipe.onObject) journey.next();
+    else if ((swipe.dy > need || (v > 0.9 && swipe.dy > 30)) && !swipe.onObject) journey.prev();
+    else if (swipe.onObject && Math.abs(swipe.dy) > need) (swipe.dy < 0 ? journey.next() : journey.prev());
+    else journey.go(journey.index);
+    swipe = null;
+  }
 }
-canvas.addEventListener('pointerup', endDrag);
-canvas.addEventListener('pointercancel', endDrag);
-canvas.addEventListener('lostpointercapture', endDrag);
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('lostpointercapture', endPointer);
+canvas.addEventListener('pointerleave', () => {
+  if (hoverFringe) {
+    hoverFringe.f.swing.release();
+    hoverFringe = null;
+  }
+});
+
+// Rueda / trackpad: un gesto = una parada.
+let wheelAcc = 0;
+let wheelLock = 0;
+let wheelTimer = 0;
+window.addEventListener(
+  'wheel',
+  (e) => {
+    if (jui.catalogOpen) return;
+    e.preventDefault();
+    if (phase === 'intro') {
+      skipIntro();
+      return;
+    }
+    if (phase !== 'main') return;
+    wheelAcc += e.deltaY;
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => (wheelAcc = 0), 220);
+    const now = performance.now();
+    if (now < wheelLock) return;
+    if (Math.abs(wheelAcc) > 40) {
+      if (wheelAcc > 0) journey.next();
+      else journey.prev();
+      wheelLock = now + 1000;
+      wheelAcc = 0;
+    }
+  },
+  { passive: false }
+);
+window.addEventListener('keydown', (e) => {
+  if (phase !== 'main' || jui.catalogOpen) return;
+  if (e.target.closest && e.target.closest('button, a, input')) return;
+  if (['ArrowDown', 'PageDown', ' '].includes(e.key)) journey.next();
+  else if (['ArrowUp', 'PageUp'].includes(e.key)) journey.prev();
+  else if (e.key === 'Home') journey.go(0);
+  else return;
+  e.preventDefault();
+});
+
 // Tocar el texto de la entrada también la salta.
 document.addEventListener('pointerdown', (e) => {
   if (phase === 'intro' && e.target !== canvas) skipIntro();
 });
 canvas.tabIndex = 0;
-canvas.addEventListener('keydown', () => {
+window.addEventListener('keydown', () => {
   if (phase === 'intro') skipIntro();
 });
 
@@ -463,12 +717,58 @@ function frame(now) {
       syncHung();
       dirty = true;
     }
+    dirty = updateJourney(dt, now / 1000) || dirty;
   }
   if (flow.active) {
     updateFlow(dt);
     dirty = true;
   }
   if (dirty) renderer.render(scene, camera);
+}
+
+// ---------------------------------------------------------------- recorrido (cada fotograma)
+let lastP = -1;
+let prevTravel = false;
+function updateJourney(dt, time) {
+  let dirty = false;
+  journey.update(dt);
+  const p = journey.p;
+  const moving = journey.moving;
+  if (moving || p !== lastP) {
+    placeJourneyCamera();
+    dirty = true;
+    // el aire que mueve la cámara al pasar
+    const speed = Math.abs(p - lastP) / Math.max(dt, 1e-3);
+    if (lastP >= 0 && speed > 0.05) {
+      for (const f of fringes) {
+        const near = 1 - Math.min(1, Math.abs(p - f.stop) / 0.9);
+        if (near > 0) f.swing.kick(0.02 * speed * near * Math.sign(p - lastP), 0.012 * speed * near);
+      }
+    }
+    lastP = p;
+  }
+  const idx = Math.round(p);
+  if (!moving && Math.abs(p - idx) < 0.02) jui.setStop(idx);
+  const travel = Math.abs(p - journey.index) > 0.06 || (moving && Math.abs(p - Math.round(p)) > 0.06);
+  if (travel !== prevTravel) {
+    jui.setTravelling(travel);
+    prevTravel = travel;
+  }
+  // luces que se encienden al llegar
+  const on = (i) => clamp(1 - Math.abs(p - i) * 1.4, 0, 1);
+  makech.setOn(on(1));
+  xux.setOn(on(2));
+  studio.setOn(on(3), time);
+  if (on(3) > 0) dirty = true; // la llama de la vela
+  // sólo se dibuja lo que puede verse
+  const showBraid = p < 1.45;
+  braid.mesh.visible = pegs.visible = showBraid;
+  tassels.L.mesh.visible = tassels.R.mesh.visible = showBraid;
+  makech.group.visible = p > 0.25 && p < 2.6;
+  xux.group.visible = p > 1.15;
+  studio.group.visible = p > 1.6;
+  for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
+  return dirty;
 }
 
 // ---------------------------------------------------------------- grano
@@ -499,6 +799,7 @@ async function start() {
   computeCloseCamera();
   applyCamera(finalCam.pos, finalCam.look);
   if (threads) threads.mesh.visible = true; // compilar también su shader antes de empezar
+  computeStops();
   try {
     await renderer.compileAsync(scene, camera);
   } catch {
@@ -544,6 +845,19 @@ window.__trenza = {
     tau = t;
   },
   pickTarget,
+  journey,
+  goStop,
+  jui,
+  jumpStop: (i) => {
+    journey.jump(i);
+    placeJourneyCamera();
+    needsRender = true;
+  },
+  jumpP: (p) => {
+    journey.spring.set(p);
+    placeJourneyCamera();
+    needsRender = true;
+  },
   requestColor,
   toScreen,
   render: () => renderer.render(scene, camera),

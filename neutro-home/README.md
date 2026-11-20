@@ -1,9 +1,17 @@
 # Neutro Home · La Trenza — demo 3D (Alessia Studio)
 
-Una sola schermata, pensata per iPhone in verticale: un filo scende, si apre in moltissimi
-fili sottili, i fili si raggruppano in tre capi grossi che si intrecciano (le punte restano
-fili sciolti), e la treccia cade su tre ganci di cedro. Il visitatore trascina le onde (le code si
-accorciano), cambia colore e chiede la treccia così com'è via DM Instagram.
+Un viaggio in una casa di Mérida, pensato per iPhone in verticale.
+1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa, si apre in
+   moltissimi fili, diventa tre capi grossi che si intrecciano (lento), zoom sul dettaglio; la camera
+   si allontana e la treccia è già al suo posto.
+2. **La treccia si tocca:** si tirano le onde e anche le code e le nappe (la treccia scorre sui
+   ganci, le code oscillano). Sei colori che scorrono da una nappa all'altra. "La quiero así" copia il
+   messaggio e apre il DM di Instagram.
+3. **Il viaggio:** scorrendo (o con "Continúa el viaje") la camera passa sotto gli archi e scopre un
+   pezzo alla volta: lampada **Makech**, famiglia **Xux**, l'angolo della **storia** con i coni di filo.
+   Le frange si toccano (il dito le sposta, poi oscillano) e si muovono anche al passaggio della camera.
+4. **Scelte:** "Nuestra historia", "Catálogo" (pannello con i loro pezzi e link al negozio),
+   "Continúa el viaje". Punti a destra per saltare a una fermata.
 Tutti i testi dell'interfaccia sono in spagnolo.
 
 ```bash
@@ -42,6 +50,11 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
   Dentro la treccia i capi sono compatti; sotto la treccia restano dello stesso volume ma
   "sciolti": anima sottile, fili ondulati che si staccano poco a poco e si aprono verso le punte.
 - `src/scene/tassel.js` — nappe: collo avvolto + centinaia di fili; oscillazione nel vertex shader.
+- `src/scene/room.js` — la casa (muri a calce, archi, travi, finestra); `src/journey.js` — percorso
+  della camera (Catmull-Rom con punti di passaggio negli archi) e fermate.
+- `src/scene/fringe.js` — frange toccabili (Makech, Xux): migliaia di fili, spostati dal dito e
+  dall'oscillazione nel vertex shader. `makech.js`, `xux.js`, `studio.js` — i pezzi.
+- `src/stops.js` — testi delle fermate e del catalogo; foto in `src/assets/catalogo/` (dal loro sito).
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.
 

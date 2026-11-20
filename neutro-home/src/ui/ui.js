@@ -76,7 +76,6 @@ export class UI {
   _bindCta() {
     const cta = $('cta');
     cta.href = CONTACT.instagram;
-    $('catalog').href = CONTACT.catalog;
     // El enlace abre el DM de Instagram en el mismo gesto (necesario en iOS);
     // antes copiamos el mensaje, porque Instagram no permite precompletar el texto.
     cta.addEventListener('click', () => {

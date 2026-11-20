@@ -73,7 +73,7 @@
     </div>
 
     <main id="app">
-      <canvas id="gl" aria-label="Trenza Maya colgada en tres ganchos de cedro. Arrastra una onda para cambiar su caída."></canvas>
+      <canvas id="gl" aria-label="Una casa de Mérida con piezas de Neutro Home tejidas a mano. Arrastra las ondas o las colas de la trenza; desliza para recorrer la casa."></canvas>
       <div class="vignette" aria-hidden="true"></div>
       <div class="grain" aria-hidden="true"></div>
 
@@ -90,8 +90,33 @@
         <div class="swatches" id="swatches" role="radiogroup" aria-label="Color"></div>
         <p class="swatch-name" id="swatchName" aria-hidden="true"></p>
         <a class="cta" id="cta" href="https://ig.me/m/neutro_home" target="_blank" rel="noopener">La quiero así</a>
-        <a class="catalog" id="catalog" href="https://neutro.com.mx" target="_blank" rel="noopener">Ver catálogo</a>
       </section>
+
+      <section class="stop-panel" id="stopPanel" aria-live="polite">
+        <p class="stop-kicker" id="stopKicker"></p>
+        <h2 class="stop-title" id="stopTitle"></h2>
+        <p class="stop-text" id="stopText"></p>
+        <a class="stop-link" id="stopLink" target="_blank" rel="noopener"></a>
+      </section>
+
+      <nav class="journey-nav" id="journeyNav" aria-label="Recorrido">
+        <button type="button" data-go="historia">Nuestra historia</button>
+        <button type="button" data-go="catalogo">Catálogo</button>
+        <button type="button" data-go="next" id="navNext">Continúa el viaje</button>
+      </nav>
+      <nav class="dots" id="dots" aria-label="Paradas"></nav>
+
+      <div class="catalog-overlay" id="catalogOverlay" role="dialog" aria-modal="true" aria-labelledby="catalogTitle" hidden>
+        <div class="catalog-sheet">
+          <header class="catalog-head">
+            <p class="catalog-kicker">Neutro Home</p>
+            <h2 class="catalog-title" id="catalogTitle">Catálogo</h2>
+            <button type="button" class="catalog-close" id="catalogClose" aria-label="Cerrar catálogo">Cerrar</button>
+          </header>
+          <div class="catalog-grid" id="catalogGrid"></div>
+          <a class="catalog-all" id="catalogAll" target="_blank" rel="noopener">Ver todo en neutro.com.mx</a>
+        </div>
+      </div>
 
       <p class="credit">Demo · Alessia Studio</p>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
