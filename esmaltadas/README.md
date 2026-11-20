@@ -31,7 +31,7 @@ npm run build:anteprima  # anteprima in UN file: anteprima/esmaltadas-anteprima.
 | Nails | completa (vedi sotto) |
 | Lashes, Brows, Hair | **Work in progress** · Alessia Studio (da costruire con la cliente) |
 | Sucursales | si sceglie lo studio: indirizzo, orario e telefono, mappa, Cómo llegar, WhatsApp di quella sucursal, "Agendar en esta sucursal" |
-| Agendar | servizio, sucursal, giorno (prossimi 12 giorni di apertura, domenica esclusa), fascia, nome → messaggio pronto su WhatsApp **al numero della sucursal scelta** |
+| Agendar | servizio, sucursal, giorno (prossimi 12 giorni di apertura, domenica esclusa), fascia e **ora precisa** (ogni mezz'ora: mañana 10:00–12:30, mediodía 13:00–15:30, tarde 16:00–19:00; oggi solo gli orari ad almeno 30 minuti), nome → messaggio pronto su WhatsApp **al numero della sucursal scelta** |
 
 In alto a destra: Instagram (@esmaltadasmx), Sucursales, WhatsApp (numero del profilo, Prime Center).
 
@@ -42,7 +42,8 @@ Lo scroll guida la camera sulla seta (`data-cam` sui capitoli: direzione x,y,z e
 3. **El ritual**: Forma, Cutícula, Color, Brillo, con una linea che si disegna.
 4. **Brillo**: la seta si spegne (opaca) e ritrova il lucido mentre la luce le passa sopra
    (`uGloss` nello shader). "Mira la seda".
-5. **De cerca**: la camera si tuffa sul tessuto.
+5. **De cerca**: la camera si tuffa sul tessuto. "Cada detalle cuenta, uña por uña." (niente
+   riferimenti al tempo: le clienti non vogliono pensare a un appuntamento lungo).
 6. **Tu cita**: "Tus manos, listas." Il colore si sceglie in studio, con il muestrario
    (le clienti non lo sanno mai prima: niente scelta del colore sul sito). "Agenda tu manicure"
    apre Agendar con Nails già scelto.

@@ -943,6 +943,39 @@ html.fonts-wait .scroll-hint {
   color: var(--ink-soft);
 }
 
+/* Agendar: gli orari precisi compaiono sotto la fascia, uno dopo l'altro */
+.horas {
+  margin-top: 4px;
+}
+.chip-hora {
+  animation: hora-in 0.45s calc(var(--i, 0) * 0.04s) both cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.chip-hora span {
+  min-width: 64px;
+  box-sizing: border-box;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.chip input:disabled + span {
+  opacity: 0.38;
+  text-decoration: line-through;
+  cursor: default;
+}
+.chip:has(input:disabled) {
+  cursor: default;
+}
+@keyframes hora-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-hora {
+    animation: none;
+  }
+}
+
 /* la mappa */
 .ubi {
   max-width: 620px;
