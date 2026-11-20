@@ -71,7 +71,13 @@ Dal profilo Instagram (@esmaltadasmx) e da schede pubbliche, in `src/config.js`:
 - Testi dei servizi (proposti): descrizioni di Nails, Lashes, Brows, Hair e del rituale
 
 ## Anteprima del link
-`public/og.jpg` (1200×630, la prima schermata vera), `public/apple-touch-icon.png` e
-`public/favicon-96.png` (la E del marchio, bordeaux su nude). I tag in `index.html` puntano a
-`https://demo-esmaltadas-alessiastudio.vercel.app/`: se il dominio su Vercel è un altro,
-aggiornare `og:url` e `og:image`.
+`public/og-esmaltadas.jpg` (1200×630: la seta vera con il bordino bordeaux, il marchio e
+"Tres estudios en Mérida"; composta con `scripts/og.html`), `public/apple-touch-icon.png` e `public/favicon-96.png`
+(la E del marchio, bordeaux su nude). I tag in `index.html` puntano a
+`https://esmaltadas-demo-alessiastudio.vercel.app/`.
+
+**Per pubblicare su Vercel** l'immagine e le icone devono stare accanto alla pagina: caricare
+la cartella `deploy/` (dopo `npm run build:vercel`: `index.html` in un solo file + immagine +
+icone), oppure la cartella `dist/` di `npm run build`. Se si carica solo il file HTML, il link
+arriva senza anteprima. WhatsApp ricorda l'anteprima di un link per un po': per provarla
+subito si può aggiungere `?v=2` in fondo al link.

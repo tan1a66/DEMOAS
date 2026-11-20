@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:anteprima": "vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/esmaltadas-anteprima.html')\"",
-    "bake": "node scripts/bake-silk.mjs"
+    "bake": "node scripts/bake-silk.mjs",
+    "build:vercel": "vite build --config vite.preview.config.js --outDir deploy"
   },
   "dependencies": {
     "gsap": "3.12.5",
