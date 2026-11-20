@@ -11,7 +11,10 @@ di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena
    colore (la tinta scende lungo i fili).
 Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
 Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, con inerzia;
-vicino a un pezzo lo si può toccare (dito in orizzontale = girare, in verticale = scorrere).
+vicino a un pezzo lo si può toccare. Stesso dito per scorrere e toccare, decide il gesto:
+gesto rapido = scorre (anche sopra un pezzo); dito appoggiato un attimo o movimento lento = prende il
+pezzo (anello sotto il dito, la pagina non scorre); sulle lampade il gesto orizzontale le fa girare;
+tocco breve = il pezzo reagisce. Anche l'entrata avanza solo scorrendo (e torna indietro).
 
 ```bash
 cd neutro-home

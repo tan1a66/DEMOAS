@@ -427,3 +427,25 @@ body.lit .vignette {
     transition-delay: 0s !important;
   }
 }
+
+/* anillo bajo el dedo: confirma que la pieza está agarrada (la página no se desplaza) */
+.touch-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 66px;
+  height: 66px;
+  margin: -33px 0 0 -33px;
+  border-radius: 50%;
+  border: 1px solid rgba(43, 33, 26, 0.55);
+  background: rgba(244, 236, 224, 0.12);
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  scale: 0.6;
+  transition: opacity 0.25s var(--ease), scale 0.35s var(--ease);
+}
+.touch-ring.on {
+  opacity: 1;
+  scale: 1;
+}

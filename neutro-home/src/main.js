@@ -568,63 +568,122 @@ function nearPiece() {
 // cuánto hay que deslizar para pasar de una pieza a la siguiente
 const scrollPx = () => window.innerHeight * 0.85;
 
+// Desplazar y tocar con el mismo dedo: el gesto dice la intención.
+//  · gesto rápido (aunque empiece sobre una pieza) → recorre la casa;
+//  · dedo quieto un instante o movimiento lento sobre una pieza → la agarra (un anillo bajo el
+//    dedo lo confirma y, mientras no se suelte, la página no se mueve);
+//  · en las lámparas, el gesto horizontal siempre las hace girar;
+//  · un toque breve sobre una pieza → la pieza reacciona.
+const HOLD_MS = 160;
+const FLICK = 0.45; // px/ms: más rápido que esto es desplazarse
+const ringEl = $('touchRing');
+function ring(on, x, y) {
+  if (x !== undefined) ringEl.style.transform = `translate(${x}px, ${y}px)`;
+  ringEl.classList.toggle('on', on);
+}
+
+function grabNow(sw, x, y) {
+  const c = sw.pending;
+  sw.pending = null;
+  clearTimeout(sw.timer);
+  if (!c) return;
+  sw.grabbed = true;
+  if (c.kind === 'braid') {
+    const p0 = toWorld(sw.x0, sw.y0);
+    if (!p0) return;
+    if (c.target.type === 'wave') {
+      drag = { id: sw.id, type: 'wave', wave: c.target.i, y0: p0.y, d0: rig.depth[c.target.i].x };
+      rig.grab(c.target.i);
+      const p = toWorld(x, y);
+      if (p) rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
+    } else {
+      drag = { id: sw.id, type: 'tail', side: c.target.side };
+      rig.grabTail(c.target.side, c.target.grab);
+      const p = toWorld(x, y);
+      if (p) rig.dragTail(p.x, p.y);
+    }
+    markInteracted();
+  } else {
+    const hit = c.hit;
+    fringeTouch = { id: sw.id, f: hit.f, last: hit.world, t: performance.now(), x: sw.x0 };
+    hit.f.swing.touch(hit.local, 0.7);
+    hit.f.turn.drag(0, 1 / 60);
+  }
+  canvas.classList.add('grabbing');
+  if (sw.touch) ring(true, x, y);
+}
+
 canvas.addEventListener('pointerdown', (e) => {
-  if (phase === 'loading' || drag) return;
+  if (phase === 'loading' || drag || swipe) return;
   canvas.setPointerCapture(e.pointerId);
   const near = phase === 'main' ? nearPiece() : -1;
+  let candidate = null;
   if (near === 0) {
     const target = pickTarget(e.clientX, e.clientY);
-    const p = target && toWorld(e.clientX, e.clientY);
-    if (target && p) {
-      e.preventDefault();
-      if (target.type === 'wave') {
-        drag = { id: e.pointerId, type: 'wave', wave: target.i, y0: p.y, d0: rig.depth[target.i].x };
-        rig.grab(target.i);
-      } else {
-        drag = { id: e.pointerId, type: 'tail', side: target.side };
-        rig.grabTail(target.side, target.grab);
-        rig.dragTail(p.x, p.y);
-      }
-      canvas.classList.add('grabbing');
-      markInteracted();
-      return;
-    }
-  }
-  if (near > 0) {
+    if (target) candidate = { kind: 'braid', target };
+  } else if (near > 0) {
     const hit = pickFringe(e.clientX, e.clientY);
-    if (hit) {
-      fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now(), x: e.clientX };
-      hit.f.swing.touch(hit.local, 0.7);
-      hit.f.turn.drag(0, 1 / 60);
-      canvas.classList.add('grabbing');
-    }
+    if (hit) candidate = { kind: 'fringe', hit };
   }
   // el dedo "atrapa" el recorrido donde esté (como al tocar una página que se desliza)
   journey.setTarget(journey.s);
   const now = performance.now();
-  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lastY: e.clientY, lastT: now, v: 0, base: journey.s, axis: null };
+  swipe = {
+    id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: now, lastY: e.clientY, lastT: now, v: 0,
+    base: journey.s, axis: null, pending: candidate, grabbed: false, touch: e.pointerType !== 'mouse',
+    cx: e.clientX, cy: e.clientY, stamp: e.timeStamp,
+  };
+  if (!candidate) return;
+  e.preventDefault();
+  if (e.pointerType === 'mouse') {
+    grabNow(swipe, e.clientX, e.clientY); // con ratón no hay conflicto: la rueda desplaza
+  } else {
+    // dedo quieto: se "arma" (aparece el anillo); la pieza se agarra al moverse despacio
+    const sw = swipe;
+    sw.timer = setTimeout(() => {
+      if (swipe === sw && sw.pending && !sw.axis) ring(true, sw.cx, sw.cy);
+    }, HOLD_MS);
+  }
 });
 
 canvas.addEventListener('pointermove', (e) => {
+  if (swipe && e.pointerId === swipe.id) {
+    swipe.cx = e.clientX;
+    swipe.cy = e.clientY;
+  }
   if (drag) {
     if (e.pointerId !== drag.id) return;
     const p = toWorld(e.clientX, e.clientY);
     if (!p) return;
     if (drag.type === 'wave') rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
     else rig.dragTail(p.x, p.y);
+    ring(true, e.clientX, e.clientY);
     return;
   }
   if (swipe && e.pointerId === swipe.id) {
     const dx = e.clientX - swipe.x0;
     const dy = e.clientY - swipe.y0;
-    // ¿gesto horizontal (girar la pieza) o vertical (recorrer la casa)?
-    if (!swipe.axis && Math.hypot(dx, dy) > 9) swipe.axis = Math.abs(dy) > Math.abs(dx) * 1.15 ? 'y' : 'x';
-    if (fringeTouch && swipe.axis === 'y') {
-      fringeTouch.f.swing.release();
-      fringeTouch.f.turn.release();
-      fringeTouch = null;
-      canvas.classList.remove('grabbing');
+    const dist = Math.hypot(dx, dy);
+    // decidir la intención en cuanto el dedo se mueve un poco
+    if (swipe.pending && dist > 10) {
+      // tiempos del propio gesto (no de cuándo se procesa: el teléfono puede ir ocupado)
+      const elapsed = Math.max(1, e.timeStamp - swipe.stamp);
+      const speed = dist / elapsed;
+      const horizontal = Math.abs(dx) > Math.abs(dy) * 1.15;
+      if (swipe.pending.kind === 'fringe' && horizontal) {
+        swipe.axis = 'x';
+        grabNow(swipe, e.clientX, e.clientY);
+      } else if (!horizontal && (speed > FLICK || elapsed < HOLD_MS * 0.6)) {
+        swipe.pending = null;
+        clearTimeout(swipe.timer);
+        ring(false);
+        swipe.axis = 'y';
+      } else {
+        grabNow(swipe, e.clientX, e.clientY);
+        if (drag) return;
+      }
     }
+    if (!swipe.axis && !swipe.grabbed && dist > 9) swipe.axis = Math.abs(dy) > Math.abs(dx) * 1.15 ? 'y' : 'x';
     if (fringeTouch) {
       const hit = pickFringe(e.clientX, e.clientY, fringeTouch.f);
       const now = performance.now();
@@ -637,8 +696,10 @@ canvas.addEventListener('pointermove', (e) => {
         fringeTouch.f.swing.touch(hit.local, 0.7);
         fringeTouch.last = hit.world;
       }
+      if (swipe.touch) ring(true, e.clientX, e.clientY);
+      return;
     }
-    if (swipe.axis === 'y') {
+    if (swipe.axis === 'y' && !swipe.grabbed && !swipe.pending) {
       journey.setTarget(swipe.base - dy / scrollPx());
       const now = performance.now();
       const dts = Math.max(8, now - swipe.lastT) / 1000;
@@ -674,6 +735,21 @@ canvas.addEventListener('pointermove', (e) => {
 });
 
 function endPointer(e) {
+  const sw = swipe && (!e || e.pointerId === swipe.id) ? swipe : null;
+  // toque breve sobre una pieza: reacciona sin agarrarla
+  if (sw && sw.pending) {
+    clearTimeout(sw.timer);
+    const c = sw.pending;
+    if (c.kind === 'braid') {
+      if (c.target.type === 'wave') rig.nudge(c.target.i);
+      else rig.tails[c.target.side].tassel.v += c.target.side === 'L' ? -0.9 : 0.9;
+      rig.active = true;
+      markInteracted();
+    } else {
+      c.hit.f.turn.impulse(0.9);
+      c.hit.f.swing.kick(0.12, 0.06);
+    }
+  }
   if (drag && (!e || e.pointerId === drag.id)) {
     if (drag.type === 'wave') rig.release();
     else rig.releaseTail();
@@ -686,11 +762,12 @@ function endPointer(e) {
     fringeTouch = null;
     canvas.classList.remove('grabbing');
   }
-  if (swipe && (!e || e.pointerId === swipe.id)) {
+  if (sw) {
     // inercia: el recorrido sigue un poco al soltar (sin paradas)
-    if (swipe.axis === 'y' && performance.now() - swipe.lastT < 90) journey.scrollBy(clamp(swipe.v * 0.3, -1.2, 1.2));
+    if (sw.axis === 'y' && !sw.grabbed && performance.now() - sw.lastT < 90) journey.scrollBy(clamp(sw.v * 0.3, -1.2, 1.2));
     swipe = null;
   }
+  ring(false);
 }
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
