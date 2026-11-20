@@ -213,10 +213,19 @@ body {
 .manifesto p {
   margin: 0;
   max-width: 28ch;
+  text-wrap: balance; /* righe di pari lunghezza: niente parola sola in fondo */
   font-family: var(--text);
   font-weight: 500;
   font-size: 1.32rem;
   line-height: 1.5;
+}
+/* la prima riga: SKY = cielo, in malva come il nome */
+.manifesto p.m-lead {
+  max-width: 20ch;
+  font-family: var(--serif);
+  font-size: clamp(2.1rem, 9vw, 3rem);
+  line-height: 1.08;
+  color: var(--mauve);
 }
 
 /* seconda "pagina": il menu al centro, Prenota nella zona del pollice */
