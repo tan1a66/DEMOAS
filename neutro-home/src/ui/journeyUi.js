@@ -3,7 +3,7 @@
 import { STOPS } from '../stops.js';
 
 const $ = (id) => document.getElementById(id);
-const LABELS = { trenza: 'Trenza Maya', makech: 'Lámpara Makech', xux: 'Lámparas Xux' };
+const LABELS = { trenza: 'Trenza Maya', makech: 'Lámpara Makech', xux: 'Lámparas Xux', sala: 'Tapiz y lámparas Trenza' };
 
 export class JourneyUI {
   constructor({ onGo, piece }) {

@@ -13,9 +13,11 @@ const TWO_PI = Math.PI * 2;
 const PHASES = [0, TWO_PI / 3, (2 * TWO_PI) / 3];
 
 export class Braid {
-  constructor({ radial, dye, textures, envIntensity = 1 }) {
-    const N = BRAID.samples;
+  // samples / length: otras trenzas (las lámparas) usan la misma construcción con otra longitud.
+  constructor({ radial, dye, textures, envIntensity = 1, samples = BRAID.samples, length = BRAID.length }) {
+    const N = samples;
     this.N = N;
+    this.L = length;
     this.data = new Float32Array(N * ROWS * 4);
     this.tex = new THREE.DataTexture(this.data, N, ROWS, THREE.RGBAFormat, THREE.FloatType);
     this.tex.minFilter = this.tex.magFilter = THREE.NearestFilter;
@@ -53,11 +55,13 @@ export class Braid {
 
   /**
    * center: { px, py, tx, ty } (Float32Array N) — eje en el plano del muro.
-   * z: distancia al muro. st: función de estructura (ver hungStructure / introStructure).
+   * z: distancia al muro (número, o función de s: la entrada separa la cola del muro).
+   * st: función de estructura (ver hungStructure / introStructure).
    */
   update(center, z, st) {
     const { N, data, sx, sy, sz, sr } = this;
-    const L = BRAID.length;
+    const L = this.L;
+    const zf = typeof z === 'function' ? z : null;
     const ds = L / (N - 1);
     const A = BRAID.ampLat;
     const B = BRAID.ampDepth;
@@ -70,18 +74,19 @@ export class Braid {
       // normal en el plano (tangente girada 90°)
       const nx = -center.ty[i];
       const ny = center.tx[i];
+      const zz = zf ? zf(s) : z;
       for (let k = 0; k < 3; k++) {
         st(s, k, out);
         sx[k][i] = cx + nx * A * out.lat;
         sy[k][i] = cy + ny * A * out.lat;
-        sz[k][i] = z + B * out.dep;
+        sz[k][i] = zz + B * out.dep;
         sr[k][i] = out.rad;
         data[(7 * N + i) * 4 + k] = out.raw;
       }
       const o6 = (6 * N + i) * 4;
       data[o6] = cx;
       data[o6 + 1] = cy;
-      data[o6 + 2] = z;
+      data[o6 + 2] = zz;
       data[o6 + 3] = s / L;
     }
 
@@ -118,10 +123,8 @@ export class Braid {
 }
 
 // Trenza colgada: estructura completa, que se estrecha hacia las borlas.
-export function hungStructure(phase = 0) {
-  const L = BRAID.length;
+export function hungStructure(phase = 0, L = BRAID.length, T = BRAID.taperLen) {
   const P = BRAID.period;
-  const T = BRAID.taperLen;
   return (s, k, o) => {
     const e = Math.min(s, L - s);
     const g = smoothstep(0, T, e);
@@ -152,6 +155,7 @@ export function hungStructure(phase = 0) {
  *   tube   — 0..1, aparición de los tres cabos gruesos.
  *   tipEnd, taper — puntas: por debajo de tipEnd sólo hebras; el tubo se deshace en "taper".
  *   done   — 0..1, paso final a la trenza colgada definitiva (con su borla).
+ *   airy   — 0..1, cabos más separados (la sombra deja ver los cruces).
  */
 export function introStructure(p) {
   const L = BRAID.length;
@@ -193,6 +197,14 @@ export function introStructure(p) {
       dep += (h.dep - dep) * d;
       r += (h.rad - r) * d;
       o.raw += (h.raw - o.raw) * d; // las hebras se aprietan hacia el cierre de la borla
+    }
+    // trenza "aireada" (sólo mientras se ve en sombra): cabos algo más finos y separados, para
+    // que la sombra deje pasar la luz entre los cruces y se lea el trenzado
+    if (p.airy > 0) {
+      const w = Math.max(above, p.done) * p.airy * smoothstep(0.05, 0.2, s); // la punta, como siempre
+      lat *= 1 + 0.38 * w;
+      r *= 1 - 0.16 * w;
+      o.raw *= 1 - 0.16 * w;
     }
     o.lat = lat;
     o.dep = dep;

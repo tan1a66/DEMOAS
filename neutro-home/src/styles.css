@@ -392,6 +392,12 @@ body.ui-on .dots {
   }
 }
 
+/* ------------------------------------------------------------ la sala, de noche: el texto se aclara */
+body[data-stop='sala'] {
+  --ink: #f2e6d6;
+  --ink-soft: rgba(242, 230, 214, 0.62);
+}
+
 /* ------------------------------------------------------------ estado "escena" */
 body.lit .logo,
 body.lit .credit {

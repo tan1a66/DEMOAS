@@ -1,10 +1,10 @@
-// La casa: una sola estancia larga de muros de cal, dividida por dos tabiques con arcos.
+// La casa: una sola estancia larga de muros de cal, dividida por tres tabiques con arcos.
 // Cada pieza vive en su propio espacio: desde una parada no se ve la siguiente hasta que la
 // cámara cruza el arco. Unidades del modelo (los ganchos de la trenza están en y = 0).
 //
 //   z
-//   ↑   espacio A (trenza)  |arco|  espacio B (Makech)  |arco|  espacio C (Xux · historia)
-//   0 ───────────────────── muro del fondo ───────────────────────────────── ventana →
+//   ↑   A (trenza)  |arco|  B (Makech)  |arco|  C (Xux)  |arco|  D (sala: tapiz y lámparas)
+//   0 ─────────────────────────── muro del fondo ─────────────────────────────── ventana →
 
 import * as THREE from 'three';
 import { plasterMaterial, TILE } from './wall.js';
@@ -16,11 +16,12 @@ export const ROOM = {
   back: 0,
   front: 7.0,
   left: -2.6,
-  right: 13.4,
+  right: 19.8,
   thick: 0.32,
   parts: [
     { x: 1.5, arch: { z: 3.25, w: 1.5, h: 2.95 } },
     { x: 7.2, arch: { z: 3.3, w: 1.5, h: 2.95 } },
+    { x: 13.4, arch: { z: 4.7, w: 1.5, h: 2.95 } },
   ],
   window: { z: 3.0, w: 1.3, y0: -0.8, y1: 1.05 },
 };
@@ -164,17 +165,19 @@ export function buildRoom(textures) {
   const sky = new THREE.Mesh(
     new THREE.PlaneGeometry(3, 3),
     new THREE.ShaderMaterial({
-      uniforms: {},
+      uniforms: { uDusk: { value: 0 } },
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       fragmentShader: `varying vec2 vUv;
+        uniform float uDusk;
         void main(){
-          vec3 top = vec3(1.0, 0.97, 0.9);
-          vec3 low = vec3(0.86, 0.82, 0.62);
+          // de la tarde al anochecer
+          vec3 top = mix(vec3(1.0, 0.97, 0.9), vec3(0.42, 0.36, 0.5), uDusk);
+          vec3 low = mix(vec3(0.86, 0.82, 0.62), vec3(0.95, 0.52, 0.3), uDusk);
           vec3 c = mix(low, top, smoothstep(0.2, 0.85, vUv.y));
           // copas de árboles muy desenfocadas
           float leaf = 0.5 + 0.5 * sin(vUv.x * 17.0 + sin(vUv.y * 9.0) * 2.0) * sin(vUv.y * 13.0 + 1.3);
           c = mix(c, vec3(0.55, 0.6, 0.4), smoothstep(0.55, 0.95, leaf) * smoothstep(0.75, 0.2, vUv.y) * 0.45);
-          gl_FragColor = vec4(c * 1.15, 1.0);
+          gl_FragColor = vec4(c * mix(1.15, 0.8, uDusk), 1.0);
           #include <colorspace_fragment>
         }`,
     })
@@ -182,6 +185,7 @@ export function buildRoom(textures) {
   sky.rotation.y = -Math.PI / 2;
   sky.position.set(right + thick + 0.6, (w.y0 + w.y1) / 2, w.z);
   group.add(sky);
+  group.userData.sky = sky;
 
   return group;
 }

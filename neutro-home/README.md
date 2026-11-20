@@ -3,14 +3,22 @@
 Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
 di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena).
 1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa e si apre in
-   moltissimi fili; i fili formano tre fasci che si intrecciano a ritmo di mano (un incrocio alla
-   volta), sempre fatti di fili; la camera si avvicina piano, poi si allontana e la treccia è al suo posto.
-2. **Trenza Maya:** si tirano le onde, le code e le nappe; sei colori che scorrono da una nappa all'altra.
+   moltissimi fili, che formano tre fasci. Poi la camera lascia i fili e scende sul muro: il sole
+   sale e rade la calce, e l'intreccio (a ritmo di mano, un incrocio alla volta) e la chiusura della
+   nappa si vedono solo in ombra, tra le foglie di palma. L'ombra si ritira, la camera si allontana
+   e la treccia è al suo posto.
+2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
    colore (la tinta scende lungo i fili).
+4. **La sala (di sera):** sul muro l'arazzo a frange (sole dorato, onde rosa, fascia verde acqua,
+   bande a gradini) sotto un faretto che ne proietta l'ombra; ai lati due lampade da terra di treccia
+   gigante, con paralume di filo, nappa aperta sul pavimento e la treccia che continua lunga sul
+   pavimento fino alla sua nappa. Il dito apre le frange dell'arazzo, un tocco le fa ondeggiare; un
+   tocco su una lampada la accende o la spegne; i colori cambiano le due lampade (la tinta sale dal
+   pavimento al paralume).
 Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce dorata alla Makech,
-tramonto alle Xux: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
+tramonto alle Xux, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
 attorno alla Makech e la Makech ruota con lo scorrimento (le frange si aprono e restano indietro).
 Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
@@ -56,8 +64,11 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
   Dentro la treccia i capi sono compatti; sotto la treccia restano dello stesso volume ma
   "sciolti": anima sottile, fili ondulati che si staccano poco a poco e si aprono verso le punte.
 - `src/scene/tassel.js` — nappe: collo avvolto + centinaia di fili; oscillazione nel vertex shader.
-- `src/scene/room.js` — la casa (muri a calce, archi, travi, finestra); `src/journey.js` — percorso
+- `src/scene/room.js` — la casa (muri a calce, tre archi, travi, finestra); `src/journey.js` — percorso
   della camera (Catmull-Rom con punti di passaggio negli archi) e fermate.
+- `src/scene/tapestry.js` — l'arazzo: migliaia di fili in strati (sole, rosa, verde acqua, bande),
+  spostati dal dito e dalle onde nel vertex shader; `src/scene/floorLamp.js` — le lampade di treccia
+  (la stessa trenza in GPU, più grossa, in colonna e sul pavimento, con la borla della Trenza Maya).
 - `src/scene/fringe.js` — frange toccabili (Makech, Xux): migliaia di fili, spostati dal dito,
   dall'oscillazione e dal giro (piatto rotante con inerzia) nel vertex shader. `makech.js`, `xux.js`.
 - `src/stops.js` — i pezzi della mostra; `src/gl/sunlight.js` — luce filtrata dalle foglie.
