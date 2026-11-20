@@ -192,6 +192,7 @@ export function introStructure(p) {
       lat += (h.lat - lat) * d;
       dep += (h.dep - dep) * d;
       r += (h.rad - r) * d;
+      o.raw += (h.raw - o.raw) * d; // las hebras se aprietan hacia el cierre de la borla
     }
     o.lat = lat;
     o.dep = dep;

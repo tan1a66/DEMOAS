@@ -6,13 +6,29 @@ import * as THREE from 'three';
 import { Spring, clamp } from './model/spring.js';
 
 export class Journey {
-  constructor(count) {
+  /**
+   * count: piezas; introSpan: cuánto recorrido ocupa la entrada (la narración también la
+   * decide el desplazamiento: si te paras, se para; si vuelves atrás, se deshace).
+   *   s ∈ [0, introSpan) → entrada;  s = introSpan + i → pieza i.
+   */
+  constructor(count, introSpan = 0) {
     this.count = count;
+    this.intro = introSpan;
+    this.max = introSpan + count - 1;
     this.spring = new Spring(0, 5.5, 1);
   }
 
-  get p() {
+  get s() {
     return this.spring.x;
+  }
+
+  // progreso entre piezas (0 = trenza, 1 = Makech, 2 = Xux)
+  get p() {
+    return Math.max(0, this.spring.x - this.intro);
+  }
+
+  get introT() {
+    return this.intro > 0 ? clamp(this.spring.x / this.intro, 0, 1) : 1;
   }
 
   get target() {
@@ -21,7 +37,7 @@ export class Journey {
 
   // pieza más cercana
   get index() {
-    return Math.round(this.spring.x);
+    return Math.round(this.p);
   }
 
   get moving() {
@@ -32,30 +48,42 @@ export class Journey {
   // desplazamiento continuo (rueda, dedo)
   setTarget(x) {
     this.spring.omega = 5.5;
-    this.spring.target = clamp(x, 0, this.count - 1);
+    this.spring.target = clamp(x, 0, this.max);
   }
 
   scrollBy(d) {
     this.setTarget(this.spring.target + d);
   }
 
+  goS(x, omega = 2.6) {
+    const to = clamp(x, 0, this.max);
+    this.spring.target = to;
+    this.spring.omega = omega + Math.max(0, Math.abs(this.spring.x - to) - 1) * 0.5;
+  }
+
   // ir a una pieza (marcas laterales, flecha, teclado): vuelo algo más lento
   go(i) {
-    const to = clamp(i, 0, this.count - 1);
-    this.spring.target = to;
-    this.spring.omega = 2.6 + Math.max(0, Math.abs(this.spring.x - to) - 1) * 0.5;
+    this.goS(this.intro + clamp(i, 0, this.count - 1));
   }
 
   next() {
-    this.go(Math.floor(this.spring.target + 1e-3) + 1);
+    const t = this.spring.target - this.intro;
+    if (t < -1e-3) this.go(0);
+    else this.go(Math.floor(t + 1e-3) + 1);
   }
 
   prev() {
-    this.go(Math.ceil(this.spring.target - 1e-3) - 1);
+    const t = this.spring.target - this.intro;
+    if (t <= 1e-3) this.goS(0);
+    else this.go(Math.ceil(t - 1e-3) - 1);
   }
 
   jump(i) {
-    this.spring.set(i);
+    this.spring.set(this.intro + i);
+  }
+
+  jumpS(x) {
+    this.spring.set(clamp(x, 0, this.max));
   }
 
   update(dt) {

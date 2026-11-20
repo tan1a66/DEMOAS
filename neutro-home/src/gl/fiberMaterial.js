@@ -158,8 +158,24 @@ export function braidDepthMaterial(uniforms) {
 
 const TASSEL_VERT_PARS = /* glsl */ `
 attribute vec4 aFiber; // (t a lo largo del fleco, flujo de color, tono, oclusión)
+attribute float aPart;  // 0 = cuello (hilo enrollado), 1 = fleco
 uniform float uLag;     // retraso del fleco respecto al cuello (radianes)
 uniform float uPivot;   // altura local del giro (base del cuello)
+uniform float uWrap;    // cierre: el hilo del cuello se enrolla de arriba abajo (0..1)
+uniform float uDrop;    // cierre: el fleco cae desde el cuello (0..1)
+vec3 tasselClose(vec3 p) {
+  if (aPart < 0.5) {
+    // vuelta a vuelta: la parte aún no enrollada queda escondida dentro de la trenza
+    float vt = clamp((0.034 - p.y) / 0.066, 0.0, 1.0);
+    float grow = smoothstep(vt - 0.18, vt, uWrap * 1.18);
+    p.xz *= mix(0.45, 1.0, grow);
+  } else {
+    float top = uPivot + 0.014;
+    p.y = top + (p.y - top) * uDrop;
+    p.xz *= mix(0.55, 1.0, uDrop);
+  }
+  return p;
+}
 varying float vAO;
 varying float vFlow;
 varying float vTint;
@@ -183,7 +199,7 @@ vAO = aFiber.w; vFlow = aFiber.y; vTint = aFiber.z;`
       )
       .replace(
         '#include <begin_vertex>',
-        `vec3 transformed = vec3(position);
+        `vec3 transformed = tasselClose(vec3(position));
 transformed.y -= uPivot;
 transformed.xy = tasselRot(transformed.xy, bend);
 transformed.y += uPivot;`
@@ -201,7 +217,7 @@ export function tasselDepthMaterial(uniforms) {
       .replace('#include <common>', `#include <common>\n${TASSEL_VERT_PARS}`)
       .replace(
         '#include <begin_vertex>',
-        `vec3 transformed = vec3(position);
+        `vec3 transformed = tasselClose(vec3(position));
 float bend = uLag * pow(aFiber.x, 1.5);
 transformed.y -= uPivot;
 transformed.xy = tasselRot(transformed.xy, bend);

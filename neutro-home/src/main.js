@@ -217,10 +217,12 @@ const piece = new PieceUI({
 });
 
 // ---------------------------------------------------------------- recorrido
-const journey = new Journey(STOPS.length);
+// la entrada ocupa 3 unidades de recorrido (≈ 2,5 pantallas deslizadas); luego cada pieza, 1
+const INTRO_SPAN = 3;
+const journey = new Journey(STOPS.length, INTRO_SPAN);
 const jui = new JourneyUI({ onGo: (i) => goStop(i), piece });
 function goStop(i) {
-  if (phase !== 'main') return;
+  if (phase === 'loading') return;
   journey.go(i);
 }
 const STOP_FOCUS = [
@@ -296,15 +298,13 @@ const introP = {
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
-const INTRO_END = 10.6;
+const INTRO_END = 11.4;
 
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 const easeOut = (x) => 1 - (1 - x) ** 3;
 
 let phase = 'loading'; // loading → intro → main
-let tau = 0;
-let litDone = false;
 let uiShown = false;
 const camPos = new THREE.Vector3();
 const camLook = new THREE.Vector3();
@@ -330,9 +330,8 @@ function computeCloseCamera() {
   closeCam.Z = frame(hZ, tip + 0.3); // detalle de la trenza ya hecha
 }
 
-function updateIntro(dt) {
-  tau += dt;
-  const t = tau;
+// La entrada es una función del desplazamiento (t = segundos "de guion", no de reloj).
+function setIntro(t) {
 
   // 1) el hilo baja por la cola  2) se abre en hebras  3) tres cabos  4) se trenzan  5) borla
   introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 2.7)));
@@ -346,41 +345,46 @@ function updateIntro(dt) {
   introP.spread = 0.6 * split;
   // los cabos son haces de hilos: sólo un alma fina les da cuerpo mientras se trenzan; la trenza
   // "sólida" aparece al final, cuando la cámara ya se aleja
-  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 9.0, 9.8));
-  // trenzado a mano: el frente avanza a golpes, un cruce cada vez (pasa un cabo, pausa…)
-  const STEP = BRAID.period / 6;
-  const NSTEP = 10;
-  const u = seg(t, 5.6, 8.6) * NSTEP;
+  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 10.2, 10.9));
+  // trenzado a mano: el frente avanza a golpes, un cruce cada vez (pasa un cabo, pausa…),
+  // hasta el final de la cola
+  const END = 0.08;
+  const NSTEP = 13;
+  const STEP = (0.52 - END) / NSTEP;
+  const u = seg(t, 5.6, 9.0) * NSTEP;
   const kk = Math.min(NSTEP - 1, Math.floor(u));
   const stepped = 0.52 - STEP * (kk + smoothstep(0.08, 0.72, u - kk));
-  introP.front = t < 5.6 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : Math.max(0.19, stepped);
+  introP.front = t < 5.6 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : Math.max(END, stepped);
   introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 6.0)));
-  introP.done = easeInOut(seg(t, 9.2, 10.0));
+  // cierre (de cerca): las últimas vueltas se recogen en el cuello, que se enrolla, y el fleco cae
+  const closing = easeInOut(seg(t, 9.0, 9.8));
+  introP.done = closing;
+  introP.tipEnd = lerp(0.085, -0.2, closing);
   if (threads) {
-    threads.mesh.visible = t > 2.4 && introP.done < 1;
+    threads.mesh.visible = t > 2.4 && t < 10.95;
     threads.set({
       bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
-      front: introP.front, done: introP.done,
+      front: lerp(introP.front, -0.4, closing), done: 0,
     });
-    if (introP.done >= 1) disposeThreads();
   }
   braid.update(rig.center, BRAID.z, introSt);
-  // la borla izquierda se "ata" al final: crece desde el extremo
-  const tie = easeOut(seg(t, 9.2, 10.1));
-  tassels.L.mesh.visible = tie > 0.001;
-  tassels.L.mesh.scale.setScalar(Math.max(0.001, tie));
+  // la borla izquierda: el cuello se enrolla vuelta a vuelta y luego cae el fleco
+  const wrap = easeInOut(seg(t, 9.0, 9.9));
+  tassels.L.mesh.visible = t > 9.0;
+  tassels.L.uniforms.uWrap.value = wrap;
+  tassels.L.uniforms.uDrop.value = easeOut(seg(t, 9.5, 10.4));
 
   // cámara: cerca del hilo → se abre para ver toda la cola → se acerca despacio a los hilos
   // mientras se trenzan → se aleja: la pieza ya está colgada en el muro
   const { A, W } = closeCam;
   const wide = easeInOut(seg(t, 2.6, 5.4));
-  const near = easeInOut(seg(t, 5.6, 8.8));
+  const near = easeInOut(seg(t, 5.6, 9.4));
   let d = lerp(A.d, W.d, wide) * (1 - 0.16 * near);
   let y = lerp(A.y, W.y, wide) + (closeCam.tipY + introP.front - W.y) * 0.25 * near;
   d *= 1 - 0.04 * seg(t, 0, 2.6); // un respiro casi imperceptible al principio
   camPos.set(closeCam.x, y, BRAID.z + d);
   camLook.set(closeCam.x, y, 0);
-  const away = easeInOut(seg(t, 8.8, INTRO_END - 0.1));
+  const away = easeInOut(seg(t, 10.0, INTRO_END - 0.1));
   camPos.lerp(finalCam.pos, away);
   camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
@@ -388,12 +392,7 @@ function updateIntro(dt) {
   rim.intensity = 1.6 * (1 - away);
   if (t > 0.8 && t < 4.9) introLine.classList.add('on');
   else introLine.classList.remove('on');
-  if (!litDone && t > 9.6) {
-    litDone = true;
-    document.body.classList.add('lit');
-  }
-  if (!uiShown && t > INTRO_END - 0.4) showMainUI();
-  if (t > INTRO_END) endIntro();
+  document.body.classList.toggle('lit', t > 10.6);
 }
 
 function disposeThreads() {
@@ -403,25 +402,38 @@ function disposeThreads() {
   threads = null;
 }
 
+// Volver a la entrada desplazándose hacia arriba: la trenza se "deshace" con el gesto.
+function enterIntro() {
+  phase = 'intro';
+  document.body.classList.add('intro');
+  jui.setTravelling(true);
+  if (drag) {
+    drag = null;
+    canvas.classList.remove('grabbing');
+  }
+  rig.setRest();
+  rig.step(0.016);
+  computeCloseCamera();
+}
+
 function endIntro() {
   phase = 'main';
-  disposeThreads();
-  journey.jump(0);
+  document.body.classList.remove('intro');
+  jui.setTravelling(false);
+  prevTravel = false;
+  lastP = -1;
   placeJourneyCamera();
   rim.intensity = 0;
   introLine.classList.remove('on');
   document.body.classList.add('lit');
   tassels.L.mesh.visible = tassels.R.mesh.visible = true;
-  tassels.L.mesh.scale.setScalar(1);
+  tassels.L.uniforms.uWrap.value = 1;
+  tassels.L.uniforms.uDrop.value = 1;
   rig.active = true; // reconstruye la trenza colgada definitiva
   showMainUI();
   needsRender = true;
 }
 
-function skipIntro() {
-  if (phase !== 'intro') return;
-  endIntro();
-}
 
 let nudgeTimer = 0;
 let interacted = false;
@@ -557,13 +569,9 @@ function nearPiece() {
 const scrollPx = () => window.innerHeight * 0.85;
 
 canvas.addEventListener('pointerdown', (e) => {
-  if (phase === 'intro') {
-    skipIntro();
-    return;
-  }
-  if (phase !== 'main' || drag) return;
+  if (phase === 'loading' || drag) return;
   canvas.setPointerCapture(e.pointerId);
-  const near = nearPiece();
+  const near = phase === 'main' ? nearPiece() : -1;
   if (near === 0) {
     const target = pickTarget(e.clientX, e.clientY);
     const p = target && toWorld(e.clientX, e.clientY);
@@ -592,9 +600,9 @@ canvas.addEventListener('pointerdown', (e) => {
     }
   }
   // el dedo "atrapa" el recorrido donde esté (como al tocar una página que se desliza)
-  journey.setTarget(journey.p);
+  journey.setTarget(journey.s);
   const now = performance.now();
-  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lastY: e.clientY, lastT: now, v: 0, base: journey.p, axis: null };
+  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lastY: e.clientY, lastT: now, v: 0, base: journey.s, axis: null };
 });
 
 canvas.addEventListener('pointermove', (e) => {
@@ -699,11 +707,7 @@ window.addEventListener(
   'wheel',
   (e) => {
     e.preventDefault();
-    if (phase === 'intro') {
-      skipIntro();
-      return;
-    }
-    if (phase !== 'main') return;
+    if (phase === 'loading') return;
     let d = e.deltaY;
     if (e.deltaMode === 1) d *= 18;
     else if (e.deltaMode === 2) d *= window.innerHeight;
@@ -712,7 +716,7 @@ window.addEventListener(
   { passive: false }
 );
 window.addEventListener('keydown', (e) => {
-  if (phase !== 'main') return;
+  if (phase === 'loading') return;
   if (e.target.closest && e.target.closest('button, a, input')) return;
   if (e.key === 'ArrowDown') journey.scrollBy(0.2);
   else if (e.key === 'ArrowUp') journey.scrollBy(-0.2);
@@ -724,20 +728,14 @@ window.addEventListener('keydown', (e) => {
   e.preventDefault();
 });
 
-// Tocar el texto de la entrada también la salta.
-document.addEventListener('pointerdown', (e) => {
-  if (phase === 'intro' && e.target !== canvas) skipIntro();
-});
 canvas.tabIndex = 0;
-window.addEventListener('keydown', () => {
-  if (phase === 'intro') skipIntro();
-});
 
 // ---------------------------------------------------------------- bucle
 let needsRender = true;
 let last = performance.now();
 
 let lastLeaf = 0;
+let introDirty = true;
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000);
@@ -751,9 +749,20 @@ function frame(now) {
     dirty = true;
   }
 
-  if (phase === 'intro') {
-    updateIntro(dt);
-    dirty = true;
+  if (phase !== 'loading') {
+    const wasMoving = journey.moving;
+    journey.update(dt);
+    if (journey.s < journey.intro - 1e-4) {
+      if (phase === 'main') enterIntro();
+      if (wasMoving || journey.moving || introDirty) {
+        setIntro(journey.introT * INTRO_END);
+        introDirty = false;
+        dirty = true;
+      }
+    } else if (phase === 'intro') {
+      setIntro(INTRO_END);
+      endIntro();
+    }
   }
   if (phase === 'main') {
     if (rig.step(dt)) {
@@ -774,7 +783,6 @@ let lastP = -1;
 let prevTravel = false;
 function updateJourney(dt, time) {
   let dirty = false;
-  journey.update(dt);
   const p = journey.p;
   const moving = journey.moving;
   if (moving || p !== lastP) {
@@ -863,13 +871,17 @@ async function start() {
   const skip = REDUCED_MOTION || params.has('skip');
   if (skip) {
     // Sin entrada: aparece la escena final con un fundido.
+    journey.jump(0);
     endIntro();
   } else {
     phase = 'intro';
-    tau = 0;
+    document.body.classList.add('intro');
+    jui.setTravelling(true);
     computeCloseCamera();
-    tassels.L.mesh.visible = false;
-    updateIntro(0);
+    journey.jumpS(0);
+    setIntro(0);
+    // el hilo empieza a bajar solo, despacio, y espera: el resto lo decide el desplazamiento
+    journey.goS(0.42, 0.9);
   }
   renderer.render(scene, camera);
   $('loader').classList.add('out');
@@ -889,9 +901,9 @@ window.__trenza = {
   },
   scene,
   camera,
-  skipIntro,
   setTau: (t) => {
-    tau = t;
+    journey.jumpS((t / INTRO_END) * INTRO_SPAN);
+    introDirty = true;
   },
   pickTarget,
   journey,
@@ -899,12 +911,10 @@ window.__trenza = {
   jui,
   jumpStop: (i) => {
     journey.jump(i);
-    placeJourneyCamera();
     needsRender = true;
   },
   jumpP: (p) => {
-    journey.spring.set(p);
-    placeJourneyCamera();
+    journey.jumpS(INTRO_SPAN + p);
     needsRender = true;
   },
   requestColor,

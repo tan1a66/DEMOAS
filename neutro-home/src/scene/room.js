@@ -154,7 +154,7 @@ export function buildRoom(textures) {
   ceilGeo.translate((left + right) / 2, ceil, (back + front) / 2);
   worldUV(ceilGeo);
   group.add(new THREE.Mesh(ceilGeo, plasterMaterial(textures, { pools: false, tint: 0xcfc3b2 })));
-  const beamMat = new THREE.MeshStandardMaterial({ color: 0x5a3a26, map: textures.cedar, roughness: 0.7 });
+  const beamMat = new THREE.MeshStandardMaterial({ color: 0xd9b48c, map: textures.cedar, roughness: 0.72 });
   const beams = [];
   for (let x = left + 0.45; x < right; x += 0.95) beams.push(box(x - 0.08, x + 0.08, ceil - 0.2, ceil, back, front));
   for (const g of beams) group.add(new THREE.Mesh(g, beamMat));

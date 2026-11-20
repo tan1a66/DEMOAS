@@ -234,7 +234,8 @@ body.ui-on:not(.travelling) .piece button {
   transition: opacity 1s var(--ease);
   touch-action: manipulation;
 }
-body.ui-on:not(.travelling) .next-hint:not([hidden]) {
+body.ui-on:not(.travelling) .next-hint:not([hidden]),
+body.intro .next-hint:not([hidden]) {
   opacity: 0.75;
   pointer-events: auto;
 }

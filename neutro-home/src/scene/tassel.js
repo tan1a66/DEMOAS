@@ -9,6 +9,7 @@ import { patchTasselMaterial, tasselDepthMaterial } from '../gl/fiberMaterial.js
 const TOP = 0.034; // el cuello cubre el final de la trenza
 const BOTTOM = TOP - TASSEL.collarHeight;
 export const TASSEL_PIVOT = BOTTOM;
+export const TASSEL_TOP = TOP;
 
 function mulberry(seed) {
   return () => {
@@ -27,6 +28,7 @@ function buildTasselGeometry(side, seed) {
   const T = [];
   const UV = [];
   const F = [];
+  const PART = [];
   const I = [];
   const flowAt = (t) => (side < 0 ? -0.015 - 0.16 * t : 1.015 + 0.16 * t);
   const depthScale = 0.86;
@@ -56,6 +58,7 @@ function buildTasselGeometry(side, seed) {
       UV.push((i / segA) * ((2 * Math.PI * rc) / BRAID.uvRepeat), y / 0.11);
       const ao = (0.72 + 0.28 * lip) * (v < 0.2 ? 0.85 + 0.75 * v : 1) * (0.84 + 0.16 * wrap);
       F.push(0, flowAt(0), 0.97, ao);
+      PART.push(0);
     }
   }
   for (let j = 0; j < segY; j++) {
@@ -121,6 +124,7 @@ function buildTasselGeometry(side, seed) {
         UV.push((t * len) / BRAID.uvRepeat + f * 0.13, k / sides + rnd() * 0.02);
         const ao = (0.5 + 0.5 * rr) * (0.62 + 0.38 * Math.min(1, t / 0.22));
         F.push(t, flowAt(t), tint, ao);
+        PART.push(1);
       }
     }
     for (let s = 0; s < segs; s++) {
@@ -140,6 +144,7 @@ function buildTasselGeometry(side, seed) {
   g.setAttribute('tangent', new THREE.Float32BufferAttribute(T, 4));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(UV, 2));
   g.setAttribute('aFiber', new THREE.Float32BufferAttribute(F, 4));
+  g.setAttribute('aPart', new THREE.Float32BufferAttribute(PART, 1));
   g.setIndex(I);
   g.computeBoundingSphere();
   return g;
@@ -148,7 +153,8 @@ function buildTasselGeometry(side, seed) {
 export class Tassel {
   constructor(side, { dye, textures, envIntensity = 1 }) {
     this.side = side;
-    this.uniforms = { uLag: { value: 0 }, uPivot: { value: TASSEL_PIVOT } };
+    // uWrap: el cuello se enrolla de arriba abajo; uDrop: el fleco cae desde el cuello (cierre)
+    this.uniforms = { uLag: { value: 0 }, uPivot: { value: TASSEL_PIVOT }, uWrap: { value: 1 }, uDrop: { value: 1 } };
     const mat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       map: textures.fiberAlbedo,
