@@ -9,6 +9,7 @@ import { Silk, SILK_COLORS, SILK_CIPRIA } from './silk/silk.js';
 import { createStory } from './story.js';
 import { waLink } from './config.js';
 import { createBooking } from './booking.js';
+import { createQuiz } from './quiz.js';
 import './styles.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -448,10 +449,23 @@ const stationPose = (st, dt, out) => {
   if (!st.p) st.p = _pt.clone();
   // molto calma: la camera non trema con la seta; da calma (dentro le sezioni) quasi ferma
   else st.p.lerp(_pt, 1 - Math.exp(-dt * 0.6 * (1 - 0.8 * silk.calm)));
+  // dentro una storia (Faciales) la posa la guida lo scroll: la camera gira attorno al punto,
+  // si allontana o si tuffa sulla trama, sempre smorzata
+  if (!st.dCur) {
+    st.dCur = st.d.clone();
+    st.distCur = st.dist;
+  }
+  const cam = trip.mode === 'station' ? storyState(trip.to)?.cam : null;
+  const kc = 1 - Math.exp(-dt * 2.2);
+  _want.copy(cam ? _want.set(cam[0], cam[1], cam[2]).normalize() : st.d);
+  st.dCur.lerp(_want, kc).normalize();
+  st.distCur += ((cam ? cam[3] : st.dist) - st.distCur) * kc;
   out.target.copy(st.p);
-  out.pos.copy(st.p).addScaledVector(st.d, st.dist);
+  out.pos.copy(st.p).addScaledVector(st.dCur, st.distCur);
   out.fov = st.fov;
 };
+const _want = new THREE.Vector3();
+const storyState = (id) => stories.get(id)?.state;
 const flyTo = (dest) => {
   // dest: id di una voce, oppure null = ritorno all'inquadratura del menu
   trip.A.pos.copy(camPos);
@@ -460,7 +474,7 @@ const flyTo = (dest) => {
   trip.to = dest;
   trip.mode = 'flying';
   hold = true;
-  if (dest && STATIONS[dest]) STATIONS[dest].p = null;
+  if (dest && STATIONS[dest]) STATIONS[dest].p = STATIONS[dest].dCur = null;
   trip.k = 0;
   gsap.to(trip, {
     k: 1,
@@ -510,6 +524,13 @@ const openSection = (id, { push = true } = {}) => {
   const sc = el.querySelector('.story-scroll');
   if (sc) sc.scrollTop = 0;
   requestAnimationFrame(() => stories.get(id)?.measure());
+  // il titolo grande entra lettera per lettera, quando la camera arriva
+  const letters = titleLetters.get(id);
+  if (letters && !reduceMotion) {
+    gsap.fromTo(letters, { yPercent: 118 }, { yPercent: 0, duration: 1.3, stagger: 0.055, delay: 1.5, ease: 'power4.out', overwrite: true });
+    const sub = el.querySelector('.fac-sub');
+    if (sub) gsap.fromTo(sub, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, delay: 2.3, ease: 'power3.out', overwrite: true });
+  }
   // la mappa si carica solo quando serve
   const map = el.querySelector('iframe[data-src]');
   if (map && !map.src) map.src = map.dataset.src;
@@ -550,7 +571,7 @@ document.querySelectorAll('[data-section]').forEach((a) =>
   a.addEventListener('click', (e) => {
     e.preventDefault();
     // "Agenda tu facial"…: si arriva ad Agendar con il servizio già scelto
-    if (a.dataset.section === 'agendar') booking.preselect(a.dataset.servicio);
+    if (a.dataset.section === 'agendar') booking.preselect(a.dataset.servicio, a.dataset.nota);
     openSection(a.dataset.section);
   }),
 );
@@ -577,13 +598,42 @@ const stories = new Map();
 for (const [id, el] of pages) {
   const sc = el.querySelector('.story-scroll');
   if (!sc || !sc.querySelector('.ch')) continue;
-  const story = createStory(sc, reduceMotion);
+  const st = STATIONS[id];
+  const story = createStory(sc, reduceMotion, { home: st ? [...st.dir, st.dist] : null });
   stories.set(id, story);
   sc.addEventListener('scroll', () => story.update(), { passive: true });
 }
 const remeasure = () => current && stories.get(current)?.measure();
 addEventListener('resize', remeasure);
 document.fonts?.ready.then(remeasure);
+
+// Faciales: il test della pelle (la seta risponde con un'onda leggera)
+createQuiz(pages.get('faciales'), {
+  onPick: (out) => {
+    gsap.fromTo(out, { opacity: 0.2, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', overwrite: true });
+    if (!reduceMotion) silk.flick(0.35);
+  },
+});
+
+// i titoli che entrano lettera per lettera (Faciales)
+const titleLetters = new Map();
+for (const t of document.querySelectorAll('.reveal-title')) {
+  const text = t.textContent.trim();
+  t.textContent = '';
+  t.setAttribute('aria-label', text);
+  const letters = [...text].map((ch) => {
+    const mask = document.createElement('span');
+    mask.className = 'rt-mask';
+    mask.setAttribute('aria-hidden', 'true');
+    const l = document.createElement('span');
+    l.className = 'rt-l';
+    l.textContent = ch;
+    mask.appendChild(l);
+    t.appendChild(mask);
+    return l;
+  });
+  titleLetters.set(t.closest('.page').id, letters);
+}
 
 // tutti i bottoni WhatsApp (numero e messaggio in config.js)
 document.querySelectorAll('[data-wa]').forEach((a) => (a.href = waLink(a.dataset.wa)));
@@ -633,6 +683,15 @@ const loop = () => {
   screenFrame(dt);
   computeFrame();
 
+  // Faciales, capitolo "Luz": la seta si spegne e ritrova il brillo, la luce le passa sopra
+  const sst = current ? storyState(current) : null;
+  const gU = silk.uniforms.uGloss;
+  gU.value += ((sst ? sst.gloss : 1) - gU.value) * (1 - Math.exp(-dt * 4));
+  if (sst && sst.light !== null && !reduceMotion) {
+    light.tYaw = MAX * sst.light;
+    light.tPitch = -MAX * 0.25;
+    lightDrift.lastAim = performance.now();
+  }
   // telefono: senza tocchi da 3 s, la luce va e viene piano (i riflessi scorrono sul raso)
   if (lightDrift.on && performance.now() - lightDrift.lastAim > 3000) {
     const amp = MAX * (0.55 - 0.25 * silk.calm);

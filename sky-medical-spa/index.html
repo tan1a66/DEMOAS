@@ -90,13 +90,13 @@
         <ul>
           <li class="menu-brand">
             <a href="#sky-medical-spa" data-section="sky-medical-spa">
-              SKY Medical Spa
+              <span class="sky">SKY</span> Medical Spa
               <small>Faciales · Masajes · Depilación láser</small>
             </a>
           </li>
           <li class="menu-brand">
             <a href="#sky-beauty-center" data-section="sky-beauty-center">
-              SKY Beauty Center
+              <span class="sky">SKY</span> Beauty Center
               <small>Lashes · Nails · Hair · Manos y pies</small>
             </a>
           </li>
@@ -143,14 +143,19 @@
         </div>
       </section>
 
-      <section class="page page-story" id="faciales" aria-labelledby="t-faciales" hidden>
+      <!-- Faciales: la sezione sviluppata. Lo scroll guida la camera sulla seta (data-cam:
+           direzione x,y,z e distanza); "Luz" spegne e riaccende il brillo della seta;
+           "De cerca" si tuffa sulla trama; il test della pelle porta ad Agendar già compilato. -->
+      <section class="page page-story page-faciales" id="faciales" aria-labelledby="t-faciales" hidden>
         <div class="story-scroll">
-          <header class="story-head">
+          <header class="story-head fac-head">
             <p class="page-kicker has-crumb"><a class="crumb" href="#sky-medical-spa" data-up="sky-medical-spa">SKY Medical Spa</a><span class="crumb-sep" aria-hidden="true">/</span>Faciales</p>
-            <h2 class="story-title" id="t-faciales">Tu piel,<br />primero</h2>
+            <h2 class="fac-title reveal-title" id="t-faciales">Faciales</h2>
+            <p class="fac-sub">Tu piel, primero.</p>
+            <div class="hint fac-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
           </header>
           <div class="story">
-            <section class="ch" data-fx="letters" aria-label="Valoración">
+            <section class="ch" data-fx="letters" data-cam="-0.15,0.05,1,1.2" aria-label="Valoración">
               <div class="ch-stage">
                 <p class="ch-label">Valoración</p>
                 <p class="big-word" aria-hidden="true">PIEL</p>
@@ -159,26 +164,73 @@
                 </p>
               </div>
             </section>
-            <section class="ch" data-fx="marks" aria-label="Tratamientos">
+
+            <section class="ch ch-ritual" data-fx="ritual" data-cam="0.6,-0.05,1,1.1" aria-label="El ritual">
               <div class="ch-stage">
-                <p class="ch-label">Tratamientos</p>
-                <p class="ch-text">
-                  Según cada caso trabajamos con <mark>limpieza facial profunda</mark>, <mark>hidratación</mark>,
-                  <mark>peeling</mark> y <mark>radiofrecuencia facial</mark>.
+                <p class="ch-label">El ritual</p>
+                <ol class="ritual">
+                  <li>
+                    <span class="r-num">01</span>
+                    <span class="r-name">Valoración</span>
+                    <span class="r-text">Revisamos tu tipo de piel, su sensibilidad y lo que necesita hoy.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">02</span>
+                    <span class="r-name">Limpieza</span>
+                    <span class="r-text">Retiramos impurezas y preparamos la piel para el tratamiento.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">03</span>
+                    <span class="r-name">Tratamiento</span>
+                    <span class="r-text">Peeling, radiofrecuencia o el protocolo que mejor le vaya a tu piel.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">04</span>
+                    <span class="r-name">Hidratación</span>
+                    <span class="r-text">Hidratamos, protegemos y te contamos cómo cuidarla en casa.</span>
+                  </li>
+                </ol>
+              </div>
+            </section>
+
+            <section class="ch ch-gloss" data-fx="gloss" data-cam="0.3,0.6,1,1.55" style="--len: 1.6" aria-label="Luz">
+              <div class="ch-stage">
+                <p class="ch-label">Luz</p>
+                <p class="big-lines fx-lines" aria-hidden="true">La piel hidratada refleja la luz</p>
+                <p class="ch-text fx-fade">Como esta seda: cuando recupera su brillo, se nota.</p>
+                <p class="gloss-hint" aria-hidden="true"><i></i>Mira la seda</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="focus" data-cam="-0.1,0.2,1,0.18" aria-label="De cerca">
+              <div class="ch-stage">
+                <p class="ch-label">De cerca</p>
+                <p class="ch-text fx-focus big-focus">
+                  Cada piel es distinta. Por eso, antes de cualquier tratamiento, la escuchamos.
                 </p>
               </div>
             </section>
-            <section class="ch" data-fx="focus" aria-label="Cuidado">
+
+            <section class="ch ch-quiz" data-cam="0,0.25,1,1.8" aria-label="Tu piel hoy">
               <div class="ch-stage">
-                <p class="ch-label">Cuidado</p>
-                <p class="ch-text fx-focus">
-                  Tecnología médico-estética y productos profesionales, en un espacio tranquilo pensado para que te relajes.
-                </p>
+                <p class="ch-label">Tu piel hoy</p>
+                <h3 class="quiz-q">¿Cómo sientes tu piel hoy?</h3>
+                <div class="chips quiz-chips" role="radiogroup" aria-label="Tipo de piel">
+                  <label class="chip"><input type="radio" name="piel" value="seca" /><span>Seca</span></label>
+                  <label class="chip"><input type="radio" name="piel" value="grasa" /><span>Grasa</span></label>
+                  <label class="chip"><input type="radio" name="piel" value="mixta" /><span>Mixta</span></label>
+                  <label class="chip"><input type="radio" name="piel" value="sensible" /><span>Sensible</span></label>
+                  <label class="chip"><input type="radio" name="piel" value="manchas" /><span>Con manchas</span></label>
+                </div>
+                <div class="quiz-out" aria-live="polite">
+                  <p class="quiz-kicker">Te puede ir bien</p>
+                  <p class="quiz-name">Elige cómo la sientes</p>
+                  <p class="quiz-text">Te sugerimos por dónde empezar.</p>
+                  <p class="quiz-note">Orientativo: el tratamiento se define en la valoración.</p>
+                </div>
+                <a class="page-cta quiz-cta" href="#agendar" data-section="agendar" data-servicio="Faciales">Agenda tu facial</a>
               </div>
             </section>
-          </div>
-          <div class="story-end">
-            <a class="page-cta" href="#agendar" data-section="agendar" data-servicio="Faciales">Agenda tu facial</a>
           </div>
         </div>
       </section>

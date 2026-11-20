@@ -25,19 +25,32 @@ npm run build:anteprima  # anteprima in UN file: anteprima/sky-medical-spa-antep
 | Sezione | Stato |
 | --- | --- |
 | SKY Medical Spa | pagina con Faciales, Masajes, Depilación láser |
-| Faciales | completa: racconto a capitoli con effetti (lettere, filetti d'oro, messa a fuoco) |
+| Faciales | completa (vedi sotto) |
 | Masajes, Depilación láser, SKY Beauty Center | **Work in progress** · Alessia Studio (da costruire con la cliente) |
 | Ubicación | indirizzo, mappa Google (in toni avorio), Cómo llegar, WhatsApp |
 | Agendar | servizio, giorno (prossimi 14), fascia oraria, nome → messaggio pronto su WhatsApp |
 
 In alto a destra: Instagram, Ubicación, WhatsApp (e il menu dentro le sezioni).
 
+## Faciales, la sezione sviluppata
+Lo scroll guida la camera sulla seta (`data-cam` sui capitoli: direzione x,y,z e distanza).
+1. Titolo enorme in malva che entra lettera per lettera, "Tu piel, primero."
+2. **Valoración**: PIEL che si compone.
+3. **El ritual**: quattro passi, una linea malva che si disegna.
+4. **Luz**: la seta si spegne (opaca) e ritrova il brillo mentre la luce le passa sopra
+   (`uGloss` nello shader). "Mira la seda".
+5. **De cerca**: la camera si tuffa a 18 cm dal tessuto; sugli schermi retina si vede la trama.
+6. **¿Cómo sientes tu piel hoy?**: seca, grasa, mixta, sensible, con manchas → facial da cui
+   partire (orientativo) e "Agenda este facial", che apre Agendar con servizio e nota
+   (la nota arriva nel messaggio WhatsApp). Testi in `src/quiz.js`.
+
 ## Colori e caratteri
 - La seta ha il colore dello sfondo del logo (salvia, `SILK_COLORS` in `src/silk/silk.js`).
   La base è più fredda del colore voluto perché la luce scalda il raso: sullo schermo torna
   al salvia del logo. `?seta=cipria` mostra la seta della demo Sala.
 - Carattere del logo: **Cormorant Garamond** (titoli, SKY, testi); Archivo largo per menu ed
-  etichette; Manrope per i bottoni. SKY è in malva come nel logo (`--mauve` in `styles.css`).
+  etichette; Manrope per i bottoni. SKY è in malva come nel logo (`--mauve` in `styles.css`), e il malva torna
+  in titoli, parole grandi, numeri, bottoni, scelte selezionate e "SKY" nel menu.
 
 ## Dati da confermare con la cliente
 Presi da una scheda pubblica (Fresha), da verificare:

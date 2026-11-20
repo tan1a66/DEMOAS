@@ -50,17 +50,26 @@ const wrapLines = (el, original) => {
   });
 };
 
-export const createStory = (chi, reduceMotion) => {
+/**
+ * Racconto a capitoli dentro un contenitore che scorre.
+ * `state` è letto dalla scena a ogni fotogramma: `cam` (direzione x,y,z e distanza della
+ * camera, interpolate tra i capitoli che hanno data-cam), `gloss` (brillo della seta),
+ * `light` (-1..1: la luce che passa sulla seta, oppure null).
+ * `home`: la posa della camera in cima alla pagina [x, y, z, distanza].
+ */
+export const createStory = (chi, reduceMotion, { home = null } = {}) => {
   const chapters = [...chi.querySelectorAll('.ch')].map((el) => ({
     el,
     stage: el.querySelector('.ch-stage'),
     fx: el.dataset.fx,
+    cam: el.dataset.cam ? el.dataset.cam.split(',').map(Number) : null,
     p: -1,
     gain: 1,
   }));
+  const state = { cam: null, gloss: 1, light: null };
   if (reduceMotion) {
     chi.classList.add('story-static');
-    return { measure() {}, update() {} };
+    return { measure() {}, update() {}, state };
   }
 
   // preparazione di ogni effetto
@@ -84,7 +93,7 @@ export const createStory = (chi, reduceMotion) => {
       });
       ch.fade = q('.fx-fade');
     }
-    if (ch.fx === 'lines') {
+    if (ch.fx === 'lines' || ch.fx === 'gloss') {
       ch.lineEls = [...ch.el.querySelectorAll('.fx-lines')].map((el) => ({ el, text: el.textContent.replace(/\s+/g, ' ').trim() }));
     }
     if (ch.fx === 'marks') ch.marks = [...ch.el.querySelectorAll('mark')];
@@ -94,13 +103,18 @@ export const createStory = (chi, reduceMotion) => {
     }
     if (ch.fx === 'converge') ch.cv = [q('.cv-a'), q('.cv-b')];
     if (ch.fx === 'focus') ch.focus = q('.fx-focus');
+    if (ch.fx === 'gloss') {
+      ch.fade = q('.fx-fade');
+      ch.hint = q('.gloss-hint');
+    }
+    if (ch.fx === 'ritual') ch.steps = [...ch.el.querySelectorAll('.ritual li')];
   }
 
   let vh = 0;
   const measure = () => {
     vh = chi.clientHeight;
     for (const ch of chapters) {
-      if (ch.fx === 'lines') ch.lines = ch.lineEls.map(({ el, text }) => wrapLines(el, text));
+      if (ch.lineEls) ch.lines = ch.lineEls.map(({ el, text }) => wrapLines(el, text));
     }
     // gli ultimi capitoli non salgono abbastanza per finire l'effetto (la pagina finisce prima):
     // il loro avanzamento si riscala, così alla fine dello scroll sono sempre completi
@@ -112,12 +126,32 @@ export const createStory = (chi, reduceMotion) => {
       const pEnd = (maxSt + vh * 0.95 - ch.top) / (ch.h + vh * 0.45);
       ch.gain = pEnd > 0.05 && pEnd < 1 ? 1 / pEnd : 1;
     }
+    // le pose della camera: in cima la posa di casa, poi una per capitolo (quando è al centro)
+    keys = [];
+    if (home) keys.push({ s: 0, cam: home });
+    for (const ch of chapters)
+      if (ch.cam) keys.push({ s: Math.min(maxSt, Math.max(0, ch.top + ch.h / 2 - vh / 2)), cam: ch.cam });
+    keys.sort((a, b) => a.s - b.s);
     update();
+  };
+  let keys = [];
+  const camAt = (st) => {
+    if (!keys.length) return null;
+    if (st <= keys[0].s) return keys[0].cam;
+    for (let i = 1; i < keys.length; i++) {
+      const a = keys[i - 1], b = keys[i];
+      if (st <= b.s) {
+        const k = ease(clamp01((st - a.s) / Math.max(1, b.s - a.s)));
+        return a.cam.map((v, j) => v + (b.cam[j] - v) * k);
+      }
+    }
+    return keys[keys.length - 1].cam;
   };
 
   const update = () => {
     if (chi.offsetParent === null) return; // sezione nascosta
     const st = chi.scrollTop;
+    state.cam = camAt(st);
     for (const ch of chapters) {
       // 0 quando il capitolo affiora dal basso, 1 quando la sua fine è a metà schermo
       const p = clamp01(((st + vh * 0.95 - ch.top) / (ch.h + vh * 0.45)) * ch.gain);
@@ -183,6 +217,33 @@ export const createStory = (chi, reduceMotion) => {
       ch.cv[0].style.opacity = ch.cv[1].style.opacity = (0.15 + 0.85 * k).toFixed(3);
       paintWords(ch.words, seg(p, 0.38, 0.95));
     },
+    // il rituale: una linea malva si disegna e i quattro passi arrivano uno dopo l'altro
+    ritual(ch, p) {
+      ch.el.style.setProperty('--draw', ease(seg(p, 0.06, 0.8)).toFixed(3));
+      ch.steps.forEach((li, i) => {
+        const k = ease(seg(p, 0.06 + i * 0.15, 0.3 + i * 0.15));
+        li.style.opacity = (0.08 + 0.92 * k).toFixed(3);
+        li.style.transform = `translate3d(${((1 - k) * 26).toFixed(1)}px,0,0)`;
+        li.style.setProperty('--k', k.toFixed(3));
+      });
+    },
+    // la luce: la seta si spegne (opaca) e poi ritrova il brillo mentre la luce le passa sopra
+    gloss(ch, p) {
+      if (ch.lines) {
+        ch.lines.flat().forEach((l, i) => {
+          const k = ease(seg(p, 0.04 + i * 0.07, 0.24 + i * 0.07));
+          l.style.transform = `translate3d(0,${(105 * (1 - k)).toFixed(1)}%,0)`;
+        });
+      }
+      const f = ease(seg(p, 0.35, 0.6));
+      ch.fade.style.opacity = f.toFixed(3);
+      ch.fade.style.transform = `translate3d(0,${((1 - f) * 18).toFixed(1)}px,0)`;
+      const h = ease(seg(p, 0.25, 0.4)) * (1 - ease(seg(p, 0.85, 0.97)));
+      ch.hint.style.opacity = h.toFixed(3);
+      state.gloss =
+        p < 0.3 ? 1 - 0.88 * ease(seg(p, 0.02, 0.28)) : p < 0.86 ? 0.12 + 1.23 * ease(seg(p, 0.32, 0.8)) : 1.35 - 0.35 * ease(seg(p, 0.88, 1));
+      state.light = p > 0.22 && p < 0.97 ? -1 + 2 * ease(seg(p, 0.3, 0.86)) : null;
+    },
     // dallo sfocato al nitido (presto: il testo si legge nitido già a metà schermo)
     focus(ch, p) {
       const k = ease(seg(p, 0.02, 0.42));
@@ -204,5 +265,5 @@ export const createStory = (chi, reduceMotion) => {
     }
   };
 
-  return { measure, update };
+  return { measure, update, state };
 };

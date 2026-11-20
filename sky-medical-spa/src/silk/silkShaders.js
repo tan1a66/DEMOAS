@@ -90,6 +90,7 @@ uniform vec2 uClothSize;     // metri
 uniform vec2 uFog;           // inizio, fine
 uniform float uDetail;       // 0..1 quanto mostrare la micro-trama (inquadrature macro)
 uniform float uVeil;         // 0..1 la seta si ritira verso l'avorio (dentro le sezioni)
+uniform float uGloss;        // brillo: 1 = raso; vicino a 0 = opaca, spenta; sopra 1 = più lucida
 uniform float uRound;        // 1 = fazzoletto tondo (disco ritagliato nella griglia)
 
 varying vec3 vWorld;
@@ -257,12 +258,15 @@ void main() {
     vec3 Nb = Np;
     spec += studio(reflect(-V, Nb)) * uBack * (0.04 + 0.2 * pow(1.0 - NV0, 3.0));
   }
-  spec *= specMask * uLightColor * mix(1.0, ao, 0.5);
+  spec *= specMask * uLightColor * mix(1.0, ao, 0.5) * uGloss;
 
   // sheen sui crinali (incidenza radente)
   float NV = clamp(dot(Np, V), 0.0, 1.0);
   vec3 sheen = mix(uHigh, uSilk, 0.3) * pow(1.0 - NV, 3.5) * (0.18 + 0.5 * diff) * (front ? 1.0 : 0.5);
 
+  float gl = clamp(uGloss, 0.0, 1.0);
+  sheen *= mix(0.35, 1.0, gl);
+  col *= mix(0.9, 1.0, gl); // spenta è anche un filo più grigia
   col += spec + sheen;
 
   // nebbia leggera verso l'avorio

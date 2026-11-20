@@ -25,6 +25,7 @@ export const createBooking = (root) => {
   const days = form.querySelector('.days');
   const summary = form.querySelector('.book-summary');
   const error = form.querySelector('.book-error');
+  let nota = ''; // dal test della pelle in Faciales: "piel seca · me interesa: hidratación profunda"
 
   // i prossimi 14 giorni, da oggi
   const today = new Date();
@@ -56,7 +57,9 @@ export const createBooking = (root) => {
   const message = ({ servicio, dia, franja, nombre }) => {
     let m = nombre ? `Hola, soy ${nombre}.` : 'Hola.';
     const lugar = ['Lashes', 'Nails', 'Hair', 'Manos y pies'].includes(servicio) ? 'SKY Beauty Center' : 'SKY Medical Spa';
-    m += ` Me gustaría agendar ${COSA[servicio] || servicio} en ${lugar}`;
+    m += ` Me gustaría agendar ${COSA[servicio] || servicio}`;
+    if (nota && servicio === 'Faciales') m += ` (${nota})`;
+    m += ` en ${lugar}`;
     if (dia) m += ` ${dia}`;
     if (franja) m += ` ${FRANJA[franja]}`;
     m += '. ¿Tienen disponibilidad?';
@@ -67,7 +70,7 @@ export const createBooking = (root) => {
     const v = read();
     if (v.servicio) error.hidden = true;
     summary.textContent = v.servicio
-      ? `${v.servicio}${v.dia ? ' · ' + v.dia.replace(/^el /, '') : ''}${v.franja ? ' · ' + FRANJA[v.franja] : ''}`
+      ? `${v.servicio}${nota && v.servicio === 'Faciales' ? ' (' + nota + ')' : ''}${v.dia ? ' · ' + v.dia.replace(/^el /, '') : ''}${v.franja ? ' · ' + FRANJA[v.franja] : ''}`
       : '';
   };
   form.addEventListener('change', paint);
@@ -85,9 +88,10 @@ export const createBooking = (root) => {
   });
 
   return {
-    /** Preseleziona un servizio (stringa vuota: nessuno). */
-    preselect(servicio) {
+    /** Preseleziona un servizio (stringa vuota: nessuno), con una nota facoltativa. */
+    preselect(servicio, notaNueva = '') {
       if (servicio === undefined) return;
+      nota = notaNueva;
       for (const r of form.querySelectorAll('input[name="servicio"]')) r.checked = r.value === servicio;
       paint();
     },

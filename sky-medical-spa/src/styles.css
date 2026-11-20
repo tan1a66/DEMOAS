@@ -287,6 +287,10 @@ body {
   margin-left: -14px;
   background: var(--gold);
 }
+.menu .sky,
+.page-hub .page-kicker {
+  color: var(--mauve);
+}
 .menu li.menu-brand a small {
   display: block;
   margin-top: 7px;
@@ -543,6 +547,7 @@ body {
 /* SICPRE: lettere che si compongono */
 .page .big-word {
   max-width: none;
+  color: var(--mauve);
   text-align: left;
   margin: 0 0 26px;
   font-family: var(--serif);
@@ -559,6 +564,7 @@ body {
 /* righe che salgono da dietro una maschera */
 .page .big-lines {
   max-width: none;
+  color: var(--mauve);
   text-align: left;
   margin: 0 0 26px;
   font-family: var(--serif);
@@ -580,12 +586,13 @@ body {
 /* un filetto d'oro che si disegna sotto le parole chiave */
 .ch mark {
   color: inherit;
-  background: linear-gradient(var(--gold), var(--gold)) no-repeat 0 100% / var(--draw, 0%) 1.5px;
+  background: linear-gradient(var(--mauve), var(--mauve)) no-repeat 0 100% / var(--draw, 0%) 1.5px;
   padding-bottom: 2px;
 }
 /* Milano · Lecco */
 .marquee {
   margin: 0 0 30px;
+  color: var(--mauve);
   white-space: nowrap;
   font-family: var(--serif);
   font-weight: 500;
@@ -600,6 +607,7 @@ body {
 /* dal consulto al trattamento: due righe che si vengono incontro */
 .converge {
   margin: 0 0 30px;
+  color: var(--mauve);
   font-family: var(--serif);
   font-weight: 500;
   font-size: clamp(2.3rem, 11vw, 4.4rem);
@@ -679,6 +687,7 @@ body {
 }
 .page h2.story-title {
   margin: 0;
+  color: var(--mauve);
   text-align: left;
   font-size: clamp(2.7rem, 13vw, 5rem);
   line-height: 0.95;
@@ -691,9 +700,216 @@ body {
   text-align: center;
 }
 .ch-label .num {
-  color: var(--gold-deep);
+  color: var(--mauve);
   margin-right: 0.6em;
 }
+/* ---------- Faciales: la sezione sviluppata ---------- */
+/* la prima schermata è un manifesto: il titolo enorme in malva sulla seta */
+.fac-head {
+  min-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 5vh;
+}
+.fac-head .page-kicker {
+  margin: 0 0 auto; /* (non centrato: allineato al titolo) */
+}
+.page h2.fac-title {
+  margin: 0 0 0 -0.04em;
+  text-align: left;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(4.4rem, 23vw, 10rem);
+  line-height: 0.9;
+  letter-spacing: -0.015em;
+  color: var(--mauve);
+  white-space: nowrap;
+}
+.rt-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.rt-l {
+  display: inline-block;
+  will-change: transform;
+}
+.page .fac-sub {
+  margin: 14px 0 0;
+  max-width: none;
+  text-align: left;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.6rem, 6.4vw, 2.3rem);
+  line-height: 1.1;
+}
+.fac-hint {
+  align-self: flex-start;
+  margin-top: 30px;
+}
+.fac-hint i::after {
+  animation: hint-drop 2.2s 2.6s infinite cubic-bezier(0.45, 0, 0.25, 1);
+}
+/* il rituale: una linea malva che si disegna, quattro passi */
+.ritual {
+  position: relative;
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0 0 0 26px;
+  display: grid;
+  gap: 30px;
+}
+.ritual::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--mauve);
+  transform: scaleY(var(--draw, 0));
+  transform-origin: 50% 0;
+}
+.ritual li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  grid-template-areas: 'num name' 'num text';
+  column-gap: 10px;
+  will-change: transform, opacity;
+}
+.ritual li::before {
+  /* un punto sulla linea, che si accende quando il passo arriva */
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 12px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--mauve);
+  transform: scale(var(--k, 0));
+}
+.r-num {
+  grid-area: num;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 3.4rem;
+  line-height: 0.85;
+  color: var(--mauve);
+}
+.r-name {
+  grid-area: name;
+  margin: 4px 0 8px;
+  font: 600 0.78rem/1 var(--wide);
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.r-text {
+  grid-area: text;
+  font-family: var(--text);
+  font-weight: 500;
+  font-size: 1.22rem;
+  line-height: 1.4;
+}
+/* "Mira la seda": un invito a guardare lo sfondo che cambia */
+.page .gloss-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 26px 0 0;
+  max-width: none;
+  font: 600 0.7rem/1 var(--wide);
+  font-stretch: 125%;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mauve);
+  opacity: 0;
+}
+.gloss-hint i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mauve);
+  animation: gloss-pulse 1.6s ease-in-out infinite;
+}
+@keyframes gloss-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.8); opacity: 0.35; }
+}
+.ch-gloss {
+  /* più spazio: il cambio della seta si gode con calma */
+  padding-bottom: 34vh;
+}
+.page .big-focus {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.8rem, 7.6vw, 2.6rem);
+  line-height: 1.18;
+}
+/* il test della pelle */
+.ch-quiz {
+  padding-top: 30vh;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+}
+.quiz-q {
+  margin: 0 0 20px;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2rem, 8.5vw, 2.8rem);
+  line-height: 1.05;
+  color: var(--ink);
+}
+.quiz-out {
+  margin: 8px 0 22px;
+  padding: 22px 22px 18px;
+  border-radius: 22px;
+  background: rgba(247, 242, 236, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(124, 92, 115, 0.28);
+}
+.page .quiz-kicker {
+  margin: 0 0 10px;
+  max-width: none;
+  font: 600 0.68rem/1 var(--wide);
+  font-stretch: 125%;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.page .quiz-name {
+  margin: 0 0 8px;
+  max-width: none;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.9rem, 8vw, 2.5rem);
+  line-height: 1.05;
+  color: var(--ink-soft);
+}
+.quiz-out.is-on .quiz-name {
+  color: var(--mauve);
+}
+.page .quiz-text {
+  margin: 0 0 12px;
+  font-family: var(--text);
+  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+.page .quiz-note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.quiz-cta {
+  display: block;
+  margin: 0 auto;
+}
+
 /* SKY Medical Spa: dentro, Faciales, Masajes, Depilación láser */
 .hub {
   max-width: 620px;
@@ -736,7 +952,7 @@ body {
   align-self: center;
   font-family: var(--sans);
   font-size: 1.1rem;
-  color: var(--gold-deep);
+  color: var(--mauve);
   transition: transform 0.4s ease;
 }
 .hub-list a:hover::after,
@@ -752,7 +968,7 @@ body {
   font: 600 0.72rem/1 var(--wide);
   font-stretch: 125%;
   letter-spacing: 0.16em;
-  color: var(--gold-deep);
+  color: var(--mauve);
 }
 .hub-name {
   grid-area: name;
@@ -778,7 +994,7 @@ body {
   white-space: nowrap;
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: var(--gold);
+  text-decoration-color: var(--mauve);
   text-underline-offset: 4px;
   padding: 10px 0;
 }
@@ -920,7 +1136,7 @@ body {
   font-size: 0.82rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  background: var(--ink);
+  background: var(--mauve);
   color: var(--ivory);
   text-decoration: none;
   border-radius: 999px;
@@ -962,6 +1178,7 @@ body {
 }
 .wip-title {
   margin: 14px 0 12px;
+  color: var(--mauve);
   font-family: var(--serif);
   font-weight: 500;
   font-size: clamp(2.4rem, 11.5vw, 5rem);
@@ -1046,7 +1263,7 @@ html.in-section .hero .keep {
   color: var(--ink-soft);
 }
 .book .num {
-  color: var(--gold-deep);
+  color: var(--mauve);
   margin-right: 0.6em;
 }
 .page .book-group {
@@ -1091,9 +1308,9 @@ html.in-section .hero .keep {
 }
 .chip input:checked + span,
 .day input:checked + span {
-  background: var(--ink);
-  color: var(--ivory);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  background: var(--mauve);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--mauve);
 }
 .chip input:focus-visible + span,
 .day input:focus-visible + span {
@@ -1199,7 +1416,7 @@ html.in-section .hero .keep {
   margin-left: 0.5em;
   vertical-align: 0.2em;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--mauve);
 }
 
 .fps {

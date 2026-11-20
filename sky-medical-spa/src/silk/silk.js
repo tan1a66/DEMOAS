@@ -94,6 +94,7 @@ export class Silk {
       uFog: { value: new THREE.Vector2(6.5, 13) },
       uDetail: { value: 1 },
       uVeil: { value: 0 },
+      uGloss: { value: 1 },
       uTime: { value: 0 },
       uRipple: { value: 0.006 }, // onde larghe nello shader (metri), appena accennate
       uStudio: { value: new THREE.Matrix3() },
