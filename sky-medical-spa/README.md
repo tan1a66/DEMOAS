@@ -57,7 +57,7 @@ Presi da una scheda pubblica (Fresha), da verificare:
 - WhatsApp **+52 999 256 7412** → `src/config.js` (numero e messaggi)
 - Indirizzo: Plaza Solare, local 203, primer piso, Av. Cámara de Comercio, calle 49 n.º 230, Mérida
   (Google indica per Plaza Solare il CP 97120, Fresha 97116: il CP non è scritto)
-- Orari, profilo Instagram, elenco dei trattamenti di Faciales (testi proposti)
+- Profilo Instagram, testi di Faciales (proposti), orari se si vogliono aggiungere
 
 ## Anteprima del link
 `public/og.jpg` (1200×630), `public/apple-touch-icon.png` e `public/favicon-96.png` (SKY malva su salvia).

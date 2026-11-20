@@ -1034,19 +1034,17 @@ body {
   /* la mappa nei toni dell'avorio */
   filter: grayscale(1) sepia(0.22) contrast(0.95) brightness(1.04);
 }
-.page-ubi .facts {
-  background: rgba(247, 242, 236, 0.72);
-}
 .ubi-actions {
   display: grid;
   justify-items: center;
   gap: 12px;
-  margin-top: 8px;
+  margin-top: 30px;
 }
-.page-cta-ghost {
-  background: rgba(247, 242, 236, 0.8);
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--ink);
+.page-cta.page-cta-ghost {
+  /* il secondo bottone: solo il contorno */
+  background: rgba(247, 242, 236, 0.85);
+  color: var(--mauve);
+  box-shadow: inset 0 0 0 1px var(--mauve);
 }
 .page .ubi .demo-note {
   margin-top: 22px;
