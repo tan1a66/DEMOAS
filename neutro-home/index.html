@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1e1712" />
+    <title>Neutro Home · La Trenza</title>
+    <meta name="description" content="Trenza Maya de Neutro Home: tejida a mano en Yucatán. Tócala, cambia su color y pídela así." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Italiana&family=Jost:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Pantalla de carga: visible desde el primer instante, antes de cargar el JS. */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1e1712;
+      }
+      #loader {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #1e1712;
+        z-index: 50;
+        transition: opacity 0.9s ease;
+      }
+      #loader.out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loader svg {
+        width: 46px;
+        height: 120px;
+        overflow: visible;
+      }
+      #loader path {
+        fill: none;
+        stroke: #c9a77f;
+        stroke-width: 1;
+        stroke-linecap: round;
+        stroke-dasharray: 40 200;
+        animation: thread 2.4s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+        opacity: 0.85;
+      }
+      @keyframes thread {
+        0% {
+          stroke-dashoffset: 40;
+        }
+        100% {
+          stroke-dashoffset: -200;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #loader path {
+          animation: none;
+          stroke-dasharray: none;
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader" aria-label="Cargando">
+      <svg viewBox="0 0 46 120" aria-hidden="true">
+        <path d="M23 0 C 23 20, 10 30, 23 45 S 36 70, 23 85 S 10 105, 23 120" />
+      </svg>
+    </div>
+
+    <main id="app">
+      <canvas id="gl" aria-label="Trenza Maya colgada en tres ganchos de cedro. Arrastra una onda para cambiar su caída."></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <header class="brand" id="brand">
+        <a class="logo" href="https://neutro.com.mx" target="_blank" rel="noopener">NEUTRO HOME</a>
+      </header>
+
+      <p class="intro-line" id="introLine" aria-hidden="true">Yucatán, tejido a mano.</p>
+
+      <div class="measure" id="measure" aria-hidden="true">
+        <span class="m-main" id="mMain"></span>
+        <span class="m-sub" id="mSub"></span>
+      </div>
+
+      <section class="panel" id="panel" aria-label="Personaliza tu trenza">
+        <p class="hint" id="hint">Tócala.</p>
+        <p class="product">Trenza Maya</p>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Color"></div>
+        <p class="swatch-name" id="swatchName" aria-hidden="true"></p>
+        <a class="cta" id="cta" href="https://ig.me/m/neutro_home" target="_blank" rel="noopener">La quiero así</a>
+        <a class="catalog" id="catalog" href="https://neutro.com.mx" target="_blank" rel="noopener">Ver catálogo</a>
+      </section>
+
+      <p class="credit">Demo · Alessia Studio</p>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
