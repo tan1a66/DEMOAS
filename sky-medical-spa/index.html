@@ -76,9 +76,7 @@
         <h1 class="hero-name">
           <span class="sr-only">SKY Medical Spa</span>
           <span class="nl nl-sky" aria-hidden="true"><span class="keep">S</span><span class="keep">K</span><span class="keep">Y</span></span>
-          <span class="nl nl-sub" aria-hidden="true"><span class="fade">Medical</span> <span class="fade">Spa</span></span>
         </h1>
-        <p class="hero-role">Faciales · Masajes · Depilación láser</p>
       </div>
       <div class="hint scroll-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
 
@@ -90,16 +88,19 @@
 
       <nav class="menu" aria-label="Secciones del sitio">
         <ul>
-          <li><a href="#faciales" data-section="faciales">Faciales</a></li>
-          <li><a href="#masajes" data-section="masajes">Masajes</a></li>
-          <li><a href="#depilacion-laser" data-section="depilacion-laser">Depilación láser</a></li>
-          <li class="menu-beauty">
+          <li class="menu-brand">
+            <a href="#sky-medical-spa" data-section="sky-medical-spa">
+              SKY Medical Spa
+              <small>Faciales · Masajes · Depilación láser</small>
+            </a>
+          </li>
+          <li class="menu-brand">
             <a href="#sky-beauty-center" data-section="sky-beauty-center">
               SKY Beauty Center
               <small>Lashes · Nails · Hair · Manos y pies</small>
             </a>
           </li>
-          <li><a href="#ubicacion" data-section="ubicacion">Ubicación</a></li>
+          <li class="menu-ubi"><a href="#ubicacion" data-section="ubicacion">Ubicación</a></li>
           <li class="menu-agendar"><a href="#agendar" data-section="agendar">Agendar</a></li>
         </ul>
         <p class="demo-note">Demo de Alessia Studio · no es el sitio oficial</p>
@@ -107,10 +108,45 @@
 
       <!-- Secciones: cada una es un lugar sobre la seda. Faciales se lee como una historia por capítulos;
            Masajes, Depilación láser y SKY Beauty Center quedan en "Work in progress" (es una demo). -->
+      <section class="page page-story page-hub" id="sky-medical-spa" aria-labelledby="t-spa" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">SKY</p>
+            <h2 class="story-title" id="t-spa">Medical Spa</h2>
+          </header>
+          <div class="hub">
+            <p class="hub-lead">Tratamientos para tu piel y tu cuerpo, con tecnología médica y manos expertas.</p>
+            <ul class="hub-list">
+              <li>
+                <a href="#faciales" data-section="faciales">
+                  <span class="hub-num">01</span>
+                  <span class="hub-name">Faciales</span>
+                  <span class="hub-desc">Valoración y tratamientos para cada tipo de piel.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#masajes" data-section="masajes">
+                  <span class="hub-num">02</span>
+                  <span class="hub-name">Masajes</span>
+                  <span class="hub-desc">Relajantes y descontracturantes, a tu ritmo.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#depilacion-laser" data-section="depilacion-laser">
+                  <span class="hub-num">03</span>
+                  <span class="hub-name">Depilación láser</span>
+                  <span class="hub-desc">Por zonas, con valoración previa de piel y vello.</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section class="page page-story" id="faciales" aria-labelledby="t-faciales" hidden>
         <div class="story-scroll">
           <header class="story-head">
-            <p class="page-kicker">Faciales</p>
+            <p class="page-kicker has-crumb"><a class="crumb" href="#sky-medical-spa" data-up="sky-medical-spa">SKY Medical Spa</a><span class="crumb-sep" aria-hidden="true">/</span>Faciales</p>
             <h2 class="story-title" id="t-faciales">Tu piel,<br />primero</h2>
           </header>
           <div class="story">
@@ -149,7 +185,7 @@
 
       <section class="page page-wip" id="masajes" aria-labelledby="t-masajes" hidden>
         <div class="wip">
-          <p class="wip-kicker">Masajes</p>
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#sky-medical-spa" data-up="sky-medical-spa">SKY Medical Spa</a><span class="crumb-sep" aria-hidden="true">/</span>Masajes</p>
           <h2 class="wip-title" id="t-masajes">Work in progress</h2>
           <p class="wip-studio">Alessia Studio</p>
           <p class="wip-note">Esto lo construimos juntos.</p>
@@ -158,7 +194,7 @@
 
       <section class="page page-wip" id="depilacion-laser" aria-labelledby="t-laser" hidden>
         <div class="wip">
-          <p class="wip-kicker">Depilación láser</p>
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#sky-medical-spa" data-up="sky-medical-spa">SKY Medical Spa</a><span class="crumb-sep" aria-hidden="true">/</span>Depilación láser</p>
           <h2 class="wip-title" id="t-laser">Work in progress</h2>
           <p class="wip-studio">Alessia Studio</p>
           <p class="wip-note">Esto lo construimos juntos.</p>

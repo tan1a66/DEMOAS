@@ -13,16 +13,18 @@ npm run build:anteprima  # anteprima in UN file: anteprima/sky-medical-spa-antep
 ```
 
 ## Percorso
-1. **Apertura**: si parte direttamente dal nome sotto la seta (richiesta della cliente).
+1. **Apertura**: si parte direttamente da SKY (in malva, come nel logo) sotto la seta.
    L'intro "Toca para entrar" (SKY che respira, le lettere che volano nel nome) è spenta:
    `?soglia=1` la riaccende.
-2. **Scroll**: "Medical Spa" svanisce, S·K·Y salgono e si stringono al centro della barra;
-   poi la frase e il menu.
-3. **Menu**: Faciales · Masajes · Depilación láser · SKY Beauty Center (lashes, nails, hair,
-   manos y pies) · Ubicación · Agendar. Ogni voce è un luogo sulla seta: la camera ci vola.
+2. **Scroll**: S·K·Y salgono e si stringono al centro della barra; poi la frase e il menu.
+3. **Menu**: SKY Medical Spa (Faciales · Masajes · Depilación láser) · SKY Beauty Center
+   (lashes, nails, hair, manos y pies) · Ubicación · Agendar. Ogni voce è un luogo sulla
+   seta: la camera ci vola. Dentro SKY Medical Spa ci sono le tre voci; nelle loro pagine
+   "SKY Medical Spa / Faciales" riporta su (come il tasto indietro).
 
 | Sezione | Stato |
 | --- | --- |
+| SKY Medical Spa | pagina con Faciales, Masajes, Depilación láser |
 | Faciales | completa: racconto a capitoli con effetti (lettere, filetti d'oro, messa a fuoco) |
 | Masajes, Depilación láser, SKY Beauty Center | **Work in progress** · Alessia Studio (da costruire con la cliente) |
 | Ubicación | indirizzo, mappa Google (in toni avorio), Cómo llegar, WhatsApp |
@@ -35,7 +37,7 @@ In alto a destra: Instagram, Ubicación, WhatsApp (e il menu dentro le sezioni).
   La base è più fredda del colore voluto perché la luce scalda il raso: sullo schermo torna
   al salvia del logo. `?seta=cipria` mostra la seta della demo Sala.
 - Carattere del logo: **Cormorant Garamond** (titoli, SKY, testi); Archivo largo per menu ed
-  etichette; Manrope per i bottoni.
+  etichette; Manrope per i bottoni. SKY è in malva come nel logo (`--mauve` in `styles.css`).
 
 ## Dati da confermare con la cliente
 Presi da una scheda pubblica (Fresha), da verificare:
@@ -45,6 +47,6 @@ Presi da una scheda pubblica (Fresha), da verificare:
 - Orari, profilo Instagram, elenco dei trattamenti di Faciales (testi proposti)
 
 ## Anteprima del link
-`public/og.jpg` (1200×630), `public/apple-touch-icon.png` e `public/favicon-96.png` (SKY su salvia).
+`public/og.jpg` (1200×630), `public/apple-touch-icon.png` e `public/favicon-96.png` (SKY malva su salvia).
 I tag in `index.html` puntano a `https://demo-skymedicalspa-alessiastudio.vercel.app/`:
 se il dominio su Vercel è un altro, aggiornare `og:url` e `og:image`.

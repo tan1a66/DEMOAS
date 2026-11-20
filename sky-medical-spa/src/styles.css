@@ -8,6 +8,7 @@
   --ink-soft: #5b4f48;
   --gold: #b39260;
   --gold-deep: #8a6a3c; /* oro dei numeri: stesso tono, abbastanza scuro per il contrasto */
+  --mauve: #7c5c73; /* il malva della scritta SKY nel logo */
   /* il carattere del logo SKY: un serif classico e sottile */
   --serif: 'Cormorant Garamond', 'Cormorant', Garamond, Georgia, 'Times New Roman', serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -121,6 +122,7 @@ body {
 }
 /* SKY: grande e spaziato; le lettere si stringono quando volano nella barra */
 .hero-name .nl-sky {
+  color: var(--mauve);
   /* anche l'altezza conta: su schermi larghi e bassi il nome resta sotto la seta */
   font-size: clamp(4rem, min(27vw, 11vh), 9.5rem);
   line-height: 0.92;
@@ -129,26 +131,9 @@ body {
 .hero-name .nl-sky .keep + .keep {
   margin-left: 0.14em;
 }
-.hero-name .nl-sub {
-  margin-top: 0.1em;
-  font-weight: 500;
-  font-size: clamp(1.8rem, min(9vw, 5.2vh), 3.4rem);
-  letter-spacing: 0;
-}
-.hero-name .keep,
-.hero-name .fade {
+.hero-name .keep {
   display: inline-block;
   transform-origin: 50% 50%;
-}
-.hero-role {
-  margin: 14px auto 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  max-width: 30ch;
-  line-height: 1.6;
 }
 
 /* invito a scorrere: una parola e una linea che scende, sparisce al primo scroll */
@@ -243,6 +228,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
+  /* le voci stanno al centro dello spazio sotto la seta */
+  padding-top: 31vh;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
   padding-left: max(22px, env(safe-area-inset-left, 0px));
   padding-right: max(22px, env(safe-area-inset-right, 0px));
@@ -251,10 +238,8 @@ body {
 }
 .menu ul {
   list-style: none;
-  margin: 0 0 auto;
+  margin: auto 0;
   padding: 0;
-  /* le voci occupano la fascia libera sotto la seta */
-  margin-top: 38vh;
   display: grid;
   gap: clamp(8px, 1.7vh, 16px);
   text-align: center;
@@ -277,13 +262,13 @@ body {
   display: inline-block;
   padding: 6px 8px;
 }
-.menu-beauty {
+.menu-ubi {
   position: relative;
   margin-top: clamp(4px, 1vh, 10px);
-  padding-top: clamp(10px, 1.8vh, 18px);
+  padding-top: clamp(12px, 2vh, 20px);
 }
-.menu-beauty::before {
-  /* un filetto d'oro: stesso luogo, un altro mondo */
+.menu-ubi::before {
+  /* un filetto d'oro: dopo i due mondi SKY, le cose pratiche */
   content: '';
   position: absolute;
   top: 0;
@@ -293,7 +278,7 @@ body {
   margin-left: -14px;
   background: var(--gold);
 }
-.menu li.menu-beauty a small {
+.menu li.menu-brand a small {
   display: block;
   margin-top: 7px;
   font-family: var(--sans);
@@ -700,6 +685,99 @@ body {
   color: var(--gold-deep);
   margin-right: 0.6em;
 }
+/* SKY Medical Spa: dentro, Faciales, Masajes, Depilación láser */
+.hub {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 18px max(24px, env(safe-area-inset-left, 0px)) calc(env(safe-area-inset-bottom, 0px) + 56px);
+  box-sizing: border-box;
+}
+.page .hub-lead {
+  margin: 0 0 26px;
+  max-width: 30ch;
+  text-align: left;
+  font-family: var(--text);
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.5;
+}
+.hub-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--gold);
+}
+.hub-list li {
+  border-bottom: 1px solid rgba(179, 146, 96, 0.5);
+}
+.hub-list a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: 'num name arrow' '. desc arrow';
+  align-items: baseline;
+  column-gap: 14px;
+  padding: 20px 2px 18px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.hub-list a::after {
+  /* la freccia: si entra */
+  content: '→';
+  grid-area: arrow;
+  align-self: center;
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  color: var(--gold-deep);
+  transition: transform 0.4s ease;
+}
+.hub-list a:hover::after,
+.hub-list a:focus-visible::after {
+  transform: translateX(4px);
+}
+.hub-list a:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 2px;
+}
+.hub-num {
+  grid-area: num;
+  font: 600 0.72rem/1 var(--wide);
+  font-stretch: 125%;
+  letter-spacing: 0.16em;
+  color: var(--gold-deep);
+}
+.hub-name {
+  grid-area: name;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(2.2rem, 10.5vw, 3.4rem);
+  line-height: 1;
+}
+.hub-desc {
+  grid-area: desc;
+  margin-top: 8px;
+  font-family: var(--text);
+  font-weight: 500;
+  font-size: 1.12rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+/* dentro le tre pagine: "SKY Medical Spa / Faciales" */
+.has-crumb {
+  letter-spacing: 0.14em !important;
+}
+.crumb {
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 4px;
+  padding: 10px 0;
+}
+.crumb-sep {
+  margin: 0 0.7em;
+  color: var(--gold-deep);
+}
+
 /* Ubicación */
 .ubi {
   max-width: 620px;
@@ -923,11 +1001,8 @@ html.in-section .hero .keep {
     /* sotto resta lo spazio per "Desliza" */
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 3vh + 78px);
   }
-  .hero-role {
-    max-width: none;
-  }
-  .menu ul {
-    margin-top: 35vh;
+  .menu {
+    padding-top: 27vh;
   }
   .menu {
     padding-bottom: 7vh;
@@ -1191,6 +1266,7 @@ html.soglia-on .soglia {
   font-size: clamp(4.4rem, 22vw, 7.5rem);
   line-height: 1;
   letter-spacing: 0.02em;
+  color: var(--mauve);
   animation: soglia-breath 4.2s ease-in-out infinite;
 }
 .soglia-mono > span {

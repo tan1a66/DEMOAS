@@ -64,7 +64,8 @@ const viewSize = () => {
 };
 const hemTarget = () => {
   const { portrait } = viewSize();
-  const menuT = portrait ? 0.6 - 0.29 * page.shown : 0.56 - 0.29 * page.shown;
+  // prima pagina: sotto la seta c'è solo SKY, la seta scende un po' di più
+  const menuT = portrait ? 0.66 - 0.35 * page.shown : 0.6 - 0.33 * page.shown;
   const t = menuT + (0.11 - menuT) * sect.v;
   return t + (1.35 - t) * bg.v; // come sfondo l'orlo scende sotto lo schermo
 };
@@ -237,7 +238,6 @@ canvas.addEventListener('pointercancel', endTouch);
 
 // ---------- scroll come cambio pagina: il nome sale nella barra, compare il menu ----------
 const nameEl = document.querySelector('.hero-name');
-const roleEl = document.querySelector('.hero-role');
 const menu = document.querySelector('.menu');
 const menuItems = menu.querySelectorAll('li');
 const menuCta = menu.querySelectorAll('.demo-note');
@@ -270,11 +270,10 @@ const paintWords = () => {
 const mono = document.querySelector('.mono');
 const social = document.querySelector('.social');
 const keeps = [...nameEl.querySelectorAll('.keep')];
-const fades = nameEl.querySelectorAll('.fade');
 const targets = [...mono.querySelectorAll('.m-l')];
 
-// Il nome si trasforma nel monogramma: "Medical Spa" svanisce, le lettere di SKY (larghe e
-// spaziate) volano al centro della barra e si stringono. Le posizioni si misurano a riposo
+// Il nome diventa il monogramma: le lettere di SKY (larghe e spaziate) volano al centro
+// della barra e si stringono. Le posizioni si misurano a riposo
 // (e a ogni ridimensionamento).
 const geo = {};
 const centerOf = (el) => {
@@ -323,9 +322,6 @@ intro = gsap.timeline({
 });
 intro
   .to(hint, { opacity: 0, duration: 0.12, ease: 'none' }, 0)
-  .to(roleEl, { opacity: 0, y: -14, duration: 0.3, ease: 'sine.out' }, 0)
-  // le lettere che non restano svaniscono salendo appena
-  .to(fades, { opacity: 0, y: -10, duration: 0.38, ease: 'sine.out', stagger: 0.02 }, 0.02)
   // S, K e Y salgono, si avvicinano e diventano il monogramma
   .to(keeps[0], { ...fly('k0', 'm0'), duration: 0.85 }, 0.08)
   .to(keeps[1], { ...fly('k1', 'm1'), duration: 0.85 }, 0.1)
@@ -419,6 +415,7 @@ let current = null;
 
 // luoghi: punto sul fazzoletto (u da sinistra, v dall'alto), direzione e distanza della camera
 const STATIONS = {
+  'sky-medical-spa': { u: 0.5, v: 0.4, dir: [0.05, 0.2, 1], dist: 1.7, fov: 30 }, // il cuore del telo, un po' da lontano
   faciales: { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.4, fov: 30 }, // sotto il drappeggio a cappuccio
   masajes: { u: 0.72, v: 0.5, dir: [0.55, 0.05, 1], dist: 1.25, fov: 30 }, // la piega sul lato destro
   'depilacion-laser': { u: 0.5, v: 0.58, dir: [0.1, -0.25, 1], dist: 1.25, fov: 30 }, // il centro del telo
@@ -501,9 +498,10 @@ const flyPose = (dt) => {
 const openSection = (id, { push = true } = {}) => {
   const el = pages.get(id);
   if (!el || current === id) return;
+  const prevId = current;
   const prev = current ? pages.get(current) : null;
   current = id;
-  if (push) history.pushState({ s: id }, '', '#' + id);
+  if (push) history.pushState({ s: id, from: prevId }, '', '#' + id);
   html.classList.add('in-section');
   menu.inert = true;
   backBtn.hidden = false;
@@ -557,6 +555,14 @@ document.querySelectorAll('[data-section]').forEach((a) =>
   }),
 );
 backBtn.addEventListener('click', () => (history.state?.s ? history.back() : closeSection()));
+// "SKY Medical Spa / Faciales": si torna alla pagina di sopra (indietro, se si arriva da lì)
+document.querySelectorAll('[data-up]').forEach((a) =>
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (history.state?.from === a.dataset.up) history.back();
+    else openSection(a.dataset.up);
+  }),
+);
 addEventListener('popstate', (e) => (e.state?.s ? openSection(e.state.s, { push: false }) : closeSection()));
 
 mono.addEventListener('click', (e) => {
