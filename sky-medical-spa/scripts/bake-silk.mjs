@@ -4,19 +4,20 @@
 import { writeFileSync } from 'node:fs';
 import { Silk, encodeRest } from '../src/silk/silk.js';
 
+// un solo tessuto per tutti gli schermi (la qualità cambia solo la mesh)
 const out = {};
-for (const quality of ['mobile', 'high']) {
+for (const quality of ['mobile']) {
   const t = performance.now();
   const s = new Silk({ quality, bake: false });
   const q = encodeRest(s.restShape);
-  out[quality] = {
+  out.cloth = {
     nx: s.nx,
     ny: s.ny,
     substeps: s.cloth.substeps,
     time: Number(s.restTime.toFixed(4)),
     rest: Buffer.from(q.buffer).toString('base64'),
   };
-  console.log(`${quality}: ${s.nx}×${s.ny}, ${Math.round(performance.now() - t)} ms, ${out[quality].rest.length} caratteri`);
+  console.log(`${s.nx}×${s.ny}, ${Math.round(performance.now() - t)} ms, ${out.cloth.rest.length} caratteri`);
 }
 writeFileSync(
   new URL('../src/silk/baked.js', import.meta.url),

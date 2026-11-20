@@ -46,9 +46,13 @@ Lo scroll guida la camera sulla seta (`data-cam` sui capitoli: direzione x,y,z e
 
 ## Leggerezza
 - **Avvio**: la forma a riposo della seta è calcolata una volta sola (`npm run bake` →
-  `src/silk/baked.js`, 47 KB). All'apertura bastano 0,5 s di vento invece di 5 s di simulazione
+  `src/silk/baked.js`, 19 KB). All'apertura bastano 0,5 s di vento invece di 5 s di simulazione
   (su un processore medio: da ~1,6 s a ~0,35 s di pagina ferma). Da rilanciare se si cambiano
   misure, griglia o sotto-passi della seta (altrimenti il sito torna da solo al calcolo lento).
+- **Stesso tessuto su ogni schermo** (griglia 48×48, 9 sotto-passi, come su iPhone). La griglia
+  60×60 che usavano Mac e iPad con trackpad si drappeggiava con il bordo sinistro rigirato e un
+  nodo in alto a destra (11% del telo al rovescio, contro l'1,5% della piega naturale), e la
+  memoria della forma lo riportava sempre lì. Sul computer cambia solo la mesh, più fitta.
 - **Grafica**: risoluzione massima 1,5× (prima 2×), mesh 208² su telefono e 320² su computer
   (prima 320² e 448²), riflesso dello studio con 3 campioni (prima 5).
 - **Qualità automatica**: sotto i 48 fps per 2 s si scende a risoluzione 1×, poi a metà mesh.

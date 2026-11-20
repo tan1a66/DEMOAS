@@ -56,15 +56,18 @@ export class Silk {
     width = width ?? (this.round ? 1.62 : 1.4);
     height = height ?? width;
     const mobile = quality !== 'high';
-    // un grande fazzoletto quadrato tenuto per i due angoli alti
-    this.nx = mobile ? 48 : 60;
-    this.ny = mobile ? 48 : 60;
+    // un grande fazzoletto quadrato tenuto per i due angoli alti.
+    // Lo stesso tessuto su ogni schermo (quello dell'iPhone): la griglia più fitta che usava il
+    // computer si drappeggiava con il bordo sinistro rigirato e un nodo in alto a destra, che
+    // la memoria della forma riportava sempre lì. Cambia solo la mesh (più fitta sul computer).
+    this.nx = 48;
+    this.ny = 48;
     this.width = width;
     this.height = height;
     this.cloth = new Cloth({ nx: this.nx, ny: this.ny, width, height, density: 0.085 });
     // fazzoletto tondo: un disco ritagliato nella griglia
     if (this.round) this.cloth.setMask((u, v) => (u - 0.5) ** 2 + (v - 0.5) ** 2 <= 0.25 + 1e-6);
-    this.cloth.substeps = mobile ? 9 : 11;
+    this.cloth.substeps = 9;
     this.cloth.selfThickness = 0; // telo disteso: niente collisione con se stesso (non blocca nodi)
     this.wind = createWind();
     this.timeScale = 0.45; // rallentatore: lenta e sicura, come in un fashion film
@@ -128,8 +131,7 @@ export class Silk {
     this.mesh.frustumCulled = false;
 
     this._hang();
-    const key = mobile ? 'mobile' : 'high';
-    const baked = bake && !this.round ? BAKED[key] : null;
+    const baked = bake && !this.round ? BAKED.cloth : null;
     if (baked && baked.nx === this.nx && baked.ny === this.ny && baked.substeps === this.cloth.substeps) {
       // la forma a riposo è già pronta (npm run bake): si parte da lì, con mezzo secondo di
       // vento per ridarle vita. All'apertura la pagina non resta ferma a calcolare.
