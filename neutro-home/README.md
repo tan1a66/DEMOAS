@@ -2,14 +2,16 @@
 
 Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
 di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena).
-1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa, si apre in
-   moltissimi fili, diventa tre capi grossi che si intrecciano; zoom sul dettaglio, poi la camera si
-   allontana e la treccia è già al suo posto.
+1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa e si apre in
+   moltissimi fili; i fili formano tre fasci che si intrecciano a ritmo di mano (un incrocio alla
+   volta), sempre fatti di fili; la camera si avvicina piano, poi si allontana e la treccia è al suo posto.
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; sei colori che scorrono da una nappa all'altra.
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
    colore (la tinta scende lungo i fili).
 Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
+Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, con inerzia;
+vicino a un pezzo lo si può toccare (dito in orizzontale = girare, in verticale = scorrere).
 
 ```bash
 cd neutro-home

@@ -17,7 +17,7 @@ import { Braid, hungStructure, introStructure } from './scene/braid.js';
 import { Tassel } from './scene/tassel.js';
 import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
-import { clamp, lerp } from './model/spring.js';
+import { clamp, lerp, smoothstep } from './model/spring.js';
 import { PieceUI } from './ui/ui.js';
 import { sunlight } from './gl/sunlight.js';
 
@@ -79,7 +79,7 @@ scene.add(braid.mesh);
 const tassels = { L: new Tassel(-1, { dye, textures }), R: new Tassel(1, { dye, textures }) };
 scene.add(tassels.L.mesh, tassels.R.mesh);
 // Entrada: un hilo que se abre en muchísimas hebras, que luego forman los tres cabos.
-let threads = new Threads({ perStrand: IS_TOUCH ? 54 : 66, braid, dye });
+let threads = new Threads({ perStrand: IS_TOUCH ? 72 : 90, braid, dye });
 scene.add(threads.mesh);
 
 // Las otras piezas de la casa (se descubren al recorrerla).
@@ -296,7 +296,7 @@ const introP = {
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
-const INTRO_END = 10.2;
+const INTRO_END = 10.6;
 
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
@@ -322,11 +322,11 @@ function computeCloseCamera() {
   closeCam.tipY = tip;
   const frame = (H, y) => ({ d: H / (2 * tanH), y });
   const hA = fit(0.56, 0.42);
-  const hW = 0.6;
+  const hW = 0.74;
   const hZ = fit(0.36, 0.26);
   closeCam.A = frame(hA, tip + 0.2 * hA); // hilo que baja: la punta a ~70 % de la altura
   // formación completa a la vista, sin llegar al gancho ni a la onda (se descubren al final)
-  closeCam.W = frame(hW, Math.min(tip + 0.3 * hW, -0.28 - hW / 2));
+  closeCam.W = frame(hW, Math.min(tip + 0.2 * hW, -0.1 - hW / 2));
   closeCam.Z = frame(hZ, tip + 0.3); // detalle de la trenza ya hecha
 }
 
@@ -344,10 +344,18 @@ function updateIntro(dt) {
   introP.bloom = bloom;
   introP.split = split;
   introP.spread = 0.6 * split;
-  introP.tube = easeInOut(seg(t, 5.2, 5.8));
-  introP.front = lerp(0.74, 0.19, easeInOut(seg(t, 5.0, 7.8)));
-  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 7.8)));
-  introP.done = easeInOut(seg(t, 8.0, 8.9));
+  // los cabos son haces de hilos: sólo un alma fina les da cuerpo mientras se trenzan; la trenza
+  // "sólida" aparece al final, cuando la cámara ya se aleja
+  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 9.0, 9.8));
+  // trenzado a mano: el frente avanza a golpes, un cruce cada vez (pasa un cabo, pausa…)
+  const STEP = BRAID.period / 6;
+  const NSTEP = 10;
+  const u = seg(t, 5.6, 8.6) * NSTEP;
+  const kk = Math.min(NSTEP - 1, Math.floor(u));
+  const stepped = 0.52 - STEP * (kk + smoothstep(0.08, 0.72, u - kk));
+  introP.front = t < 5.6 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : Math.max(0.19, stepped);
+  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 6.0)));
+  introP.done = easeInOut(seg(t, 9.2, 10.0));
   if (threads) {
     threads.mesh.visible = t > 2.4 && introP.done < 1;
     threads.set({
@@ -358,21 +366,21 @@ function updateIntro(dt) {
   }
   braid.update(rig.center, BRAID.z, introSt);
   // la borla izquierda se "ata" al final: crece desde el extremo
-  const tie = easeOut(seg(t, 8.0, 9.0));
+  const tie = easeOut(seg(t, 9.2, 10.1));
   tassels.L.mesh.visible = tie > 0.001;
   tassels.L.mesh.scale.setScalar(Math.max(0.001, tie));
 
-  // cámara: cerca del hilo → se abre para ver toda la formación → zoom sobre la trenza
-  // terminada (y la borla que se ata) → se aleja: la pieza ya está colgada en el muro
-  const { A, W, Z } = closeCam;
-  const wide = easeInOut(seg(t, 2.6, 5.8));
-  const zoom = easeInOut(seg(t, 7.4, 8.6));
-  let d = lerp(lerp(A.d, W.d, wide), Z.d, zoom);
-  let y = lerp(lerp(A.y, W.y, wide), Z.y, zoom);
+  // cámara: cerca del hilo → se abre para ver toda la cola → se acerca despacio a los hilos
+  // mientras se trenzan → se aleja: la pieza ya está colgada en el muro
+  const { A, W } = closeCam;
+  const wide = easeInOut(seg(t, 2.6, 5.4));
+  const near = easeInOut(seg(t, 5.6, 8.8));
+  let d = lerp(A.d, W.d, wide) * (1 - 0.16 * near);
+  let y = lerp(A.y, W.y, wide) + (closeCam.tipY + introP.front - W.y) * 0.25 * near;
   d *= 1 - 0.04 * seg(t, 0, 2.6); // un respiro casi imperceptible al principio
   camPos.set(closeCam.x, y, BRAID.z + d);
   camLook.set(closeCam.x, y, 0);
-  const away = easeInOut(seg(t, 8.9, INTRO_END - 0.1));
+  const away = easeInOut(seg(t, 8.8, INTRO_END - 0.1));
   camPos.lerp(finalCam.pos, away);
   camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
@@ -380,7 +388,7 @@ function updateIntro(dt) {
   rim.intensity = 1.6 * (1 - away);
   if (t > 0.8 && t < 4.9) introLine.classList.add('on');
   else introLine.classList.remove('on');
-  if (!litDone && t > 9.3) {
+  if (!litDone && t > 9.6) {
     litDone = true;
     document.body.classList.add('lit');
   }
@@ -539,15 +547,24 @@ window.addEventListener('pointermove', (e) => {
   cursorEl.classList.toggle('on', phase === 'main' && (e.target === canvas || !!drag));
 });
 
+// Cerca de una pieza (no hay paradas: el recorrido es continuo) se puede tocar.
+const NEAR = 0.12;
+function nearPiece() {
+  const i = Math.round(journey.p);
+  return Math.abs(journey.p - i) < NEAR ? i : -1;
+}
+// cuánto hay que deslizar para pasar de una pieza a la siguiente
+const scrollPx = () => window.innerHeight * 0.85;
+
 canvas.addEventListener('pointerdown', (e) => {
   if (phase === 'intro') {
     skipIntro();
     return;
   }
-  if (phase !== 'main' || drag || jui.catalogOpen) return;
+  if (phase !== 'main' || drag) return;
   canvas.setPointerCapture(e.pointerId);
-  const atStop = !journey.moving;
-  if (atStop && journey.index === 0) {
+  const near = nearPiece();
+  if (near === 0) {
     const target = pickTarget(e.clientX, e.clientY);
     const p = target && toWorld(e.clientX, e.clientY);
     if (target && p) {
@@ -565,17 +582,19 @@ canvas.addEventListener('pointerdown', (e) => {
       return;
     }
   }
-  if (atStop) {
+  if (near > 0) {
     const hit = pickFringe(e.clientX, e.clientY);
     if (hit) {
       fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now(), x: e.clientX };
       hit.f.swing.touch(hit.local, 0.7);
       hit.f.turn.drag(0, 1 / 60);
-      piece.touchedPiece(STOPS[hit.f.stop].id);
       canvas.classList.add('grabbing');
     }
   }
-  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, t0: performance.now(), dy: 0, onObject: !!fringeTouch };
+  // el dedo "atrapa" el recorrido donde esté (como al tocar una página que se desliza)
+  journey.setTarget(journey.p);
+  const now = performance.now();
+  swipe = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lastY: e.clientY, lastT: now, v: 0, base: journey.p, axis: null };
 });
 
 canvas.addEventListener('pointermove', (e) => {
@@ -587,34 +606,49 @@ canvas.addEventListener('pointermove', (e) => {
     else rig.dragTail(p.x, p.y);
     return;
   }
-  if (fringeTouch && e.pointerId === fringeTouch.id) {
-    const hit = pickFringe(e.clientX, e.clientY, fringeTouch.f);
-    const now = performance.now();
-    const dt = Math.max(8, now - fringeTouch.t) / 1000;
-    // arrastrar en horizontal hace girar la pieza; el dedo sigue apartando los hilos
-    fringeTouch.f.turn.drag((e.clientX - fringeTouch.x) / 110, dt);
-    fringeTouch.x = e.clientX;
-    fringeTouch.t = now;
-    if (hit) {
-      fringeTouch.f.swing.touch(hit.local, 0.7);
-      fringeTouch.last = hit.world;
-    }
-  }
   if (swipe && e.pointerId === swipe.id) {
-    swipe.dy = e.clientY - swipe.y0;
     const dx = e.clientX - swipe.x0;
-    // sobre una pieza, el gesto es para tocarla: el recorrido sólo se mueve con un gesto claro
-    const k = swipe.onObject ? 1100 : 650;
-    if (Math.abs(swipe.dy) > 14 && Math.abs(swipe.dy) > Math.abs(dx)) journey.preview(clamp(-swipe.dy / k, -0.3, 0.3));
+    const dy = e.clientY - swipe.y0;
+    // ¿gesto horizontal (girar la pieza) o vertical (recorrer la casa)?
+    if (!swipe.axis && Math.hypot(dx, dy) > 9) swipe.axis = Math.abs(dy) > Math.abs(dx) * 1.15 ? 'y' : 'x';
+    if (fringeTouch && swipe.axis === 'y') {
+      fringeTouch.f.swing.release();
+      fringeTouch.f.turn.release();
+      fringeTouch = null;
+      canvas.classList.remove('grabbing');
+    }
+    if (fringeTouch) {
+      const hit = pickFringe(e.clientX, e.clientY, fringeTouch.f);
+      const now = performance.now();
+      const dt = Math.max(8, now - fringeTouch.t) / 1000;
+      // arrastrar en horizontal hace girar la pieza; el dedo sigue apartando los hilos
+      fringeTouch.f.turn.drag((e.clientX - fringeTouch.x) / 110, dt);
+      fringeTouch.x = e.clientX;
+      fringeTouch.t = now;
+      if (hit) {
+        fringeTouch.f.swing.touch(hit.local, 0.7);
+        fringeTouch.last = hit.world;
+      }
+    }
+    if (swipe.axis === 'y') {
+      journey.setTarget(swipe.base - dy / scrollPx());
+      const now = performance.now();
+      const dts = Math.max(8, now - swipe.lastT) / 1000;
+      const v = -(e.clientY - swipe.lastY) / scrollPx() / dts;
+      swipe.v += (v - swipe.v) * 0.4;
+      swipe.lastY = e.clientY;
+      swipe.lastT = now;
+    }
     return;
   }
   // ratón sin pulsar: los flecos se apartan al pasar por encima
   if (phase === 'main' && e.pointerType === 'mouse') {
-    if (journey.index === 0 && !journey.moving) {
+    const near = nearPiece();
+    if (near === 0) {
       setGrab(!!pickTarget(e.clientX, e.clientY));
       return;
     }
-    const hit = !journey.moving && pickFringe(e.clientX, e.clientY);
+    const hit = near > 0 && pickFringe(e.clientX, e.clientY);
     if (hit) {
       if (hoverFringe && hoverFringe.f === hit.f) {
         const dx = hit.world.x - hoverFringe.last.x;
@@ -645,13 +679,8 @@ function endPointer(e) {
     canvas.classList.remove('grabbing');
   }
   if (swipe && (!e || e.pointerId === swipe.id)) {
-    const dt = Math.max(1, performance.now() - swipe.t0);
-    const v = swipe.dy / dt; // px/ms
-    const need = swipe.onObject ? 140 : 56;
-    if ((swipe.dy < -need || (v < -0.9 && swipe.dy < -30)) && !swipe.onObject) journey.next();
-    else if ((swipe.dy > need || (v > 0.9 && swipe.dy > 30)) && !swipe.onObject) journey.prev();
-    else if (swipe.onObject && Math.abs(swipe.dy) > need) (swipe.dy < 0 ? journey.next() : journey.prev());
-    else journey.go(journey.index);
+    // inercia: el recorrido sigue un poco al soltar (sin paradas)
+    if (swipe.axis === 'y' && performance.now() - swipe.lastT < 90) journey.scrollBy(clamp(swipe.v * 0.3, -1.2, 1.2));
     swipe = null;
   }
 }
@@ -665,40 +694,32 @@ canvas.addEventListener('pointerleave', () => {
   }
 });
 
-// Rueda / trackpad: un gesto = una parada.
-let wheelAcc = 0;
-let wheelLock = 0;
-let wheelTimer = 0;
+// Rueda / trackpad: desplazamiento continuo (una pantalla y poco ≈ una pieza).
 window.addEventListener(
   'wheel',
   (e) => {
-    if (jui.catalogOpen) return;
     e.preventDefault();
     if (phase === 'intro') {
       skipIntro();
       return;
     }
     if (phase !== 'main') return;
-    wheelAcc += e.deltaY;
-    clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => (wheelAcc = 0), 220);
-    const now = performance.now();
-    if (now < wheelLock) return;
-    if (Math.abs(wheelAcc) > 40) {
-      if (wheelAcc > 0) journey.next();
-      else journey.prev();
-      wheelLock = now + 1000;
-      wheelAcc = 0;
-    }
+    let d = e.deltaY;
+    if (e.deltaMode === 1) d *= 18;
+    else if (e.deltaMode === 2) d *= window.innerHeight;
+    journey.scrollBy(d / (window.innerHeight * 1.1));
   },
   { passive: false }
 );
 window.addEventListener('keydown', (e) => {
-  if (phase !== 'main' || jui.catalogOpen) return;
+  if (phase !== 'main') return;
   if (e.target.closest && e.target.closest('button, a, input')) return;
-  if (['ArrowDown', 'PageDown', ' '].includes(e.key)) journey.next();
-  else if (['ArrowUp', 'PageUp'].includes(e.key)) journey.prev();
+  if (e.key === 'ArrowDown') journey.scrollBy(0.2);
+  else if (e.key === 'ArrowUp') journey.scrollBy(-0.2);
+  else if (['PageDown', ' '].includes(e.key)) journey.next();
+  else if (e.key === 'PageUp') journey.prev();
   else if (e.key === 'Home') journey.go(0);
+  else if (e.key === 'End') journey.go(STOPS.length - 1);
   else return;
   e.preventDefault();
 });
@@ -770,8 +791,8 @@ function updateJourney(dt, time) {
     lastP = p;
   }
   const idx = Math.round(p);
-  if (!moving && Math.abs(p - idx) < 0.02) jui.setStop(idx);
-  const travel = Math.abs(p - journey.index) > 0.06 || (moving && Math.abs(p - Math.round(p)) > 0.06);
+  if (Math.abs(p - idx) < NEAR) jui.setStop(idx);
+  const travel = Math.abs(p - idx) > NEAR;
   if (travel !== prevTravel) {
     jui.setTravelling(travel);
     prevTravel = travel;
@@ -787,7 +808,7 @@ function updateJourney(dt, time) {
   makech.group.visible = p > 0.25 && p < 2.6;
   xux.group.visible = p > 1.15;
   // al llegar a una pieza por primera vez, media vuelta suave: invita a girarla
-  if (!moving && (idx === 1 || idx === 2) && Math.abs(p - idx) < 0.02 && !demoSpin[idx]) {
+  if ((idx === 1 || idx === 2) && Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoSpin[idx]) {
     demoSpin[idx] = true;
     fringes
       .filter((f) => f.stop === idx)

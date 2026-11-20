@@ -166,11 +166,12 @@ export function introStructure(p) {
     const sp = p.split;
     // por encima del frente: trenzado (misma fase que la trenza colgada)
     const tB = (TWO_PI * s) / P + p.phase + PHASES[k];
-    // por debajo: los tres cabos cuelgan quietos, a la misma distancia entre sí
-    const tL = PHASES[k];
+    // por debajo: los tres cabos sueltos siguen la fase del frente; cuando el frente avanza,
+    // uno pasa por encima del central y luego el otro, como al trenzar a mano
+    const tL = (TWO_PI * p.front) / P + p.phase + PHASES[k];
     const looseAmp = p.scale * (1 + p.spread * smoothstep(0, 0.35, below)) + p.sep;
     const latL = Math.sin(tL) * looseAmp;
-    const depL = Math.sin(2 * tL) * 0.6 * p.scale;
+    const depL = Math.sin(2 * tL) * 1.6 * p.scale;
     // extremo derecho: ya está terminado (se estrecha hacia su borla)
     const gR = smoothstep(0, T, L - s);
     const ampR = 0.36 + 0.64 * gR;

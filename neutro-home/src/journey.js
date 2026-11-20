@@ -1,6 +1,6 @@
-// El recorrido: una sola cámara que viaja por la casa. Cada parada encuadra una pieza; entre
-// paradas la cámara cruza los arcos (puntos de paso), así cada pieza se descubre al llegar.
-// "p" es continuo (0 = trenza, 1 = Makech, …); un muelle lo lleva hacia la parada elegida.
+// El recorrido: una sola cámara que viaja por la casa siguiendo el desplazamiento, sin paradas.
+// "p" es continuo (0 = trenza, 1 = Makech, 2 = Xux); el gesto mueve un objetivo y un muelle
+// lleva la cámara hacia él con suavidad (y con inercia al soltar).
 
 import * as THREE from 'three';
 import { Spring, clamp } from './model/spring.js';
@@ -8,16 +8,20 @@ import { Spring, clamp } from './model/spring.js';
 export class Journey {
   constructor(count) {
     this.count = count;
-    this.spring = new Spring(0, 2.6, 1);
-    this.base = 0; // parada elegida
+    this.spring = new Spring(0, 5.5, 1);
   }
 
   get p() {
     return this.spring.x;
   }
 
+  get target() {
+    return this.spring.target;
+  }
+
+  // pieza más cercana
   get index() {
-    return this.base;
+    return Math.round(this.spring.x);
   }
 
   get moving() {
@@ -25,29 +29,32 @@ export class Journey {
     return Math.abs(s.v) > 1e-3 || Math.abs(s.x - s.target) > 1e-3;
   }
 
+  // desplazamiento continuo (rueda, dedo)
+  setTarget(x) {
+    this.spring.omega = 5.5;
+    this.spring.target = clamp(x, 0, this.count - 1);
+  }
+
+  scrollBy(d) {
+    this.setTarget(this.spring.target + d);
+  }
+
+  // ir a una pieza (marcas laterales, flecha, teclado): vuelo algo más lento
   go(i) {
-    this.base = clamp(Math.round(i), 0, this.count - 1);
-    this.spring.target = this.base;
-    // vuelos largos un poco más rápidos para que no se hagan eternos
-    const dist = Math.abs(this.spring.x - this.base);
-    this.spring.omega = 2.6 + Math.max(0, dist - 1) * 0.5;
+    const to = clamp(i, 0, this.count - 1);
+    this.spring.target = to;
+    this.spring.omega = 2.6 + Math.max(0, Math.abs(this.spring.x - to) - 1) * 0.5;
   }
 
   next() {
-    this.go(this.base + 1);
+    this.go(Math.floor(this.spring.target + 1e-3) + 1);
   }
 
   prev() {
-    this.go(this.base - 1);
-  }
-
-  // Desplazamiento provisional mientras el dedo arrastra (sensación táctil del recorrido).
-  preview(offset) {
-    this.spring.target = clamp(this.base + offset, 0, this.count - 1);
+    this.go(Math.ceil(this.spring.target - 1e-3) - 1);
   }
 
   jump(i) {
-    this.base = i;
     this.spring.set(i);
   }
 
@@ -59,7 +66,7 @@ export class Journey {
 }
 
 /**
- * keys: [{ pos, look, fov, stop? }] — puntos de la trayectoria (las paradas llevan stop = índice).
+ * keys: [{ pos, look, fov, stop? }] — puntos de la trayectoria (las piezas llevan stop = índice).
  * Devuelve una función que, para un progreso p, da posición, mirada y campo de visión.
  */
 export function buildPath(keys) {
