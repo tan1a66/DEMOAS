@@ -118,6 +118,8 @@ const atmosphere = new Atmosphere({
 atmosphere.setPixelRatio(renderer.getPixelRatio());
 scene.add(atmosphere.group);
 const demoSpin = {};
+const demoColor = {};
+const DEMO_COLORS = { trenza: 'fucsia', makech: 'azul', xux: 'fucsia' };
 
 const HUNG_PHASE = 0.4;
 const rig = new Rig();
@@ -234,7 +236,7 @@ window.visualViewport?.addEventListener('resize', onResize);
 // ---------------------------------------------------------------- cartelas y colores
 const piece = new PieceUI({
   onColor: (stopId, c) => {
-    if (stopId === 'trenza') requestColor(c.hex);
+    if (stopId === 'trenza') requestColor(c ? c.hex : COLORS.find((x) => x.id === DEFAULT_COLOR).hex);
     else if (stopId === 'makech') makech.setColor(c.hex);
     else if (stopId === 'xux') xux.setColor(c ? c.hex : null);
   },
@@ -995,6 +997,12 @@ function updateJourney(dt, time) {
   tassels.L.mesh.visible = tassels.R.mesh.visible = showBraid;
   makech.group.visible = p > 0.25 && p < 2.6;
   xux.group.visible = p > 1.15;
+  // al llegar a una pieza por primera vez, el color se demuestra solo (si aún no se ha tocado)
+  if (Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoColor[idx]) {
+    demoColor[idx] = true;
+    const id = STOPS[idx].id;
+    setTimeout(() => piece.demo(id, DEMO_COLORS[id]), idx === 0 ? 4200 : 2300);
+  }
   // al llegar a una pieza por primera vez, media vuelta suave: invita a girarla
   if ((idx === 1 || idx === 2) && Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoSpin[idx]) {
     demoSpin[idx] = true;

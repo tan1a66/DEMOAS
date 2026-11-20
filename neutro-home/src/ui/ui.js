@@ -12,7 +12,33 @@ export class PieceUI {
     this.el = $('piece');
     this.stop = null;
     this.chosen = Object.fromEntries(STOPS.map((s) => [s.id, s.defaultColor || null]));
+    this.used = false; // el visitante ya ha elegido algún color
+    this.demoTimer = 0;
     this._buildSwatches();
+    $('swatches').classList.add('invite');
+  }
+
+  // Demostración (una vez por pieza, mientras no se haya tocado ningún color): un ovillo se
+  // "pulsa" solo, el color corre por la pieza y vuelve al de antes. Así se entiende sin palabras.
+  demo(stopId, colorId) {
+    if (this.used || !this.stop || this.stop.id !== stopId) return;
+    const before = this.chosen[stopId];
+    const b = this.buttons.find((x) => x.dataset.id === colorId);
+    if (!b) return;
+    b.classList.remove('ghost');
+    void b.offsetWidth;
+    b.classList.add('ghost');
+    this.chosen[stopId] = colorId;
+    this._render();
+    this.onColor(stopId, COLORS.find((x) => x.id === colorId));
+    clearTimeout(this.demoTimer);
+    this.demoTimer = setTimeout(() => {
+      b.classList.remove('ghost');
+      if (this.used || this.chosen[stopId] !== colorId) return;
+      this.chosen[stopId] = before;
+      if (this.stop && this.stop.id === stopId) this._render();
+      this.onColor(stopId, COLORS.find((x) => x.id === before) || null);
+    }, 2300);
   }
 
   _buildSwatches() {
@@ -52,7 +78,14 @@ export class PieceUI {
   }
 
   select(colorId) {
-    if (!this.stop || !this.stop.colors || this.chosen[this.stop.id] === colorId) return;
+    if (!this.stop || !this.stop.colors) return;
+    if (!this.used) {
+      this.used = true;
+      clearTimeout(this.demoTimer);
+      $('swatches').classList.remove('invite');
+      for (const b of this.buttons) b.classList.remove('ghost');
+    }
+    if (this.chosen[this.stop.id] === colorId) return;
     this.chosen[this.stop.id] = colorId;
     this._render();
     this.onColor(this.stop.id, COLORS.find((x) => x.id === colorId));

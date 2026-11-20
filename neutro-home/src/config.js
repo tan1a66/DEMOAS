@@ -61,7 +61,9 @@ export const COLORS = [
   { id: 'natural', name: 'Natural', hex: '#D9C6A5' },
   { id: 'oro', name: 'Oro viejo', hex: '#A07A3C' },
   { id: 'rosa', name: 'Rosa', hex: '#C27E6E' },
+  { id: 'fucsia', name: 'Fucsia', hex: '#D81E7C' },
   { id: 'bordeaux', name: 'Bordeaux', hex: '#6E2A2A' },
+  { id: 'azul', name: 'Azul cielo', hex: '#8FC4DE' },
   { id: 'verde', name: 'Verde', hex: '#1F4A40' },
   { id: 'negro', name: 'Negro', hex: '#2A2522' },
 ];
