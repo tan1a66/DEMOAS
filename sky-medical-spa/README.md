@@ -77,6 +77,12 @@ Presi da una scheda pubblica (Fresha), da verificare:
 - Profilo Instagram, testi di Faciales (proposti), orari se si vogliono aggiungere
 
 ## Anteprima del link
-`public/og.jpg` (1200×630), `public/apple-touch-icon.png` e `public/favicon-96.png` (SKY malva su salvia).
-I tag in `index.html` puntano a `https://demo-skymedicalspa-alessiastudio.vercel.app/`:
-se il dominio su Vercel è un altro, aggiornare `og:url` e `og:image`.
+Il sito è su **https://demosky-alessiastudio.vercel.app**. L'anteprima che compare quando si
+manda il link (WhatsApp, iMessage, Instagram, Facebook) è `public/og.jpg` (1200×630: seta,
+SKY in malva, "Medical Spa · Beauty Center", Mérida). I tag `og:` e `twitter:` in
+`index.html` puntano a quel dominio: se cambia, aggiornarli.
+
+**Su Vercel va caricata la cartella intera** (`npm run build` → `dist/`: `index.html`,
+`assets/`, `og.jpg`, icone). Con il solo file HTML unico l'immagine dell'anteprima non esiste
+sul server e il link resta senza foto. WhatsApp ricorda le anteprime già viste: per vedere
+quella nuova si può mandare il link con `?v=2` in fondo.
