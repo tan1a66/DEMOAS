@@ -13,6 +13,12 @@ npm run dev          # http://localhost:5173
 npm run build        # → dist/
 ```
 
+Un solo file HTML autonomo (si apre con doppio clic, senza server):
+
+```bash
+npm run build:preview   # → dist-preview/index.html
+```
+
 Parametri utili nell'URL: `?skip` salta l'entrata (stesso comportamento di `prefers-reduced-motion`).
 
 ## Deploy su Vercel
