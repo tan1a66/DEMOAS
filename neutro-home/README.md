@@ -9,6 +9,10 @@ di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
    colore (la tinta scende lungo i fili).
+Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce dorata alla Makech,
+tramonto alle Xux: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
+e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
+attorno alla Makech e la Makech ruota con lo scorrimento (le frange si aprono e restano indietro).
 Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
 Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, con inerzia;
 vicino a un pezzo lo si può toccare. Stesso dito per scorrere e toccare, decide il gesto:

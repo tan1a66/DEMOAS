@@ -244,6 +244,8 @@ export class Turntable {
     this.angle = 0;
     this.omega = 0;
     this.held = false;
+    this.prevExtra = 0;
+    this.extraW = 0;
   }
 
   drag(dAngle, dt) {
@@ -261,7 +263,8 @@ export class Turntable {
     this.omega += w;
   }
 
-  step(dt) {
+  // extra: giro que pone el propio recorrido (la pieza gira mientras se pasa por delante)
+  step(dt, extra = 0) {
     if (!this.held) {
       this.angle += this.omega * dt;
       this.omega *= Math.exp(-0.9 * dt);
@@ -269,9 +272,13 @@ export class Turntable {
     } else {
       this.omega *= Math.exp(-6 * dt); // dedo quieto: la pieza se para
     }
-    this.g.rotation.y = this.base + this.angle;
-    this.swing.setSpin(this.omega);
-    return this.held || this.omega !== 0;
+    const dE = (extra - this.prevExtra) / Math.max(dt, 1e-3);
+    this.prevExtra = extra;
+    this.extraW += (dE - this.extraW) * Math.min(1, dt * 8);
+    if (Math.abs(this.extraW) < 1e-3) this.extraW = 0;
+    this.g.rotation.y = this.base + this.angle + extra;
+    this.swing.setSpin(this.omega + this.extraW);
+    return this.held || this.omega !== 0 || this.extraW !== 0;
   }
 }
 

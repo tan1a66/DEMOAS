@@ -9,6 +9,7 @@ import { buildRoom, ROOM } from './scene/room.js';
 import { Makech } from './scene/makech.js';
 import { XuxFamily } from './scene/xux.js';
 import { Turntable } from './scene/fringe.js';
+import { Atmosphere } from './scene/atmosphere.js';
 import { Journey, buildPath } from './journey.js';
 import { STOPS } from './stops.js';
 import { JourneyUI } from './ui/journeyUi.js';
@@ -92,8 +93,30 @@ const fringes = [
   { obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 },
   ...xux.lamps.map((l) => ({ obj: l, swing: l.swing, group: l.group, hit: l.hit, stop: 2, lamp: true })),
 ];
-// cada pieza gira sobre sí misma (plato giratorio): se ve a 360° y los flecos responden
+// cada pieza gira sobre sí misma (plato giratorio): se ve a 360° y los flecos responden.
+// Además el recorrido las hace girar mientras se pasa por delante (la Makech, media vuelta larga).
 for (const f of fringes) f.turn = new Turntable(f.group, f.swing);
+fringes[0].scrollSpin = (p) => clamp(p - 1, -1.2, 1.2) * 2.4;
+fringes.slice(1).forEach((f, k) => {
+  f.scrollSpin = (p) => clamp(p - 2, -1, 1) * (k % 2 ? -0.9 : 0.9);
+});
+
+// Aire: polvo en la luz y haces de sol que cruzan cada espacio.
+const atmosphere = new Atmosphere({
+  bounds: { x0: ROOM.left + 0.3, x1: 11.6, y0: ROOM.floor + 0.2, y1: ROOM.ceil - 0.25, z0: 0.4, z1: ROOM.front - 0.4 },
+  motes: IS_TOUCH ? 220 : 340,
+  // haces: el punto donde tocan el suelo, delante de cada pieza (bajan desde arriba, del lado del sol)
+  shafts: [
+    { x: -1.1, y: ROOM.floor, z: 2.3, len: 4.6, w: 0.3 },
+    { x: 0.9, y: ROOM.floor, z: 3.3, len: 4.6, w: 0.2 },
+    { x: 4.4, y: ROOM.floor, z: 4.3, len: 4.6, w: 0.34 },
+    { x: 5.3, y: ROOM.floor, z: 2.0, len: 4.6, w: 0.22 },
+    { x: 8.8, y: ROOM.floor, z: 2.4, len: 4.6, w: 0.32 },
+    { x: 10.9, y: ROOM.floor, z: 3.6, len: 4.6, w: 0.22 },
+  ],
+});
+atmosphere.setPixelRatio(renderer.getPixelRatio());
+scene.add(atmosphere.group);
 const demoSpin = {};
 
 const HUNG_PHASE = 0.4;
@@ -142,6 +165,7 @@ function computeFinalCamera() {
 }
 
 function applyCamera(pos, look) {
+  setCameraBase(pos, look);
   camera.position.copy(pos);
   camera.lookAt(look);
 }
@@ -232,11 +256,87 @@ const STOP_FOCUS = [
 ];
 const sunOffset = sun.position.clone().sub(sun.target.position);
 const shadowFocus = new THREE.Vector3();
+// Juegos de luz: la tarde avanza con el recorrido. El sol baja, se vuelve dorado y luego de
+// atardecer; las sombras se alargan y giran; las lámparas cobran protagonismo.
+const SUN_KEYS = [
+  { dir: new THREE.Vector3(-1.55, 1.75, 1.45), color: new THREE.Color('#fff3e6'), i: 3.3, hemi: 0.36, env: 0.6, glow: 0.8 },
+  { dir: new THREE.Vector3(-1.85, 1.3, 1.25), color: new THREE.Color('#ffdcae'), i: 3.1, hemi: 0.31, env: 0.52, glow: 1.0 },
+  { dir: new THREE.Vector3(-2.05, 0.9, 1.05), color: new THREE.Color('#ffb877'), i: 2.6, hemi: 0.25, env: 0.44, glow: 1.25 },
+];
+const sunDirTmp = new THREE.Vector3();
+function updateSun(p) {
+  const i = Math.min(SUN_KEYS.length - 2, Math.floor(p));
+  const f = clamp(p - i, 0, 1);
+  const e = f * f * (3 - 2 * f);
+  const a = SUN_KEYS[i];
+  const b = SUN_KEYS[i + 1];
+  sunDirTmp.lerpVectors(a.dir, b.dir, e).normalize();
+  sunlight.uSunDir.value.copy(sunDirTmp);
+  sunOffset.copy(sunDirTmp).multiplyScalar(2.75);
+  sun.color.lerpColors(a.color, b.color, e);
+  sun.intensity = lerp(a.i, b.i, e);
+  hemi.intensity = lerp(a.hemi, b.hemi, e);
+  scene.environmentIntensity = lerp(a.env, b.env, e);
+  atmosphere.uniforms.uGlow.value = lerp(a.glow, b.glow, e);
+  atmosphere.uniforms.uColor.value.copy(sun.color).lerp(new THREE.Color('#ffffff'), 0.25);
+}
+
+// Cámara "en mano": respira apenas y, al recorrer, un paso casi imperceptible.
+const camBase = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+const swayOff = new THREE.Vector3();
+const swayR = new THREE.Vector3();
+const swayU = new THREE.Vector3();
+const swayF = new THREE.Vector3();
+function setCameraBase(pos, look) {
+  camBase.pos.copy(pos);
+  camBase.look.copy(look);
+}
+function applySway(time) {
+  const dist = camBase.pos.distanceTo(camBase.look);
+  const amp = Math.min(0.012, 0.0035 * Math.max(0.6, Math.min(3, dist)));
+  const v = Math.min(1, Math.abs(journey.spring.v) * 1.4);
+  const s = journey.s;
+  swayF.subVectors(camBase.look, camBase.pos).normalize();
+  swayR.crossVectors(swayF, up).normalize();
+  swayU.crossVectors(swayR, swayF);
+  const x = Math.sin(time * 0.53) * amp + Math.sin(time * 1.31) * amp * 0.35 + Math.sin(s * Math.PI * 3) * 0.006 * v;
+  const y = Math.sin(time * 0.71 + 1.0) * amp * 0.7 + Math.abs(Math.sin(s * Math.PI * 3)) * 0.012 * v;
+  swayOff.copy(swayR).multiplyScalar(x).addScaledVector(swayU, y);
+  camera.position.copy(camBase.pos).add(swayOff);
+  camera.lookAt(swayOff.multiplyScalar(0.35).add(camBase.look));
+}
+
+// Al pasar junto a una pieza la cámara la rodea un poco (como caminando a su alrededor).
+const MAKECH_AXIS = new THREE.Vector3(6.1, 0, 3.25);
+const XUX_AXIS = new THREE.Vector3(9.85, 0, 0.62);
+function orbit(v, c, a) {
+  const dx = v.x - c.x;
+  const dz = v.z - c.z;
+  const cs = Math.cos(a);
+  const sn = Math.sin(a);
+  v.x = c.x + dx * cs - dz * sn;
+  v.z = c.z + dx * sn + dz * cs;
+}
 function placeJourneyCamera() {
   if (!cameraPath) return;
   const c = cameraPath(journey.p);
+  // al acercarse, la entrada por el arco queda limpia; al alejarse la cámara rodea la pieza
+  const o1 = journey.p - 1;
+  if (o1 > -0.3 && o1 < 0.95) {
+    const a = o1 < 0 ? -0.35 * o1 * (1 - smoothstep(0.12, 0.3, -o1)) : -0.62 * o1 * (1 - smoothstep(0.5, 0.95, o1));
+    orbit(c.pos, MAKECH_AXIS, a);
+    orbit(c.look, MAKECH_AXIS, a);
+  }
+  const o2 = journey.p - 2;
+  if (o2 > -0.35) {
+    const a = -0.25 * o2 * (1 - smoothstep(0.15, 0.35, -o2));
+    orbit(c.pos, XUX_AXIS, a);
+    orbit(c.look, XUX_AXIS, a);
+  }
+  setCameraBase(c.pos, c.look);
   camera.position.copy(c.pos);
   camera.lookAt(c.look);
+  updateSun(journey.p);
   if (Math.abs(camera.fov - c.fov) > 1e-3) {
     camera.fov = c.fov;
     camera.updateProjectionMatrix();
@@ -852,7 +952,10 @@ function frame(now) {
     updateFlow(dt);
     dirty = true;
   }
-  if (dirty) renderer.render(scene, camera);
+  if (dirty) {
+    if (phase !== 'loading') applySway(now / 1000);
+    renderer.render(scene, camera);
+  }
 }
 
 // ---------------------------------------------------------------- recorrido (cada fotograma)
@@ -899,7 +1002,7 @@ function updateJourney(dt, time) {
       .filter((f) => f.stop === idx)
       .forEach((f, k) => setTimeout(() => f.turn.impulse(idx === 1 ? 1.5 : 1.2), 700 + k * 220));
   }
-  for (const f of fringes) if (f.turn.step(dt)) dirty = true;
+  for (const f of fringes) if (f.turn.step(dt, f.scrollSpin(p))) dirty = true;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
   if (makech.dye.step(dt)) dirty = true;
   if (xux.dye.step(dt)) dirty = true;
@@ -956,6 +1059,7 @@ async function start() {
     jui.setTravelling(true);
     computeCloseCamera();
     journey.jumpS(0);
+    updateSun(0);
     setIntro(0);
     // el hilo empieza a bajar solo, despacio, y espera: el resto lo decide el desplazamiento
     journey.goS(0.42, 0.9);
