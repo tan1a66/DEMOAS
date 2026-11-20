@@ -1,25 +1,15 @@
 // Interfaz (todo en español): colores, medidas durante el arrastre, llamada a la acción.
 
-import { COLORS, CONTACT, MEASURE, MEASURE_SCALE } from '../config.js';
+import { COLORS, CONTACT } from '../config.js';
 
 const $ = (id) => document.getElementById(id);
 
-export function fmtCm(m) {
-  return `${Math.round(m * MEASURE_SCALE * 100)} cm`;
-}
-export function fmtM(m) {
-  return `${(m * MEASURE_SCALE).toFixed(2)} m`;
-}
 
 export class UI {
-  constructor({ onColor, getConfig }) {
+  constructor({ onColor }) {
     this.onColor = onColor;
-    this.getConfig = getConfig;
     this.panel = $('panel');
     this.hint = $('hint');
-    this.measure = $('measure');
-    this.mMain = $('mMain');
-    this.mSub = $('mSub');
     this.toastEl = $('toast');
     this.nameEl = $('swatchName');
     this.current = null;
@@ -76,31 +66,11 @@ export class UI {
   }
 
   // ---------------------------------------------------------------- medidas
-  // Fija bajo el logotipo: nunca queda bajo el pulgar ni tapa la onda.
-  showMeasure({ depth, tail }) {
-    this.mMain.textContent = `Onda ${fmtCm(depth)}`;
-    this.mSub.textContent = `Colas ${fmtM(tail)} · Largo total ${MEASURE.realLength.toFixed(2)} m`;
-    this.measure.classList.add('on');
-    document.body.classList.add('measuring');
-  }
-
-  hideMeasure() {
-    this.measure.classList.remove('on');
-    document.body.classList.remove('measuring');
-  }
 
   // ---------------------------------------------------------------- llamada a la acción
   message() {
-    const { depths } = this.getConfig();
     const color = this.current ? this.current.name : '';
-    const a = Math.round(depths[0] * MEASURE_SCALE * 100);
-    const b = Math.round(depths[1] * MEASURE_SCALE * 100);
-    const ondas = Math.abs(a - b) <= 3 ? `ondas de unos ${Math.round((a + b) / 2)} cm` : `ondas de unos ${a} y ${b} cm`;
-    return (
-      `Hola Neutro Home, me encantó la Trenza Maya en color ${color}, ` +
-      `de aprox. ${MEASURE.realLength.toFixed(2)} m de largo, colgada en 3 ganchos con ${ondas}. ` +
-      '¿Me pueden dar información?'
-    );
+    return `Hola Neutro Home, me encantó la Trenza Maya en color ${color}. ¿Me pueden dar información?`;
   }
 
   _bindCta() {

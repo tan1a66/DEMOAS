@@ -25,16 +25,20 @@ export class Rig {
     this.center = { px: new Float32Array(N), py: new Float32Array(N), tx: new Float32Array(N), ty: new Float32Array(N) };
     this.depth = [new Spring(WAVES.depthDefault, 9, 0.42), new Spring(WAVES.depthDefault, 9, 0.42)];
     this.tails = { L: tailSprings(), R: tailSprings() };
+    this.bias = new Spring(0, 8, 0.6); // colaIzq − colaDer
+    this.held = null; // cola sujeta con el dedo
     this.drop = null; // { y, vy, contact }
     this.dragging = -1;
     this.prevTail = null;
     this.active = true;
     this._acc = 0;
     this.info = null;
-    this.state = { len1: 0, len2: 0, tailL: { root: 0, tip: 0 }, tailR: { root: 0, tip: 0 }, offsetY: 0 };
+    this.state = { len1: 0, len2: 0, tailL: { root: 0, tip: 0 }, tailR: { root: 0, tip: 0 }, offsetY: 0, bias: 0 };
   }
 
   setRest() {
+    this.bias.set(0);
+    this.held = null;
     this.depth.forEach((s) => s.set(WAVES.depthDefault));
     for (const t of Object.values(this.tails)) Object.values(t).forEach((s) => s.set(0));
     this.drop = null;
@@ -43,6 +47,7 @@ export class Rig {
 
   // Caída inicial: la trenza entra desde arriba, casi horizontal, y se engancha.
   startDrop(height = 1.5) {
+    this.bias.set(0);
     this.depth.forEach((s) => s.set(0.045));
     for (const t of Object.values(this.tails)) Object.values(t).forEach((s) => s.set(1.28));
     this.drop = { y: height, vy: -0.4 };
@@ -50,7 +55,7 @@ export class Rig {
   }
 
   get settled() {
-    return !this.drop && this.dragging < 0 && !this.active;
+    return !this.drop && this.dragging < 0 && !this.held && !this.active;
   }
 
   // ---------------------------------------------------------------- límites
@@ -59,7 +64,7 @@ export class Rig {
     const other = m.lengthForDepth(this.depth[1 - i].x);
     const mine = m.lengthForDepth(this.depth[i].x);
     const wrap = m.wrapLength(mine, other);
-    const maxLen = BRAID.length - wrap - 2 * WAVES.tailMin - other;
+    const maxLen = BRAID.length - wrap - 2 * WAVES.tailMin - Math.abs(this.bias.x) - other;
     return Math.min(WAVES.depthMax, m.depthForLength(maxLen));
   }
 
@@ -101,6 +106,99 @@ export class Rig {
     this.active = true;
   }
 
+  // ---------------------------------------------------------------- tirar de una cola
+  // Se sujeta la cola (o su borla) a una distancia "grabDist" del gancho. El dedo decide la
+  // longitud de esa cola (la trenza se desliza sobre los ganchos: primero se acorta la onda
+  // vecina, luego la otra y por último sube la otra cola) y su ángulo (péndulo).
+  grabTail(side, grabDist) {
+    const m = this.model;
+    const iN = side === 'L' ? 0 : 1;
+    const iF = 1 - iN;
+    const info = this.info;
+    this.held = {
+      side,
+      iN,
+      iF,
+      d0: grabDist,
+      psi: this.tails[side].root.x,
+      wN0: m.lengthForDepth(this.depth[iN].x),
+      wF0: m.lengthForDepth(this.depth[iF].x),
+      tN0: side === 'L' ? info.tailL : info.tailR,
+      tF0: side === 'L' ? info.tailR : info.tailL,
+    };
+    for (const s of this.depth) {
+      s.omega = 18;
+      s.zeta = 1;
+    }
+    this.bias.omega = 18;
+    this.bias.zeta = 1;
+    const t = this.tails[side];
+    for (const s of [t.root, t.tip]) {
+      s.omega = 15;
+      s.zeta = 0.9;
+    }
+    this.active = true;
+  }
+
+  dragTail(px, py) {
+    const h = this.held;
+    if (!h || !this.info) return;
+    const m = this.model;
+    const pivot = h.side === 'L' ? this.info.pivotL : this.info.pivotR;
+    const out = h.side === 'L' ? -1 : 1;
+    const dx = px - pivot.x;
+    const dy = py - pivot.y;
+    h.psi = clamp(Math.atan2(out * dx, -dy), -0.05, 1.25);
+
+    const wMin = m.lengthForDepth(WAVES.depthMin);
+    const wMax = m.lengthForDepth(WAVES.depthMax);
+    const tMin = WAVES.tailMin;
+    const dMax = h.wN0 - wMin + (h.wF0 - wMin) + (h.tF0 - tMin);
+    const dMin = -Math.min(h.tN0 - tMin, wMax - h.wN0 + (wMax - h.wF0));
+    let d = Math.hypot(dx, dy) - h.d0;
+    if (d > dMax) d = dMax + rubber(d - dMax, WAVES.overshoot);
+    if (d < dMin) d = dMin - rubber(dMin - d, WAVES.overshoot * 0.6);
+
+    let wN = h.wN0 - d;
+    let wF = h.wF0;
+    let tF = h.tF0;
+    if (wN < wMin) {
+      wF -= wMin - wN;
+      wN = wMin;
+      if (wF < wMin) {
+        tF -= wMin - wF;
+        wF = wMin;
+      }
+    } else if (wN > wMax) {
+      wF = Math.min(wMax, wF + (wN - wMax));
+      wN = wMax;
+    }
+    const tN = h.tN0 + d;
+    this.depth[h.iN].target = m.depthForLength(wN);
+    this.depth[h.iF].target = m.depthForLength(wF);
+    this.bias.target = h.side === 'L' ? tN - tF : tF - tN;
+    this.active = true;
+  }
+
+  releaseTail() {
+    const h = this.held;
+    if (!h) return;
+    this.held = null;
+    for (const s of this.depth) {
+      s.omega = 8.5;
+      s.zeta = 0.4;
+    }
+    this.bias.omega = 8;
+    this.bias.zeta = 0.6;
+    const t = this.tails[h.side];
+    t.root.omega = 3.7;
+    t.root.zeta = 0.2;
+    t.tip.omega = 6.5;
+    t.tip.zeta = 0.42;
+    t.tassel.v += 0.4 * Math.sign(t.root.x || 1);
+    this.active = true;
+  }
+
   // Pequeña demostración (una sola vez) para invitar a tocar.
   nudge(i) {
     this.depth[i].v += 0.32;
@@ -120,7 +218,7 @@ export class Rig {
     this._build();
 
     // ¿Todo en reposo?
-    let moving = !!this.drop || this.dragging >= 0;
+    let moving = !!this.drop || this.dragging >= 0 || !!this.held || !this.bias.resting;
     for (const s of this.depth) if (!s.resting) moving = true;
     for (const t of Object.values(this.tails)) for (const s of Object.values(t)) if (!s.resting) moving = true;
     this.active = moving;
@@ -152,11 +250,13 @@ export class Rig {
     }
 
     for (const s of this.depth) s.step(h);
+    this.bias.step(h);
 
     for (const side of ['L', 'R']) {
       const t = this.tails[side];
-      t.root.target = 0;
-      t.tip.target = t.root.x;
+      const held = this.held && this.held.side === side;
+      t.root.target = held ? this.held.psi : 0;
+      t.tip.target = held ? this.held.psi : t.root.x;
       t.tassel.target = t.tip.x;
       for (const s of [t.root, t.tip, t.tassel]) {
         s.step(h);
@@ -167,7 +267,7 @@ export class Rig {
         }
       }
       // la amortiguación vuelve poco a poco a su valor normal tras la caída
-      t.root.zeta += (0.2 - t.root.zeta) * h * 0.5;
+      if (!held) t.root.zeta += (0.2 - t.root.zeta) * h * 0.5;
     }
   }
 
@@ -181,6 +281,7 @@ export class Rig {
     st.tailR.root = this.tails.R.root.x;
     st.tailR.tip = this.tails.R.tip.x;
     st.offsetY = this.drop ? this.drop.y : 0;
+    st.bias = this.bias.x;
     this.info = m.build(st, this.center);
 
     // Cambios rápidos de longitud de las colas → un poco de balanceo.

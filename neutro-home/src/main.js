@@ -1,7 +1,7 @@
 import './styles.css';
 import * as THREE from 'three';
 
-import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE, WAVES } from './config.js';
+import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE } from './config.js';
 import { bakeTextures } from './gl/textures.js';
 import { buildEnvironment } from './gl/environment.js';
 import { createDyeUniforms } from './gl/fiberMaterial.js';
@@ -45,7 +45,7 @@ sun.shadow.bias = -0.0004;
 scene.add(sun, sun.target);
 const hemi = new THREE.HemisphereLight('#fff6ee', '#6a4c38', 0.36);
 scene.add(hemi);
-// Luz lateral cálida sólo para la entrada: el hilo brilla sobre el fondo oscuro.
+// Luz lateral cálida sólo para la entrada: un brillo más en el hilo.
 const rim = new THREE.DirectionalLight('#ffcf9a', 0);
 rim.position.set(-2, 0.6, 0.5);
 scene.add(rim);
@@ -74,17 +74,9 @@ scene.add(tassels.L.mesh, tassels.R.mesh);
 let threads = new Threads({ perStrand: IS_TOUCH ? 54 : 66, braid, dye });
 scene.add(threads.mesh);
 
-// Velo oscuro de la entrada (delante del muro y de los ganchos, detrás del hilo).
-const veil = new THREE.Mesh(
-  new THREE.PlaneGeometry(30, 30),
-  new THREE.MeshBasicMaterial({ color: PALETTE.earth, transparent: true, depthWrite: false, toneMapped: false })
-);
-veil.position.z = 0.21;
-veil.renderOrder = 10;
-scene.add(veil);
-
+const HUNG_PHASE = 0.4;
 const rig = new Rig();
-const hung = hungStructure(0.4);
+const hung = hungStructure(HUNG_PHASE);
 
 function setSheen(target, hex) {
   const c = new THREE.Color(hex);
@@ -133,6 +125,7 @@ function onResize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   computeFinalCamera();
+  if (phase === 'intro') computeCloseCamera();
   if (phase === 'main') applyCamera(finalCam.pos, finalCam.look);
   needsRender = true;
 }
@@ -145,7 +138,6 @@ const ui = new UI({
     if (!fromUser) return;
     requestColor(c.hex);
   },
-  getConfig: () => ({ depths: rig.depth.map((s) => s.target) }),
 });
 
 const flow = { active: false, t: 0, queued: null };
@@ -187,101 +179,105 @@ function syncHung() {
 }
 
 // ---------------------------------------------------------------- entrada
-const INTRO_Z = 0.32;
-const Y0 = 0.28;
-const introCenter = {
-  px: new Float32Array(BRAID.samples),
-  py: new Float32Array(BRAID.samples),
-  tx: new Float32Array(BRAID.samples),
-  ty: new Float32Array(BRAID.samples).fill(1),
-};
+// La trenza se forma ya en su sitio (sobre la cola izquierda, colgada en el muro claro):
+// un hilo baja → se abre en muchísimas hebras → tres cabos → se trenzan (despacio, con zoom)
+// → las puntas se atan en la borla → la cámara se aleja y la pieza ya está colgada.
 const introP = {
-  front: 0.95, scale: 0.13, split: 0, loose: 1, thin: 0.42, core: 0.62, spread: 0, sep: 1.3,
-  bloom: 0, tube: 0, tipEnd: 0.085, taper: 0.13,
+  cut: 0.8, front: 0.74, scale: 0.13, split: 0, loose: 1, thin: 0.42, core: 0.62, spread: 0, sep: 1.3,
+  bloom: 0, tube: 0, tipEnd: 0.085, taper: 0.13, done: 0, phase: HUNG_PHASE,
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
+const INTRO_END = 10.2;
 
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 const easeOut = (x) => 1 - (1 - x) ** 3;
-const easeIn = (x) => x * x * x;
 
 let phase = 'loading'; // loading → intro → main
 let tau = 0;
-let dropStarted = false;
 let litDone = false;
 let uiShown = false;
 const camPos = new THREE.Vector3();
 const camLook = new THREE.Vector3();
+const closeCam = { x: 0, tipY: 0, A: null, W: null, Z: null };
+
+// Encuadre cercano sobre la cola izquierda (adaptado al formato de pantalla).
+function computeCloseCamera() {
+  const info = rig.info;
+  const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const aspect = window.innerWidth / window.innerHeight;
+  // altura visible de cada encuadre (en horizontal manda el ancho)
+  const fit = (h, w) => Math.min(h, w / aspect);
+  const tip = info.endL.y;
+  closeCam.x = info.endL.x;
+  closeCam.tipY = tip;
+  const frame = (H, y) => ({ d: H / (2 * tanH), y });
+  const hA = fit(0.56, 0.42);
+  const hW = 0.6;
+  const hZ = fit(0.36, 0.26);
+  closeCam.A = frame(hA, tip + 0.2 * hA); // hilo que baja: la punta a ~70 % de la altura
+  // formación completa a la vista, sin llegar al gancho ni a la onda (se descubren al final)
+  closeCam.W = frame(hW, Math.min(tip + 0.3 * hW, -0.28 - hW / 2));
+  closeCam.Z = frame(hZ, tip + 0.3); // detalle de la trenza ya hecha
+}
 
 function updateIntro(dt) {
   tau += dt;
   const t = tau;
 
-  // hilo que baja, luego sigue bajando mientras se trenza, luego se levanta
-  let yTip = lerp(Y0 + 0.42, Y0 - 0.02, easeOut(seg(t, 0.25, 1.75)));
-  yTip -= 0.3 * easeInOut(seg(t, 2.3, 4.5));
-  const lift = Math.max(0, t - 4.45);
-  yTip += 4.5 * lift * lift;
-
-  // 1) un hilo  2) se abre en muchísimas hebras  3) se agrupan en tres cabos gruesos  4) se trenzan
-  const bl = seg(t, 1.3, 2.65);
-  const bloom = 0.95 * bl * bl; // el punto donde se abre sube despacio: se ve la "horquilla"
-  const spray = easeInOut(seg(t, 1.3, 2.4));
-  const split = easeInOut(seg(t, 2.2, 2.85));
-  const gather = easeInOut(seg(t, 2.4, 3.25));
+  // 1) el hilo baja por la cola  2) se abre en hebras  3) tres cabos  4) se trenzan  5) borla
+  introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 2.7)));
+  const bl = seg(t, 2.5, 4.4);
+  const bloom = 0.66 * bl * bl;
+  const spray = easeInOut(seg(t, 2.5, 4.0));
+  const split = easeInOut(seg(t, 3.9, 4.8));
+  const gather = easeInOut(seg(t, 4.2, 5.4));
   introP.bloom = bloom;
   introP.split = split;
   introP.spread = 0.6 * split;
-  introP.tube = easeInOut(seg(t, 3.05, 3.5));
-  introP.front = lerp(0.95, 0.19, easeInOut(seg(t, 2.95, 4.4)));
-  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 1.9, 4.4)));
+  introP.tube = easeInOut(seg(t, 5.2, 5.8));
+  introP.front = lerp(0.74, 0.19, easeInOut(seg(t, 5.0, 7.8)));
+  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 7.8)));
+  introP.done = easeInOut(seg(t, 8.0, 8.9));
   if (threads) {
-    // las puntas siguen siendo hebras hasta que la trenza se cuelga
-    threads.mesh.visible = t > 1.3 && t < 5.0;
-    threads.set({ bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper, front: introP.front });
-    if (t >= 5.0) disposeThreads();
+    threads.mesh.visible = t > 2.4 && introP.done < 1;
+    threads.set({
+      bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
+      front: introP.front, done: introP.done,
+    });
+    if (introP.done >= 1) disposeThreads();
   }
+  braid.update(rig.center, BRAID.z, introSt);
+  // la borla izquierda se "ata" al final: crece desde el extremo
+  const tie = easeOut(seg(t, 8.0, 9.0));
+  tassels.L.mesh.visible = tie > 0.001;
+  tassels.L.mesh.scale.setScalar(Math.max(0.001, tie));
 
-  const N = BRAID.samples;
-  const ds = BRAID.length / (N - 1);
-  for (let i = 0; i < N; i++) introCenter.py[i] = yTip + i * ds;
-
-  if (t < 5.0) {
-    braid.update(introCenter, INTRO_Z, introSt);
-  } else if (!dropStarted) {
-    dropStarted = true;
-    rig.startDrop(1.45);
-    tassels.L.mesh.visible = tassels.R.mesh.visible = true;
-  }
-
-  // cámara: cerca del hilo → retrocede → encuadre final
-  const pull = easeInOut(seg(t, 1.9, 4.6));
-  const dist = lerp(1.0, 2.25, pull);
-  const ly = lerp(Y0 + 0.02, Y0 - 0.12, pull);
-  camPos.set(0, ly, INTRO_Z + dist);
-  camLook.set(0, ly, 0);
-  const toFinal = easeInOut(seg(t, 4.35, 5.6));
-  camPos.lerp(finalCam.pos, toFinal);
-  camLook.lerp(finalCam.look, toFinal);
+  // cámara: cerca del hilo → se abre para ver toda la formación → zoom sobre la trenza
+  // terminada (y la borla que se ata) → se aleja: la pieza ya está colgada en el muro
+  const { A, W, Z } = closeCam;
+  const wide = easeInOut(seg(t, 2.6, 5.8));
+  const zoom = easeInOut(seg(t, 7.4, 8.6));
+  let d = lerp(lerp(A.d, W.d, wide), Z.d, zoom);
+  let y = lerp(lerp(A.y, W.y, wide), Z.y, zoom);
+  d *= 1 - 0.04 * seg(t, 0, 2.6); // un respiro casi imperceptible al principio
+  camPos.set(closeCam.x, y, BRAID.z + d);
+  camLook.set(closeCam.x, y, 0);
+  const away = easeInOut(seg(t, 8.9, INTRO_END - 0.1));
+  camPos.lerp(finalCam.pos, away);
+  camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
 
-  // luz: el velo se abre y aparece el muro
-  const light = easeInOut(seg(t, 4.3, 5.4));
-  veil.material.opacity = 1 - light;
-  veil.visible = light < 1;
-  scene.environmentIntensity = lerp(0.25, 0.6, light);
-  hemi.intensity = lerp(0.15, 0.36, light);
-  rim.intensity = 5.5 * (1 - light);
-  if (t > 0.7 && t < 3.75) introLine.classList.add('on');
+  rim.intensity = 1.6 * (1 - away);
+  if (t > 0.8 && t < 4.9) introLine.classList.add('on');
   else introLine.classList.remove('on');
-  if (!litDone && t > 4.6) {
+  if (!litDone && t > 9.3) {
     litDone = true;
     document.body.classList.add('lit');
   }
-  if (!uiShown && t > 6.5) showMainUI();
-  if (t > 6.6) endIntro();
+  if (!uiShown && t > INTRO_END - 0.4) showMainUI();
+  if (t > INTRO_END) endIntro();
 }
 
 function disposeThreads() {
@@ -295,25 +291,18 @@ function endIntro() {
   phase = 'main';
   disposeThreads();
   applyCamera(finalCam.pos, finalCam.look);
-  veil.visible = false;
-  scene.environmentIntensity = 0.6;
-  hemi.intensity = 0.36;
   rim.intensity = 0;
   introLine.classList.remove('on');
   document.body.classList.add('lit');
   tassels.L.mesh.visible = tassels.R.mesh.visible = true;
-  if (!dropStarted) {
-    dropStarted = true;
-    rig.setRest();
-  }
+  tassels.L.mesh.scale.setScalar(1);
+  rig.active = true; // reconstruye la trenza colgada definitiva
   showMainUI();
   needsRender = true;
 }
 
 function skipIntro() {
   if (phase !== 'intro') return;
-  dropStarted = true;
-  rig.setRest();
   endIntro();
 }
 
@@ -329,6 +318,8 @@ function showMainUI() {
 }
 
 // ---------------------------------------------------------------- interacción
+// Se puede agarrar la trenza por las ondas (cambian su caída) o por las colas y las borlas
+// (se tira de un extremo: la trenza se desliza sobre los ganchos; de lado, la cola se balancea).
 const raycaster = new THREE.Raycaster();
 const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -BRAID.z);
 const ndc = new THREE.Vector2();
@@ -347,28 +338,54 @@ function toScreen(x, y, z = BRAID.z) {
   return { x: (tmpV.x * 0.5 + 0.5) * window.innerWidth, y: (-tmpV.y * 0.5 + 0.5) * window.innerHeight };
 }
 
-function pickWave(clientX, clientY) {
-  if (!rig.info) return -1;
-  let best = -1;
-  let bestD = Infinity;
-  const minR = IS_TOUCH ? 70 : 56;
+function pickTarget(cx, cy) {
+  const info = rig.info;
+  if (!info) return null;
+  let best = null;
+  const take = (cand) => {
+    if (!best || cand.d < best.d) best = cand;
+  };
+  // ondas: el punto más bajo o cualquier punto entre sus ganchos cerca de la curva
+  const waveR = IS_TOUCH ? 70 : 56;
   for (let i = 0; i < 2; i++) {
-    const w = rig.info.waves[i];
+    const w = info.waves[i];
     const p = toScreen(w.x, w.y);
     const a = toScreen(pegX[i], PEGS.y).x;
     const b = toScreen(pegX[i + 1], PEGS.y).x;
-    const d = Math.hypot(clientX - p.x, clientY - p.y);
-    const inSpan = clientX > a + 6 && clientX < b - 6 && Math.abs(clientY - p.y) < (IS_TOUCH ? 84 : 64) && clientY > toScreen(0, PEGS.y + 0.02).y;
-    if ((d < minR || inSpan) && d < bestD) {
-      best = i;
-      bestD = d;
+    const d = Math.hypot(cx - p.x, cy - p.y);
+    const inSpan = cx > a + 6 && cx < b - 6 && Math.abs(cy - p.y) < (IS_TOUCH ? 84 : 64) && cy > toScreen(0, PEGS.y + 0.02).y;
+    if (d < waveR || inSpan) take({ type: 'wave', i, d });
+  }
+  // colas y borlas
+  const N = BRAID.samples;
+  const ds = BRAID.length / (N - 1);
+  const lineR = IS_TOUCH ? 40 : 28;
+  const tasselR = IS_TOUCH ? 66 : 48;
+  for (const side of ['L', 'R']) {
+    const tl = side === 'L' ? info.tailL : info.tailR;
+    const i0 = side === 'L' ? 0 : Math.ceil((BRAID.length - tl) / ds);
+    const i1 = side === 'L' ? Math.floor(tl / ds) : N - 1;
+    for (let i = i0; i <= i1; i += 4) {
+      const p = toScreen(rig.center.px[i], rig.center.py[i]);
+      const d = Math.hypot(cx - p.x, cy - p.y);
+      if (d < lineR) {
+        const sAlong = side === 'L' ? tl - i * ds : i * ds - (BRAID.length - tl);
+        take({ type: 'tail', side, grab: Math.max(0.05, sAlong), d });
+      }
     }
+    const e = side === 'L' ? info.endL : info.endR;
+    const tp = toScreen(e.x + e.dx * 0.11, e.y + e.dy * 0.11);
+    const d = Math.hypot(cx - tp.x, cy - tp.y);
+    if (d < tasselR) take({ type: 'tail', side, grab: tl + 0.11, d: d * 0.8 });
   }
   return best;
 }
 
-function measureFor(i) {
-  return { depth: rig.depth[i].x, tail: rig.info ? rig.info.tail : 0 };
+function markInteracted() {
+  if (interacted) return;
+  interacted = true;
+  clearTimeout(nudgeTimer);
+  ui.hideHint();
 }
 
 canvas.addEventListener('pointerdown', (e) => {
@@ -377,41 +394,42 @@ canvas.addEventListener('pointerdown', (e) => {
     return;
   }
   if (phase !== 'main' || drag) return;
-  const i = pickWave(e.clientX, e.clientY);
-  if (i < 0) return;
+  const target = pickTarget(e.clientX, e.clientY);
+  if (!target) return;
   const p = toWorld(e.clientX, e.clientY);
   if (!p) return;
   e.preventDefault();
   canvas.setPointerCapture(e.pointerId);
-  drag = { id: e.pointerId, wave: i, y0: p.y, d0: rig.depth[i].x, x: e.clientX, y: e.clientY };
-  rig.grab(i);
-  canvas.classList.add('grabbing');
-  if (!interacted) {
-    interacted = true;
-    clearTimeout(nudgeTimer);
-    ui.hideHint();
+  if (target.type === 'wave') {
+    drag = { id: e.pointerId, type: 'wave', wave: target.i, y0: p.y, d0: rig.depth[target.i].x };
+    rig.grab(target.i);
+  } else {
+    drag = { id: e.pointerId, type: 'tail', side: target.side };
+    rig.grabTail(target.side, target.grab);
+    rig.dragTail(p.x, p.y);
   }
+  canvas.classList.add('grabbing');
+  markInteracted();
 });
 
 canvas.addEventListener('pointermove', (e) => {
   if (!drag) {
-    if (phase === 'main' && e.pointerType === 'mouse') canvas.classList.toggle('can-grab', pickWave(e.clientX, e.clientY) >= 0);
+    if (phase === 'main' && e.pointerType === 'mouse') canvas.classList.toggle('can-grab', !!pickTarget(e.clientX, e.clientY));
     return;
   }
   if (e.pointerId !== drag.id) return;
   const p = toWorld(e.clientX, e.clientY);
   if (!p) return;
-  drag.x = e.clientX;
-  drag.y = e.clientY;
-  rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
+  if (drag.type === 'wave') rig.dragTo(drag.wave, drag.d0 + (drag.y0 - p.y));
+  else rig.dragTail(p.x, p.y);
 });
 
 function endDrag(e) {
   if (!drag || (e && e.pointerId !== drag.id)) return;
-  rig.release();
+  if (drag.type === 'wave') rig.release();
+  else rig.releaseTail();
   drag = null;
   canvas.classList.remove('grabbing');
-  ui.hideMeasure();
 }
 canvas.addEventListener('pointerup', endDrag);
 canvas.addEventListener('pointercancel', endDrag);
@@ -420,31 +438,9 @@ canvas.addEventListener('lostpointercapture', endDrag);
 document.addEventListener('pointerdown', (e) => {
   if (phase === 'intro' && e.target !== canvas) skipIntro();
 });
-
-// Teclado: ← → eligen la onda, ↑ ↓ la acortan o alargan.
 canvas.tabIndex = 0;
-let keyWave = 0;
-let keyTimer = 0;
-canvas.addEventListener('keydown', (e) => {
-  if (phase === 'intro') {
-    skipIntro();
-    return;
-  }
-  if (phase !== 'main') return;
-  if (e.key === 'ArrowLeft') keyWave = 0;
-  else if (e.key === 'ArrowRight') keyWave = 1;
-  else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-    const s = rig.depth[keyWave];
-    const next = clamp(s.target + (e.key === 'ArrowDown' ? 0.025 : -0.025), WAVES.depthMin, rig.maxDepth(keyWave));
-    s.target = next;
-    s.omega = 9;
-    s.zeta = 0.5;
-    rig.active = true;
-  } else return;
-  e.preventDefault();
-  ui.showMeasure({ depth: rig.depth[keyWave].target, tail: rig.info.tail });
-  clearTimeout(keyTimer);
-  keyTimer = setTimeout(() => ui.hideMeasure(), 1400);
+canvas.addEventListener('keydown', () => {
+  if (phase === 'intro') skipIntro();
 });
 
 // ---------------------------------------------------------------- bucle
@@ -462,13 +458,12 @@ function frame(now) {
     updateIntro(dt);
     dirty = true;
   }
-  if (phase !== 'loading' && dropStarted) {
+  if (phase === 'main') {
     if (rig.step(dt)) {
       syncHung();
       dirty = true;
     }
   }
-  if (drag && rig.info) ui.showMeasure(measureFor(drag.wave));
   if (flow.active) {
     updateFlow(dt);
     dirty = true;
@@ -501,6 +496,7 @@ async function start() {
   rig.setRest();
   rig.step(0.016);
   syncHung();
+  computeCloseCamera();
   applyCamera(finalCam.pos, finalCam.look);
   if (threads) threads.mesh.visible = true; // compilar también su shader antes de empezar
   try {
@@ -517,21 +513,12 @@ async function start() {
   const skip = REDUCED_MOTION || params.has('skip');
   if (skip) {
     // Sin entrada: aparece la escena final con un fundido.
-    phase = 'main';
-    dropStarted = true;
-    disposeThreads();
-    rig.setRest();
-    veil.visible = false;
-    document.body.classList.add('lit');
-    showMainUI();
+    endIntro();
   } else {
     phase = 'intro';
     tau = 0;
-    tassels.L.mesh.visible = tassels.R.mesh.visible = false;
-    veil.visible = true;
-    veil.material.opacity = 1;
-    scene.environmentIntensity = 0.25;
-    hemi.intensity = 0.15;
+    computeCloseCamera();
+    tassels.L.mesh.visible = false;
     updateIntro(0);
   }
   renderer.render(scene, camera);
@@ -556,6 +543,7 @@ window.__trenza = {
   setTau: (t) => {
     tau = t;
   },
+  pickTarget,
   requestColor,
   toScreen,
   render: () => renderer.render(scene, camera),

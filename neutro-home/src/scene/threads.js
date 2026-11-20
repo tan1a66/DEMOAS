@@ -4,11 +4,11 @@
 
 import * as THREE from 'three';
 import { BRAID } from '../config.js';
-import { patchThreadsMaterial } from '../gl/fiberMaterial.js';
+import { patchThreadsMaterial, threadsDepthMaterial } from '../gl/fiberMaterial.js';
 
 const SIDES = 3;
 const STRIDE = 2; // una de cada dos muestras de la trenza basta para hebras tan finas
-const S_MAX = 0.95; // sólo la parte de la trenza que se ve durante la entrada
+const S_MAX = 0.8; // sólo la cola izquierda (donde se forma la trenza) y un poco más
 
 function rng(seed) {
   return () => {
@@ -97,6 +97,7 @@ export class Threads {
       uTaper: { value: 0.13 },
       uWeave: { value: 1 },
       uWeaveBlend: { value: BRAID.period * 1.1 },
+      uDone: { value: 0 },
     };
     const mat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -110,10 +111,13 @@ export class Threads {
     this.mesh = new THREE.Mesh(g, mat);
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
+    this.mesh.castShadow = true;
+    this.mesh.customDepthMaterial = threadsDepthMaterial(this.uniforms);
   }
 
-  set({ bloom, spray, gather, time, tube, tipEnd, taper, front }) {
+  set({ bloom, spray, gather, time, tube, tipEnd, taper, front, done = 0 }) {
     const u = this.uniforms;
+    u.uDone.value = done;
     u.uWeave.value = front;
     u.uTube.value = tube;
     u.uTipEnd.value = tipEnd;

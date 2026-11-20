@@ -233,6 +233,7 @@ uniform float uTipEnd;
 uniform float uTaper;
 uniform float uWeave;      // frente de trenzado (distinto del frente del color)
 uniform float uWeaveBlend;
+uniform float uDone;       // 0..1: las hebras de la punta se recogen en la borla
 attribute vec4 aThread; // (cabo, x empaquetado, y empaquetado, semilla)
 attribute vec4 aSpray;  // (abertura lateral, abertura en profundidad, fase, desfase de la punta)
 varying float vAO;
@@ -277,7 +278,7 @@ void threadVertex(out vec3 pos, out vec3 nrm, out vec3 tng) {
   // dentro del cabo ya formado no se ven: no se dibujan (menos trabajo para la GPU)
   // dentro de la trenza quedan tapadas por los cabos: no se dibujan
   float covered = smoothstep(0.9, 1.0, uTube) * smoothstep(uWeave + uWeaveBlend * 0.6, uWeave + uWeaveBlend, s) * smoothstep(uTipEnd + uTaper, uTipEnd + uTaper + 0.02, s);
-  r *= vis * (1.0 - covered);
+  r *= vis * (1.0 - covered) * (1.0 - uDone);
 
   float a = position.y * 6.28318530718 + aThread.w * 6.2831;
   vec3 n = e1 * cos(a) + e2 * sin(a);
@@ -301,4 +302,17 @@ export function patchThreadsMaterial(material, uniforms, dye) {
     patchFragment(shader);
   };
   material.customProgramCacheKey = () => 'threads';
+}
+
+// Sombra de las hebras sobre el muro claro (misma posición que en el vertex shader visible).
+export function threadsDepthMaterial(uniforms) {
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+  m.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${THREAD_VERT_PARS}`)
+      .replace('#include <begin_vertex>', 'vec3 hPos; vec3 hNrm; vec3 hTng;\nthreadVertex(hPos, hNrm, hTng);\nvec3 transformed = hPos;');
+  };
+  m.customProgramCacheKey = () => 'threads-depth';
+  return m;
 }

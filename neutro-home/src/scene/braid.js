@@ -136,48 +136,65 @@ export function hungStructure(phase = 0) {
 }
 
 /**
- * Entrada: un hilo → muchísimas hebras → tres cabos gruesos → trenza.
- * p = { front, scale, split, loose, thin, core, spread, sep, bloom, tube, tipEnd, taper }
- *   front  — posición (s) del frente de trenzado; por encima la trenza está hecha.
+ * Entrada, directamente sobre la trenza ya colgada (eje real en el muro):
+ * un hilo baja por la cola izquierda → se abre en muchísimas hebras → tres cabos gruesos →
+ * se trenzan de arriba abajo → las puntas se atan en la borla.
+ * p = { cut, front, scale, split, loose, thin, core, spread, sep, bloom, tube, tipEnd, taper, done, phase }
+ *   cut    — por debajo de este s todavía no hay hilo (el hilo "baja").
+ *   front  — frente de trenzado; por encima la trenza está hecha.
  *   scale  — grosor global (crece hasta 1).
  *   split  — 0: los tres cabos coinciden (un único eje); 1: tres cabos separados.
- *   loose  — grosor relativo de los cabos sueltos (por debajo del frente).
+ *   loose  — volumen de los cabos sueltos (por debajo del frente) respecto a los trenzados.
  *   thin   — grosor relativo del hilo único inicial.
- *   core   — alma del cabo suelto (fuera de la trenza) respecto al haz completo.
- *   spread — cuánto se abren los cabos sueltos por debajo del frente.
- *   sep    — separación fija entre los cabos sueltos (en unidades de ampLat).
+ *   core   — alma del cabo suelto respecto al haz completo (las hebras de fuera se ven).
+ *   spread, sep — cómo se abren y separan los cabos sueltos.
  *   bloom  — punto (s) donde el hilo único se abre en hebras (por debajo: hebras).
- *   tube   — 0..1, aparición de los tres cabos gruesos (envuelven las hebras agrupadas).
- *   tipEnd — por debajo de este s los cabos no tienen tubo: las puntas son muchas hebras.
- *   taper  — largo del tramo en que el tubo se deshace en hebras.
+ *   tube   — 0..1, aparición de los tres cabos gruesos.
+ *   tipEnd, taper — puntas: por debajo de tipEnd sólo hebras; el tubo se deshace en "taper".
+ *   done   — 0..1, paso final a la trenza colgada definitiva (con su borla).
  */
 export function introStructure(p) {
+  const L = BRAID.length;
   const P = BRAID.period;
+  const T = BRAID.taperLen;
   const blend = P * 1.1;
+  const hung = hungStructure(p.phase);
+  const h = { lat: 0, dep: 0, rad: 0, raw: 0 };
   return (s, k, o) => {
     const above = smoothstep(p.front, p.front + blend, s);
     const below = Math.max(0, p.front - s);
     const sp = p.split;
-    // por encima del frente: trenzado
-    const tB = (TWO_PI * s) / P + PHASES[k];
+    // por encima del frente: trenzado (misma fase que la trenza colgada)
+    const tB = (TWO_PI * s) / P + p.phase + PHASES[k];
     // por debajo: los tres cabos cuelgan quietos, a la misma distancia entre sí
     const tL = PHASES[k];
     const looseAmp = p.scale * (1 + p.spread * smoothstep(0, 0.35, below)) + p.sep;
     const latL = Math.sin(tL) * looseAmp;
     const depL = Math.sin(2 * tL) * 0.6 * p.scale;
-    o.lat = (latL + (Math.sin(tB) * p.scale - latL) * above) * sp;
-    o.dep = (depL + (Math.sin(2 * tB) * p.scale - depL) * above) * sp;
+    // extremo derecho: ya está terminado (se estrecha hacia su borla)
+    const gR = smoothstep(0, T, L - s);
+    const ampR = 0.36 + 0.64 * gR;
+    let lat = (latL + (Math.sin(tB) * p.scale - latL) * above) * sp * ampR;
+    let dep = (depL + (Math.sin(2 * tB) * p.scale - depL) * above) * sp * ampR;
     const rad = (p.loose + (1 - p.loose) * above) * p.scale;
     o.raw = rad; // tamaño del haz de hebras (sin afilar)
     // hilo único (sólo el cabo 0, fino) por encima del punto donde se abre
     const single = k === 0 ? smoothstep(p.bloom - 0.02, p.bloom + 0.012, s) * smoothstep(0, 0.03, s) : 0;
-    // cabos gruesos: envuelven las hebras; hacia la punta el tubo adelgaza poco a poco y las
-    // hebras salen de su superficie (el cambio no es neto), y la punta es sólo hebras
     const taper = smoothstep(p.tipEnd - 0.01, p.tipEnd + p.taper, s);
-    // fuera de la trenza nada los aprieta: mismo volumen, pero el alma es más fina y las
-    // hebras de fuera se ven sueltas alrededor
     const core = p.core + (1 - p.core) * above;
-    o.rad = Math.max(rad * p.tube * taper * core, p.thin * p.scale * single);
+    let r = Math.max(rad * p.tube * taper * core, p.thin * p.scale * single) * (0.7 + 0.3 * gR);
+    // el hilo todavía no ha llegado por debajo de "cut"
+    r *= smoothstep(p.cut, p.cut + 0.025, s);
+    if (p.done > 0) {
+      hung(s, k, h);
+      const d = p.done;
+      lat += (h.lat - lat) * d;
+      dep += (h.dep - dep) * d;
+      r += (h.rad - r) * d;
+    }
+    o.lat = lat;
+    o.dep = dep;
+    o.rad = r;
     return o;
   };
 }

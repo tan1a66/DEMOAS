@@ -21,7 +21,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--earth);
+  background: #ddd1c1;
   overscroll-behavior: none;
   -webkit-text-size-adjust: 100%;
 }
@@ -103,7 +103,7 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  top: 74%;
+  top: 80%;
   margin: 0;
   text-align: center;
   font-family: var(--serif);
@@ -111,7 +111,7 @@ body {
   font-weight: 400;
   font-size: clamp(22px, 6vw, 30px);
   letter-spacing: 0.02em;
-  color: #e9dccb;
+  color: var(--ink);
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 1.4s var(--ease), transform 2.2s var(--ease);
@@ -120,40 +120,6 @@ body {
 .intro-line.on {
   opacity: 1;
   transform: none;
-}
-
-/* ------------------------------------------------------------ medidas */
-.measure {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--safe-t) + 12px);
-  transform: translate(-50%, -4px);
-  padding: 0 14px;
-  text-align: center;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s var(--ease), transform 0.5s var(--ease);
-}
-.measure.on {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-.m-main {
-  display: block;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 20px;
-  line-height: 1.1;
-  color: var(--ink);
-}
-.m-sub {
-  display: block;
-  margin-top: 3px;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
 }
 
 /* ------------------------------------------------------------ panel inferior */
@@ -358,12 +324,6 @@ body {
 .toast.on {
   opacity: 1;
   transform: translate(-50%, 0);
-}
-
-/* Mientras se arrastra, las medidas ocupan el lugar del logotipo. */
-body.measuring .logo {
-  opacity: 0 !important;
-  transition-duration: 0.3s;
 }
 
 /* ------------------------------------------------------------ estado "escena" */

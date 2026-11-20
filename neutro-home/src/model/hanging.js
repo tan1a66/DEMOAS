@@ -163,19 +163,23 @@ export class HangingModel {
     const arc1 = Math.max(0, a1in - a1out) * rho;
     const arc2 = Math.max(0, a2in - a2out) * rho;
     const arc3 = Math.max(0, a3in - a3out) * rho;
-    const Lt = Math.max(0.02, (this.length - w1.cat.L - w2.cat.L - arc1 - arc2 - arc3) / 2);
+    // lo que sobra se reparte entre las colas; "bias" = colaIzq − colaDer (tirar de un extremo)
+    const rest = this.length - w1.cat.L - w2.cat.L - arc1 - arc2 - arc3;
+    const bias = state.bias || 0;
+    const LtL = Math.max(0.02, (rest + bias) / 2);
+    const LtR = Math.max(0.02, rest - LtL);
 
-    this._tail(this._tailL, -1, pegX[0] + rho * Math.cos(a1in), cy + rho * Math.sin(a1in), Lt, thL, state.tailL.tip);
-    this._tail(this._tailR, 1, pegX[2] + rho * Math.cos(a3out), cy + rho * Math.sin(a3out), Lt, thR, state.tailR.tip);
+    this._tail(this._tailL, -1, pegX[0] + rho * Math.cos(a1in), cy + rho * Math.sin(a1in), LtL, thL, state.tailL.tip);
+    this._tail(this._tailR, 1, pegX[2] + rho * Math.cos(a3out), cy + rho * Math.sin(a3out), LtR, thR, state.tailR.tip);
 
     const segs = [
-      { len: Lt, kind: 'tailL' },
+      { len: LtL, kind: 'tailL' },
       { len: arc1, kind: 'arc', cx: pegX[0], a0: a1in },
       { len: w1.cat.L, kind: 'cat', cat: w1.cat },
       { len: arc2, kind: 'arc', cx: pegX[1], a0: a2in },
       { len: w2.cat.L, kind: 'cat', cat: w2.cat },
       { len: arc3, kind: 'arc', cx: pegX[2], a0: a3in },
-      { len: Lt, kind: 'tailR' },
+      { len: LtR, kind: 'tailR' },
     ];
     const total = segs.reduce((acc, sg) => acc + sg.len, 0);
     const N = out.px.length;
@@ -193,11 +197,11 @@ export class HangingModel {
       const sg = segs[si];
       const ls = s - segStart;
       if (sg.kind === 'tailL') {
-        this._tailAt(this._tailL, Lt, Lt - ls, o);
+        this._tailAt(this._tailL, LtL, LtL - ls, o);
         o.tx = -o.tx;
         o.ty = -o.ty;
       } else if (sg.kind === 'tailR') {
-        this._tailAt(this._tailR, Lt, ls, o);
+        this._tailAt(this._tailR, LtR, ls, o);
       } else if (sg.kind === 'arc') {
         const al = sg.a0 - ls / rho;
         o.x = sg.cx + rho * Math.cos(al);
@@ -214,7 +218,11 @@ export class HangingModel {
     }
 
     out.total = total;
-    out.tail = Lt;
+    out.tailL = LtL;
+    out.tailR = LtR;
+    out.tail = (LtL + LtR) / 2;
+    out.pivotL = { x: pegX[0] - rho, y: cy + (state.offsetY || 0) };
+    out.pivotR = { x: pegX[2] + rho, y: cy + (state.offsetY || 0) };
     out.waves = [w1, w2].map((w) => ({
       x: Math.min(Math.max(w.cat.x0, w.cat.x1), w.cat.x2),
       y: w.low + dy,
