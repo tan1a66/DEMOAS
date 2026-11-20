@@ -108,6 +108,15 @@ body {
   padding-right: max(22px, env(safe-area-inset-right, 0px));
   pointer-events: none;
 }
+/* finché il carattere non è pronto SKY non si vede: poi compare piano (niente salti) */
+html.fonts-wait .hero-name,
+html.fonts-wait .scroll-hint {
+  opacity: 0;
+}
+.hero-name,
+.scroll-hint {
+  transition: opacity 0.7s ease;
+}
 .hero-name {
   margin: 0 auto;
   font-family: var(--serif);
@@ -445,41 +454,6 @@ body {
   color: var(--ink);
   text-align: left;
 }
-.page .lead {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(1.25rem, 5.2vw, 1.6rem);
-  line-height: 1.35;
-  text-align: center;
-  text-wrap: balance;
-}
-.page .soon {
-  margin: 30px 0 40px;
-  text-align: center;
-  font: 600 0.74rem/1 var(--wide);
-  font-stretch: 125%;
-  font-variation-settings: 'wdth' 125;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.portrait {
-  /* foto rotonda con un filetto oro a distanza */
-  width: min(60vw, 236px);
-  max-width: 100%;
-  aspect-ratio: 1;
-  margin: 8px auto 34px;
-  border-radius: 50%;
-  outline: 1px solid var(--gold);
-  outline-offset: 7px;
-}
-.portrait img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
 /* ---------- Chi sono: i capitoli (ognuno con una scena ferma mentre lo si scorre) ---------- */
 .ch {
   position: relative;
@@ -521,29 +495,6 @@ body {
 .fx-fade {
   opacity: 0;
 }
-/* 2011 → 2017 */
-.years {
-  position: relative;
-  height: 1em;
-  margin: 0 0 26px;
-  overflow: hidden;
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(5rem, 31vw, 11rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--gold-deep);
-}
-.years .y {
-  position: absolute;
-  left: 0;
-  top: 0;
-  will-change: transform, opacity;
-}
-.years .y2 {
-  transform: translateY(105%);
-  opacity: 0;
-}
 /* SICPRE: lettere che si compongono */
 .page .big-word {
   max-width: none;
@@ -559,7 +510,6 @@ body {
 .big-word span {
   display: inline-block;
   opacity: 0;
-  will-change: transform, opacity, filter;
 }
 /* righe che salgono da dietro una maschera */
 .page .big-lines {
@@ -581,46 +531,6 @@ body {
 .line-in {
   display: block;
   transform: translateY(105%);
-  will-change: transform;
-}
-/* un filetto d'oro che si disegna sotto le parole chiave */
-.ch mark {
-  color: inherit;
-  background: linear-gradient(var(--mauve), var(--mauve)) no-repeat 0 100% / var(--draw, 0%) 1.5px;
-  padding-bottom: 2px;
-}
-/* Milano · Lecco */
-.marquee {
-  margin: 0 0 30px;
-  color: var(--mauve);
-  white-space: nowrap;
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(3rem, 16vw, 7rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-.marquee span {
-  display: inline-block;
-  will-change: transform;
-}
-/* dal consulto al trattamento: due righe che si vengono incontro */
-.converge {
-  margin: 0 0 30px;
-  color: var(--mauve);
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(2.3rem, 11vw, 4.4rem);
-  line-height: 1.02;
-  letter-spacing: -0.015em;
-}
-.cv {
-  display: block;
-  white-space: nowrap;
-  will-change: transform, opacity;
-}
-.cv-b {
-  text-align: right;
 }
 /* movimento ridotto: tutto visibile, senza scene ferme */
 .story-static .ch {
@@ -636,24 +546,8 @@ body {
 .story-static .big-word span {
   opacity: 1;
 }
-.story-static .years .y2 {
-  position: static;
-  transform: none;
-  opacity: 1;
-  margin-left: 0.3em;
-}
-.story-static .years {
-  height: auto;
-  display: flex;
-}
-.story-static .years .y {
-  position: static;
-}
 .story-static .line-in {
   transform: none;
-}
-.story-static .ch mark {
-  --draw: 100%;
 }
 
 /* ---------- le sezioni: una storia che scorre sulla seta ---------- */
@@ -734,7 +628,6 @@ body {
 }
 .rt-l {
   display: inline-block;
-  will-change: transform;
 }
 .page .fac-sub {
   margin: 14px 0 0;
@@ -779,7 +672,6 @@ body {
   grid-template-columns: 74px 1fr;
   grid-template-areas: 'num name' 'num text';
   column-gap: 10px;
-  will-change: transform, opacity;
 }
 .ritual li::before {
   /* un punto sulla linea, che si accende quando il passo arriva */
@@ -1051,82 +943,6 @@ body {
   text-align: center;
   font-size: 0.66rem;
 }
-.page .sub {
-  margin: 34px 0 10px;
-  text-align: left;
-  font: 600 0.72rem/1 var(--wide);
-  font-stretch: 125%;
-  font-variation-settings: 'wdth' 125;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.facts {
-  margin: 30px auto 34px;
-  display: grid;
-  gap: 0;
-  text-align: left;
-  border-top: 1px solid var(--gold);
-}
-.facts > div {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(179, 146, 96, 0.45);
-}
-.facts dt {
-  font: 600 0.68rem/1.5 var(--wide);
-  font-stretch: 125%;
-  font-variation-settings: 'wdth' 125;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.facts dd {
-  margin: 0;
-  font-size: 0.98rem;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.facts a {
-  color: var(--ink);
-}
-.groups {
-  display: grid;
-  gap: 30px;
-  margin: 0 0 36px;
-  text-align: left;
-}
-.group h3 {
-  margin: 0 0 8px;
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: 1.7rem;
-  line-height: 1.1;
-}
-.group p {
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-}
-.group ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.group li {
-  font: 600 0.68rem/1 var(--wide);
-  font-stretch: 125%;
-  font-variation-settings: 'wdth' 125;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 9px 12px;
-  border: 1px solid rgba(31, 26, 23, 0.18);
-  border-radius: 999px;
-}
 .page-cta {
   display: inline-block;
   font-family: var(--sans);
@@ -1217,9 +1033,6 @@ html.in-section .hero .keep {
 @media (min-aspect-ratio: 1/1) {
   .page {
     top: 13vh;
-  }
-  .groups {
-    grid-template-columns: 1fr 1fr;
   }
   .hero {
     /* sotto resta lo spazio per "Desliza" */
@@ -1496,7 +1309,6 @@ html.soglia-on .soglia {
 .soglia-mono > span {
   display: inline-block;
   transform-origin: 50% 50%;
-  will-change: transform;
 }
 .soglia-rule {
   display: block;

@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "build:anteprima": "vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/sky-medical-spa-anteprima.html')\""
+    "build:anteprima": "vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/sky-medical-spa-anteprima.html')\"",
+    "bake": "node scripts/bake-silk.mjs"
   },
   "dependencies": {
     "gsap": "3.12.5",

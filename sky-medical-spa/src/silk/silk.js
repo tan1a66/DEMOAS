@@ -2,7 +2,24 @@ import * as THREE from 'three';
 import { Cloth } from './cloth.js';
 import { createWind } from './wind.js';
 import { silkVertex, silkFragment } from './silkShaders.js';
-import { createFigure, gownSdf } from './figure.js';
+import { BAKED } from './baked.js';
+
+// la forma a riposo calcolata una volta sola (npm run bake): Int16, 1/8000 di metro
+const SCALE = 8000;
+const decodeRest = (b64) => {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const q = new Int16Array(bytes.buffer);
+  const out = new Float32Array(q.length);
+  for (let i = 0; i < q.length; i++) out[i] = q[i] / SCALE;
+  return out;
+};
+export const encodeRest = (rest) => {
+  const q = new Int16Array(rest.length);
+  for (let i = 0; i < rest.length; i++) q[i] = Math.max(-32768, Math.min(32767, Math.round(rest[i] * SCALE)));
+  return q;
+};
 
 // il colore dello sfondo del logo SKY: un verde-grigio salvia, chiaro. La base è più fredda e
 // più grigia del colore voluto: la luce dello studio e il controluce scaldano il tessuto, e il
@@ -34,7 +51,7 @@ const easeInOut = (t) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, 
  * e un'onda scende lungo il telo. Con il dito la si può afferrare e tirare, o sfiorare.
  */
 export class Silk {
-  constructor({ quality = 'high', shape = 'square', width, height, colors = SILK_COLORS } = {}) {
+  constructor({ quality = 'high', shape = 'square', width, height, colors = SILK_COLORS, bake = true } = {}) {
     this.round = shape === 'round';
     width = width ?? (this.round ? 1.62 : 1.4);
     height = height ?? width;
@@ -58,9 +75,9 @@ export class Silk {
     this.grabbed = null;
     this.panX = 0; // spostamento laterale delle prese (la seta che guida verso una sezione)
     this.calm = 0; // 0..1: dentro le sezioni la seta si placa (meno vento, niente gesti)
-    // la seta che prende forma di figura femminile (le quattro aree: chirurgie e medicine)
-    this.figure = createFigure();
-    this.figBlend = 0; // 0 = fazzoletto, 1 = la seta modellata sulla figura
+    // (dalla demo Sala: la seta che prende forma di figura; qui non si usa, resta a zero)
+    this.figure = { x: 0, y: 0, z: 0 };
+    this.figBlend = 0;
     this.move = null; // una figura delle prese (la capriola)
     this.untangle = 0; // 0..1: forza che scioglie i nodi (alta subito dopo capriole e tirate)
     this.memK = 8; // memoria della forma (pieghe e curve) [1/s²]
@@ -77,7 +94,8 @@ export class Silk {
     this.posTex.minFilter = this.posTex.magFilter = THREE.NearestFilter;
     this.posTex.generateMipmaps = false;
 
-    const seg = mobile ? [320, 320] : [448, 448];
+    // mesh: la forma la dà la simulazione (B-spline nello shader): bastano meno vertici
+    const seg = mobile ? [208, 208] : [320, 320];
     this.segments = seg;
     const geo = new THREE.PlaneGeometry(1, 1, seg[0], seg[1]);
     this.uniforms = {
@@ -110,9 +128,32 @@ export class Silk {
     this.mesh.frustumCulled = false;
 
     this._hang();
-    // Memoria della forma: prima la seta si assesta solo con il peso e una brezza costante
-    // (niente raffiche né turbolenza, molto smorzata), poi si memorizza la media dell'ultimo
-    // secondo. Così il riferimento è un drappeggio pulito, senza pieghe casuali.
+    const key = mobile ? 'mobile' : 'high';
+    const baked = bake && !this.round ? BAKED[key] : null;
+    if (baked && baked.nx === this.nx && baked.ny === this.ny && baked.substeps === this.cloth.substeps) {
+      // la forma a riposo è già pronta (npm run bake): si parte da lì, con mezzo secondo di
+      // vento per ridarle vita. All'apertura la pagina non resta ferma a calcolare.
+      this.restShape = decodeRest(baked.rest);
+      this.cloth.pos.set(this.restShape);
+      this.cloth.vel.fill(0);
+      this.time = baked.time;
+      this.nextGesture = this.time + 7;
+      this.prewarm(0.5);
+      this._upload();
+      return;
+    }
+    this._settle();
+    this.prewarm(1.0); // la seta riparte nel vento vero, già viva
+    this._upload();
+  }
+
+  /**
+   * Memoria della forma: prima la seta si assesta solo con il peso e una brezza costante
+   * (niente raffiche né turbolenza, molto smorzata), poi si memorizza la media dell'ultimo
+   * secondo. Così il riferimento è un drappeggio pulito, senza pieghe casuali.
+   * (Lento: lo si fa una volta con npm run bake e il risultato sta in baked.js.)
+   */
+  _settle() {
     const w = this.wind, cl = this.cloth;
     const saved = { turbulence: w.turbulence, speed: w.speed, damping: cl.damping, memK: this.memK, memKGlobal: this.memKGlobal };
     w.turbulence = 0;
@@ -129,90 +170,12 @@ export class Silk {
       for (let i = 0; i < acc.length; i++) acc[i] += cl.pos[i] / steps;
     }
     this.restShape = acc;
+    this.restTime = this.time;
     Object.assign(w, { turbulence: saved.turbulence, speed: saved.speed });
     cl.damping = saved.damping;
     this.memK = saved.memK;
     this.memKGlobal = saved.memKGlobal;
     this.nextGesture = this.time + 7;
-    this._buildFigureTarget();
-    this.prewarm(1.0); // la seta riparte nel vento vero, già viva
-    this._upload();
-  }
-
-  /**
-   * La seta che diventa figura: un abito di seta indossato da una figura invisibile.
-   * Ogni colonna del telo è un angolo attorno al corpo (il centro del telo davanti, i bordi
-   * che si incontrano dietro), ogni riga un'altezza: dalle spalle fin sotto le ginocchia.
-   * Il punto è sulla superficie del busto (spalle, seno, vita, fianchi), poi la gonna scende
-   * appena svasata. Il contorno della seta disegna la silhouette.
-   */
-  _buildFigureTarget() {
-    const c = this.cloth, f = this.figure;
-    const { nx, ny } = this;
-    const top = 0.4, bottom = -0.98; // altezze locali (0 = vita)
-    const R = new Float32Array(c.n);
-    let lastR = new Float32Array(nx).fill(0.15), lastY = new Float32Array(nx).fill(top);
-    for (let j = 0; j < ny; j++) {
-      const Y = top + (bottom - top) * (j / (ny - 1));
-      for (let i = 0; i < nx; i++) {
-        const th = (i / (nx - 1) - 0.5) * Math.PI * 1.35; // davanti e fianchi, schiena aperta
-        const dx = Math.sin(th), dz = Math.cos(th);
-        // dal di fuori verso l'asse, finché si tocca la forma
-        let r = 0.5, hit = false;
-        for (let it = 0; it < 70; it++) {
-          const d = gownSdf(dx * r, Y, dz * r);
-          if (d < 0.002) { hit = true; break; }
-          r -= Math.max(d * 0.9, 0.003);
-          if (r < 0.02) break;
-        }
-        if (hit && Y > -0.6) {
-          lastR[i] = r;
-          lastY[i] = Y;
-        } else {
-          // sotto i fianchi: la gonna scende appena svasata
-          r = lastR[i] + (lastY[i] - Y) * 0.12;
-        }
-        R[j * nx + i] = r + 0.014;
-      }
-    }
-    // ammorbidire attorno e in altezza: è tessuto, non pelle
-    const tmp = new Float32Array(c.n);
-    for (let pass = 0; pass < 2; pass++) {
-      for (let j = 0; j < ny; j++)
-        for (let i = 0; i < nx; i++) {
-          let a = 0, w = 0;
-          for (let o = -2; o <= 2; o++) {
-            const ii = Math.min(nx - 1, Math.max(0, i + o));
-            const ww = 3 - Math.abs(o);
-            a += R[j * nx + ii] * ww;
-            w += ww;
-          }
-          tmp[j * nx + i] = a / w;
-        }
-      for (let j = 0; j < ny; j++)
-        for (let i = 0; i < nx; i++) {
-          let a = 0, w = 0;
-          for (let o = -1; o <= 1; o++) {
-            const jj = Math.min(ny - 1, Math.max(0, j + o));
-            const ww = 2 - Math.abs(o);
-            a += tmp[jj * nx + i] * ww;
-            w += ww;
-          }
-          R[j * nx + i] = a / w;
-        }
-    }
-    const T = new Float32Array(c.n * 3);
-    for (let j = 0; j < ny; j++) {
-      const Y = top + (bottom - top) * (j / (ny - 1));
-      for (let i = 0; i < nx; i++) {
-        const p = j * nx + i, k = p * 3;
-        const th = (i / (nx - 1) - 0.5) * Math.PI * 1.35;
-        T[k] = Math.sin(th) * R[p]; // rispetto a figure.x
-        T[k + 1] = f.y + Y;
-        T[k + 2] = f.z + Math.cos(th) * R[p];
-      }
-    }
-    this.figTarget = T;
   }
 
   /** Cambia la densità della mesh (la simulazione resta la stessa). */

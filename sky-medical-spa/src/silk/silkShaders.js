@@ -245,11 +245,12 @@ void main() {
     spec = uHigh * s1 * 0.32 + mix(uHigh, uSilk, 0.3) * s2 * 0.5 + vec3(1.0, 0.85, 0.7) * s3 * 0.08;
     // riflesso dello studio, sfumato lungo l'ordito (anisotropia "vera")
     vec3 env = vec3(0.0);
-    for (int k = -2; k <= 2; k++) {
-      vec3 Nk = normalize(Np + T * float(k) * 0.16);
+    // tre campioni lungo l'ordito (prima cinque): stesso riflesso allungato, meno calcoli
+    for (int k = -1; k <= 1; k++) {
+      vec3 Nk = normalize(Np + T * float(k) * 0.24);
       env += studio(reflect(-V, Nk));
     }
-    env /= 5.0;
+    env /= 3.0;
     float refl = 0.34 + 0.56 * pow(1.0 - NV0, 3.0);
     spec += env * mix(uHigh, uSilk, 0.22) * refl;
   } else {

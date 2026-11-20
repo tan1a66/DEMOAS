@@ -44,12 +44,25 @@ Lo scroll guida la camera sulla seta (`data-cam` sui capitoli: direzione x,y,z e
    partire (orientativo) e "Agenda este facial", che apre Agendar con servizio e nota
    (la nota arriva nel messaggio WhatsApp). Testi in `src/quiz.js`.
 
+## Leggerezza
+- **Avvio**: la forma a riposo della seta è calcolata una volta sola (`npm run bake` →
+  `src/silk/baked.js`, 47 KB). All'apertura bastano 0,5 s di vento invece di 5 s di simulazione
+  (su un processore medio: da ~1,6 s a ~0,35 s di pagina ferma). Da rilanciare se si cambiano
+  misure, griglia o sotto-passi della seta (altrimenti il sito torna da solo al calcolo lento).
+- **Grafica**: risoluzione massima 1,5× (prima 2×), mesh 208² su telefono e 320² su computer
+  (prima 320² e 448²), riflesso dello studio con 3 campioni (prima 5).
+- **Qualità automatica**: sotto i 48 fps per 2 s si scende a risoluzione 1×, poi a metà mesh.
+- **Font dentro il sito** (niente Google Fonts), ridotti ai caratteri dello spagnolo con
+  fonttools: Cormorant 500 e corsivo, Manrope, Archivo solo 600, larghezze 112–125% e solo
+  maiuscole. In tutto ~71 KB (prima ~185 KB). SKY compare solo quando il suo carattere è pronto.
+- Tolti il codice della seta-figura e gli effetti/stili della demo Sala non usati.
+
 ## Colori e caratteri
 - La seta ha il colore dello sfondo del logo (salvia, `SILK_COLORS` in `src/silk/silk.js`).
   La base è più fredda del colore voluto perché la luce scalda il raso: sullo schermo torna
   al salvia del logo. `?seta=cipria` mostra la seta della demo Sala.
 - Carattere del logo: **Cormorant Garamond** (titoli, SKY, testi); Archivo largo per menu ed
-  etichette; Manrope per i bottoni. SKY è in malva come nel logo (`--mauve` in `styles.css`), e il malva torna
+  etichette; Manrope per i bottoni. Tutti in `src/fonts/` con le licenze OFL. SKY è in malva come nel logo (`--mauve` in `styles.css`), e il malva torna
   in titoli, parole grandi, numeri, bottoni, scelte selezionate e "SKY" nel menu.
 
 ## Dati da confermare con la cliente

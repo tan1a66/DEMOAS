@@ -10,6 +10,7 @@ import { createStory } from './story.js';
 import { waLink } from './config.js';
 import { createBooking } from './booking.js';
 import { createQuiz } from './quiz.js';
+import './fonts.css';
 import './styles.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -23,7 +24,9 @@ const quality = params.get('q') || (isMobile ? 'mobile' : 'high');
 // ---------- renderer e scena ----------
 const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// 1,5× basta per la seta (morbida per natura) e costa quasi la metà dei pixel di 2×
+const DPR_MAX = 1.5;
+renderer.setPixelRatio(Math.min(devicePixelRatio, DPR_MAX));
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.12;
 renderer.setClearColor(new THREE.Color(SILK_COLORS.ivory));
@@ -159,6 +162,17 @@ const camTarget = frame.target.clone();
 camera.position.copy(camPos);
 camera.lookAt(camTarget);
 camera.updateMatrixWorld();
+// L'inquadratura della prima pagina si adatta alla seta (grandezza e posizione): la si
+// calcola qui, prima del primo fotogramma, così all'apertura la seta non cambia misura.
+for (let i = 0; i < 200; i++) {
+  screenFrame(1 / 20);
+  computeFrame();
+  camera.position.copy(frame.pos);
+  camera.lookAt(frame.target);
+  camera.updateMatrixWorld();
+}
+camPos.copy(frame.pos);
+camTarget.copy(frame.target);
 
 // ---------- luce: segue il dito / il mouse (±30°), sempre smorzata ----------
 const baseLight = new THREE.Vector3(-0.6, 0.42, 0.68).normalize(); // softbox laterale da sinistra
@@ -335,6 +349,16 @@ intro
   .to(menuItems, { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'sine.out' }, 2.2)
   .to(menuCta, { opacity: 1, y: 0, duration: 0.4, ease: 'sine.out' }, 2.45);
 
+// SKY compare quando il suo carattere è pronto (al massimo dopo 2,5 s)
+Promise.race([
+  Promise.all(['500 1em "Cormorant Garamond"', '600 1em "Archivo"'].map((f) => document.fonts?.load(f))),
+  new Promise((r) => setTimeout(r, 2500)),
+])
+  .catch(() => {})
+  .finally(() => {
+    document.documentElement.classList.remove('fonts-wait');
+    ScrollTrigger.refresh();
+  });
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
 // ---------- la soglia: l'entrata ----------
@@ -651,8 +675,9 @@ const fpsEl = document.getElementById('fps');
 const debug = params.has('debug');
 fpsEl.hidden = !debug;
 let frames = 0, acc = 0, simAcc = 0;
-// se per 2 secondi si sta sotto i 45 fps, la mesh della seta passa a metà dei segmenti
-const perf = { t: 0, n: 0, reduced: false };
+// qualità automatica: se per 2 secondi si sta sotto i 48 fps si scende di un gradino
+// (prima la risoluzione a 1×, poi la mesh a metà dei segmenti)
+const perf = { t: 0, n: 0, step: 0, halved: false };
 
 // ---------- ciclo ----------
 const clock = new THREE.Clock();
@@ -724,13 +749,20 @@ const loop = () => {
 
   renderer.render(scene, camera);
 
-  if (!perf.reduced && dt > 0) {
+  if (perf.step < 2 && dt > 0 && !document.hidden) {
     perf.t += dt;
     perf.n++;
     if (perf.t >= 2) {
-      if (perf.n / perf.t < 45 && clock.elapsedTime > 4) {
-        silk.setSegments(silk.segments[0] / 2, silk.segments[1] / 2);
-        perf.reduced = true;
+      if (perf.n / perf.t < 48 && clock.elapsedTime > 2.5) {
+        if (renderer.getPixelRatio() > 1) {
+          renderer.setPixelRatio(1);
+          lastW = 0; // forza il ridimensionamento della tela
+          resize();
+        } else if (!perf.halved) {
+          silk.setSegments(silk.segments[0] / 2, silk.segments[1] / 2);
+          perf.halved = true;
+        }
+        perf.step++;
       }
       perf.t = perf.n = 0;
     }

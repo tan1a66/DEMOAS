@@ -75,11 +75,6 @@ export const createStory = (chi, reduceMotion, { home = null } = {}) => {
   // preparazione di ogni effetto
   for (const ch of chapters) {
     const q = (s) => ch.el.querySelector(s);
-    if (ch.fx === 'years' || ch.fx === 'converge') ch.words = splitWords(q('.fx-words'));
-    if (ch.fx === 'years') {
-      ch.y1 = q('.y1');
-      ch.y2 = q('.y2');
-    }
     if (ch.fx === 'letters') {
       const big = q('.big-word');
       const letters = big.textContent.trim().split('');
@@ -96,12 +91,6 @@ export const createStory = (chi, reduceMotion, { home = null } = {}) => {
     if (ch.fx === 'lines' || ch.fx === 'gloss') {
       ch.lineEls = [...ch.el.querySelectorAll('.fx-lines')].map((el) => ({ el, text: el.textContent.replace(/\s+/g, ' ').trim() }));
     }
-    if (ch.fx === 'marks') ch.marks = [...ch.el.querySelectorAll('mark')];
-    if (ch.fx === 'marquee') {
-      ch.track = q('.marquee span');
-      ch.fade = q('.fx-fade');
-    }
-    if (ch.fx === 'converge') ch.cv = [q('.cv-a'), q('.cv-b')];
     if (ch.fx === 'focus') ch.focus = q('.fx-focus');
     if (ch.fx === 'gloss') {
       ch.fade = q('.fx-fade');
@@ -163,16 +152,7 @@ export const createStory = (chi, reduceMotion, { home = null } = {}) => {
   };
 
   const FX = {
-    // 2011 → 2017: il numero ruota come un contatore, il testo si accende parola per parola
-    years(ch, p) {
-      const k = ease(seg(p, 0.42, 0.62));
-      ch.y1.style.transform = `translate3d(0,${(-105 * k).toFixed(1)}%,0)`;
-      ch.y1.style.opacity = (1 - k).toFixed(3);
-      ch.y2.style.transform = `translate3d(0,${(105 * (1 - k)).toFixed(1)}%,0)`;
-      ch.y2.style.opacity = k.toFixed(3);
-      paintWords(ch.words, seg(p, 0.05, 0.85));
-    },
-    // SICPRE: le lettere arrivano da posizioni sfocate e si compongono; poi la frase
+    // la parola grande: le lettere arrivano da posizioni sfocate e si compongono; poi la frase
     letters(ch, p) {
       const n = ch.letters.length;
       ch.letters.forEach((s, i) => {
@@ -194,28 +174,6 @@ export const createStory = (chi, reduceMotion, { home = null } = {}) => {
         const k = ease(seg(p, 0.04 + i * 0.07, 0.24 + i * 0.07));
         l.style.transform = `translate3d(0,${(105 * (1 - k)).toFixed(1)}%,0)`;
       });
-    },
-    // un filetto d'oro si disegna sotto ogni competenza, una dopo l'altra
-    marks(ch, p) {
-      ch.marks.forEach((m, i) => {
-        const k = ease(seg(p, 0.12 + i * 0.17, 0.32 + i * 0.17));
-        m.style.setProperty('--draw', `${(k * 100).toFixed(1)}%`);
-      });
-    },
-    // Milano · Lecco: la scritta scorre di lato con lo scroll; poi la frase
-    marquee(ch, p) {
-      ch.track.style.transform = `translate3d(${(-p * 48).toFixed(2)}%,0,0)`;
-      const f = ease(seg(p, 0.3, 0.55));
-      ch.fade.style.opacity = f.toFixed(3);
-      ch.fade.style.transform = `translate3d(0,${((1 - f) * 18).toFixed(1)}px,0)`;
-    },
-    // "Dal consulto" da sinistra e "al trattamento" da destra si vengono incontro
-    converge(ch, p) {
-      const k = ease(seg(p, 0.04, 0.5));
-      ch.cv[0].style.transform = `translate3d(${(-(1 - k) * 55).toFixed(2)}%,0,0)`;
-      ch.cv[1].style.transform = `translate3d(${((1 - k) * 55).toFixed(2)}%,0,0)`;
-      ch.cv[0].style.opacity = ch.cv[1].style.opacity = (0.15 + 0.85 * k).toFixed(3);
-      paintWords(ch.words, seg(p, 0.38, 0.95));
     },
     // il rituale: una linea malva si disegna e i quattro passi arrivano uno dopo l'altro
     ritual(ch, p) {
@@ -251,18 +209,6 @@ export const createStory = (chi, reduceMotion, { home = null } = {}) => {
       ch.focus.style.opacity = (0.2 + 0.8 * k).toFixed(3);
       ch.focus.style.letterSpacing = `${((1 - k) * 0.12).toFixed(3)}em`;
     },
-  };
-
-  const paintWords = (words, k) => {
-    const n = words.length;
-    for (let i = 0; i < n; i++) {
-      const a = clamp01((k * (n + 8) - i) / 8);
-      const o = (0.16 + 0.84 * a).toFixed(2);
-      if (words[i]._o !== o) {
-        words[i]._o = o;
-        words[i].style.opacity = o;
-      }
-    }
   };
 
   return { measure, update, state };
