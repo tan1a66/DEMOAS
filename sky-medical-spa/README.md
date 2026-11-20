@@ -13,8 +13,9 @@ npm run build:anteprima  # anteprima in UN file: anteprima/sky-medical-spa-antep
 ```
 
 ## Percorso
-1. **Entrata**: SKY respira sul fondo avorio, "Toca para entrar" (su desktop "Haz clic para entrar").
-   Al tocco le tre lettere volano nel nome e il fondo si apre sulla seta. `?soglia=0` la salta.
+1. **Apertura**: si parte direttamente dal nome sotto la seta (richiesta della cliente).
+   L'intro "Toca para entrar" (SKY che respira, le lettere che volano nel nome) è spenta:
+   `?soglia=1` la riaccende.
 2. **Scroll**: "Medical Spa" svanisce, S·K·Y salgono e si stringono al centro della barra;
    poi la frase e il menu.
 3. **Menu**: Faciales · Masajes · Depilación láser · SKY Beauty Center (lashes, nails, hair,

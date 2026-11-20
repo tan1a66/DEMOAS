@@ -30,15 +30,10 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..700&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..600&family=Manrope:wght@400;500;600&display=swap"
     />
     <script>
-      // la entrada: SKY que respira y "Toca para entrar"; al tocar, las letras van a su lugar en el nombre.
-      // (no con movimiento reducido; ?soglia=0 la quita)
+      // la entrada "Toca para entrar" está apagada: el sitio empieza directo en el nombre.
+      // (?soglia=1 la vuelve a mostrar)
       try {
-        // (anche senza, con un link diretto a una sezione: #faciales…)
-        if (
-          !/[?&]soglia=0/.test(location.search) &&
-          location.hash.length < 2 &&
-          !matchMedia('(prefers-reduced-motion: reduce)').matches
-        )
+        if (/[?&]soglia=1/.test(location.search) && !matchMedia('(prefers-reduced-motion: reduce)').matches)
           document.documentElement.classList.add('soglia-on');
       } catch (e) {}
     </script>
