@@ -71,7 +71,7 @@ scene.add(braid.mesh);
 const tassels = { L: new Tassel(-1, { dye, textures }), R: new Tassel(1, { dye, textures }) };
 scene.add(tassels.L.mesh, tassels.R.mesh);
 // Entrada: un hilo que se abre en muchísimas hebras, que luego forman los tres cabos.
-let threads = new Threads({ perStrand: IS_TOUCH ? 40 : 52, braid, dye });
+let threads = new Threads({ perStrand: IS_TOUCH ? 54 : 66, braid, dye });
 scene.add(threads.mesh);
 
 // Velo oscuro de la entrada (delante del muro y de los ganchos, detrás del hilo).
@@ -195,7 +195,10 @@ const introCenter = {
   tx: new Float32Array(BRAID.samples),
   ty: new Float32Array(BRAID.samples).fill(1),
 };
-const introP = { front: 0.95, scale: 0.13, split: 0, loose: 0.42, spread: 0, sep: 0.95, bloom: 0, tube: 0, tipEnd: 0.12 };
+const introP = {
+  front: 0.95, scale: 0.13, split: 0, loose: 1, thin: 0.42, core: 0.62, spread: 0, sep: 1.3,
+  bloom: 0, tube: 0, tipEnd: 0.085, taper: 0.13,
+};
 const introSt = introStructure(introP);
 const introLine = $('introLine');
 
@@ -232,12 +235,12 @@ function updateIntro(dt) {
   introP.split = split;
   introP.spread = 0.6 * split;
   introP.tube = easeInOut(seg(t, 3.05, 3.5));
-  introP.front = lerp(0.95, 0.15, easeInOut(seg(t, 2.95, 4.4)));
+  introP.front = lerp(0.95, 0.19, easeInOut(seg(t, 2.95, 4.4)));
   introP.scale = lerp(0.13, 1, easeInOut(seg(t, 1.9, 4.4)));
   if (threads) {
     // las puntas siguen siendo hebras hasta que la trenza se cuelga
     threads.mesh.visible = t > 1.3 && t < 5.0;
-    threads.set({ bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd });
+    threads.set({ bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper, front: introP.front });
     if (t >= 5.0) disposeThreads();
   }
 
@@ -544,6 +547,9 @@ window.__trenza = {
   },
   rig,
   braid,
+  get threads() {
+    return threads;
+  },
   scene,
   camera,
   skipIntro,

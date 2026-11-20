@@ -137,16 +137,19 @@ export function hungStructure(phase = 0) {
 
 /**
  * Entrada: un hilo → muchísimas hebras → tres cabos gruesos → trenza.
- * p = { front, scale, split, loose, spread, sep, bloom, tube, tipEnd }
+ * p = { front, scale, split, loose, thin, core, spread, sep, bloom, tube, tipEnd, taper }
  *   front  — posición (s) del frente de trenzado; por encima la trenza está hecha.
  *   scale  — grosor global (crece hasta 1).
  *   split  — 0: los tres cabos coinciden (un único eje); 1: tres cabos separados.
- *   loose  — grosor relativo de los cabos sueltos.
+ *   loose  — grosor relativo de los cabos sueltos (por debajo del frente).
+ *   thin   — grosor relativo del hilo único inicial.
+ *   core   — alma del cabo suelto (fuera de la trenza) respecto al haz completo.
  *   spread — cuánto se abren los cabos sueltos por debajo del frente.
  *   sep    — separación fija entre los cabos sueltos (en unidades de ampLat).
  *   bloom  — punto (s) donde el hilo único se abre en hebras (por debajo: hebras).
  *   tube   — 0..1, aparición de los tres cabos gruesos (envuelven las hebras agrupadas).
  *   tipEnd — por debajo de este s los cabos no tienen tubo: las puntas son muchas hebras.
+ *   taper  — largo del tramo en que el tubo se deshace en hebras.
  */
 export function introStructure(p) {
   const P = BRAID.period;
@@ -166,11 +169,15 @@ export function introStructure(p) {
     o.dep = (depL + (Math.sin(2 * tB) * p.scale - depL) * above) * sp;
     const rad = (p.loose + (1 - p.loose) * above) * p.scale;
     o.raw = rad; // tamaño del haz de hebras (sin afilar)
-    // hilo único (sólo el cabo 0) por encima del punto donde se abre
+    // hilo único (sólo el cabo 0, fino) por encima del punto donde se abre
     const single = k === 0 ? smoothstep(p.bloom - 0.02, p.bloom + 0.012, s) * smoothstep(0, 0.03, s) : 0;
-    // cabos gruesos: envuelven las hebras salvo en las puntas, que siguen siendo hebras sueltas
-    const tube = p.tube * smoothstep(p.tipEnd - 0.004, p.tipEnd + 0.022, s);
-    o.rad = rad * Math.max(single, tube);
+    // cabos gruesos: envuelven las hebras; hacia la punta el tubo adelgaza poco a poco y las
+    // hebras salen de su superficie (el cambio no es neto), y la punta es sólo hebras
+    const taper = smoothstep(p.tipEnd - 0.01, p.tipEnd + p.taper, s);
+    // fuera de la trenza nada los aprieta: mismo volumen, pero el alma es más fina y las
+    // hebras de fuera se ven sueltas alrededor
+    const core = p.core + (1 - p.core) * above;
+    o.rad = Math.max(rad * p.tube * taper * core, p.thin * p.scale * single);
     return o;
   };
 }

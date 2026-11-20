@@ -230,6 +230,9 @@ uniform float uThreadMin;
 uniform float uTime;
 uniform float uTube;
 uniform float uTipEnd;
+uniform float uTaper;
+uniform float uWeave;      // frente de trenzado (distinto del frente del color)
+uniform float uWeaveBlend;
 attribute vec4 aThread; // (cabo, x empaquetado, y empaquetado, semilla)
 attribute vec4 aSpray;  // (abertura lateral, abertura en profundidad, fase, desfase de la punta)
 varying float vAO;
@@ -255,17 +258,25 @@ void threadVertex(out vec3 pos, out vec3 nrm, out vec3 tng) {
   vec2 spray = aSpray.xy * uSpray * sprayK;
   spray.x += 0.005 * sin(uTime * 1.3 + aSpray.z + s * 5.0) * sprayK;
   // agrupada: dentro de la sección ovalada del cabo; en las puntas el haz se abre como un pincel
-  float tipD = max(0.0, uTipEnd - s);
-  float fray = smoothstep(0.0, 0.1, tipD);
-  vec2 packed = aThread.yz * vec2(uOval.x, uOval.y) * rr * (1.0 + 2.2 * fray);
-  packed += aSpray.xy * (0.25 + 0.9 * rr) * fray;
-  packed.x += 0.004 * sin(uTime * 1.1 + aSpray.z) * fray;
+  // las hebras se separan del cabo poco a poco a lo largo del tramo final
+  float fray = 1.0 - smoothstep(uTipEnd - 0.07, uTipEnd + uTaper * 0.85, s);
+  fray *= fray;
+  // fuera de la trenza (por debajo del frente) el haz está suelto: algo más abierto y ondulado
+  float relax = 1.0 - smoothstep(uWeave, uWeave + uWeaveBlend, s);
+  vec2 packed = aThread.yz * vec2(uOval.x, uOval.y) * rr * (1.0 + 0.5 * relax + 1.8 * fray);
+  packed += aSpray.xy * (0.16 + 0.4 * rr) * fray;
+  // hebras sueltas: cada una con su ondulación irregular
+  float wave = sin(s * 22.0 + aSpray.z) + 0.5 * sin(s * 57.0 + 2.0 * aSpray.z + aThread.w * 9.0);
+  packed += aSpray.xy * 0.14 * rr * relax * wave;
+  packed.y += 0.0025 * rr * relax * sin(s * 31.0 + aThread.w * 17.0);
+  packed.x += 0.003 * sin(uTime * 1.1 + aSpray.z) * fray;
   vec2 off = mix(spray, packed, uGather);
 
   float r = max(uThreadK * uOval.y * rr, uThreadMin);
   float vis = smoothstep(0.0, 0.03, below) * smoothstep(aSpray.w, aSpray.w + 0.012, s);
   // dentro del cabo ya formado no se ven: no se dibujan (menos trabajo para la GPU)
-  float covered = smoothstep(0.9, 1.0, uTube) * smoothstep(uTipEnd + 0.012, uTipEnd + 0.03, s);
+  // dentro de la trenza quedan tapadas por los cabos: no se dibujan
+  float covered = smoothstep(0.9, 1.0, uTube) * smoothstep(uWeave + uWeaveBlend * 0.6, uWeave + uWeaveBlend, s) * smoothstep(uTipEnd + uTaper, uTipEnd + uTaper + 0.02, s);
   r *= vis * (1.0 - covered);
 
   float a = position.y * 6.28318530718 + aThread.w * 6.2831;

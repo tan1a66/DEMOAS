@@ -94,6 +94,9 @@ export class Threads {
       uTime: { value: 0 },
       uTube: { value: 0 },
       uTipEnd: { value: 0.08 },
+      uTaper: { value: 0.13 },
+      uWeave: { value: 1 },
+      uWeaveBlend: { value: BRAID.period * 1.1 },
     };
     const mat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
@@ -109,10 +112,12 @@ export class Threads {
     this.mesh.visible = false;
   }
 
-  set({ bloom, spray, gather, time, tube, tipEnd }) {
+  set({ bloom, spray, gather, time, tube, tipEnd, taper, front }) {
     const u = this.uniforms;
+    u.uWeave.value = front;
     u.uTube.value = tube;
     u.uTipEnd.value = tipEnd;
+    u.uTaper.value = taper;
     u.uBloom.value = bloom;
     u.uSpray.value = spray;
     u.uGather.value = gather;

@@ -31,9 +31,10 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
 - Materiale: `MeshPhysicalMaterial` con sheen, normal map di fibre parallele e variazione di tono
   generate proceduralmente sulla GPU (`src/gl/textures.js`), occlusione negli incavi, leggera
   variazione di colore tra i capi. Il cambio colore "scorre" da una nappa all'altra (~0,85 s).
-- `src/scene/threads.js` — entrata: 120–156 fili che seguono gli assi dei tre capi (stessa
-  texture di dati). Prima si aprono a coda di cavallo, poi si raggruppano nei tre capi; i tubi dei
-  capi li ricoprono tranne le punte, che restano frange di fili fino alla caduta sui ganci.
+- `src/scene/threads.js` — entrata: 162–198 fili che seguono gli assi dei tre capi (stessa
+  texture di dati). Prima si aprono a coda di cavallo, poi si raggruppano in tre capi grossi.
+  Dentro la treccia i capi sono compatti; sotto la treccia restano dello stesso volume ma
+  "sciolti": anima sottile, fili ondulati che si staccano poco a poco e si aprono verso le punte.
 - `src/scene/tassel.js` — nappe: collo avvolto + centinaia di fili; oscillazione nel vertex shader.
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.
