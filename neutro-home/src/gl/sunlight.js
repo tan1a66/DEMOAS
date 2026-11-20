@@ -1,7 +1,7 @@
-// La luz de Mérida: el sol de la tarde entra filtrado por hojas de palma y deja sobre los muros
-// y el suelo un dibujo de luz y sombra que se mueve, muy despacio, con la brisa.
-// El dibujo se proyecta en la dirección del sol (coherente con las sombras de las piezas) y sólo
-// afecta a la luz directa.
+// La luz de Mérida: el sol de la tarde entra por el portal de la hacienda, filtrado por hojas de
+// palma, y deja sobre los muros y el suelo un dibujo de luz y sombra que se mueve, muy despacio,
+// con la brisa; los pilares del portal dejan bandas de sombra que barren la galería cuando el sol
+// baja. Todo se proyecta en la dirección del sol y sólo afecta a la luz del sol (no a las lámparas).
 
 import * as THREE from 'three';
 
@@ -9,12 +9,29 @@ export const sunlight = {
   uTime: { value: 0 },
   uLeaf: { value: 1 }, // intensidad del follaje (0 = sol limpio)
   uSunDir: { value: new THREE.Vector3(-1.55, 1.75, 1.45).normalize() },
+  // portal: (paso entre pilares, posición de un pilar, media anchura, plano del portal en z)
+  uArcade: { value: new THREE.Vector4(2.85, 1.48, 0.28, 7.94) },
+  uArcadeK: { value: 1 }, // intensidad de las sombras de los pilares
 };
 
 const LEAF_GLSL = /* glsl */ `
 uniform float uTime;
 uniform float uLeaf;
 uniform vec3 uSunDir;
+uniform vec4 uArcade;
+uniform float uArcadeK;
+// sombra de los pilares del portal (se proyecta desde el plano del portal en la dirección del sol)
+float arcadeLight(vec3 wp) {
+  float dist = uArcade.w - wp.z;
+  if (dist <= 0.0 || uArcadeK <= 0.0) return 1.0;
+  vec3 d = normalize(uSunDir);
+  float t = dist / max(d.z, 0.08);
+  float m = wp.x + d.x * t - uArcade.y;
+  float c = abs(m - uArcade.x * floor(m / uArcade.x + 0.5));
+  float pen = 0.05 + 0.012 * t;
+  float lit = smoothstep(uArcade.z - pen, uArcade.z + pen, c);
+  return mix(1.0, mix(0.14, 1.0, lit), uArcadeK);
+}
 float lfHash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float lfNoise(vec2 p) {
   vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
@@ -60,7 +77,7 @@ float leafLight(vec3 wp) {
 }
 `;
 
-// Inyecta el follaje en un material estándar (después del aomap: sólo luz directa).
+// Inyecta el follaje y los pilares en un material estándar (sólo en la luz del sol).
 export function patchSunlight(shader) {
   Object.assign(shader.uniforms, sunlight);
   if (!shader.vertexShader.includes('varying vec3 vWPos;')) {
@@ -71,11 +88,15 @@ export function patchSunlight(shader) {
   if (!shader.fragmentShader.includes('varying vec3 vWPos;')) {
     shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos;');
   }
+  // sólo la luz del sol (direccionales): las lámparas y la luz cenital no pasan por las hojas
+  const lights = THREE.ShaderChunk.lights_fragment_begin.replace(
+    'getDirectionalLightInfo( directionalLight, directLight );',
+    'getDirectionalLightInfo( directionalLight, directLight );\n\t\tdirectLight.color *= sunMask;'
+  );
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${LEAF_GLSL}`)
     .replace(
-      '#include <aomap_fragment>',
-      `#include <aomap_fragment>
-reflectedLight.directDiffuse *= mix(1.0, mix(0.5, 1.06, leafLight(vWPos)), uLeaf);`
+      '#include <lights_fragment_begin>',
+      `float sunMask = mix(1.0, mix(0.5, 1.06, leafLight(vWPos)), uLeaf) * arcadeLight(vWPos);\n${lights}`
     );
 }

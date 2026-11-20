@@ -1,30 +1,36 @@
-// La casa: una sola estancia larga de muros de cal, dividida por tres tabiques con arcos.
-// Cada pieza vive en su propio espacio: desde una parada no se ve la siguiente hasta que la
-// cámara cruza el arco. Unidades del modelo (los ganchos de la trenza están en y = 0).
+// La casa: la galería de una hacienda yucateca. Al fondo, el muro de cal donde cuelgan las
+// piezas; delante, un portal de arcos abierto a un patio con palmeras; tres arcos transversales
+// dividen la galería y cada pieza vive en su propio tramo (no se ve la siguiente hasta cruzar).
+// Unidades del modelo (los ganchos de la trenza están en y = 0).
 //
-//   z
-//   ↑   A (trenza)  |arco|  B (Makech)  |arco|  C (Xux)  |arco|  D (sala: tapiz y lámparas)
-//   0 ─────────────────────────── muro del fondo ─────────────────────────────── ventana →
+//   z   patio (palmeras, losas, jardín; al fondo la otra crujía de la hacienda)
+//   ↑   ═══╤═══════╤═══════╤═══════╤═══════╤═══════╤═══════╤═══════╤═══  portal de arcos
+//   │   A (trenza)    ┃  B (Makech)  ┃  C (Xux)   ┃  D (sala: tapiz y lámparas)
+//   0 ───────────────────── muro del fondo ─────────────────────────────── ventana →
 
 import * as THREE from 'three';
 import { plasterMaterial, TILE } from './wall.js';
-import { patchSunlight } from '../gl/sunlight.js';
+import { patchSunlight, sunlight } from '../gl/sunlight.js';
+import { buildPalms, patioGroundMaterial } from './palms.js';
 
 export const ROOM = {
   floor: -2.0,
-  ceil: 1.75,
+  ceil: 2.6,
   back: 0,
   front: 7.0,
-  left: -2.6,
-  right: 19.8,
+  left: -4.2,
+  right: 18.6,
   thick: 0.32,
   parts: [
-    { x: 1.5, arch: { z: 3.25, w: 1.5, h: 2.95 } },
-    { x: 7.2, arch: { z: 3.3, w: 1.5, h: 2.95 } },
-    { x: 13.4, arch: { z: 4.7, w: 1.5, h: 2.95 } },
+    { x: 1.5, arch: { z: 5.55, w: 1.8, h: 3.35 } },
+    { x: 7.2, arch: { z: 5.55, w: 1.8, h: 3.35 } },
+    { x: 12.9, arch: { z: 5.55, w: 1.8, h: 3.35 } },
   ],
-  window: { z: 3.0, w: 1.3, y0: -0.8, y1: 1.05 },
+  window: { z: 3.0, w: 1.3, y0: -0.8, y1: 1.4 },
 };
+
+// Portal: pilares cada 2,85 (los tabiques llegan a un pilar), arcos de medio punto.
+export const ARCADE = { pitch: 2.85, origin: 1.5, pillar: 0.56, thick: 0.45, spring: ROOM.floor + 2.45 };
 
 // UV en coordenadas del mundo según la orientación de cada cara (proyección de caja).
 function worldUV(geo, scale = 1 / TILE) {
@@ -112,44 +118,208 @@ function windowWall() {
   return worldUV(g);
 }
 
+// Portal de arcos (muro con huecos de medio punto), con impostas y basas en los pilares.
+function arcade() {
+  const { floor, ceil, left, right, front, thick } = ROOM;
+  const A = ARCADE;
+  const s = new THREE.Shape();
+  s.moveTo(left - thick, floor - 0.2);
+  s.lineTo(right + thick, floor - 0.2);
+  s.lineTo(right + thick, ceil);
+  s.lineTo(left - thick, ceil);
+  s.closePath();
+  const pillars = [];
+  for (let x = A.origin; x >= left - 0.01; x -= A.pitch) pillars.unshift(x);
+  for (let x = A.origin + A.pitch; x <= right + 0.01; x += A.pitch) pillars.push(x);
+  for (let i = 0; i < pillars.length - 1; i++) {
+    const x0 = pillars[i] + A.pillar / 2;
+    const x1 = pillars[i + 1] - A.pillar / 2;
+    const r = (x1 - x0) / 2;
+    const h = new THREE.Path();
+    h.moveTo(x0, floor - 0.1);
+    h.lineTo(x1, floor - 0.1);
+    h.lineTo(x1, A.spring);
+    h.absarc(x0 + r, A.spring, r, 0, Math.PI, false);
+    h.lineTo(x0, floor - 0.1);
+    s.holes.push(h);
+  }
+  const g = new THREE.ExtrudeGeometry(s, { depth: A.thick, bevelEnabled: false, curveSegments: 32 });
+  g.translate(0, 0, front);
+  g.computeVertexNormals();
+  const parts = [worldUV(g)];
+  // imposta y basa de cada pilar
+  for (const x of pillars) {
+    const w = A.pillar + 0.08;
+    parts.push(box(x - w / 2, x + w / 2, A.spring - 0.11, A.spring, front - 0.04, front + A.thick + 0.04));
+    parts.push(box(x - w / 2, x + w / 2, floor, floor + 0.28, front - 0.03, front + A.thick + 0.03));
+  }
+  return parts;
+}
+
+// Pasta: el suelo de mosaicos de cemento de las casas de Mérida (rosetones de cuatro piezas).
+function pastaFloorMaterial() {
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46, metalness: 0, envMapIntensity: 0.6 });
+  mat.onBeforeCompile = (shader) => {
+    patchSunlight(shader);
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+float psHash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float psNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(psHash(i), psHash(i + vec2(1, 0)), u.x), mix(psHash(i + vec2(0, 1)), psHash(i + vec2(1, 1)), u.x), u.y); }
+float psBand(float v, float a, float b, float w) { return smoothstep(a - w, a + w, v) * (1.0 - smoothstep(b - w, b + w, v)); }`
+      )
+      .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+{
+  vec2 tc = vWPos.xz / 0.235;
+  vec2 f = fract(tc) - 0.5;
+  float w = clamp(fwidth(tc.x) * 1.2, 0.002, 0.5);
+  vec3 cream = vec3(0.80, 0.72, 0.58);
+  vec3 terra = vec3(0.52, 0.25, 0.16);
+  vec3 ochre = vec3(0.70, 0.50, 0.25);
+  vec3 coal = vec3(0.17, 0.15, 0.14);
+  vec3 sage = vec3(0.42, 0.45, 0.36);
+  vec2 a = abs(f);
+  // círculos en las esquinas (cuatro piezas forman un rosetón)
+  float rc = length(a - 0.5);
+  vec3 c = cream;
+  c = mix(c, ochre, 1.0 - smoothstep(0.24 - w, 0.24 + w, rc));
+  c = mix(c, terra, psBand(rc, 0.24, 0.31, w));
+  // pétalos hacia el centro de la pieza
+  float pet = abs(a.x - a.y);
+  c = mix(c, sage, (1.0 - smoothstep(0.035 - w, 0.035 + w, pet)) * psBand(a.x + a.y, 0.22, 0.62, w));
+  // estrella central
+  float dm = a.x + a.y;
+  c = mix(c, coal, 1.0 - smoothstep(0.16 - w, 0.16 + w, dm));
+  c = mix(c, terra, 1.0 - smoothstep(0.06 - w, 0.06 + w, dm));
+  // dibujo suave (pasta vieja, colores lavados); a lo lejos se funde en su color medio
+  c = mix(c, vec3(0.63, 0.5, 0.37), 0.38 + 0.62 * smoothstep(0.08, 0.3, w));
+  c *= 0.86;
+  // juntas, desgaste y tono de cada pieza
+  float joint = smoothstep(0.5 - w * 1.5, 0.5 - w * 0.2, max(a.x, a.y));
+  c *= 1.0 - 0.35 * joint * (1.0 - smoothstep(0.1, 0.3, w));
+  c *= 0.9 + 0.1 * psHash(floor(tc)) ;
+  c = mix(c, c * 0.86 + 0.06, psNoise(vWPos.xz * 1.7) * 0.5);
+  diffuseColor.rgb = c;
+}`
+      );
+  };
+  mat.customProgramCacheKey = () => 'pasta-floor';
+  return mat;
+}
+
+// Cielo: degradado con el brillo del sol; de la tarde al anochecer (uDusk).
+function skyDome() {
+  const mat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: { uDusk: { value: 0 }, uSunDir: sunlight.uSunDir },
+    vertexShader: 'varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: `varying vec3 vDir;
+      uniform float uDusk;
+      uniform vec3 uSunDir;
+      void main(){
+        float e = clamp(vDir.y, -0.2, 1.0);
+        vec3 hor = mix(vec3(0.98, 0.9, 0.76), vec3(0.98, 0.6, 0.38), uDusk);
+        vec3 zen = mix(vec3(0.62, 0.76, 0.86), vec3(0.3, 0.3, 0.45), uDusk);
+        vec3 c = mix(hor, zen, smoothstep(0.0, 0.55, e));
+        float sun = pow(max(0.0, dot(normalize(vDir), normalize(uSunDir))), 6.0);
+        c += vec3(1.0, 0.8, 0.55) * sun * mix(0.35, 0.6, uDusk);
+        gl_FragColor = vec4(c * mix(1.05, 0.75, uDusk), 1.0);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(48, 32, 16), mat);
+  m.position.set((ROOM.left + ROOM.right) / 2, 0, 10);
+  m.renderOrder = -1;
+  return m;
+}
+
+// La otra crujía de la hacienda, al fondo del patio: muro ocre con su portal y buganvilias.
+function farWing() {
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 });
+  mat.onBeforeCompile = (shader) => {
+    patchSunlight(shader);
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+float fwHash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float fwNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(fwHash(i), fwHash(i + vec2(1, 0)), u.x), mix(fwHash(i + vec2(0, 1)), fwHash(i + vec2(1, 1)), u.x), u.y); }`
+      )
+      .replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+{
+  vec2 q = vWPos.xy;
+  vec3 c = vec3(0.78, 0.55, 0.3) * (0.9 + 0.12 * fwNoise(q * 1.3));
+  // portal: arcos oscuros
+  float px = mod(q.x, 3.2) - 1.6;
+  float spring = 0.6;
+  float r = 1.2;
+  float inside = q.y < spring ? step(abs(px), r) : step(length(vec2(px, q.y - spring)), r);
+  inside *= step(-2.2, q.y);
+  // dentro del portal: penumbra cálida, más oscura arriba
+  vec3 deep = mix(vec3(0.42, 0.3, 0.2), vec3(0.24, 0.16, 0.11), smoothstep(-2.2, 1.6, q.y));
+  c = mix(c, deep, inside);
+  // cornisa
+  c *= 1.0 - 0.22 * (1.0 - smoothstep(0.0, 0.06, abs(q.y - 2.6)));
+  // buganvilias (fucsia) que cuelgan del pretil
+  float b = fwNoise(q * vec2(1.3, 2.0) + 3.0) * 0.65 + fwNoise(q * 4.0) * 0.35;
+  float bh = smoothstep(1.2, 2.9, q.y);
+  float bug = smoothstep(0.6, 0.74, b) * bh * smoothstep(0.4, 0.6, fwNoise(vec2(q.x * 0.35, 1.0)));
+  c = mix(c, vec3(0.74, 0.16, 0.42) * (0.8 + 0.3 * fwNoise(q * 9.0)), bug * 0.9);
+  diffuseColor.rgb = c;
+  fwBright = c * (1.0 - 0.85 * inside);
+}`
+      )
+      // a contraluz el muro quedaría negro: se ve iluminado por el sol del patio (y algo de bruma)
+      .replace('#include <common>', '#include <common>\nvec3 fwBright;')
+      .replace(
+        '#include <emissivemap_fragment>',
+        '#include <emissivemap_fragment>\ntotalEmissiveRadiance += fwBright * 0.62;'
+      )
+      .replace('#include <dithering_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.93, 0.86, 0.74), 0.18);\n#include <dithering_fragment>');
+  };
+  mat.customProgramCacheKey = () => 'far-wing';
+  const g = new THREE.PlaneGeometry(56, 6.2);
+  g.rotateY(Math.PI);
+  const m = new THREE.Mesh(g, mat);
+  m.position.set((ROOM.left + ROOM.right) / 2, ROOM.floor + 3.0, 21);
+  return m;
+}
+
 export function buildRoom(textures) {
   const { floor, ceil, back, front, left, right, thick } = ROOM;
   const group = new THREE.Group();
   const plaster = plasterMaterial(textures);
   const plasterPlain = plasterMaterial(textures, { pools: false });
 
-  // muro del fondo (aquí cuelga la trenza): recibe sombras
+  // muro del fondo (aquí cuelgan las piezas): recibe sombras
   const backWall = new THREE.Mesh(box(left - thick, right + thick, floor, ceil, back - thick, back), plaster);
   backWall.receiveShadow = true;
   group.add(backWall);
 
-  // tabiques con arco y muro de la ventana: no reciben sombra (con VSM taparían el sol)
+  // tabiques con arco, portal y muro de la ventana: no reciben sombra (con VSM taparían el sol)
   for (const p of ROOM.parts) group.add(new THREE.Mesh(partition(p.x, p.arch), plaster));
+  for (const g of arcade()) group.add(new THREE.Mesh(g, plasterPlain));
   group.add(new THREE.Mesh(windowWall(), plaster));
   group.add(new THREE.Mesh(box(left - thick, left, floor, ceil, back, front), plasterPlain));
-  group.add(new THREE.Mesh(box(left, right, floor, ceil, front, front + thick), plasterPlain));
 
-  // suelo de cemento pulido (cálido)
-  const floorGeo = new THREE.PlaneGeometry(right - left, front - back);
+  // suelo de pasta (llega hasta el borde del portal)
+  const depth = front + ARCADE.thick - back;
+  const floorGeo = new THREE.PlaneGeometry(right - left, depth);
   floorGeo.rotateX(-Math.PI / 2);
-  floorGeo.translate((left + right) / 2, floor, (back + front) / 2);
-  worldUV(floorGeo, 1 / 1.1);
-  const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x9c8a77,
-    map: textures.plasterColor,
-    normalMap: textures.plasterNormal,
-    normalScale: new THREE.Vector2(0.15, 0.15),
-    roughness: 0.62,
-    metalness: 0,
-    envMapIntensity: 0.55,
-  });
-  floorMat.onBeforeCompile = (shader) => patchSunlight(shader);
-  floorMat.customProgramCacheKey = () => 'floor-sun';
-  const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+  floorGeo.translate((left + right) / 2, floor, back + depth / 2);
+  const floorMesh = new THREE.Mesh(floorGeo, pastaFloorMaterial());
   floorMesh.receiveShadow = true;
   group.add(floorMesh);
 
-  // techo con vigas de madera
+  // techo alto con vigas de madera
   const ceilGeo = new THREE.PlaneGeometry(right - left, front - back);
   ceilGeo.rotateX(Math.PI / 2);
   ceilGeo.translate((left + right) / 2, ceil, (back + front) / 2);
@@ -160,30 +330,35 @@ export function buildRoom(textures) {
   for (let x = left + 0.45; x < right; x += 0.95) beams.push(box(x - 0.08, x + 0.08, ceil - 0.2, ceil, back, front));
   for (const g of beams) group.add(new THREE.Mesh(g, beamMat));
 
-  // exterior luminoso tras la ventana
-  const w = ROOM.window;
-  const sky = new THREE.Mesh(
-    new THREE.PlaneGeometry(3, 3),
-    new THREE.ShaderMaterial({
-      uniforms: { uDusk: { value: 0 } },
-      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `varying vec2 vUv;
-        uniform float uDusk;
-        void main(){
-          // de la tarde al anochecer
-          vec3 top = mix(vec3(1.0, 0.97, 0.9), vec3(0.42, 0.36, 0.5), uDusk);
-          vec3 low = mix(vec3(0.86, 0.82, 0.62), vec3(0.95, 0.52, 0.3), uDusk);
-          vec3 c = mix(low, top, smoothstep(0.2, 0.85, vUv.y));
-          // copas de árboles muy desenfocadas
-          float leaf = 0.5 + 0.5 * sin(vUv.x * 17.0 + sin(vUv.y * 9.0) * 2.0) * sin(vUv.y * 13.0 + 1.3);
-          c = mix(c, vec3(0.55, 0.6, 0.4), smoothstep(0.55, 0.95, leaf) * smoothstep(0.75, 0.2, vUv.y) * 0.45);
-          gl_FragColor = vec4(c * mix(1.15, 0.8, uDusk), 1.0);
-          #include <colorspace_fragment>
-        }`,
-    })
+  // ---------------- el patio
+  const groundY = floor - 0.12;
+  const stoneMat = new THREE.MeshStandardMaterial({ color: 0xb9a68a, roughness: 0.85 });
+  stoneMat.onBeforeCompile = (shader) => patchSunlight(shader);
+  stoneMat.customProgramCacheKey = () => 'curb';
+  group.add(new THREE.Mesh(box(left - 12, right + 12, groundY, floor, front + ARCADE.thick, front + ARCADE.thick + 0.32), stoneMat));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(64, 16), patioGroundMaterial());
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set((left + right) / 2, groundY, front + ARCADE.thick + 0.32 + 8);
+  group.add(ground);
+  group.add(farWing());
+  group.add(
+    buildPalms(
+      [
+        { x: -7.2, z: 13.4, h: 6.0 },
+        { x: -3.0, z: 10.2, h: 5.2 },
+        { x: 0.9, z: 12.8, h: 6.3 },
+        { x: 4.4, z: 9.4, h: 4.6 },
+        { x: 6.6, z: 13.6, h: 6.0 },
+        { x: 10.4, z: 10.0, h: 5.0 },
+        { x: 12.3, z: 13.0, h: 6.4 },
+        { x: 16.0, z: 10.2, h: 4.8 },
+        { x: 17.6, z: 12.4, h: 5.6 },
+        { x: 21.0, z: 10.5, h: 5.2 },
+      ],
+      groundY
+    )
   );
-  sky.rotation.y = -Math.PI / 2;
-  sky.position.set(right + thick + 0.6, (w.y0 + w.y1) / 2, w.z);
+  const sky = skyDome();
   group.add(sky);
   group.userData.sky = sky;
 
