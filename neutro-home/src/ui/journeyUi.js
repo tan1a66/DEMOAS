@@ -8,13 +8,9 @@ const images = import.meta.glob('../assets/catalogo/*.jpg', { eager: true, query
 const imgFor = (name) => images[`../assets/catalogo/${name}.jpg`];
 
 export class JourneyUI {
-  constructor({ onGo }) {
+  constructor({ onGo, piece }) {
     this.onGo = onGo;
-    this.panel = $('stopPanel');
-    this.kicker = $('stopKicker');
-    this.title = $('stopTitle');
-    this.text = $('stopText');
-    this.link = $('stopLink');
+    this.piece = piece;
     this.navNext = $('navNext');
     this.current = -1;
 
@@ -44,20 +40,9 @@ export class JourneyUI {
   setStop(i) {
     if (i === this.current) return;
     this.current = i;
-    document.body.dataset.stop = STOPS[i].id;
     this.dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
     this.navNext.textContent = i >= STOPS.length - 1 ? 'Volver al inicio' : 'Continúa el viaje';
-    const s = STOPS[i];
-    if (i === 0) return;
-    this.kicker.textContent = s.kicker;
-    this.title.textContent = s.title;
-    this.text.textContent = s.text;
-    this.link.textContent = s.link.label;
-    this.link.href = s.link.href;
-    this.panel.animate?.([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], {
-      duration: 900,
-      easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
-    });
+    this.piece.setStop(i);
   }
 
   // mientras la cámara viaja, el texto se retira

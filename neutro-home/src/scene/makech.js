@@ -3,7 +3,7 @@
 
 import * as THREE from 'three';
 import { IS_TOUCH } from '../config.js';
-import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing } from './fringe.js';
+import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing, FringeDye } from './fringe.js';
 
 function rng(seed) {
   return () => {
@@ -24,7 +24,7 @@ const DOME = [
 ];
 
 export class Makech {
-  constructor({ position, color = '#b26a57', ceilY }) {
+  constructor({ position, color = '#C27E6E', ceilY }) {
     const rnd = rng(77);
     const threads = [];
     const domeCurve = new THREE.SplineCurve(DOME.map(([r, y]) => new THREE.Vector2(r, y)));
@@ -103,8 +103,13 @@ export class Makech {
     this.group.add(this.light);
 
     this.swing = new FringeSwing(this.uniforms, { omega: 2.2, zeta: 0.14 });
+    this.dye = new FringeDye([this.uniforms], [{ material: crown.material, factor: 0.85 }]);
     // zona que se puede tocar (cilindro en coordenadas locales)
     this.hit = { r: 0.4, y0: -1.08, y1: 0.02 };
+  }
+
+  setColor(hex) {
+    this.dye.set(hex);
   }
 
   setOn(k) {

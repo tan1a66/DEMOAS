@@ -19,6 +19,7 @@ uniform float uBreeze;
 uniform float uHang;   // longitud típica de los hilos (para el peso del balanceo)
 varying float vAO;
 varying float vTint;
+varying float vT;
 vec3 frRotZ(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(c * p.x - s * p.y, s * p.x + c * p.y, p.z); }
 vec3 frRotX(vec3 p, float a) { float c = cos(a), s = sin(a); return vec3(p.x, c * p.y - s * p.z, s * p.y + c * p.z); }
 vec3 fringeDisplace(vec3 p, float t, float seed) {
@@ -50,15 +51,21 @@ export function fringeUniforms({ pivot, hang, pushR = 0.12 }) {
     uTime: { value: 0 },
     uBreeze: { value: 1 },
     uHang: { value: hang },
+    // tinte: el color nuevo baja por los hilos (de arriba abajo)
+    uColA: { value: new THREE.Color() },
+    uColB: { value: new THREE.Color() },
+    uDyeFront: { value: 2 },
   };
 }
 
 export function fringeMaterial(uniforms, { color, roughness = 0.72, sheen = 1, sheenColor, emissive }) {
+  uniforms.uColA.value.set(color);
+  uniforms.uColB.value.set(color);
   const mat = new THREE.MeshPhysicalMaterial({
-    color,
+    color: 0xffffff,
     roughness,
     sheen,
-    sheenColor: sheenColor || new THREE.Color(color).lerp(new THREE.Color('#fff1dc'), 0.45),
+    sheenColor: sheenColor || new THREE.Color('#fff1dc').multiplyScalar(0.75),
     sheenRoughness: 0.4,
     specularIntensity: 0.3,
     emissive: emissive || 0x000000,
@@ -69,12 +76,18 @@ export function fringeMaterial(uniforms, { color, roughness = 0.72, sheen = 1, s
       .replace('#include <common>', `#include <common>\n${FRINGE_PARS}`)
       .replace(
         '#include <begin_vertex>',
-        'vec3 transformed = fringeDisplace(vec3(position), aFr.x, aFr.w);\nvAO = aFr.z; vTint = aFr.y;'
+        'vec3 transformed = fringeDisplace(vec3(position), aFr.x, aFr.w);\nvAO = aFr.z; vTint = aFr.y; vT = aFr.x;'
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vAO;\nvarying float vTint;')
-      .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= vTint * vAO;')
-      .replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\n#ifdef USE_SHEEN\nmaterial.sheenColor *= 0.4 + 0.6 * vAO;\n#endif');
+      .replace('#include <common>', '#include <common>\nvarying float vAO;\nvarying float vTint;\nvarying float vT;\nuniform vec3 uColA;\nuniform vec3 uColB;\nuniform float uDyeFront;')
+      .replace(
+        '#include <map_fragment>',
+        '#include <map_fragment>\nvec3 dyeC = mix(uColB, uColA, smoothstep(uDyeFront - 0.14, uDyeFront + 0.14, vT));\ndiffuseColor.rgb *= dyeC * vTint * vAO;'
+      )
+      .replace(
+        '#include <lights_physical_fragment>',
+        '#include <lights_physical_fragment>\n#ifdef USE_SHEEN\nmaterial.sheenColor *= mix(dyeC, vec3(1.0), 0.45) * (0.4 + 0.6 * vAO);\n#endif'
+      );
   };
   mat.customProgramCacheKey = () => 'fringe';
   return mat;
@@ -173,6 +186,45 @@ export function fringeGeometry(threads, seedBase = 0) {
   g.setIndex(new THREE.BufferAttribute(idx, 1));
   g.computeBoundingSphere();
   return g;
+}
+
+// Tinte que baja por los hilos (y materiales sólidos que cambian a la vez).
+export class FringeDye {
+  constructor(uniformList, solids = []) {
+    this.us = uniformList;
+    this.solids = solids; // [{ material, factor }]
+    this.t = 1;
+    this.from = [];
+    this.to = new THREE.Color();
+  }
+
+  set(hexList) {
+    // hexList: un color para todo, o una lista (un color por juego de uniforms / sólido)
+    const pick = (i) => (Array.isArray(hexList) ? hexList[i % hexList.length] : hexList);
+    this.us.forEach((u, i) => {
+      if (this.t < 1) u.uColA.value.copy(u.uColB.value); // si estaba a medias, parte del destino
+      u.uDyeFront.value = -0.25;
+      u.uColB.value.set(pick(i));
+    });
+    this.from = this.solids.map((s) => s.material.color.clone());
+    this.targets = this.solids.map((s) => new THREE.Color(pick(s.index || 0)).multiplyScalar(s.factor || 1));
+    this.t = 0;
+  }
+
+  step(dt) {
+    if (this.t >= 1) return false;
+    this.t = Math.min(1, this.t + dt / 1.1);
+    const e = this.t < 0.5 ? 4 * this.t ** 3 : 1 - (-2 * this.t + 2) ** 3 / 2;
+    for (const u of this.us) u.uDyeFront.value = -0.25 + 1.5 * e;
+    this.solids.forEach((s, i) => s.material.color.copy(this.from[i]).lerp(this.targets[i], e));
+    if (this.t >= 1) {
+      for (const u of this.us) {
+        u.uColA.value.copy(u.uColB.value);
+        u.uDyeFront.value = 2;
+      }
+    }
+    return true;
+  }
 }
 
 // Balanceo del conjunto + dedo. Péndulo lento y pesado (flecos de algodón).

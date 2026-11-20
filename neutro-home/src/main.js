@@ -18,7 +18,7 @@ import { Tassel } from './scene/tassel.js';
 import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
 import { clamp, lerp } from './model/spring.js';
-import { UI } from './ui/ui.js';
+import { PieceUI } from './ui/ui.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
@@ -82,12 +82,12 @@ let threads = new Threads({ perStrand: IS_TOUCH ? 54 : 66, braid, dye });
 scene.add(threads.mesh);
 
 // Las otras piezas de la casa (se descubren al recorrerla).
-const makech = new Makech({ position: new THREE.Vector3(5.5, 0.45, 3.25), ceilY: ROOM.ceil });
+const makech = new Makech({ position: new THREE.Vector3(6.1, 0.45, 3.25), ceilY: ROOM.ceil });
 scene.add(makech.group);
 const XUX_POS = [new THREE.Vector3(9.25, 0, 0.5), new THREE.Vector3(9.85, 0, 0.62), new THREE.Vector3(10.45, 0, 0.5)];
 const xux = new XuxFamily({ textures, floorY: ROOM.floor, positions: XUX_POS });
 scene.add(xux.group);
-const studio = new Studio({ textures, position: new THREE.Vector3(11.75, ROOM.floor, 3.0) });
+const studio = new Studio({ textures, position: new THREE.Vector3(12.75, ROOM.floor, 3.0) });
 scene.add(studio.group);
 const fringes = [
   { obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 },
@@ -105,7 +105,20 @@ function setSheen(target, hex) {
 
 // ---------------------------------------------------------------- encuadre
 const brandEl = $('brand');
-const panelEl = $('panel');
+const pieceEl = $('piece');
+const navEl = $('journeyNav');
+
+// Zona libre de la pantalla para encuadrar la pieza: la cartela vive de lado (a la izquierda en
+// horizontal, abajo a la izquierda en vertical) y nunca se monta sobre la pieza.
+function freeArea() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const top = brandEl.getBoundingClientRect().bottom + 10;
+  const pr = pieceEl.getBoundingClientRect();
+  const navTop = navEl.getBoundingClientRect().top;
+  if (w > h * 1.25) return { x0: pr.right + 24, x1: w - 36, y0: top, y1: navTop - 4 };
+  return { x0: 0, x1: w, y0: top, y1: pr.top - 6 };
+}
 const CONTENT = { x0: -0.55, x1: 0.55, y0: -0.93, y1: 0.19 };
 const finalCam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), pxpm: 300 };
 
@@ -113,9 +126,7 @@ function computeFinalCamera() {
   const w = window.innerWidth;
   const h = window.innerHeight;
   const brandBottom = brandEl.getBoundingClientRect().bottom + 10;
-  const pr = panelEl.getBoundingClientRect();
-  const sideLayout = pr.width < w * 0.8; // teléfono en horizontal: panel a la derecha
-  const area = sideLayout ? { x0: 0, x1: pr.left, y0: brandBottom, y1: h - 8 } : { x0: 0, x1: w, y0: brandBottom, y1: pr.top + 6 };
+  const area = freeArea();
   const cw = CONTENT.x1 - CONTENT.x0;
   const ch = CONTENT.y1 - CONTENT.y0;
   let pxpm = Math.min(((area.x1 - area.x0) * 0.94) / cw, ((area.y1 - area.y0) * 0.97) / ch);
@@ -139,12 +150,11 @@ function applyCamera(pos, look) {
 }
 
 // Paradas de las piezas: encuadre que respeta el logotipo y el texto inferior.
-const stopPanelEl = $('stopPanel');
 const STOP_FRAMES = [
   null, // la trenza usa computeFinalCamera
-  { focus: new THREE.Vector3(5.5, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
+  { focus: new THREE.Vector3(6.1, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
   { focus: new THREE.Vector3(9.85, -0.95, 0.55), dir: new THREE.Vector3(0, 0, -1), w: 1.8, h: 2.3 },
-  { focus: new THREE.Vector3(12.0, -0.95, 3.0), dir: new THREE.Vector3(1, 0, 0), w: 1.45, h: 2.0 },
+  { focus: new THREE.Vector3(13.0, -0.95, 3.0), dir: new THREE.Vector3(1, 0, 0), w: 1.45, h: 2.0 },
 ];
 let cameraPath = null;
 const up = new THREE.Vector3(0, 1, 0);
@@ -152,10 +162,7 @@ const up = new THREE.Vector3(0, 1, 0);
 function frameStop(f, fov) {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const top = brandEl.getBoundingClientRect().bottom + 8;
-  const pr = stopPanelEl.getBoundingClientRect();
-  const side = pr.width < w * 0.8;
-  const area = side ? { x0: 0, x1: pr.left, y0: top, y1: h - 50 } : { x0: 0, x1: w, y0: top, y1: pr.top };
+  const area = freeArea();
   const tanH = Math.tan(THREE.MathUtils.degToRad(fov / 2));
   const pxpm = Math.max(60, Math.min(((area.x1 - area.x0) * 0.92) / f.w, ((area.y1 - area.y0) * 0.96) / f.h));
   const D = h / (pxpm * 2 * tanH);
@@ -172,7 +179,7 @@ function frameStop(f, fov) {
 
 function computeStops() {
   const portrait = window.innerWidth < window.innerHeight;
-  const fov = portrait ? 44 : 38;
+  const fov = portrait ? 48 : 38;
   const S0 = { pos: finalCam.pos.clone(), look: finalCam.look.clone(), fov: 26, stop: 0 };
   const S1 = { ...frameStop(STOP_FRAMES[1], fov), stop: 1 };
   const S2 = { ...frameStop(STOP_FRAMES[2], fov), stop: 2 };
@@ -182,12 +189,12 @@ function computeStops() {
   const keys = [
     S0,
     { pos: V(0.6, -0.35, 3.7), look: V(2.6, -0.3, 3.35), fov: (26 + fov) / 2 },
-    { pos: V(1.5, -0.3, 3.28), look: V(5.5, -0.12, 3.25), fov },
+    { pos: V(1.5, -0.3, 3.28), look: V(6.1, -0.12, 3.25), fov },
     S1,
-    { pos: V(5.5, -0.5, 4.65), look: V(7.8, -0.6, 3.2), fov },
+    { pos: V(6.1, -0.5, 4.65), look: V(8.0, -0.6, 3.2), fov },
     { pos: V(7.2, -0.6, 3.55), look: V(9.5, -0.8, 1.6), fov },
     S2,
-    { pos: mid(S2.pos, S3.pos, 0.5).add(V(0, 0, 0.2)), look: V(11.2, -1.0, 2.0), fov },
+    { pos: mid(S2.pos, S3.pos, 0.5).add(V(0, 0, 0.2)), look: V(12.2, -1.0, 2.0), fov },
     S3,
   ];
   cameraPath = buildPath(keys);
@@ -208,26 +215,30 @@ function onResize() {
 window.addEventListener('resize', onResize);
 window.visualViewport?.addEventListener('resize', onResize);
 
-// ---------------------------------------------------------------- color
-const ui = new UI({
-  onColor: (c, fromUser) => {
-    if (!fromUser) return;
-    requestColor(c.hex);
+// ---------------------------------------------------------------- cartelas y colores
+const piece = new PieceUI({
+  onColor: (stopId, c) => {
+    if (stopId === 'trenza') requestColor(c.hex);
+    else if (stopId === 'makech') makech.setColor(c.hex);
+    else if (stopId === 'xux') xux.setColor(c ? c.hex : null);
+  },
+  onLink: (action) => {
+    if (action === 'catalogo') jui.openCatalog();
   },
 });
 
 // ---------------------------------------------------------------- recorrido
 const journey = new Journey(STOPS.length);
-const jui = new JourneyUI({ onGo: (i) => goStop(i) });
+const jui = new JourneyUI({ onGo: (i) => goStop(i), piece });
 function goStop(i) {
   if (phase !== 'main') return;
   journey.go(i);
 }
 const STOP_FOCUS = [
   new THREE.Vector3(0, -0.35, 0),
-  new THREE.Vector3(5.5, -0.25, 3.25),
+  new THREE.Vector3(6.1, -0.25, 3.25),
   new THREE.Vector3(9.85, -1.0, 0.55),
-  new THREE.Vector3(11.8, -1.3, 3.0),
+  new THREE.Vector3(12.8, -1.3, 3.0),
 ];
 const sunOffset = sun.position.clone().sub(sun.target.position);
 const shadowFocus = new THREE.Vector3();
@@ -421,7 +432,6 @@ let interacted = false;
 function showMainUI() {
   if (uiShown) return;
   uiShown = true;
-  ui.show();
   jui.setStop(0);
   document.body.classList.add('ui-on');
   nudgeTimer = setTimeout(() => {
@@ -497,7 +507,7 @@ function markInteracted() {
   if (interacted) return;
   interacted = true;
   clearTimeout(nudgeTimer);
-  ui.hideHint();
+  piece.touchedPiece('trenza');
 }
 
 // Flecos de las otras piezas: el dedo los aparta y los hace balancear.
@@ -526,6 +536,20 @@ function pickFringe(cx, cy, only) {
 let swipe = null;
 let fringeTouch = null;
 let hoverFringe = null;
+
+// Cursor propio en escritorio: anillo fino que crece y dice "Tócala" sobre lo que se puede tocar.
+const cursorEl = $('cursor');
+const cursorLabel = $('cursorLabel');
+function setGrab(on) {
+  canvas.classList.toggle('can-grab', on);
+  cursorEl.classList.toggle('big', on || !!drag || !!fringeTouch);
+  cursorLabel.textContent = journey.index === 2 ? 'Tócalas' : 'Tócala';
+}
+window.addEventListener('pointermove', (e) => {
+  if (e.pointerType !== 'mouse') return;
+  cursorEl.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+  cursorEl.classList.toggle('on', phase === 'main' && (e.target === canvas || !!drag));
+});
 
 canvas.addEventListener('pointerdown', (e) => {
   if (phase === 'intro') {
@@ -558,6 +582,7 @@ canvas.addEventListener('pointerdown', (e) => {
     if (hit) {
       fringeTouch = { id: e.pointerId, f: hit.f, last: hit.world, t: performance.now() };
       hit.f.swing.touch(hit.local, 1);
+      piece.touchedPiece(STOPS[hit.f.stop].id);
       canvas.classList.add('grabbing');
     }
   }
@@ -597,7 +622,7 @@ canvas.addEventListener('pointermove', (e) => {
   // ratón sin pulsar: los flecos se apartan al pasar por encima
   if (phase === 'main' && e.pointerType === 'mouse') {
     if (journey.index === 0 && !journey.moving) {
-      canvas.classList.toggle('can-grab', !!pickTarget(e.clientX, e.clientY));
+      setGrab(!!pickTarget(e.clientX, e.clientY));
       return;
     }
     const hit = !journey.moving && pickFringe(e.clientX, e.clientY);
@@ -613,7 +638,7 @@ canvas.addEventListener('pointermove', (e) => {
       hoverFringe.f.swing.release();
       hoverFringe = null;
     }
-    canvas.classList.toggle('can-grab', !!hit);
+    setGrab(!!hit);
   }
 });
 
@@ -768,6 +793,8 @@ function updateJourney(dt, time) {
   xux.group.visible = p > 1.15;
   studio.group.visible = p > 1.6;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
+  if (makech.dye.step(dt)) dirty = true;
+  if (xux.dye.step(dt)) dirty = true;
   return dirty;
 }
 
@@ -788,7 +815,6 @@ function updateJourney(dt, time) {
 
 // ---------------------------------------------------------------- arranque
 async function start() {
-  ui.select(DEFAULT_COLOR, false);
   computeFinalCamera();
   camera.updateProjectionMatrix();
 

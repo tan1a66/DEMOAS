@@ -3,7 +3,7 @@
 
 import * as THREE from 'three';
 import { IS_TOUCH } from '../config.js';
-import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing } from './fringe.js';
+import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing, FringeDye } from './fringe.js';
 
 function rng(seed) {
   return () => {
@@ -44,7 +44,8 @@ class XuxLamp {
 
     // pantalla (tambor) de hilo enrollado: los hilos corren alrededor
     const shadeGeo = scaleUV(new THREE.CylinderGeometry(shadeR, shadeR, shadeH, 64, 1, true), (2 * Math.PI * shadeR) / 0.05, shadeH / 0.11);
-    const shade = new THREE.Mesh(shadeGeo, fiberMat(textures, color));
+    this.shadeMat = fiberMat(textures, color);
+    const shade = new THREE.Mesh(shadeGeo, this.shadeMat);
     shade.material.side = THREE.DoubleSide;
     shade.position.y = shadeTop - shadeH / 2;
     shade.castShadow = true;
@@ -59,6 +60,7 @@ class XuxLamp {
 
     // nudos bajo la pantalla
     const knotMat = fiberMat(textures, color);
+    this.knotMat = knotMat;
     const knots = [
       { y: shadeBot - 0.14, s: 0.1 },
       { y: shadeBot - 0.39, s: 0.11 },
@@ -117,21 +119,40 @@ class XuxLamp {
 export class XuxFamily {
   constructor({ textures, floorY, positions }) {
     this.group = new THREE.Group();
-    const specs = [
+    const specs = (this.specs = [
       { color: '#7a2b28', height: 2.0, shadeR: 0.25 },
       { color: '#a8803f', height: 1.72, shadeR: 0.22 },
       { color: '#8c3a2f', height: 1.98, shadeR: 0.25 },
-    ];
+    ]);
     this.lamps = specs.map((sp, i) => {
       const lamp = new XuxLamp({ textures, floorY, seed: 101 + i * 37, ...sp });
       lamp.group.position.copy(positions[i]);
       this.group.add(lamp.group);
       return lamp;
     });
+    // tinte: los flecos se tiñen de arriba abajo; pantallas y nudos cambian a la vez
+    this.dye = new FringeDye(
+      this.lamps.map((l) => l.uniforms),
+      this.lamps.flatMap((l, i) => [
+        { material: l.shadeMat, index: i },
+        { material: l.knotMat, index: i, factor: 0.95 },
+      ])
+    );
     // una sola luz cálida para la familia (barata en móvil)
     this.light = new THREE.PointLight(0xffc583, 0, 3.2, 1.5);
     this.light.position.set(positions[1].x, floorY + 1.55, positions[1].z + 0.25);
     this.group.add(this.light);
+  }
+
+  // un color para las tres (con matices, como hechas en lotes distintos) o la combinación de la casa
+  setColor(hex) {
+    if (!hex) {
+      this.dye.set(this.specs.map((s) => s.color));
+      return;
+    }
+    const c = new THREE.Color(hex);
+    const tones = [1, 1.14, 0.9].map((k) => '#' + c.clone().multiplyScalar(k).getHexString());
+    this.dye.set(tones);
   }
 
   setOn(k) {

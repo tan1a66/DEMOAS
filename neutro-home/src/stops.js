@@ -1,28 +1,54 @@
-// Paradas del recorrido y textos (todo en español). Los enlaces llevan a las fichas reales.
+// La muestra: cada parada es una pieza con su cartela (número, nombre, material) y un enlace a
+// su ficha en neutro.com.mx. Al final, la salida a la tienda. Todo en español.
 const SHOP = 'https://neutro.com.mx/products/';
 
 export const STOPS = [
-  { id: 'trenza' },
+  {
+    id: 'trenza',
+    no: 'Nº 01',
+    kicker: 'Trenza de hilos',
+    title: 'Trenza Maya',
+    text: 'Tejida a mano en Yucatán. Tira de sus ondas y de sus borlas.',
+    hint: 'Tócala.',
+    colors: true,
+    defaultColor: 'rosa',
+    note: 'Hilo de algodón · Hecha por encargo',
+    link: { label: 'Ver en la tienda', href: `${SHOP}trenza-de-hilos-trenza-maya` },
+  },
   {
     id: 'makech',
+    no: 'Nº 02',
     kicker: 'Lámpara colgante',
     title: 'Makech',
-    text: 'Miles de hilos tejidos a mano por mujeres artesanas de Yucatán. Tócala: el fleco se mueve contigo.',
-    link: { label: 'Ver la pieza', href: `${SHOP}lampara-makech` },
+    text: 'Miles de hilos tejidos por mujeres artesanas de Yucatán. Pasa el dedo por su fleco.',
+    hint: 'Tócala.',
+    colors: true,
+    defaultColor: 'rosa',
+    note: 'Hilo tejido a mano · Ø 60 × 90 cm',
+    link: { label: 'Ver en la tienda', href: `${SHOP}lampara-makech` },
   },
   {
     id: 'xux',
+    no: 'Nº 03',
     kicker: 'Lámparas de piso',
     title: 'Familia Xux',
     text: 'Nudos y flecos que visten el espacio con textura, movimiento y luz.',
-    link: { label: 'Ver la pieza', href: `${SHOP}xux-lampara-de-piso` },
+    hint: 'Tócalas.',
+    colors: true,
+    defaultColor: null, // la combinación de la casa
+    note: 'Hilo tejido a mano · Ø 50 × 173 cm',
+    link: { label: 'Ver en la tienda', href: `${SHOP}xux-lampara-de-piso` },
   },
   {
     id: 'historia',
+    no: 'Mérida, 2019',
     kicker: 'Nuestra historia',
     title: 'Hecho a mano en Yucatán',
-    text: 'Neutro nace en Mérida en 2019, de la mirada de JC Damas Ramírez. Cada pieza se teje a mano, por encargo, junto a artesanas yucatecas.',
-    link: { label: 'Escríbenos', href: 'https://ig.me/m/neutro_home' },
+    text: 'Neutro nace en Mérida, de la mirada de JC Damas Ramírez. Cada pieza se teje a mano, por encargo, junto a artesanas yucatecas.',
+    colors: false,
+    note: 'Diseño lento, hecho para durar',
+    primary: { label: 'Entrar a la tienda', href: 'https://neutro.com.mx/collections/neutro-home' },
+    link: { label: 'Ver catálogo', action: 'catalogo' },
   },
 ];
 

@@ -13,9 +13,9 @@ export const ROOM = {
   floor: -2.0,
   ceil: 1.75,
   back: 0,
-  front: 5.6,
+  front: 7.0,
   left: -2.6,
-  right: 12.4,
+  right: 13.4,
   thick: 0.32,
   parts: [
     { x: 1.5, arch: { z: 3.25, w: 1.5, h: 2.95 } },

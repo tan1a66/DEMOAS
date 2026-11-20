@@ -1,20 +1,36 @@
-// Interfaz (todo en español): colores, medidas durante el arrastre, llamada a la acción.
+// Cartela de cada pieza de la muestra (todo en español): número, nombre, una línea, colores de
+// la casa y el enlace a su ficha en neutro.com.mx. Sin fondos: vive de lado, sobre el muro.
 
-import { COLORS, CONTACT } from '../config.js';
+import { COLORS } from '../config.js';
+import { STOPS } from '../stops.js';
 
 const $ = (id) => document.getElementById(id);
 
-
-export class UI {
-  constructor({ onColor }) {
+export class PieceUI {
+  /**
+   * onColor(stopId, color) — el usuario elige un color para la pieza de esa parada.
+   * onLink(action) — enlaces internos (p. ej. abrir el catálogo).
+   */
+  constructor({ onColor, onLink }) {
     this.onColor = onColor;
-    this.panel = $('panel');
-    this.hint = $('hint');
-    this.toastEl = $('toast');
+    this.onLink = onLink;
+    this.el = $('piece');
+    this.hint = $('pieceHint');
+    this.no = $('pieceNo');
+    this.kicker = $('pieceKicker');
+    this.title = $('pieceTitle');
+    this.text = $('pieceText');
+    this.colorsBox = $('pieceColors');
     this.nameEl = $('swatchName');
-    this.current = null;
+    this.cta = $('cta');
+    this.link = $('pieceLink');
+    this.note = $('pieceNote');
+    this.toastEl = $('toast');
+    this.stop = null;
+    this.chosen = Object.fromEntries(STOPS.map((s) => [s.id, s.defaultColor || null]));
+    this.touched = {};
     this._buildSwatches();
-    this._bindCta();
+    this._bind();
   }
 
   _buildSwatches() {
@@ -29,13 +45,14 @@ export class UI {
       b.style.setProperty('--c', c.hex);
       b.dataset.id = c.id;
       b.tabIndex = -1;
-      b.addEventListener('click', () => this.select(c.id, true));
+      b.addEventListener('click', () => this.select(c.id));
       b.addEventListener('keydown', (e) => {
         const dir = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
         if (!dir) return;
         e.preventDefault();
+        e.stopPropagation();
         const next = COLORS[(idx + dir + COLORS.length) % COLORS.length];
-        this.select(next.id, true);
+        this.select(next.id);
         this.buttons.find((x) => x.dataset.id === next.id).focus();
       });
       box.appendChild(b);
@@ -43,47 +60,96 @@ export class UI {
     });
   }
 
-  select(id, fromUser) {
-    const c = COLORS.find((x) => x.id === id);
-    if (!c || (this.current && this.current.id === id)) return;
-    this.current = c;
+  _renderSwatches() {
+    const id = this.chosen[this.stop.id];
     for (const b of this.buttons) {
       const on = b.dataset.id === id;
       b.setAttribute('aria-checked', String(on));
-      b.tabIndex = on ? 0 : -1;
+      b.tabIndex = on || (!id && b === this.buttons[0]) ? 0 : -1;
     }
-    this.nameEl.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 500, easing: 'ease-out' });
-    this.nameEl.textContent = c.name;
-    this.onColor(c, fromUser);
+    const c = COLORS.find((x) => x.id === id);
+    this.nameEl.textContent = c ? c.name : 'Combinación de la casa';
   }
 
-  show() {
-    this.panel.classList.add('on');
+  select(colorId) {
+    if (!this.stop || !this.stop.colors) return;
+    if (this.chosen[this.stop.id] === colorId) return;
+    this.chosen[this.stop.id] = colorId;
+    this._renderSwatches();
+    this.nameEl.animate?.([{ opacity: 0, transform: 'translateX(-4px)' }, { opacity: 1, transform: 'none' }], {
+      duration: 600,
+      easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+    });
+    this.onColor(this.stop.id, COLORS.find((x) => x.id === colorId));
   }
 
-  hideHint() {
-    this.hint.classList.add('gone');
+  // Cambia la ficha a la de la parada i (con el título que aparece letra a letra).
+  setStop(i) {
+    const s = STOPS[i];
+    if (this.stop === s) return;
+    this.stop = s;
+    document.body.dataset.stop = s.id;
+    this.no.textContent = s.no;
+    this.kicker.textContent = s.kicker;
+    this.title.textContent = '';
+    this.title.setAttribute('aria-label', s.title);
+    // letra a letra, pero sin partir las palabras al cambiar de línea
+    let k = 0;
+    s.title.split(' ').forEach((word, wi) => {
+      if (wi > 0) this.title.appendChild(document.createTextNode(' '));
+      const w = document.createElement('span');
+      w.className = 'w';
+      for (const ch of word) {
+        const span = document.createElement('span');
+        span.textContent = ch;
+        span.setAttribute('aria-hidden', 'true');
+        span.style.transitionDelay = `${0.18 + k++ * 0.035}s`;
+        w.appendChild(span);
+      }
+      this.title.appendChild(w);
+    });
+    this.text.textContent = s.text;
+    this.hint.textContent = s.hint || '';
+    this.hint.classList.toggle('gone', !s.hint || !!this.touched[s.id]);
+    this.colorsBox.hidden = !s.colors;
+    if (s.colors) this._renderSwatches();
+    this.cta.hidden = !s.primary;
+    if (s.primary) {
+      this.cta.textContent = s.primary.label;
+      this.cta.href = s.primary.href;
+    }
+    this.link.textContent = s.link.label;
+    if (s.link.href) {
+      this.link.href = s.link.href;
+      this.link.target = '_blank';
+    } else {
+      this.link.removeAttribute('href');
+      this.link.removeAttribute('target');
+    }
+    this.note.textContent = s.note || '';
+    // reinicia la animación de entrada
+    this.el.classList.remove('in');
+    void this.el.offsetWidth;
+    this.el.classList.add('in');
   }
 
-  // ---------------------------------------------------------------- medidas
-
-  // ---------------------------------------------------------------- llamada a la acción
-  message() {
-    const color = this.current ? this.current.name : '';
-    return `Hola Neutro Home, me encantó la Trenza Maya en color ${color}. ¿Me pueden dar información?`;
+  touchedPiece(id) {
+    if (this.touched[id]) return;
+    this.touched[id] = true;
+    if (this.stop && this.stop.id === id) this.hint.classList.add('gone');
   }
 
-  _bindCta() {
-    const cta = $('cta');
-    cta.href = CONTACT.instagram;
-    // El enlace abre el DM de Instagram en el mismo gesto (necesario en iOS);
-    // antes copiamos el mensaje, porque Instagram no permite precompletar el texto.
-    cta.addEventListener('click', () => {
-      const text = this.message();
-      copyText(text).then(
-        (ok) => this.toast(ok ? 'Mensaje copiado — pégalo en el chat' : 'Escríbenos por Instagram: @neutro_home'),
-        () => this.toast('Escríbenos por Instagram: @neutro_home')
-      );
+  colorName(id) {
+    const c = COLORS.find((x) => x.id === this.chosen[id]);
+    return c ? c.name : '';
+  }
+
+  _bind() {
+    this.link.addEventListener('click', (e) => {
+      if (this.stop && this.stop.link.action) {
+        e.preventDefault();
+        this.onLink(this.stop.link.action);
+      }
     });
   }
 
@@ -94,33 +160,4 @@ export class UI {
     clearTimeout(this._tt);
     this._tt = setTimeout(() => el.classList.remove('on'), 4200);
   }
-}
-
-// Copia al portapapeles: API moderna y, si falla, el método clásico (síncrono).
-function copyText(text) {
-  const legacy = () => {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
-    document.body.appendChild(ta);
-    ta.focus({ preventScroll: true });
-    ta.select();
-    ta.setSelectionRange(0, text.length);
-    let ok = false;
-    try {
-      ok = document.execCommand('copy');
-    } catch {
-      ok = false;
-    }
-    ta.remove();
-    return ok;
-  };
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(text).then(
-      () => true,
-      () => legacy()
-    );
-  }
-  return Promise.resolve(legacy());
 }

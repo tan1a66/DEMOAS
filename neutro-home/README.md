@@ -5,13 +5,14 @@ Un viaggio in una casa di Mérida, pensato per iPhone in verticale.
    moltissimi fili, diventa tre capi grossi che si intrecciano (lento), zoom sul dettaglio; la camera
    si allontana e la treccia è già al suo posto.
 2. **La treccia si tocca:** si tirano le onde e anche le code e le nappe (la treccia scorre sui
-   ganci, le code oscillano). Sei colori che scorrono da una nappa all'altra. "La quiero así" copia il
-   messaggio e apre il DM di Instagram.
+   ganci, le code oscillano). Sei colori che scorrono da una nappa all'altra.
 3. **Il viaggio:** scorrendo (o con "Continúa el viaje") la camera passa sotto gli archi e scopre un
    pezzo alla volta: lampada **Makech**, famiglia **Xux**, l'angolo della **storia** con i coni di filo.
    Le frange si toccano (il dito le sposta, poi oscillano) e si muovono anche al passaggio della camera.
-4. **Scelte:** "Nuestra historia", "Catálogo" (pannello con i loro pezzi e link al negozio),
-   "Continúa el viaje". Punti a destra per saltare a una fermata.
+4. **È una mostra:** ogni pezzo ha la sua cartella (Nº, nome, materiale, colori della casa) di lato,
+   senza fondi, e un link alla sua scheda su neutro.com.mx; alla fine "Entrar a la tienda".
+   Navigazione: "Nuestra historia", "Catálogo" (pannello con i loro pezzi), "Continúa el viaje".
+   Anche Makech e Xux cambiano colore: la tinta scende lungo i fili.
 Tutti i testi dell'interfaccia sono in spagnolo.
 
 ```bash
@@ -65,9 +66,6 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
   ottone/legno scuro).
 - **Materiale:** sul sito la Trenza Maya è in cotone o nylon; i testi non citano l'henequén.
 - **Colori:** i sei esadecimali del brief sono in `src/config.js`, ancora da confrontare con le foto.
-- **CTA:** il bottone copia il messaggio e apre `ig.me/m/neutro_home` nello stesso tocco
-  (su iOS l'app si apre solo se il link parte dal gesto dell'utente). L'avviso "Mensaje copiado"
-  resta visibile quando si torna alla pagina.
 
 ## Da fare su iPhone reale
 Fluidità, tocco col pollice, nessuno scroll della pagina durante il trascinamento, apertura del DM,
