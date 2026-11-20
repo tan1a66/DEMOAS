@@ -304,20 +304,6 @@ body {
   letter-spacing: 0.16em;
   color: var(--ink-soft);
 }
-.menu-cta {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  background: var(--ink);
-  color: var(--ivory) !important;
-  border-radius: 999px;
-  padding: 18px 30px;
-  width: min(100%, 340px);
-  text-align: center;
-  box-sizing: border-box;
-}
 .demo-note {
   margin: 12px 0 0;
   font-size: 0.66rem;

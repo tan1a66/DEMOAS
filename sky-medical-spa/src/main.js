@@ -240,7 +240,7 @@ const nameEl = document.querySelector('.hero-name');
 const roleEl = document.querySelector('.hero-role');
 const menu = document.querySelector('.menu');
 const menuItems = menu.querySelectorAll('li');
-const menuCta = menu.querySelectorAll('.menu-cta, .demo-note');
+const menuCta = menu.querySelectorAll('.demo-note');
 const hint = document.querySelector('.scroll-hint');
 const manifesto = document.querySelector('.manifesto');
 // le parole della frase si accendono una dopo l'altra mentre si scorre
