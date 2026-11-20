@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Esmaltadas · Nail &amp; Beauty Studio en Mérida</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Demo privada de Alessia Studio. No es el sitio oficial." />
+    <meta name="theme-color" content="#f2e8de" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- vista previa del enlace (WhatsApp, iMessage, Instagram, Facebook…): la imagen va con dirección completa -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_MX" />
+    <meta property="og:site_name" content="Esmaltadas" />
+    <meta property="og:title" content="Esmaltadas · Nail &amp; Beauty Studio" />
+    <meta property="og:description" content="Nails, lashes, brows y hair en tres estudios de Mérida. Vista previa del nuevo sitio, demo de Alessia Studio." />
+    <meta property="og:url" content="https://demo-esmaltadas-alessiastudio.vercel.app/" />
+    <meta property="og:image" content="https://demo-esmaltadas-alessiastudio.vercel.app/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Un paño de seda rosa antiguo con bies color vino sobre el nombre Esmaltadas" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // el nombre aparece cuando su tipografía está lista (sin saltos de tamaño al abrir)
+      document.documentElement.classList.add('fonts-wait');
+      setTimeout(function () { document.documentElement.classList.remove('fonts-wait'); }, 3000);
+    </script>
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <header class="site-head">
+      <div class="head-right">
+        <nav class="social" aria-label="Contacto">
+          <a class="ico" href="#" data-ig target="_blank" rel="noopener" aria-label="Instagram @esmaltadasmx" title="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle class="fill" cx="17.1" cy="6.9" r="0.95" /></svg>
+          </a>
+          <a class="ico" href="#sucursales" data-section="sucursales" aria-label="Sucursales" title="Sucursales">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><circle cx="12" cy="9.8" r="2.4" /></svg>
+          </a>
+          <a class="ico" href="#" data-wa="cita" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" title="WhatsApp">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.8a8.5 8.5 0 0 1-12.4 7.5L3.6 20.4l1.3-4.2a8.5 8.5 0 1 1 15.6-4.4z" /><path class="fill" d="M9.3 8.3c.3-.5.6-.5.9-.5h.5c.2 0 .4.1.5.4l.8 1.8c.1.2 0 .5-.1.7l-.6.7c-.1.2-.1.4 0 .6.6 1.1 1.5 2 2.6 2.6.2.1.4.1.6 0l.7-.6c.2-.2.5-.2.7-.1l1.8.8c.3.1.4.3.4.5v.5c0 .3 0 .6-.5.9-.6.3-1.6.5-2.9 0-2.2-.8-4-2.6-4.8-4.8-.5-1.3-.3-2.3 0-2.9z" /></svg>
+          </a>
+        </nav>
+        <button class="back-btn" type="button" aria-label="Volver al menú" hidden><i></i><i></i><i></i></button>
+      </div>
+      <!-- il marchio piccolo: qui arrivano le lettere del nome (questo link è solo il punto d'arrivo) -->
+      <a class="mono" href="#" aria-label="Esmaltadas, volver al inicio" tabindex="-1">
+        <span class="m-l">E</span><span class="m-l">S</span><span class="m-l">M</span><span class="m-l">A</span><span class="m-l">L</span><span class="m-l">T</span><span class="m-l">A</span><span class="m-l">D</span><span class="m-l">A</span><span class="m-l">S</span>
+      </a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1 class="hero-name">
+          <span class="sr-only">Esmaltadas, Nail &amp; Beauty Studio</span>
+          <span class="nl nl-mark" aria-hidden="true"><span class="keep">E</span><span class="keep">S</span><span class="keep">M</span><span class="keep">A</span><span class="keep">L</span><span class="keep">T</span><span class="keep">A</span><span class="keep">D</span><span class="keep">A</span><span class="keep">S</span></span>
+          <span class="nl nl-sub" aria-hidden="true">Nail &amp; Beauty Studio</span>
+        </h1>
+      </div>
+      <div class="hint scroll-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+
+      <section class="manifesto" aria-label="Esmaltadas">
+        <p class="m-lead">Hechas para brillar.</p>
+        <p>Uñas, pestañas, cejas y cabello en tres estudios de Mérida: Prime Center, Santa Fe y Akropolis.</p>
+        <div class="hint hint-inline" aria-hidden="true"><span>Desliza</span><i></i></div>
+      </section>
+
+      <nav class="menu" aria-label="Secciones del sitio">
+        <ul>
+          <li class="menu-main">
+            <a href="#servicios" data-section="servicios">
+              Servicios
+              <small>Nails · Lashes · Brows · Hair</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#sucursales" data-section="sucursales">
+              Sucursales
+              <small>Prime Center · Santa Fe · Akropolis</small>
+            </a>
+          </li>
+          <li class="menu-agendar"><a href="#agendar" data-section="agendar">Agendar</a></li>
+        </ul>
+        <p class="demo-note">Demo de Alessia Studio · no es el sitio oficial</p>
+      </nav>
+
+      <!-- Secciones: cada una es un lugar sobre la seda. Nails se lee como una historia por capítulos;
+           Lashes, Brows y Hair quedan en "Work in progress" (es una demo). -->
+      <section class="page page-story page-hub" id="servicios" aria-labelledby="t-servicios" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <h2 class="story-title" id="t-servicios">Servicios</h2>
+          </header>
+          <div class="hub">
+            <p class="hub-lead">Todo lo que te hace sentir lista, en un mismo estudio.</p>
+            <ul class="hub-list">
+              <li>
+                <a href="#nails" data-section="nails">
+                  <span class="hub-num">01</span>
+                  <span class="hub-name">Nails</span>
+                  <span class="hub-desc">Manicure, pedicure y esmaltado en gel.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#lashes" data-section="lashes">
+                  <span class="hub-num">02</span>
+                  <span class="hub-name">Lashes</span>
+                  <span class="hub-desc">Extensiones y lifting de pestañas.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#brows" data-section="brows">
+                  <span class="hub-num">03</span>
+                  <span class="hub-name">Brows</span>
+                  <span class="hub-desc">Diseño y laminado de cejas.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#hair" data-section="hair">
+                  <span class="hub-num">04</span>
+                  <span class="hub-name">Hair</span>
+                  <span class="hub-desc">Corte, color y peinado.</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Nails: la sezione sviluppata. Lo scroll guida la camera sulla seta (data-cam:
+           direzione x,y,z e distanza); "Brillo" spegne e riaccende il lucido della seta;
+           "De cerca" si tuffa sulla trama; "Tu color" tinge la seta del colore scelto e porta
+           ad Agendar già compilato. -->
+      <section class="page page-story page-nails" id="nails" aria-labelledby="t-nails" hidden>
+        <div class="story-scroll">
+          <header class="story-head fac-head">
+            <p class="page-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Nails</p>
+            <h2 class="fac-title reveal-title" id="t-nails">Nails</h2>
+            <p class="fac-sub">El detalle que se nota.</p>
+            <div class="hint fac-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+          </header>
+          <div class="story">
+            <section class="ch" data-fx="letters" data-cam="-0.15,0.05,1,1.2" aria-label="Cuidado">
+              <div class="ch-stage">
+                <p class="ch-label">Cuidado</p>
+                <p class="big-word" aria-hidden="true">UÑAS</p>
+                <p class="ch-text fx-fade">
+                  Antes del color, la uña: su forma, la cutícula y su salud. Un buen esmaltado empieza por ahí.
+                </p>
+              </div>
+            </section>
+
+            <section class="ch ch-ritual" data-fx="ritual" data-cam="0.6,-0.05,1,1.1" aria-label="El ritual">
+              <div class="ch-stage">
+                <p class="ch-label">El ritual</p>
+                <ol class="ritual">
+                  <li>
+                    <span class="r-num">01</span>
+                    <span class="r-name">Forma</span>
+                    <span class="r-text">Limamos y damos la forma que mejor va con tus manos.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">02</span>
+                    <span class="r-name">Cutícula</span>
+                    <span class="r-text">La cuidamos y preparamos la uña para un acabado limpio.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">03</span>
+                    <span class="r-name">Color</span>
+                    <span class="r-text">Esmalte tradicional o en gel, en el tono que elijas.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">04</span>
+                    <span class="r-name">Brillo</span>
+                    <span class="r-text">Capa final, sellado y aceite para cutícula.</span>
+                  </li>
+                </ol>
+              </div>
+            </section>
+
+            <section class="ch ch-gloss" data-fx="gloss" data-cam="0.3,0.6,1,1.55" style="--len: 1.6" aria-label="Brillo">
+              <div class="ch-stage">
+                <p class="ch-label">Brillo</p>
+                <p class="big-lines fx-lines" aria-hidden="true">Un buen esmalte refleja la luz</p>
+                <p class="ch-text fx-fade">Como esta seda: cuando el acabado es perfecto, brilla.</p>
+                <p class="gloss-hint" aria-hidden="true"><i></i>Mira la seda</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="focus" data-cam="-0.1,0.2,1,0.18" aria-label="De cerca">
+              <div class="ch-stage">
+                <p class="ch-label">De cerca</p>
+                <p class="ch-text fx-focus big-focus">
+                  Cada detalle cuenta. Por eso trabajamos sin prisa, uña por uña.
+                </p>
+              </div>
+            </section>
+
+            <section class="ch ch-quiz" data-cam="0,0.25,1,1.8" aria-label="Tu color">
+              <div class="ch-stage">
+                <div class="quiz-card">
+                  <p class="ch-label">Tu color</p>
+                  <h3 class="quiz-q">¿De qué color hoy?</h3>
+                  <p class="quiz-lead">Elige un tono: la seda se pinta de ese color.</p>
+                  <div class="chips quiz-chips" role="radiogroup" aria-label="Color">
+                    <label class="chip chip-swatch"><input type="radio" name="color" value="nude" /><span><i style="--sw: #d9b6a3"></i>Nude</span></label>
+                    <label class="chip chip-swatch"><input type="radio" name="color" value="rosa" /><span><i style="--sw: #c99795"></i>Rosa antiguo</span></label>
+                    <label class="chip chip-swatch"><input type="radio" name="color" value="vino" /><span><i style="--sw: #6e1d33"></i>Vino</span></label>
+                    <label class="chip chip-swatch"><input type="radio" name="color" value="rojo" /><span><i style="--sw: #b3192b"></i>Rojo</span></label>
+                    <label class="chip chip-swatch"><input type="radio" name="color" value="frances" /><span><i class="sw-fr" style="--sw: #f0d6cf"></i>Francés</span></label>
+                  </div>
+                  <div class="quiz-out" aria-live="polite">
+                    <p class="quiz-kicker">Así se ve</p>
+                    <p class="quiz-name">Elige tu tono</p>
+                    <p class="quiz-text">Y mira cómo cambia la seda.</p>
+                    <p class="quiz-note">El tono exacto lo eliges en el estudio, con el muestrario.</p>
+                  </div>
+                  <a class="page-cta quiz-cta" href="#agendar" data-section="agendar" data-servicio="Nails">Agenda tu manicure</a>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="lashes" aria-labelledby="t-lashes" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Lashes</p>
+          <h2 class="wip-title" id="t-lashes">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="brows" aria-labelledby="t-brows" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Brows</p>
+          <h2 class="wip-title" id="t-brows">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="hair" aria-labelledby="t-hair" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Hair</p>
+          <h2 class="wip-title" id="t-hair">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <!-- Sucursales: tres estudios; se elige uno y cambian dirección, mapa y WhatsApp -->
+      <section class="page page-story page-ubi" id="sucursales" aria-labelledby="t-ubi" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Sucursales</p>
+            <h2 class="story-title" id="t-ubi">Tres estudios<br />en Mérida</h2>
+          </header>
+          <div class="ubi">
+            <div class="chips suc-tabs" role="radiogroup" aria-label="Sucursal">
+              <label class="chip"><input type="radio" name="suc-ver" value="prime-center" checked /><span>Prime Center</span></label>
+              <label class="chip"><input type="radio" name="suc-ver" value="santa-fe" /><span>Santa Fe</span></label>
+              <label class="chip"><input type="radio" name="suc-ver" value="akropolis" /><span>Akropolis</span></label>
+            </div>
+            <div class="suc-panel" aria-live="polite">
+              <p class="suc-name"></p>
+              <address class="ubi-address"></address>
+              <p class="suc-hours"></p>
+            </div>
+            <div class="ubi-map">
+              <iframe title="Mapa de la sucursal" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="ubi-actions">
+              <a class="page-cta suc-go" href="#" target="_blank" rel="noopener">Cómo llegar</a>
+              <a class="page-cta page-cta-ghost suc-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+              <a class="suc-book" href="#agendar" data-section="agendar">Agendar en esta sucursal</a>
+            </div>
+            <p class="demo-note">Demo realizada por Alessia Studio · no es el sitio oficial</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page page-story page-agendar" id="agendar" aria-labelledby="t-agendar" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Agendar</p>
+            <h2 class="story-title" id="t-agendar">Agenda<br />tu cita</h2>
+          </header>
+          <!-- la richiesta si compone qui e parte su WhatsApp, al numero della sucursal scelta:
+               nessun dato passa da questo sito -->
+          <form class="book" novalidate>
+            <fieldset class="book-step book-servicio">
+              <legend><span class="num">01</span> ¿Qué te gustaría?</legend>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="servicio" value="Nails" /><span>Nails</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Lashes" /><span>Lashes</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Brows" /><span>Brows</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Hair" /><span>Hair</span></label>
+              </div>
+              <p class="book-error err-servicio" role="alert" hidden>Elige un servicio para continuar.</p>
+            </fieldset>
+            <fieldset class="book-step book-sucursal">
+              <legend><span class="num">02</span> ¿En qué sucursal?</legend>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="sucursal" value="prime-center" /><span>Prime Center</span></label>
+                <label class="chip"><input type="radio" name="sucursal" value="santa-fe" /><span>Santa Fe</span></label>
+                <label class="chip"><input type="radio" name="sucursal" value="akropolis" /><span>Akropolis</span></label>
+              </div>
+              <p class="book-error err-sucursal" role="alert" hidden>Elige la sucursal: el mensaje le llega a ella.</p>
+            </fieldset>
+            <fieldset class="book-step">
+              <legend><span class="num">03</span> ¿Qué día?</legend>
+              <div class="days" role="radiogroup" aria-label="Día"></div>
+              <p class="book-hint">De lunes a sábado, de 10 a 20 h.</p>
+            </fieldset>
+            <fieldset class="book-step">
+              <legend><span class="num">04</span> ¿A qué hora?</legend>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="franja" value="mañana" /><span>Mañana</span></label>
+                <label class="chip"><input type="radio" name="franja" value="mediodía" /><span>Mediodía</span></label>
+                <label class="chip"><input type="radio" name="franja" value="tarde" /><span>Tarde</span></label>
+              </div>
+            </fieldset>
+            <div class="book-step">
+              <label class="book-name">
+                <span class="legend"><span class="num">05</span> Tu nombre</span>
+                <input type="text" name="nombre" autocomplete="name" placeholder="Nombre y apellido" />
+              </label>
+            </div>
+            <p class="book-summary" aria-live="polite"></p>
+            <button class="page-cta book-send" type="submit">Enviar por WhatsApp</button>
+            <p class="book-note">Te confirman la disponibilidad por WhatsApp, desde la sucursal que elijas.</p>
+          </form>
+        </div>
+      </section>
+
+      <div class="scroll-space" aria-hidden="true"></div>
+    </main>
+
+    <p id="fps" class="fps" hidden></p>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
