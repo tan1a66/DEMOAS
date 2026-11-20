@@ -61,7 +61,7 @@ export class Braid {
     const ds = L / (N - 1);
     const A = BRAID.ampLat;
     const B = BRAID.ampDepth;
-    const out = { lat: 0, dep: 0, rad: 0 };
+    const out = { lat: 0, dep: 0, rad: 0, raw: 0 };
 
     for (let i = 0; i < N; i++) {
       const s = i * ds;
@@ -76,6 +76,7 @@ export class Braid {
         sy[k][i] = cy + ny * A * out.lat;
         sz[k][i] = z + B * out.dep;
         sr[k][i] = out.rad;
+        data[(7 * N + i) * 4 + k] = out.raw;
       }
       const o6 = (6 * N + i) * 4;
       data[o6] = cx;
@@ -129,18 +130,23 @@ export function hungStructure(phase = 0) {
     o.lat = amp * Math.sin(t);
     o.dep = amp * Math.sin(2 * t);
     o.rad = 0.7 + 0.3 * g;
+    o.raw = o.rad;
     return o;
   };
 }
 
 /**
- * Entrada: el hilo baja, se divide en tres y se trenza.
- * p = { front, scale, split, loose, spread }
+ * Entrada: un hilo → muchísimas hebras → tres cabos gruesos → trenza.
+ * p = { front, scale, split, loose, spread, sep, bloom, tube, tipEnd }
  *   front  — posición (s) del frente de trenzado; por encima la trenza está hecha.
  *   scale  — grosor global (crece hasta 1).
- *   split  — 0: un único hilo; 1: tres cabos.
+ *   split  — 0: los tres cabos coinciden (un único eje); 1: tres cabos separados.
  *   loose  — grosor relativo de los cabos sueltos.
  *   spread — cuánto se abren los cabos sueltos por debajo del frente.
+ *   sep    — separación fija entre los cabos sueltos (en unidades de ampLat).
+ *   bloom  — punto (s) donde el hilo único se abre en hebras (por debajo: hebras).
+ *   tube   — 0..1, aparición de los tres cabos gruesos (envuelven las hebras agrupadas).
+ *   tipEnd — por debajo de este s los cabos no tienen tubo: las puntas son muchas hebras.
  */
 export function introStructure(p) {
   const P = BRAID.period;
@@ -148,16 +154,23 @@ export function introStructure(p) {
   return (s, k, o) => {
     const above = smoothstep(p.front, p.front + blend, s);
     const below = Math.max(0, p.front - s);
-    const tPh = (TWO_PI * Math.max(s, p.front)) / P + PHASES[k];
-    const fan = 1 + p.spread * smoothstep(0, 0.35, below);
     const sp = p.split;
-    o.lat = Math.sin(tPh) * (fan + (1 - fan) * above) * sp * p.scale;
-    o.dep = Math.sin(2 * tPh) * sp * p.scale * (1.15 - 0.15 * above);
-    let rad = (p.loose + (1 - p.loose) * above) * p.scale;
-    if (k > 0) rad *= smoothstep(0, 0.35, sp);
-    // puntas afiladas (hilos sueltos)
-    rad *= smoothstep(0, 0.03, s);
-    o.rad = rad;
+    // por encima del frente: trenzado
+    const tB = (TWO_PI * s) / P + PHASES[k];
+    // por debajo: los tres cabos cuelgan quietos, a la misma distancia entre sí
+    const tL = PHASES[k];
+    const looseAmp = p.scale * (1 + p.spread * smoothstep(0, 0.35, below)) + p.sep;
+    const latL = Math.sin(tL) * looseAmp;
+    const depL = Math.sin(2 * tL) * 0.6 * p.scale;
+    o.lat = (latL + (Math.sin(tB) * p.scale - latL) * above) * sp;
+    o.dep = (depL + (Math.sin(2 * tB) * p.scale - depL) * above) * sp;
+    const rad = (p.loose + (1 - p.loose) * above) * p.scale;
+    o.raw = rad; // tamaño del haz de hebras (sin afilar)
+    // hilo único (sólo el cabo 0) por encima del punto donde se abre
+    const single = k === 0 ? smoothstep(p.bloom - 0.02, p.bloom + 0.012, s) * smoothstep(0, 0.03, s) : 0;
+    // cabos gruesos: envuelven las hebras salvo en las puntas, que siguen siendo hebras sueltas
+    const tube = p.tube * smoothstep(p.tipEnd - 0.004, p.tipEnd + 0.022, s);
+    o.rad = rad * Math.max(single, tube);
     return o;
   };
 }

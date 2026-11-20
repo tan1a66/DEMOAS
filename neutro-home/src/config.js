@@ -51,9 +51,9 @@ export const TASSEL = {
   fiberRadius: 0.0021,
 };
 
-// Medidas reales de la pieza (ficha de producto Neutro Home: 6 m, 13 cm de grosor).
+// Largo total que se muestra (el del brief). Todas las medidas usan el mismo factor de escala.
 export const MEASURE = {
-  realLength: 6.0,
+  realLength: 2.4,
 };
 export const MEASURE_SCALE = MEASURE.realLength / BRAID.length;
 

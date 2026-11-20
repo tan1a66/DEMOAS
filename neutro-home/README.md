@@ -1,7 +1,8 @@
 # Neutro Home · La Trenza — demo 3D (Alessia Studio)
 
-Una sola schermata, pensata per iPhone in verticale: un filo scende, si divide in tre, si
-intreccia, e la treccia cade su tre ganci di cedro. Il visitatore trascina le onde (le code si
+Una sola schermata, pensata per iPhone in verticale: un filo scende, si apre in moltissimi
+fili sottili, i fili si raggruppano in tre capi grossi che si intrecciano (le punte restano
+fili sciolti), e la treccia cade su tre ganci di cedro. Il visitatore trascina le onde (le code si
 accorciano), cambia colore e chiede la treccia così com'è via DM Instagram.
 Tutti i testi dell'interfaccia sono in spagnolo.
 
@@ -30,14 +31,16 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
 - Materiale: `MeshPhysicalMaterial` con sheen, normal map di fibre parallele e variazione di tono
   generate proceduralmente sulla GPU (`src/gl/textures.js`), occlusione negli incavi, leggera
   variazione di colore tra i capi. Il cambio colore "scorre" da una nappa all'altra (~0,85 s).
+- `src/scene/threads.js` — entrata: 120–156 fili che seguono gli assi dei tre capi (stessa
+  texture di dati). Prima si aprono a coda di cavallo, poi si raggruppano nei tre capi; i tubi dei
+  capi li ricoprono tranne le punte, che restano frange di fili fino alla caduta sui ganci.
 - `src/scene/tassel.js` — nappe: collo avvolto + centinaia di fili; oscillazione nel vertex shader.
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.
 
 ## Scelte da confermare con il cliente
-- **Lunghezza:** la scheda prodotto su neutro.com.mx dice 6 m (spessore 13 cm). Le misure mostrate
-  usano quindi 6 m come lunghezza totale (fattore di scala unico, `MEASURE.realLength`).
-  Il brief citava 2,40 m come esempio: basta cambiare quel valore.
+- **Lunghezza:** si usa 2,40 m come nel brief (`MEASURE.realLength`, fattore di scala unico per
+  tutte le misure). La scheda prodotto su neutro.com.mx indica 6 m e 13 cm di spessore.
 - **Ganci:** il prodotto include tre ganci in cedro naturale; ho usato quelli (il brief diceva
   ottone/legno scuro).
 - **Materiale:** sul sito la Trenza Maya è in cotone o nylon; i testi non citano l'henequén.

@@ -211,3 +211,83 @@ transformed.y += uPivot;`
   m.customProgramCacheKey = () => 'tassel-depth';
   return m;
 }
+
+// ---------------------------------------------------------------- Hebras de la entrada
+// Muchísimas hebras finas que siguen los ejes de los tres cabos (misma textura de datos):
+// primero salen de un único hilo y se abren como una cola de caballo, luego se agrupan en
+// tres haces que ocupan exactamente la sección de cada cabo.
+
+const THREAD_VERT_PARS = /* glsl */ `
+uniform highp sampler2D uStrands;
+uniform vec2 uOval;
+uniform float uDs;
+uniform float uLen;
+uniform float uBloom;
+uniform float uSpray;
+uniform float uGather;
+uniform float uThreadK;
+uniform float uThreadMin;
+uniform float uTime;
+uniform float uTube;
+uniform float uTipEnd;
+attribute vec4 aThread; // (cabo, x empaquetado, y empaquetado, semilla)
+attribute vec4 aSpray;  // (abertura lateral, abertura en profundidad, fase, desfase de la punta)
+varying float vAO;
+varying float vFlow;
+varying float vTint;
+
+vec4 tFetch(int i, int row) { return texelFetch(uStrands, ivec2(i, row), 0); }
+
+void threadVertex(out vec3 pos, out vec3 nrm, out vec3 tng) {
+  int i = int(position.x + 0.5);
+  int k = int(aThread.x + 0.5);
+  vec4 P = tFetch(i, 2 * k);
+  vec3 T = normalize(tFetch(i, 2 * k + 1).xyz);
+  vec3 e2 = normalize(vec3(0.0, 0.0, 1.0) - T * T.z);
+  vec3 e1 = cross(e2, T);
+  vec4 raw = tFetch(i, 7);
+  float rr = k == 0 ? raw.x : (k == 1 ? raw.y : raw.z);
+  float s = float(i) * uDs;
+
+  // abierta: cola de caballo que se ensancha hacia abajo, con un leve vaivén
+  float below = max(0.0, uBloom - s);
+  float sprayK = smoothstep(0.0, 0.22, below) * (0.2 + 1.0 * min(below, 0.8));
+  vec2 spray = aSpray.xy * uSpray * sprayK;
+  spray.x += 0.005 * sin(uTime * 1.3 + aSpray.z + s * 5.0) * sprayK;
+  // agrupada: dentro de la sección ovalada del cabo; en las puntas el haz se abre como un pincel
+  float tipD = max(0.0, uTipEnd - s);
+  float fray = smoothstep(0.0, 0.1, tipD);
+  vec2 packed = aThread.yz * vec2(uOval.x, uOval.y) * rr * (1.0 + 2.2 * fray);
+  packed += aSpray.xy * (0.25 + 0.9 * rr) * fray;
+  packed.x += 0.004 * sin(uTime * 1.1 + aSpray.z) * fray;
+  vec2 off = mix(spray, packed, uGather);
+
+  float r = max(uThreadK * uOval.y * rr, uThreadMin);
+  float vis = smoothstep(0.0, 0.03, below) * smoothstep(aSpray.w, aSpray.w + 0.012, s);
+  // dentro del cabo ya formado no se ven: no se dibujan (menos trabajo para la GPU)
+  float covered = smoothstep(0.9, 1.0, uTube) * smoothstep(uTipEnd + 0.012, uTipEnd + 0.03, s);
+  r *= vis * (1.0 - covered);
+
+  float a = position.y * 6.28318530718 + aThread.w * 6.2831;
+  vec3 n = e1 * cos(a) + e2 * sin(a);
+  pos = P.xyz + e1 * off.x + e2 * off.y + n * r;
+  nrm = n;
+  tng = T;
+  vAO = mix(1.0, 0.72 + 0.28 * length(aThread.yz), uGather);
+  vFlow = s / uLen;
+  vTint = 0.84 + 0.3 * fract(aThread.w * 7.31);
+}
+`;
+
+export function patchThreadsMaterial(material, uniforms, dye) {
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms, dye);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${THREAD_VERT_PARS}`)
+      .replace('#include <uv_vertex>', 'vec3 hPos; vec3 hNrm; vec3 hTng;\nthreadVertex(hPos, hNrm, hTng);')
+      .replace('#include <beginnormal_vertex>', 'vec3 objectNormal = hNrm;')
+      .replace('#include <begin_vertex>', 'vec3 transformed = hPos;');
+    patchFragment(shader);
+  };
+  material.customProgramCacheKey = () => 'threads';
+}

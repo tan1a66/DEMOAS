@@ -9,6 +9,7 @@ import { buildWall } from './scene/wall.js';
 import { buildPegs } from './scene/pegs.js';
 import { Braid, hungStructure, introStructure } from './scene/braid.js';
 import { Tassel } from './scene/tassel.js';
+import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
 import { clamp, lerp } from './model/spring.js';
 import { UI } from './ui/ui.js';
@@ -69,6 +70,9 @@ const braid = new Braid({ radial: QUALITY.radial, dye, textures, envIntensity: 0
 scene.add(braid.mesh);
 const tassels = { L: new Tassel(-1, { dye, textures }), R: new Tassel(1, { dye, textures }) };
 scene.add(tassels.L.mesh, tassels.R.mesh);
+// Entrada: un hilo que se abre en muchísimas hebras, que luego forman los tres cabos.
+let threads = new Threads({ perStrand: IS_TOUCH ? 40 : 52, braid, dye });
+scene.add(threads.mesh);
 
 // Velo oscuro de la entrada (delante del muro y de los ganchos, detrás del hilo).
 const veil = new THREE.Mesh(
@@ -191,7 +195,7 @@ const introCenter = {
   tx: new Float32Array(BRAID.samples),
   ty: new Float32Array(BRAID.samples).fill(1),
 };
-const introP = { front: 0.9, scale: 0.13, split: 0, loose: 0.42, spread: 0 };
+const introP = { front: 0.95, scale: 0.13, split: 0, loose: 0.42, spread: 0, sep: 0.95, bloom: 0, tube: 0, tipEnd: 0.12 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
 
@@ -213,15 +217,29 @@ function updateIntro(dt) {
   const t = tau;
 
   // hilo que baja, luego sigue bajando mientras se trenza, luego se levanta
-  let yTip = lerp(Y0 + 0.42, Y0 - 0.02, easeOut(seg(t, 0.35, 2.3)));
+  let yTip = lerp(Y0 + 0.42, Y0 - 0.02, easeOut(seg(t, 0.25, 1.75)));
   yTip -= 0.3 * easeInOut(seg(t, 2.3, 4.5));
   const lift = Math.max(0, t - 4.45);
   yTip += 4.5 * lift * lift;
 
-  introP.split = easeInOut(seg(t, 1.95, 2.75));
-  introP.spread = 0.85 * introP.split;
-  introP.front = lerp(0.95, 0.13, easeInOut(seg(t, 2.05, 4.35)));
-  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 1.95, 4.4)));
+  // 1) un hilo  2) se abre en muchísimas hebras  3) se agrupan en tres cabos gruesos  4) se trenzan
+  const bl = seg(t, 1.3, 2.65);
+  const bloom = 0.95 * bl * bl; // el punto donde se abre sube despacio: se ve la "horquilla"
+  const spray = easeInOut(seg(t, 1.3, 2.4));
+  const split = easeInOut(seg(t, 2.2, 2.85));
+  const gather = easeInOut(seg(t, 2.4, 3.25));
+  introP.bloom = bloom;
+  introP.split = split;
+  introP.spread = 0.6 * split;
+  introP.tube = easeInOut(seg(t, 3.05, 3.5));
+  introP.front = lerp(0.95, 0.15, easeInOut(seg(t, 2.95, 4.4)));
+  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 1.9, 4.4)));
+  if (threads) {
+    // las puntas siguen siendo hebras hasta que la trenza se cuelga
+    threads.mesh.visible = t > 1.3 && t < 5.0;
+    threads.set({ bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd });
+    if (t >= 5.0) disposeThreads();
+  }
 
   const N = BRAID.samples;
   const ds = BRAID.length / (N - 1);
@@ -253,7 +271,7 @@ function updateIntro(dt) {
   scene.environmentIntensity = lerp(0.25, 0.6, light);
   hemi.intensity = lerp(0.15, 0.36, light);
   rim.intensity = 5.5 * (1 - light);
-  if (t > 0.9 && t < 3.75) introLine.classList.add('on');
+  if (t > 0.7 && t < 3.75) introLine.classList.add('on');
   else introLine.classList.remove('on');
   if (!litDone && t > 4.6) {
     litDone = true;
@@ -263,8 +281,16 @@ function updateIntro(dt) {
   if (t > 6.6) endIntro();
 }
 
+function disposeThreads() {
+  if (!threads) return;
+  scene.remove(threads.mesh);
+  threads.dispose();
+  threads = null;
+}
+
 function endIntro() {
   phase = 'main';
+  disposeThreads();
   applyCamera(finalCam.pos, finalCam.look);
   veil.visible = false;
   scene.environmentIntensity = 0.6;
@@ -473,12 +499,14 @@ async function start() {
   rig.step(0.016);
   syncHung();
   applyCamera(finalCam.pos, finalCam.look);
+  if (threads) threads.mesh.visible = true; // compilar también su shader antes de empezar
   try {
     await renderer.compileAsync(scene, camera);
   } catch {
     /* sin compilación paralela: se compila al primer render */
   }
   renderer.render(scene, camera);
+  if (threads) threads.mesh.visible = false;
 
   const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
   await fontsReady;
@@ -488,6 +516,7 @@ async function start() {
     // Sin entrada: aparece la escena final con un fundido.
     phase = 'main';
     dropStarted = true;
+    disposeThreads();
     rig.setRest();
     veil.visible = false;
     document.body.classList.add('lit');
