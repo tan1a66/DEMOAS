@@ -5,11 +5,10 @@
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Silk, SILK_COLORS, SILK_CIPRIA, POLISH } from './silk/silk.js';
+import { Silk, SILK_COLORS, SILK_CIPRIA, SILK_PROFONDO } from './silk/silk.js';
 import { createStory } from './story.js';
 import { waLink, CONTACT, SUCURSALES, mapEmbed, mapLink } from './config.js';
 import { createBooking } from './booking.js';
-import { createQuiz } from './quiz.js';
 import './fonts.css';
 import './styles.css';
 
@@ -375,7 +374,7 @@ let current = null;
 // luoghi: punto sul fazzoletto (u da sinistra, v dall'alto), direzione e distanza della camera
 const STATIONS = {
   servicios: { u: 0.5, v: 0.45, dir: [0.05, 0.12, 1], dist: 1.35, fov: 30 }, // il cuore del telo
-  nails: { u: 0.4, v: 0.42, dir: [-0.35, 0.15, 1], dist: 1.4, fov: 30 }, // sotto il drappeggio a cappuccio
+  nails: { u: 0.42, v: 0.52, dir: [-0.3, 0.1, 1], dist: 1.3, fov: 30 }, // sotto il drappeggio a cappuccio (la seta riempie anche l'angolo in alto)
   lashes: { u: 0.72, v: 0.5, dir: [0.55, 0.05, 1], dist: 1.25, fov: 30 }, // la piega sul lato destro
   brows: { u: 0.5, v: 0.58, dir: [0.1, -0.25, 1], dist: 1.25, fov: 30 }, // il centro del telo
   hair: { u: 0.32, v: 0.7, dir: [-0.25, -0.05, 1], dist: 1.2, fov: 30 }, // in basso a sinistra
@@ -528,9 +527,9 @@ const booking = createBooking(pages.get('agendar'));
 document.querySelectorAll('[data-section]').forEach((a) =>
   a.addEventListener('click', (e) => {
     e.preventDefault();
-    // "Agenda con este color", "Agendar en esta sucursal": si arriva ad Agendar già compilato
+    // "Agenda tu manicure", "Agendar en esta sucursal": si arriva ad Agendar già compilato
     if (a.dataset.section === 'agendar')
-      booking.preselect({ servicio: a.dataset.servicio, sucursal: a.dataset.sucursal, nota: a.dataset.nota });
+      booking.preselect({ servicio: a.dataset.servicio, sucursal: a.dataset.sucursal });
     openSection(a.dataset.section);
   }),
 );
@@ -559,17 +558,14 @@ mono.addEventListener('click', (e) => {
 
 // ---------- la seta cambia colore ----------
 // Nelle sezioni la seta scende a un rosa antico profondo (le scritte sono bianche); nel menu
-// torna rosa antico. In Nails ("¿De qué color hoy?") il colore scelto vale mentre si guarda
-// la scelta; risalendo tra i capitoli la seta torna profonda, così i testi restano leggibili.
+// torna rosa antico.
 const palette = { k: 1, from: null, to: null, name: 'rosa' };
-// dentro le sezioni la seta si fa rosa antico profondo: le scritte bianche si leggono ovunque
-const sectionPalette = 'profondo';
 const PAL_KEYS = ['silk', 'high', 'shadow', 'back', 'trim'];
 const U = { silk: 'uSilk', high: 'uHigh', shadow: 'uShadow', back: 'uBack', trim: 'uTrim' };
 const setPalette = (name) => {
   if (palette.name === name || silkColors !== SILK_COLORS) return;
   palette.name = name;
-  const pal = POLISH[name] || SILK_COLORS;
+  const pal = name === 'profondo' ? SILK_PROFONDO : SILK_COLORS;
   const u = silk.uniforms;
   palette.from = { w: u.uTrimW.value, l: u.uTrimLine.value };
   palette.to = { w: pal.trimW, l: pal.trimLine ?? 0 };
@@ -578,7 +574,7 @@ const setPalette = (name) => {
     palette.to[key] = new THREE.Color(pal[key]);
   }
   palette.k = 0;
-  html.classList.toggle('silk-dark', name === 'vino' || name === 'rojo' || name === 'profondo');
+  html.classList.toggle('silk-dark', name === 'profondo');
   gsap.to(palette, {
     k: 1,
     duration: reduceMotion ? 0.01 : 1.4,
@@ -592,8 +588,6 @@ const setPalette = (name) => {
   });
   if (!reduceMotion) silk.flick(0.4);
 };
-let chosenColor = null;
-const quizEl = document.querySelector('.ch-quiz');
 
 // ---------- Sucursales: si sceglie lo studio, cambiano indirizzo, mappa e WhatsApp ----------
 const sucPage = document.getElementById('sucursales');
@@ -634,16 +628,6 @@ for (const [id, el] of pages) {
 const remeasure = () => current && stories.get(current)?.measure();
 addEventListener('resize', remeasure);
 document.fonts?.ready.then(remeasure);
-
-// Nails: il colore (la seta si tinge, con un'onda leggera)
-createQuiz(pages.get('nails'), {
-  onPick: (color, out) => {
-    gsap.fromTo(out, { opacity: 0.2, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', overwrite: true });
-    chosenColor = color;
-    palette.name = null; // anche se è lo stesso tono: la seta risponde
-    setPalette(color);
-  },
-});
 
 // i titoli che entrano lettera per lettera (Nails)
 const titleLetters = new Map();
@@ -715,9 +699,8 @@ const loop = () => {
   screenFrame(dt);
   computeFrame();
 
-  // il colore scelto in Nails vale mentre la scelta è in vista
-  const inQuiz = current === 'nails' && quizEl.getBoundingClientRect().top < innerHeight * 0.6;
-  setPalette(inQuiz && chosenColor ? chosenColor : current ? sectionPalette : 'rosa');
+  // nelle sezioni la seta profonda, nel menu rosa antico
+  setPalette(current ? 'profondo' : 'rosa');
 
   // Nails, capitolo "Brillo": la seta si spegne e ritrova il lucido, la luce le passa sopra
   const sst = current ? storyState(current) : null;

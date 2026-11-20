@@ -133,8 +133,7 @@
 
       <!-- Nails: la sezione sviluppata. Lo scroll guida la camera sulla seta (data-cam:
            direzione x,y,z e distanza); "Brillo" spegne e riaccende il lucido della seta;
-           "De cerca" si tuffa sulla trama; "Tu color" tinge la seta del colore scelto e porta
-           ad Agendar già compilato. -->
+           "De cerca" si tuffa sulla trama; "Tu cita" porta ad Agendar con Nails già scelto. -->
       <section class="page page-story page-nails" id="nails" aria-labelledby="t-nails" hidden>
         <div class="story-scroll">
           <header class="story-head fac-head">
@@ -200,27 +199,12 @@
               </div>
             </section>
 
-            <section class="ch ch-quiz" data-cam="0,0.25,1,1.8" aria-label="Tu color">
+            <section class="ch ch-end" data-fx="lines" data-cam="0,0.12,1,1.3" aria-label="Tu cita">
               <div class="ch-stage">
-                <div class="quiz-card">
-                  <p class="ch-label">Tu color</p>
-                  <h3 class="quiz-q">¿De qué color hoy?</h3>
-                  <p class="quiz-lead">Elige un tono: la seda se pinta de ese color.</p>
-                  <div class="chips quiz-chips" role="radiogroup" aria-label="Color">
-                    <label class="chip chip-swatch"><input type="radio" name="color" value="nude" /><span><i style="--sw: #d9b6a3"></i>Nude</span></label>
-                    <label class="chip chip-swatch"><input type="radio" name="color" value="rosa" /><span><i style="--sw: #c99795"></i>Rosa antiguo</span></label>
-                    <label class="chip chip-swatch"><input type="radio" name="color" value="vino" /><span><i style="--sw: #6e1d33"></i>Vino</span></label>
-                    <label class="chip chip-swatch"><input type="radio" name="color" value="rojo" /><span><i style="--sw: #b3192b"></i>Rojo</span></label>
-                    <label class="chip chip-swatch"><input type="radio" name="color" value="frances" /><span><i class="sw-fr" style="--sw: #f0d6cf"></i>Francés</span></label>
-                  </div>
-                  <div class="quiz-out" aria-live="polite">
-                    <p class="quiz-kicker">Así se ve</p>
-                    <p class="quiz-name">Elige tu tono</p>
-                    <p class="quiz-text">Y mira cómo cambia la seda.</p>
-                    <p class="quiz-note">El tono exacto lo eliges en el estudio, con el muestrario.</p>
-                  </div>
-                  <a class="page-cta quiz-cta" href="#agendar" data-section="agendar" data-servicio="Nails">Agenda tu manicure</a>
-                </div>
+                <p class="ch-label">Tu cita</p>
+                <p class="big-lines fx-lines">Tus manos, listas.</p>
+                <p class="ch-text">El color lo eliges aquí, con el muestrario en la mano. Tú solo escoge sucursal, día y hora.</p>
+                <a class="page-cta end-cta" href="#agendar" data-section="agendar" data-servicio="Nails">Agenda tu manicure</a>
               </div>
             </section>
           </div>

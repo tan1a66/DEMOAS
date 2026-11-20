@@ -1,6 +1,6 @@
 // Agendar: si sceglie servizio, sucursal, giorno e fascia oraria; la richiesta parte già scritta
 // su WhatsApp, al numero della sucursal scelta (nessun dato passa da questo sito). Servizio e
-// sucursal possono arrivare preselezionati ("Agenda con este color", "Agendar en esta sucursal").
+// sucursal possono arrivare preselezionati ("Agenda tu manicure", "Agendar en esta sucursal").
 import { SUCURSALES } from './config.js';
 
 const fmtDay = new Intl.DateTimeFormat('es-MX', { weekday: 'short' });
@@ -24,7 +24,6 @@ export const createBooking = (root) => {
   const summary = form.querySelector('.book-summary');
   const errServicio = form.querySelector('.err-servicio');
   const errSucursal = form.querySelector('.err-sucursal');
-  let nota = ''; // dal colore scelto in Nails: "color: vino"
 
   // i prossimi giorni di apertura, da oggi (domenica chiuso)
   const today = new Date();
@@ -59,7 +58,6 @@ export const createBooking = (root) => {
   const message = ({ servicio, sucursal, dia, franja, nombre }) => {
     let m = nombre ? `Hola, soy ${nombre}.` : 'Hola.';
     m += ` Me gustaría agendar ${COSA[servicio] || servicio}`;
-    if (nota && servicio === 'Nails') m += ` (${nota})`;
     m += ` en Esmaltadas ${SUCURSALES[sucursal].nombre}`;
     if (dia) m += ` ${dia}`;
     if (franja) m += ` ${FRANJA[franja]}`;
@@ -72,7 +70,7 @@ export const createBooking = (root) => {
     if (v.servicio) errServicio.hidden = true;
     if (v.sucursal) errSucursal.hidden = true;
     const parts = [];
-    if (v.servicio) parts.push(v.servicio + (nota && v.servicio === 'Nails' ? ' (' + nota + ')' : ''));
+    if (v.servicio) parts.push(v.servicio);
     if (v.sucursal) parts.push(SUCURSALES[v.sucursal].nombre);
     if (v.dia) parts.push(v.dia.replace(/^el /, ''));
     if (v.franja) parts.push(FRANJA[v.franja]);
@@ -98,12 +96,9 @@ export const createBooking = (root) => {
   };
 
   return {
-    /** Preseleziona servizio e/o sucursal (undefined: si lascia com'è), con una nota facoltativa. */
-    preselect({ servicio, sucursal, nota: notaNueva } = {}) {
-      if (servicio !== undefined) {
-        nota = notaNueva || '';
-        check('servicio', servicio);
-      }
+    /** Preseleziona servizio e/o sucursal (undefined: si lascia com'è). */
+    preselect({ servicio, sucursal } = {}) {
+      if (servicio !== undefined) check('servicio', servicio);
       if (sucursal !== undefined) check('sucursal', sucursal);
       paint();
     },

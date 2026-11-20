@@ -38,17 +38,16 @@ export const SILK_COLORS = {
   light: [1.0, 0.975, 0.955],
 };
 
-// Nails, "¿De qué color hoy?": la seta si tinge del colore scelto (stessa luce, stesso sfondo)
-export const POLISH = {
-  rosa: SILK_COLORS,
-  nude: { silk: '#D4B19C', high: '#FFF5EC', shadow: '#94705E', back: '#CDAB97', trim: '#7E0C24', trimW: 14, trimLine: 0 },
-  vino: { silk: '#561024', high: '#EFBCC6', shadow: '#1F030A', back: '#4E1022', trim: '#C4908F', trimW: 14, trimLine: 0 },
-  rojo: { silk: '#A8141F', high: '#FFD3CF', shadow: '#43040B', back: '#96131E', trim: '#5A1026', trimW: 14, trimLine: 0 },
-  // prova A (?testo=bianco): dentro le sezioni la seta si fa rosa antico profondo, riflessi
-  // contenuti, così le scritte bianche si leggono ovunque
-  profondo: { silk: '#8A5A60', high: '#D8B2B0', shadow: '#3C1A21', back: '#80545A', trim: '#4E0A1E', trimW: 14, trimLine: 0 },
-  // francés: base rosata e "punta" bianca, cioè un bordino largo
-  frances: { silk: '#EDD3CC', high: '#FFFFFF', shadow: '#B0928B', back: '#E6CCC5', trim: '#FFFBF6', trimW: 75, trimLine: 0 },
+// dentro le sezioni: rosa antico profondo, riflessi contenuti, così le scritte bianche si
+// leggono ovunque (stessa luce, stesso sfondo)
+export const SILK_PROFONDO = {
+  silk: '#8A5A60',
+  high: '#D8B2B0',
+  shadow: '#3C1A21',
+  back: '#80545A',
+  trim: '#4E0A1E',
+  trimW: 14,
+  trimLine: 0,
 };
 
 // variante ?seta=cipria: la seta della demo Sala

@@ -66,7 +66,7 @@ body {
 .site-head > * {
   pointer-events: auto;
 }
-/* con la seta scura (le sezioni, e in Nails "Tu color" vino o rojo) marchio e icone diventano bianchi */
+/* con la seta scura (dentro le sezioni) marchio e icone diventano bianchi */
 .ico,
 .back-btn i,
 .hero-name .nl-mark .keep {
@@ -793,95 +793,14 @@ html.fonts-wait .scroll-hint {
   font-size: clamp(1.8rem, 7.6vw, 2.6rem);
   line-height: 1.18;
 }
-/* il colore: una scheda sul nude, la seta tinta tutto intorno */
-.ch-quiz {
-  padding-top: 30vh;
+/* la chiusura di Nails: una riga grande e il bottone per agendar */
+.ch-end {
+  padding-top: 26vh;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
 }
-.quiz-q {
-  margin: 0 0 20px;
-  font-family: var(--display);
-  font-weight: 400;
-  letter-spacing: 0;
-  font-size: clamp(2rem, 8.5vw, 2.8rem);
-  line-height: 1.05;
-  color: var(--ink);
-}
-.quiz-card {
-  /* una scheda nude piena: il colore dello smalto si vede tutto intorno, il testo resta scuro */
-  padding: 26px 22px 26px;
-  border-radius: 26px;
-  background: var(--ivory);
-}
-.page .quiz-lead {
-  margin: -6px 0 18px;
-  max-width: none;
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 500;
-  font-size: 1.15rem;
-  line-height: 1.35;
-}
-.quiz-out {
-  margin: 8px 0 22px;
-  padding: 18px 0 6px;
-  border-top: 1px solid rgba(132, 21, 47, 0.25);
-}
-/* i campioni di smalto nelle scelte */
-.chip-swatch span i {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  margin: -2px 8px 0 -2px;
-  vertical-align: middle;
-  border-radius: 50%;
-  background: var(--sw);
-  box-shadow: inset 0 0 0 1px rgba(42, 26, 31, 0.22);
-}
-.chip-swatch span i.sw-fr {
-  /* francés: la punta bianca */
-  background: linear-gradient(to top, var(--sw) 58%, #fffdf9 58%);
-}
-.chip-swatch input:checked + span i {
-  box-shadow: 0 0 0 1.5px #fff;
-}
-.page .quiz-kicker {
-  margin: 0 0 10px;
-  max-width: none;
-  font: 600 0.68rem/1 var(--wide);
-  font-stretch: 125%;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.page .quiz-name {
-  margin: 0 0 8px;
-  max-width: none;
-  font-family: var(--display);
-  font-weight: 400;
-  letter-spacing: 0;
-  font-size: clamp(1.9rem, 8vw, 2.5rem);
-  line-height: 1.05;
-  color: var(--ink-soft);
-}
-.quiz-out.is-on .quiz-name {
-  color: var(--bordeaux);
-}
-.page .quiz-text {
-  margin: 0 0 12px;
-  font-family: var(--text);
-  font-weight: 500;
-  font-size: 1.2rem;
-  line-height: 1.4;
-}
-.page .quiz-note {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-}
-.quiz-cta {
+.end-cta {
   display: block;
-  margin: 0 auto;
+  margin: 30px auto 0;
 }
 
 /* Servicios: dentro, Nails, Lashes, Brows, Hair */
@@ -1382,7 +1301,7 @@ html.in-section .hero .keep {
 
 /* ---------- dentro le sezioni: seta rosa antico profonda e scritte bianche ----------
    Il bordeaux sottile sul rosa si perdeva: nelle sezioni la seta scende a un rosa antico
-   profondo (POLISH.profondo in src/silk/silk.js) e il testo diventa bianco. Restano bordeaux
+   profondo (SILK_PROFONDO in src/silk/silk.js) e il testo diventa bianco. Restano bordeaux
    i bottoni pieni; scelte, giorni e campi restano su nude con il testo scuro. */
 html.in-section .page,
 html.in-section .page p,
@@ -1415,13 +1334,6 @@ html.in-section .page .day span {
 html.in-section .page .chip input:checked + span,
 html.in-section .page .day input:checked + span {
   color: #fff;
-}
-html.in-section .page .quiz-card p,
-html.in-section .page .quiz-card h3 {
-  color: var(--ink);
-}
-html.in-section .page .quiz-card .quiz-out.is-on .quiz-name {
-  color: var(--bordeaux);
 }
 html.in-section .ritual::before,
 html.in-section .ritual li::before,

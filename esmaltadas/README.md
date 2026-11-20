@@ -43,16 +43,14 @@ Lo scroll guida la camera sulla seta (`data-cam` sui capitoli: direzione x,y,z e
 4. **Brillo**: la seta si spegne (opaca) e ritrova il lucido mentre la luce le passa sopra
    (`uGloss` nello shader). "Mira la seda".
 5. **De cerca**: la camera si tuffa sul tessuto.
-6. **Tu color — ¿De qué color hoy?**: Nude, Rosa antiguo, Vino, Rojo, Francés. **La seta si
-   tinge del colore scelto** (Francés: base rosata e "punta" bianca, cioè un bordino largo);
-   risalendo tra i capitoli torna rosa antico profondo. "Agenda con este color" apre Agendar
-   con Nails e la nota del colore (arriva nel messaggio WhatsApp). Testi in `src/quiz.js`,
-   colori in `POLISH` (`src/silk/silk.js`).
+6. **Tu cita**: "Tus manos, listas." Il colore si sceglie in studio, con il muestrario
+   (le clienti non lo sanno mai prima: niente scelta del colore sul sito). "Agenda tu manicure"
+   apre Agendar con Nails già scelto.
 
 ## Colori e caratteri
 - Fondo nude `#F2E8DE` (dal logo), seta rosa antico (`SILK_COLORS`), dettagli bordeaux
   `#84152F` (`--bordeaux` in `styles.css`; il bordino della seta è `trim` in `SILK_COLORS`).
-  Nelle sezioni la seta usa `POLISH.profondo`.
+  Nelle sezioni la seta usa `SILK_PROFONDO`.
 - **Marchio**: "Esmaltadas Mark", cioè Italiana (Santiago Orozco) con la A senza traverso come
   nel logo: è la V ruotata di 180°, solo le lettere del nome (844 byte). Fatto con
   `scripts/build-fonts.py`.
