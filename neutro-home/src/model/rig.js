@@ -11,9 +11,9 @@ const INWARD_LIMIT = 0.07; // las colas no pueden meterse bajo las ondas
 
 function tailSprings() {
   return {
-    root: new Spring(0, 3.7, 0.16),
-    tip: new Spring(0, 6.2, 0.26),
-    tassel: new Spring(0, 7.5, 0.22),
+    root: new Spring(0, 3.7, 0.2),
+    tip: new Spring(0, 6.5, 0.42),
+    tassel: new Spring(0, 7.5, 0.34),
   };
 }
 
@@ -143,7 +143,7 @@ export class Rig {
           s.v = impact * 0.55;
         });
         for (const t of Object.values(this.tails)) {
-          t.root.zeta = 0.2;
+          t.root.zeta = 0.36;
           t.tip.v = -0.3;
         }
       } else {
@@ -163,11 +163,11 @@ export class Rig {
         // tope blando hacia dentro (la cola choca con la onda y rebota)
         if (s.x < -INWARD_LIMIT) {
           const pen = -INWARD_LIMIT - s.x;
-          s.v += (420 * pen - 10 * Math.min(0, s.v)) * h;
+          s.v += (420 * pen - 18 * Math.min(0, s.v)) * h;
         }
       }
       // la amortiguación vuelve poco a poco a su valor normal tras la caída
-      t.root.zeta += (0.16 - t.root.zeta) * h * 0.6;
+      t.root.zeta += (0.2 - t.root.zeta) * h * 0.5;
     }
   }
 

@@ -21,7 +21,8 @@ export class Spring {
   }
 
   get resting() {
-    return Math.abs(this.v) < 1e-4 && Math.abs(this.x - this.target) < 1e-4;
+    // por debajo de esto el movimiento ya no se ve: se deja de renderizar
+    return Math.abs(this.v) < 2e-3 && Math.abs(this.x - this.target) < 6e-4;
   }
 }
 

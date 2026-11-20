@@ -219,6 +219,11 @@ body {
   display: flex;
   gap: 4px;
 }
+.swatch,
+.cta,
+.catalog {
+  touch-action: manipulation;
+}
 .swatch {
   position: relative;
   width: 42px;
