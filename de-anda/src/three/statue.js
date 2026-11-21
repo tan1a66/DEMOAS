@@ -4,20 +4,20 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { setupDecoder } from './model-source.js';
 import { MeshBVH } from 'three-mesh-bvh';
 import { createMarbleMaterial, figureUniforms } from './materials.js';
 import { ZONES } from '../config.js';
 
-/** Scarica il GLB (Draco) e riporta l'avanzamento 0..1. */
+/** Scarica il GLB e riporta l'avanzamento 0..1. */
 export function loadModel(url, onProgress) {
-  const draco = new DRACOLoader().setDecoderPath('/draco/');
-  const loader = new GLTFLoader().setDRACOLoader(draco);
+  const loader = new GLTFLoader();
+  const dispose = setupDecoder(loader);
   return new Promise((resolve, reject) => {
     loader.load(
       url,
       (gltf) => {
-        draco.dispose();
+        dispose();
         resolve(gltf);
       },
       (e) => {
@@ -40,6 +40,7 @@ export function createStatue(gltf, { physical, lowQuality }) {
   const seat = root.getObjectByName('seat');
 
   for (const mesh of [figure, seat]) {
+    bakeToModelSpace(mesh);
     mesh.geometry.computeVertexNormals();
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -108,6 +109,31 @@ export function createStatue(gltf, { physical, lowQuality }) {
       pivot.rotation.y = radians;
     },
   };
+}
+
+/**
+ * Le versioni quantizzate (anteprima meshopt) hanno posizioni intere e una scala
+ * sul nodo: qui si riportano in coordinate del modello, in float, con il nodo
+ * neutro. Lo shader del marmo, le zone e la BVH lavorano in queste coordinate.
+ */
+function bakeToModelSpace(mesh) {
+  const g = mesh.geometry;
+  const pos = g.attributes.position;
+  mesh.updateMatrix();
+  if (pos.array instanceof Float32Array && !pos.normalized && mesh.matrix.equals(new THREE.Matrix4())) return;
+  const arr = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    arr[i * 3] = pos.getX(i);
+    arr[i * 3 + 1] = pos.getY(i);
+    arr[i * 3 + 2] = pos.getZ(i);
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  g.deleteAttribute('normal');
+  g.applyMatrix4(mesh.matrix);
+  mesh.position.set(0, 0, 0);
+  mesh.quaternion.identity();
+  mesh.scale.set(1, 1, 1);
+  mesh.updateMatrix();
 }
 
 /** Intensità del bagliore di ciascuna zona (0..1), animata da procedures.js */

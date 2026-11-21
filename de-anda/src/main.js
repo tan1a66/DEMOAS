@@ -15,6 +15,7 @@ import { applyStaticTexts, setLang, onLangChange } from './i18n.js';
 import { initScroll, measure, resolveAnchor, scrollFraction, currentChapter, getChapters, getLenis, gsap, ScrollTrigger } from './core/scroll.js';
 import { createStage } from './three/stage.js';
 import { loadModel, createStatue } from './three/statue.js';
+import { modelUrl } from './three/model-source.js';
 import { createSculptBlock } from './three/fragments.js';
 import { createDust } from './three/dust.js';
 import { Drone, resolveShot } from './three/drone.js';
@@ -93,7 +94,7 @@ async function boot() {
   const { renderer, scene, camera } = stage;
   let pixelRatio = Math.min(window.devicePixelRatio || 1, quality.maxPixelRatio);
 
-  const gltf = await loadModel(quality.model, (p) => loader.set(p * 0.62));
+  const gltf = await loadModel(modelUrl(quality, lowQuality), (p) => loader.set(p * 0.62));
   const statue = createStatue(gltf, { physical: quality.physical, lowQuality });
   scene.add(statue.object);
   // macchia d'ombra sotto la statua (gira con lei)

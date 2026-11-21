@@ -38,6 +38,17 @@ npm run preview        # controllo locale della build
 - **Vercel**: nuovo progetto con *Root Directory* `de-anda`; impostazioni già in `vercel.json`.
   Da terminale: `npx vercel --cwd de-anda`.
 
+## Anteprima in un solo file HTML
+
+```bash
+npm run build:anteprima   # → anteprima/dr-de-anda-anteprima.html (~2,7 MB)
+```
+
+Un unico file con dentro codice, stili e modelli 3D: si apre con doppio clic, senza server
+(serve internet solo per i font). Per l'anteprima i modelli sono compressi con meshopt invece
+che con Draco (il decoder Draco usa file esterni che da `file://` non si possono caricare).
+Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
+
 ## Dove cambiare le cose
 
 | File | Contenuto |

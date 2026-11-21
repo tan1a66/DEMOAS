@@ -6,3 +6,6 @@ dist
 models-src/*.glb
 # file di lavoro
 _scratch
+# anteprima in un file (generata da npm run build:anteprima)
+anteprima
+src/three/inline/*.glb
