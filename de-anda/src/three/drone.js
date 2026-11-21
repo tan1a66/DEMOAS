@@ -87,7 +87,8 @@ export class Drone {
   chapterShot(chapterId) {
     const idx = PATH.map((s, i) => [s, i]).filter(([s]) => s.at.startsWith(chapterId + ':'));
     if (!idx.length) return null;
-    const [, i] = chapterId === 'hero' ? idx[0] : idx[idx.length - 1];
+    const marked = idx.find(([s]) => s.rm);
+    const [, i] = marked || (chapterId === 'hero' ? idx[0] : idx[idx.length - 1]);
     const s = this.shots[i];
     return { pos: s.pos.clone(), target: s.target.clone(), shift: new THREE.Vector2(...s.shift), dof: s.dof, fov: s.fov };
   }

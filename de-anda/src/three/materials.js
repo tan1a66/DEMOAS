@@ -176,8 +176,9 @@ export function createMarbleMaterial({ kind, physical = false, lowQuality = fals
             if (amt <= 0.001) continue;
             float r = uZones[i].w;
             float d = distance(p, uZones[i].xyz);
-            float core = 1.0 - smoothstep(r * 0.25, r, d);
-            float ring = exp(-pow((d - r * ripple) / (r * 0.09), 2.0)) * (1.0 - ripple) * (1.0 - smoothstep(r * 0.6, r, d));
+            float core = 1.0 - smoothstep(0.0, r, d);
+            core *= core;
+            float ring = exp(-pow((d - r * ripple) / (r * 0.08), 2.0)) * (1.0 - ripple) * (1.0 - smoothstep(r * 0.5, r, d));
             g = max(g, amt * (core * pulse + ring * 0.55));
           }
           return g;
@@ -198,7 +199,7 @@ export function createMarbleMaterial({ kind, physical = false, lowQuality = fals
       // appena scolpito il marmo è più gessoso e chiaro, levigato è più caldo
       marble = mix(marble * 1.02 + vec3(0.015, 0.014, 0.012), marble, polishL);
       diffuseColor.rgb = marble;
-      ${isFigure ? 'float glow = zoneGlow(vObj); diffuseColor.rgb = mix(diffuseColor.rgb, uGold, glow * 0.18);' : ''}`
+      ${isFigure ? 'float glow = zoneGlow(vObj); diffuseColor.rgb = mix(diffuseColor.rgb, uGold, glow * 0.32);' : ''}`
     );
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <roughnessmap_fragment>',
@@ -222,7 +223,7 @@ export function createMarbleMaterial({ kind, physical = false, lowQuality = fals
       shader.fragmentShader = shader.fragmentShader
         .replace(
           '#include <emissivemap_fragment>',
-          '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGold * glow * (0.42 + 0.7 * pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 1.5));'
+          '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGold * glow * (0.5 + 0.8 * pow(1.0 - saturate(dot(normal, normalize(vViewPosition))), 1.5));'
         )
         .replace(
           '#include <opaque_fragment>',

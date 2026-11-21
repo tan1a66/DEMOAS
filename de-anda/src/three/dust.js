@@ -171,7 +171,7 @@ export function createDust({ chips, perFragment, fall, motes, random = Math.rand
       shared.uFocus.value = focus;
       shared.uAperture.value = aperture;
       puffs.material.uniforms.uProgress.value = progress;
-      puffs.visible = progress > 0 && progress < 1.2;
+      puffs.visible = progress > 0 && progress < 1.45;
       motesPoints.material.uniforms.uAmount.value = motesAmount;
     },
   };

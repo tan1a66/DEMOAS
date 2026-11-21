@@ -32,10 +32,11 @@ npm run build          # crea dist/
 npm run preview        # controllo locale della build
 ```
 
-- **Netlify**: nuovo sito da Git, *Base directory* `de-anda`, *Build command* `npm run build`,
-  *Publish directory* `de-anda/dist`. Oppure trascina la cartella `dist/` su app.netlify.com/drop.
-- **Vercel**: nuovo progetto, *Root Directory* `de-anda`, framework *Vite* (comandi automatici).
-  Oppure da terminale: `npx vercel --cwd de-anda`.
+- **Netlify**: nuovo sito da Git e *Base directory* `de-anda`: il resto (build, cartella `dist`,
+  cache dei modelli, `noindex`) è già in `netlify.toml`. Senza Git: `npm run build` e trascina la
+  cartella `dist/` su app.netlify.com/drop.
+- **Vercel**: nuovo progetto con *Root Directory* `de-anda`; impostazioni già in `vercel.json`.
+  Da terminale: `npx vercel --cwd de-anda`.
 
 ## Dove cambiare le cose
 
@@ -100,10 +101,19 @@ Le misure del sedile (pareti e piano della seduta) sono ricavate dai dati e salv
   bagliore dorato delle zone, controluce caldo. Il sedile resta sempre grezzo.
 - `src/three/post.js`: profondità di campo leggera solo nei primi piani.
 
+## Note sul modello
+
+- La scansione viene da una statua di fontana: il viso è consumato dal tempo (nell'originale ha
+  circa 12.000 triangoli, la versione desktop li conserva quasi tutti). Per questo il "primo piano"
+  dello slogan è testa e spalle, con luce che modella, e non un dettaglio stretto del viso.
+- Nel capitolo 01 una dozzina di frammenti "eroi" vola accanto alla camera: la loro traiettoria
+  è calcolata dal percorso del drone, quindi segue da sola eventuali modifiche a `drone-path.js`.
+
 ## Prestazioni
 
-- Desktop: modello 300k, ~4.200 frammenti, ombre 2048, profondità di campo.
-- Telefono: modello 120k, ~1.700 frammenti, ombre 1024, shader più leggeri.
+- Desktop: modello 300k, ~3.900 frammenti (grandi lontano dalla figura, piccoli vicino), ombre 2048,
+  profondità di campo, risoluzione massima 1,5×.
+- Telefono: modello 120k, ~1.700 frammenti, ombre 1024, shader più leggeri (meno ottave di rumore).
 - Qualità adattiva: sotto 48 fps per 2 secondi si spegne la profondità di campo, poi si
   abbassa la risoluzione.
 - `prefers-reduced-motion`: niente scroll morbido né voli; inquadrature fisse per capitolo

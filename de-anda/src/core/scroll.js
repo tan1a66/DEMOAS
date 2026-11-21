@@ -18,8 +18,9 @@ export function initScroll({ smooth }) {
     lenis = new Lenis({ duration: 1.25, easing: (t) => 1 - Math.pow(1 - t, 3.2), smoothWheel: true, touchMultiplier: 1.4 });
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add((time) => lenis.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
   }
+  // animazioni a tempo reale anche se un frame è lento (niente "rallentatore")
+  gsap.ticker.lagSmoothing(0);
   measure();
   ScrollTrigger.addEventListener('refresh', measure);
   return lenis;

@@ -474,6 +474,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .hotspot-label { display: none; }
 
   .btn-gold { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
+  /* il footer arriva in fondo alla pagina: il testo finale gli lascia spazio */
+  .layer-final .col { padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); }
   .site-footer { font-size: 0.56rem; letter-spacing: 0.1em; }
 }
 

@@ -68,6 +68,10 @@ boot().catch((err) => {
 });
 
 async function boot() {
+  // si parte sempre dall'inizio del racconto
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
   // ---------------------------------------------------------------- testi
   applyStaticTexts();
   renderAllTitles();
@@ -97,9 +101,17 @@ async function boot() {
   stage.contact.position.set(statue.footprint.cx, 0.002, statue.footprint.cz);
   statue.root.add(stage.contact);
 
+  // scroll e drone servono già al blocco (i frammenti "eroi" volano verso la camera)
+  initScroll({ smooth: !reducedMotion });
+  let mobileLayout = portraitLayout();
+  const drone = new Drone(camera, { mobile: mobileLayout, reducedMotion });
+  const sculptSpan = [resolveAnchor(SCULPT.start), resolveAnchor(SCULPT.end)];
+
   // blocco da scolpire + polvere
   chipUniforms.uFall.value = SCULPT.fallDuration;
   const block = await createSculptBlock({
+    // dove si trova il drone a un certo avanzamento dello scolpire
+    cameraAt: (p) => drone.sample(sculptSpan[0] + p * (sculptSpan[1] - sculptSpan[0])),
     figure: statue.figure,
     meta: statue.meta,
     count: quality.fragments,
@@ -113,9 +125,6 @@ async function boot() {
   statue.root.add(dust.group);
 
   // ---------------------------------------------------------------- scroll + drone
-  initScroll({ smooth: !reducedMotion });
-  let mobileLayout = portraitLayout();
-  const drone = new Drone(camera, { mobile: mobileLayout, reducedMotion });
   const dof = new DepthOfField(renderer, { samples: lowQuality ? 0 : 4, taps: lowQuality ? 12 : 20 });
   dof.enabled = quality.dof;
 
@@ -166,8 +175,8 @@ async function boot() {
   const size = { w: 1, h: 1 };
   let pxScale = 800;
   function resize() {
-    size.w = window.innerWidth;
-    size.h = window.innerHeight;
+    size.w = canvas.clientWidth || window.innerWidth;
+    size.h = canvas.clientHeight || window.innerHeight;
     stage.setSize(size.w, size.h, pixelRatio);
     camera.aspect = size.w / size.h;
     const db = renderer.getDrawingBufferSize(new THREE.Vector2());
@@ -181,7 +190,15 @@ async function boot() {
     }
   }
   resize();
+  // su telefono la barra del browser che appare/sparisce cambia solo l'altezza
+  // della finestra: il canvas (100lvh) non cambia e non serve ricalcolare nulla
+  let lastW = window.innerWidth;
+  let lastH = window.innerHeight;
   window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (coarse && w === lastW && Math.abs(h - lastH) < 160) return;
+    lastW = w;
+    lastH = h;
     resize();
     ScrollTrigger.refresh();
   });
@@ -241,8 +258,8 @@ async function boot() {
     gsap.to(hint, { autoAlpha: 1, duration: 1.2, delay: 1.4, ease: 'power2.out' });
     ScrollTrigger.create({
       start: 40,
-      end: 'max',
-      onToggle: (self) => gsap.to(hint, { autoAlpha: self.isActive ? 0 : 1, duration: 0.6, delay: 0, overwrite: true }),
+      onEnter: () => gsap.to(hint, { autoAlpha: 0, duration: 0.6, overwrite: true }),
+      onLeaveBack: () => gsap.to(hint, { autoAlpha: 1, duration: 0.6, overwrite: true }),
     });
   }
 
@@ -281,7 +298,8 @@ async function boot() {
     const ch = currentChapter();
 
     // --- scolpire e levigare ---
-    let sculpt = clamp01((s - anchors.sculpt[0]) / (anchors.sculpt[1] - anchors.sculpt[0]));
+    const sculptRaw = (s - anchors.sculpt[0]) / (anchors.sculpt[1] - anchors.sculpt[0]);
+    let sculpt = clamp01(sculptRaw);
     let polish = smooth(clamp01((s - anchors.polish[0]) / (anchors.polish[1] - anchors.polish[0])));
     if (reducedMotion) {
       // nessun volo: inquadratura e stato fissi per capitolo, cambiati sotto una dissolvenza
@@ -324,7 +342,8 @@ async function boot() {
     // --- polvere ---
     const dofAmount = cam.dof;
     const motes = 0.45 + 0.55 * (ch.id === 'hero' ? 1 - ch.progress : 0) + (ch.id === 'final' ? 0.35 : 0);
-    dust.update({ time: elapsed, progress: sculpt, pxScale, focus: cam.focus, aperture: dofAmount, motesAmount: motes });
+    // la polvere usa l'avanzamento non limitato: gli ultimi sbuffi si posano davvero
+    dust.update({ time: elapsed, progress: reducedMotion ? sculpt * 1.5 : Math.max(sculptRaw, 0), pxScale, focus: cam.focus, aperture: dofAmount, motesAmount: motes });
 
     procedures.update(camera, size.w, size.h);
 

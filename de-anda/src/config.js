@@ -25,7 +25,7 @@ export const QUALITY = {
     fragmentDetail: 1, // poliedri più ricchi
     dustPerFragment: 2,
     motes: 260, // polvere sospesa nella luce
-    maxPixelRatio: 1.75,
+    maxPixelRatio: 1.5,
     shadowMap: 2048,
     dof: true, // profondità di campo nei primi piani
     physical: true, // MeshPhysicalMaterial (sheen) per la statua
@@ -80,15 +80,15 @@ export const ZONES = [
     id: 'faciales',
     center: [0.6, 0.85, 0.375],
     radius: 0.07,
-    cam: { az: 20, el: 6, dist: 1.45, shift: [0.24, 0.02] },
-    mobile: { dist: 1.9, shift: [0, 0.2] },
+    cam: { az: 20, el: 8, dist: 1.75, shift: [0.25, 0.02] },
+    mobile: { dist: 2.3, shift: [0, 0.2] },
   },
   {
     id: 'corporales',
     center: [0.47, 0.47, 0.37],
-    radius: 0.11,
-    cam: { az: 34, el: 8, dist: 2.5, shift: [0.24, 0], look: [0, 0.06, 0] },
-    mobile: { dist: 3.4, shift: [0, 0.2] },
+    radius: 0.09,
+    cam: { az: -38, el: 14, dist: 3.7, shift: [0.31, 0], look: [0, 0.06, 0] },
+    mobile: { dist: 4.0, shift: [0, 0.2] },
   },
   {
     id: 'noquirurgicos',

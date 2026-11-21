@@ -79,7 +79,10 @@ export function createStatue(gltf, { physical, lowQuality }) {
       figure.geometry.boundsTree.closestPointToPoint(center, hit);
       anchor = hit.point.clone();
     }
-    figureUniforms.uZones.value[i].set(center.x, center.y, center.z, radius);
+    // il bagliore è centrato sul punto di superficie, appena dentro: così si vede
+    // sempre come una macchia di luce attorno al punto cliccabile
+    const glowAt = anchor.clone().lerp(center, Math.min(1, 0.03 / Math.max(anchor.distanceTo(center), 1e-4)));
+    figureUniforms.uZones.value[i].set(glowAt.x, glowAt.y, glowAt.z, radius);
     return { ...z, index: i, center, radius, anchor };
   });
 

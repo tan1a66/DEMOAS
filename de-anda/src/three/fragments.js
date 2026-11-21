@@ -68,7 +68,7 @@ function chipGeometry(random, points) {
  * figure:  mesh della figura (per la BVH)
  * meta:    dati del modello (bounding box, sedile) dallo script di ottimizzazione
  */
-export async function createSculptBlock({ figure, meta, count, detail, margin, coarseEnd = 0.45, onProgress = () => {} }) {
+export async function createSculptBlock({ figure, meta, count, detail, margin, coarseEnd = 0.45, cameraAt = null, onProgress = () => {} }) {
   const random = rng(20240917);
   const geometry = figure.geometry;
   const bvh = geometry.boundsTree || (geometry.boundsTree = new MeshBVH(geometry));
@@ -208,16 +208,46 @@ export async function createSculptBlock({ figure, meta, count, detail, margin, c
     dir.x += (random() - 0.5) * 0.6;
     dir.z += (random() - 0.5) * 0.6;
     dir.normalize().multiplyScalar(0.22 + random() * 0.42);
-    let seed = random();
-    // pochi frammenti "eroi" volano verso il lato da cui arriva il drone (01)
-    if (ch.size === step && ch.x > 0.15 && ch.y > 0.5 && ch.threshold > 0.05 && ch.threshold < 0.45 && random() < 0.07) {
-      const az = THREE.MathUtils.degToRad(60 + random() * 45);
-      dir.set(Math.sin(az), 0.45 + random() * 0.4, Math.cos(az)).multiplyScalar(2.2 + random() * 2.2);
-      seed += 1; // segnale per lo shader: si rimpicciolisce più tardi
-    }
     aMotion.set([dir.x, dir.y, dir.z, ch.threshold], i * 4);
-    aSeed[i] = seed;
+    aSeed[i] = random();
   });
+
+  // ---- frammenti "eroi": nel capitolo 01 alcuni volano accanto alla camera ----
+  if (cameraAt) {
+    const HEROES = 12;
+    const used = new Set();
+    const rest = new THREE.Vector3(), near = new THREE.Vector3(), side = new THREE.Vector3();
+    for (let h = 0; h < HEROES; h++) {
+      const when = 0.05 + (h / (HEROES - 1)) * (coarseEnd * 0.85 - 0.05); // avanzamento del distacco
+      const at = cameraAt(when + fall * 0.7); // dove sarà il drone quando il frammento gli passa accanto
+      const view = at.target.clone().sub(at.pos).normalize();
+      // il frammento grande, rivolto verso la camera, che si stacca più vicino a quel momento
+      let best = -1, bestScore = Infinity;
+      chips.forEach((ch, i) => {
+        if (used.has(i) || ch.size !== step) return;
+        rest.set(ch.x, ch.y, ch.z);
+        const facing = rest.clone().sub(at.target).dot(view) < -0.1; // dal lato della camera
+        if (!facing) return;
+        const score = Math.abs(ch.threshold - when);
+        if (score < bestScore) { bestScore = score; best = i; }
+      });
+      if (best < 0 || bestScore > 0.03) continue;
+      used.add(best);
+      const ch = chips[best];
+      // passa a 0.7–1.2 unità dall'obiettivo, di lato e un po' sotto: mai dentro la camera
+      side.crossVectors(view, new THREE.Vector3(0, 1, 0)).normalize().multiplyScalar((h % 2 ? 1 : -1) * (0.7 + random() * 0.5));
+      near.copy(at.pos).add(side).add(new THREE.Vector3(0, -0.35 - random() * 0.3, 0)).addScaledVector(view, 0.6);
+      // stessa traiettoria dello shader: off = m * t + (0, 0.14 t - (y0 + 0.16) t², 0), a t = 0.7
+      const t = 0.7;
+      const m = near.clone().sub(new THREE.Vector3(ch.x, ch.y, ch.z));
+      m.y -= 0.14 * t - (ch.y + 0.16) * t * t;
+      m.divideScalar(t);
+      aMotion.set([m.x, m.y, m.z, ch.threshold], best * 4);
+      aSeed[best] = 1 + random(); // per lo shader: si rimpicciolisce più tardi
+      for (let k = 0; k < 3; k++) aScale[best * 3 + k] *= 0.55;
+    }
+    if (import.meta.env.DEV) console.info(`[blocco] ${used.size} frammenti volano accanto alla camera`);
+  }
 
   // ---- 3 forme di frammento, per varietà (3 draw call) ----
   const material = createMarbleMaterial({ kind: 'chip', lowQuality: detail === 0 });
@@ -260,7 +290,9 @@ export async function createSculptBlock({ figure, meta, count, detail, margin, c
     chips: chips.map((ch, i) => ({
       x: ch.x, y: ch.y, z: ch.z,
       threshold: ch.threshold,
-      dx: aMotion[i * 4], dz: aMotion[i * 4 + 2],
+      // per gli sbuffi a terra: dove cade (gli "eroi" volano lontano, si resta vicini)
+      dx: THREE.MathUtils.clamp(aMotion[i * 4], -0.7, 0.7),
+      dz: THREE.MathUtils.clamp(aMotion[i * 4 + 2], -0.7, 0.7),
     })),
     setProgress(v) {
       chipUniforms.uProgress.value = v;
