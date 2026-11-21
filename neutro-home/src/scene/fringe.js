@@ -7,6 +7,7 @@
 
 import * as THREE from 'three';
 import { Spring } from '../model/spring.js';
+import { waveUniforms, WAVE_GLSL } from '../gl/dyeWaves.js';
 
 const FRINGE_PARS = /* glsl */ `
 attribute vec4 aFr; // (t a lo largo del hilo, tono, oclusión, semilla)
@@ -59,16 +60,14 @@ export function fringeUniforms({ pivot, hang, pushR = 0.12 }) {
     uHang: { value: hang },
     uSpin: { value: 0 },
     uFlare: { value: 0 },
-    // tinte: el color nuevo baja por los hilos (de arriba abajo)
-    uColA: { value: new THREE.Color() },
-    uColB: { value: new THREE.Color() },
-    uDyeFront: { value: 2 },
+    // tinte en ondas: cada color nuevo baja por los hilos (de arriba abajo)
+    ...waveUniforms('#ffffff', { edge: 0.14 }),
   };
 }
 
 export function fringeMaterial(uniforms, { color, roughness = 0.72, sheen = 1, sheenColor, emissive }) {
-  uniforms.uColA.value.set(color);
-  uniforms.uColB.value.set(color);
+  uniforms.uDyeBase.value.set(color);
+  for (const c of uniforms.uDyeCol.value) c.set(color);
   const mat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     roughness,
@@ -87,10 +86,10 @@ export function fringeMaterial(uniforms, { color, roughness = 0.72, sheen = 1, s
         'vec3 transformed = fringeDisplace(vec3(position), aFr.x, aFr.w);\nvAO = aFr.z; vTint = aFr.y; vT = aFr.x;'
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nvarying float vAO;\nvarying float vTint;\nvarying float vT;\nuniform vec3 uColA;\nuniform vec3 uColB;\nuniform float uDyeFront;')
+      .replace('#include <common>', `#include <common>\nvarying float vAO;\nvarying float vTint;\nvarying float vT;\n${WAVE_GLSL}`)
       .replace(
         '#include <map_fragment>',
-        '#include <map_fragment>\nvec3 dyeC = mix(uColB, uColA, smoothstep(uDyeFront - 0.14, uDyeFront + 0.14, vT));\ndiffuseColor.rgb *= dyeC * vTint * vAO;'
+        '#include <map_fragment>\nvec3 dyeC = waveColor(vT);\ndiffuseColor.rgb *= dyeC * vTint * vAO;'
       )
       .replace(
         '#include <lights_physical_fragment>',
@@ -194,45 +193,6 @@ export function fringeGeometry(threads, seedBase = 0) {
   g.setIndex(new THREE.BufferAttribute(idx, 1));
   g.computeBoundingSphere();
   return g;
-}
-
-// Tinte que baja por los hilos (y materiales sólidos que cambian a la vez).
-export class FringeDye {
-  constructor(uniformList, solids = []) {
-    this.us = uniformList;
-    this.solids = solids; // [{ material, factor }]
-    this.t = 1;
-    this.from = [];
-    this.to = new THREE.Color();
-  }
-
-  set(hexList) {
-    // hexList: un color para todo, o una lista (un color por juego de uniforms / sólido)
-    const pick = (i) => (Array.isArray(hexList) ? hexList[i % hexList.length] : hexList);
-    this.us.forEach((u, i) => {
-      if (this.t < 1) u.uColA.value.copy(u.uColB.value); // si estaba a medias, parte del destino
-      u.uDyeFront.value = -0.25;
-      u.uColB.value.set(pick(i));
-    });
-    this.from = this.solids.map((s) => s.material.color.clone());
-    this.targets = this.solids.map((s) => new THREE.Color(pick(s.index || 0)).multiplyScalar(s.factor || 1));
-    this.t = 0;
-  }
-
-  step(dt) {
-    if (this.t >= 1) return false;
-    this.t = Math.min(1, this.t + dt / 1.1);
-    const e = this.t < 0.5 ? 4 * this.t ** 3 : 1 - (-2 * this.t + 2) ** 3 / 2;
-    for (const u of this.us) u.uDyeFront.value = -0.25 + 1.5 * e;
-    this.solids.forEach((s, i) => s.material.color.copy(this.from[i]).lerp(this.targets[i], e));
-    if (this.t >= 1) {
-      for (const u of this.us) {
-        u.uColA.value.copy(u.uColB.value);
-        u.uDyeFront.value = 2;
-      }
-    }
-    return true;
-  }
 }
 
 // Plato giratorio: la pieza se queda en su sitio y se hace girar con el dedo (con inercia).

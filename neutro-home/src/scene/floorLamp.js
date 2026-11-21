@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { BRAID, IS_TOUCH } from '../config.js';
 import { Braid, hungStructure } from './braid.js';
 import { createDyeUniforms } from '../gl/fiberMaterial.js';
+import { DyeWaves } from '../gl/dyeWaves.js';
 import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms } from './fringe.js';
 import { Tassel } from './tassel.js';
 import { smoothstep } from '../model/spring.js';
@@ -48,9 +49,6 @@ function fiberMat(textures, color, extra = {}) {
   });
 }
 
-function setSheen(target, hex) {
-  target.set(hex).lerp(new THREE.Color('#fff1dc'), 0.42).multiplyScalar(0.95);
-}
 
 // eje de la trenza a lo largo de una polilínea suave (coordenadas locales de la trenza)
 function centerAlong(curve, N) {
@@ -278,76 +276,38 @@ export class BraidLamp {
   }
 }
 
-// Dos lámparas, un solo tinte: el color sube por la trenza desde el suelo, luego el cuello, el
-// fleco y por último la pantalla.
+// Dos lámparas, un solo tinte en ondas: el color sube por la trenza desde el suelo (y recorre la
+// del suelo), el cuello y el fleco cambian enseguida y la pantalla cuando la onda llega arriba.
 export class LampPair {
   constructor({ textures, color, radial, positions }) {
     this.group = new THREE.Group();
     this.dye = createDyeUniforms(color);
-    setSheen(this.dye.uSheenOld.value, color);
-    setSheen(this.dye.uSheenNew.value, color);
     this.lamps = positions.map((p, i) => {
       const l = new BraidLamp({ textures, dye: this.dye, color, side: i === 0 ? -1 : 1, radial });
       l.group.position.copy(p);
       this.group.add(l.group);
       return l;
     });
-    this.flow = null;
+    this.waves = [
+      new DyeWaves(this.dye, {
+        duration: 3.4,
+        solids: this.lamps.flatMap((l) => [
+          { material: l.shadeMat, pos: 1.12, sheen: true },
+          { material: l.collarMat, pos: 0.0, factor: 0.95, sheen: true },
+        ]),
+      }),
+      ...this.lamps.map((l) => new DyeWaves(l.fringeU, { duration: 2.2 })),
+    ];
   }
 
   setColor(hex) {
-    const to = new THREE.Color(hex);
-    // si había un cambio a medias, se parte del color que se ve
-    if (this.flow) this.finishFlow();
-    this.dye.uColNew.value.copy(to);
-    setSheen(this.dye.uSheenNew.value, hex);
-    this.flow = {
-      t: 0,
-      to,
-      from: this.lamps.map((l) => l.solids.map((s) => s.material.color.clone())),
-    };
-    for (const l of this.lamps) {
-      l.fringeU.uColB.value.copy(to);
-      l.fringeU.uDyeFront.value = -0.25;
-    }
-  }
-
-  finishFlow() {
-    const f = this.flow;
-    this.dye.uColOld.value.copy(this.dye.uColNew.value);
-    this.dye.uSheenOld.value.copy(this.dye.uSheenNew.value);
-    this.dye.uFront.value = 2;
-    this.dye.uFlowing.value = 0;
-    for (const l of this.lamps) {
-      l.fringeU.uColA.value.copy(f.to);
-      l.fringeU.uDyeFront.value = 2;
-      l.solids.forEach((s) => s.material.color.copy(f.to).multiplyScalar(s.factor));
-      l.shadeMat.sheenColor.copy(f.to).lerp(new THREE.Color('#fff1dc'), 0.45);
-    }
-    this.flow = null;
+    for (const w of this.waves) w.push(hex);
   }
 
   step(dt, k) {
     let dirty = false;
     for (const l of this.lamps) if (l.step(dt, k)) dirty = true;
-    const f = this.flow;
-    if (!f) return dirty;
-    f.t = Math.min(1, f.t + dt / 1.9);
-    const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
-    // trenza (del suelo a la pantalla)
-    const eb = ease(smoothstep(0.0, 0.62, f.t));
-    this.dye.uFront.value = -0.26 + 1.52 * eb;
-    this.dye.uFlowing.value = Math.sin(Math.PI * smoothstep(0.0, 0.62, f.t));
-    const ec = ease(smoothstep(0.05, 0.3, f.t)); // cuello
-    const ef = ease(smoothstep(0.12, 0.5, f.t)); // fleco (de arriba abajo)
-    const es = ease(smoothstep(0.6, 1.0, f.t)); // pantalla
-    this.lamps.forEach((l, i) => {
-      l.fringeU.uDyeFront.value = -0.25 + 1.5 * ef;
-      l.shadeMat.color.copy(f.from[i][0]).lerp(f.to, es);
-      l.shadeMat.sheenColor.copy(l.shadeMat.color).lerp(new THREE.Color('#fff1dc'), 0.45);
-      l.collarMat.color.copy(f.from[i][1]).lerp(new THREE.Color(f.to).multiplyScalar(0.95), ec);
-    });
-    if (f.t >= 1) this.finishFlow();
-    return true;
+    for (const w of this.waves) if (w.step(dt)) dirty = true;
+    return dirty;
   }
 }

@@ -1,10 +1,11 @@
 import './styles.css';
 import * as THREE from 'three';
 
-import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE, TASSEL } from './config.js';
+import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE } from './config.js';
 import { bakeTextures } from './gl/textures.js';
 import { buildEnvironment } from './gl/environment.js';
 import { createDyeUniforms } from './gl/fiberMaterial.js';
+import { DyeWaves } from './gl/dyeWaves.js';
 import { buildRoom, ROOM, PALM_SPOTS } from './scene/room.js';
 import { loadPalms } from './scene/palms.js';
 import { Makech } from './scene/makech.js';
@@ -16,7 +17,7 @@ import { STOPS } from './stops.js';
 import { JourneyUI } from './ui/journeyUi.js';
 import { buildPegs } from './scene/pegs.js';
 import { Braid, hungStructure, introStructure } from './scene/braid.js';
-import { Tassel, TASSEL_PIVOT } from './scene/tassel.js';
+import { Tassel } from './scene/tassel.js';
 import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
 import { clamp, lerp, smoothstep } from './model/spring.js';
@@ -24,7 +25,7 @@ import { PieceUI } from './ui/ui.js';
 import { sunlight } from './gl/sunlight.js';
 import { Tapestry } from './scene/tapestry.js';
 import { LampPair, LAMP } from './scene/floorLamp.js';
-import { Cut } from './scene/cut.js';
+import { ShadowCut } from './scene/cut.js';
 import { WipWall } from './scene/wipWall.js';
 
 const $ = (id) => document.getElementById(id);
@@ -77,8 +78,6 @@ scene.add(pegs);
 
 const startColor = COLORS.find((c) => c.id === DEFAULT_COLOR);
 const dye = createDyeUniforms(startColor.hex);
-setSheen(dye.uSheenOld.value, startColor.hex);
-setSheen(dye.uSheenNew.value, startColor.hex);
 
 const braid = new Braid({ radial: QUALITY.radial, dye, textures, envIntensity: 0.9 });
 scene.add(braid.mesh);
@@ -169,18 +168,14 @@ const atmosphere = new Atmosphere({
 atmosphere.setPixelRatio(renderer.getPixelRatio());
 scene.add(atmosphere.group);
 const demoSpin = {};
-// cada cuántos segundos cambia de color la pieza (lo que tarda el tinte en recorrerla y un respiro)
-const AUTO_EVERY = { trenza: 2.0, makech: 2.0, xux: 2.2, sala: 2.7 };
+// cada cuántos segundos entra un color nuevo (las ondas son lentas: varias recorren la pieza a la vez)
+const AUTO_EVERY = { trenza: 1.35, makech: 1.3, xux: 1.4, sala: 1.5 };
 const autoColor = { idx: -1, last: 0 };
 
 const HUNG_PHASE = 0.4;
 const rig = new Rig();
 const hung = hungStructure(HUNG_PHASE);
 
-function setSheen(target, hex) {
-  const c = new THREE.Color(hex);
-  target.copy(c).lerp(new THREE.Color('#fff1dc'), 0.42).multiplyScalar(0.95);
-}
 
 // ---------------------------------------------------------------- encuadre
 const brandEl = $('brand');
@@ -319,8 +314,8 @@ const piece = new PieceUI({
 });
 
 // ---------------------------------------------------------------- recorrido
-// la entrada ocupa 2,8 unidades de recorrido (≈ 2,4 pantallas deslizadas); luego cada pieza, 1
-const INTRO_SPAN = 2.8;
+// la entrada ocupa 3 unidades de recorrido (≈ 2,5 pantallas deslizadas); luego cada pieza, 1
+const INTRO_SPAN = 3.0;
 const journey = new Journey(STOPS.length, INTRO_SPAN);
 const jui = new JourneyUI({ onGo: (i) => goStop(i), piece });
 function goStop(i) {
@@ -437,34 +432,11 @@ function placeJourneyCamera() {
   sun.target.updateMatrixWorld();
 }
 
-const flow = { active: false, t: 0, queued: null };
+// El color de la trenza entra por la borla izquierda y la recorre en una onda lenta; si llega otro
+// color antes de que termine, las ondas conviven.
+const braidWaves = new DyeWaves(dye, { duration: 3.3 });
 function requestColor(hex) {
-  if (flow.active) {
-    flow.queued = hex;
-    return;
-  }
-  dye.uColNew.value.set(hex);
-  setSheen(dye.uSheenNew.value, hex);
-  flow.active = true;
-  flow.t = 0;
-}
-function updateFlow(dt) {
-  flow.t = Math.min(1, flow.t + dt / 0.85);
-  const e = flow.t < 0.5 ? 4 * flow.t ** 3 : 1 - (-2 * flow.t + 2) ** 3 / 2;
-  dye.uFront.value = lerp(-0.26, 1.26, e);
-  dye.uFlowing.value = Math.sin(Math.PI * flow.t);
-  if (flow.t >= 1) {
-    dye.uColOld.value.copy(dye.uColNew.value);
-    dye.uSheenOld.value.copy(dye.uSheenNew.value);
-    dye.uFront.value = 2;
-    dye.uFlowing.value = 0;
-    flow.active = false;
-    if (flow.queued) {
-      const q = flow.queued;
-      flow.queued = null;
-      requestColor(q);
-    }
-  }
+  braidWaves.push(hex);
 }
 
 // ---------------------------------------------------------------- actualización de la trenza
@@ -487,46 +459,19 @@ const introP = {
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
-const INTRO_END = 9.9;
+const INTRO_END = 10.3;
 
-// Sol de la fase de sombra: alto, de frente y algo a la izquierda (roza el muro desde arriba).
-// La cola se separa del muro (fuera de cuadro, como en manos de la tejedora): su sombra cae
-// limpia más abajo, donde no hay nada más.
-const SHADOW = { dir: new THREE.Vector3(-0.45, 1.0, 1.0).normalize(), lift: 0.6 };
-const SHADOW_K = { x: -SHADOW.dir.x / SHADOW.dir.z, y: SHADOW.dir.y / SHADOW.dir.z };
+// El sol de la entrada no se mueve (la misma luz de siempre); sólo el mapa de sombras se concentra
+// en la zona de la sombra, para que sea más definida.
 const SUN_REST = {
   target: sun.target.position.clone(),
   offset: sun.position.clone().sub(sun.target.position), // como al principio de siempre
   frustum: { left: -1.4, right: 1.4, top: 1.25, bottom: -1.45 },
 };
 const SUN_TIGHT = 0.6; // media anchura del mapa de sombras sobre la zona de la sombra
-let introLift = 0;
-// además la cola se aleja en la dirección del sol (su sombra no cambia, pero sale de cuadro)
-const ALONG = 1.0;
-let introAlong = 0;
-const liftW = (s) => 1 - smoothstep(0.44, 0.62, s);
-const introZ = (s) => BRAID.z + liftW(s) * (introLift + introAlong * SHADOW.dir.z);
-const liftedCenter = { px: null, py: null, tx: null, ty: null };
-function liftCenter() {
-  const c = rig.center;
-  if (!liftedCenter.px) {
-    liftedCenter.px = new Float32Array(c.px.length);
-    liftedCenter.py = new Float32Array(c.py.length);
-  }
-  const N = c.px.length;
-  const ds = BRAID.length / (N - 1);
-  for (let i = 0; i < N; i++) {
-    const w = liftW(i * ds) * introAlong;
-    liftedCenter.px[i] = c.px[i] + SHADOW.dir.x * w;
-    liftedCenter.py[i] = c.py[i] + SHADOW.dir.y * w;
-  }
-  liftedCenter.tx = c.tx;
-  liftedCenter.ty = c.ty;
-  return liftedCenter;
-}
-const cut = new Cut();
-scene.add(cut.group);
-const cutAt = new THREE.Vector3();
+// La sombra de la trenza larga: justo debajo de los hilos, con el nudo y el corte más abajo.
+const SHADOW_AT = { yTop: -0.8, yKnot: -1.38, frameY: -1.42 };
+let shadowCut = null; // se construye al arrancar (necesita la trenza colgada en reposo)
 
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
@@ -557,37 +502,30 @@ function computeCloseCamera() {
   // subida: la cámara sube por los hilos hasta donde se vuelven trenza, junto al gancho
   const hR = fit(0.62, 0.46);
   closeCam.R = frame(hR, -0.1);
-  // la sombra de los cabos sobre el muro (cola separada del muro a BRAID.z + lift)
-  const zt = BRAID.z + SHADOW.lift;
+  // la sombra: el nudo arriba, el punto del corte y las hebras largas debajo (en horizontal algo
+  // a la izquierda: la otra cola queda fuera de cuadro)
   const hS = fit(0.8, 1.2);
-  // (en horizontal algo a la izquierda: la otra cola queda fuera de cuadro)
-  // encuadre: el nudo arriba, el punto del corte y las hebras largas debajo
-  closeCam.S = frame(hS, tip - 0.15 - SHADOW_K.y * zt, info.endL.x + SHADOW_K.x * zt - (aspect > 1 ? 0.14 : 0.02));
+  closeCam.shadowX = info.endL.x + 0.05;
+  closeCam.portrait = aspect < 1 ? 1 : 0.4;
+  closeCam.S = frame(hS, SHADOW_AT.frameY, closeCam.shadowX - (aspect > 1 ? 0.14 : 0));
 }
 
-// Luz de la entrada: la tarde normal ↔ el sol alto de la sombra (sh = 0..1).
+// Luz de la entrada (sh = 0..1): la sombra se vuelve más definida y algo más contrastada.
 const sunTmp = new THREE.Vector3();
-const restDir = SUN_KEYS[0].dir.clone().normalize();
 function introLight(sh, rimK) {
   const a = SUN_KEYS[0];
-  sunTmp.lerpVectors(restDir, SHADOW.dir, sh).normalize();
-  sunlight.uSunDir.value.copy(sunTmp);
-  sun.color.copy(a.color).lerp(new THREE.Color('#ffe6c4'), sh);
-  sun.intensity = lerp(a.i, 3.6, sh);
-  hemi.intensity = lerp(a.hemi, 0.42, sh);
-  scene.environmentIntensity = lerp(a.env, 0.7, sh);
-  // sombra más definida: se ven los bultos de los cruces y los hilos sueltos
+  sun.color.copy(a.color);
+  sun.intensity = lerp(a.i, 3.5, sh);
+  hemi.intensity = lerp(a.hemi, 0.4, sh);
+  scene.environmentIntensity = lerp(a.env, 0.66, sh);
   sun.shadow.radius = lerp(QUALITY.shadowRadius, 2.6, sh);
-  sunlight.uArcadeK.value = 1 - sh; // la sombra del trenzado, limpia (sin pilares)
+  sunlight.uArcadeK.value = 1;
   sunlight.uLeaf.value = 1;
   atmosphere.uniforms.uGlow.value = a.glow;
-  rim.intensity = 1.6 * rimK * (1 - sh);
-  // el mapa de sombras se concentra en la zona de la sombra (más definida)
+  rim.intensity = 1.6 * rimK;
   const S = closeCam.S;
   sun.target.position.copy(SUN_REST.target).lerp(sunTmp.set(S.x, S.y, 0), sh);
-  const len = SUN_REST.offset.length();
-  sunTmp.copy(SUN_REST.offset).normalize().lerp(SHADOW.dir, sh).normalize();
-  sun.position.copy(sun.target.position).addScaledVector(sunTmp, len);
+  sun.position.copy(sun.target.position).add(SUN_REST.offset);
   sun.target.updateMatrixWorld();
   const c = sun.shadow.camera;
   const f = SUN_REST.frustum;
@@ -604,90 +542,75 @@ function restoreSunFrustum() {
 }
 
 // La entrada es una función del desplazamiento (t = segundos "de guion", no de reloj).
-const flashEl = $('flash');
 function setIntro(t) {
-  // 1) el hilo nace: baja por la cola y se abre en muchísimas hebras  2) la cámara sube por los
-  // hilos hasta la trenza, hacia la luz  3) destello: de la luz sale la sombra de la trenza entera,
-  // larguísima, con su nudo  4) tijeras: corte, el sobrante cae  5) la cámara se aleja
+  // 1) el hilo nace: baja por la cola y se abre en muchísimas hebras  2) la cámara baja por el
+  // muro y, bajo los hilos, aparece la sombra de la trenza ya hecha, larguísima, con su nudo
+  // 3) tijeras de sastre: corte, el sobrante cae; la trenza se levanta  4) la cámara se aleja
   introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 3.2)));
   const bl = seg(t, 2.9, 5.0);
   const bloom = 0.66 * bl * bl;
   const spray = easeInOut(seg(t, 2.9, 4.7));
-  // (todo lo que va de las hebras a la trenza cerrada ocurre dentro del destello)
-  const W0 = 5.95;
-  const W1 = 6.15;
-  const inW = easeInOut(seg(t, W0, W1));
+  // la trenza real se completa cuando ya está fuera de cuadro (la cámara mira la sombra)
+  const fin = easeInOut(seg(t, 6.1, 6.3));
   introP.bloom = bloom;
-  introP.split = inW;
-  introP.spread = 0.6 * inW;
-  introP.tube = 0.5 * inW + 0.5 * easeInOut(seg(t, 8.55, 9.2));
-  const END = 0.08;
-  introP.front = lerp(0.74, END, inW);
+  introP.split = fin;
+  introP.spread = 0.6 * fin;
+  introP.tube = fin;
+  introP.front = lerp(0.74, 0.08, fin);
   introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.2, 5.6)));
-  introP.done = inW;
-  introP.tipEnd = lerp(0.085, -0.2, inW);
-  const goOut = inW * (1 - easeInOut(seg(t, 8.15, 8.65)));
-  introLift = SHADOW.lift * goOut;
-  introAlong = ALONG * goOut;
-  introP.airy = goOut;
+  introP.done = fin;
+  introP.tipEnd = lerp(0.085, -0.2, fin);
+  introP.airy = 0;
   if (threads) {
-    threads.mesh.visible = t > 2.4 && t < 9.25;
+    threads.mesh.visible = t > 2.4 && t < 6.3;
     threads.set({
-      bloom, spray, gather: inW, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
-      front: lerp(introP.front, -0.4, inW), done: 0,
+      bloom, spray, gather: fin, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
+      front: lerp(introP.front, -0.4, fin), done: 0,
     });
   }
-  const lifted = goOut > 1e-4;
-  braid.update(lifted ? liftCenter() : rig.center, lifted ? introZ : BRAID.z, introSt);
-  // la borla: el cuello ya cerrado y las hebras larguísimas hasta el corte
-  const e = rig.info.endL;
-  const tEnd = { x: e.x + SHADOW.dir.x * introAlong, y: e.y + SHADOW.dir.y * introAlong, dx: e.dx, dy: e.dy };
-  tassels.L.place(tEnd, introZ(0), 0);
-  tassels.L.mesh.visible = t > W0;
-  tassels.L.uniforms.uWrap.value = inW;
-  const CUT_T = 7.55;
-  tassels.L.uniforms.uDrop.value = t < CUT_T ? lerp(1, 3.3, inW) : 1;
-  const after = t - CUT_T;
-  tassels.L.uniforms.uLag.value = after > 0 ? 0.12 * Math.sin(after * 7) * Math.exp(-after * 2.6) : 0;
-  // tijeras: llegan abiertas despacio, cortan, se abren un poco y se van
-  cutAt.set(tEnd.x, 0, introZ(0));
-  const cutY = tEnd.y + TASSEL_PIVOT + 0.014 - TASSEL.fiberLength;
-  const enter = easeInOut(seg(t, 6.75, 7.3));
-  const close = easeInOut(seg(t, 7.3, CUT_T));
-  const reopen = easeOut(seg(t, CUT_T, 7.8)) * 0.35;
-  cut.set({
-    at: cutAt,
-    cutY,
-    enter,
-    open: 0.42 * (1 - close) + 0.42 * reopen,
-    fall: t < CUT_T ? -1 : (t - CUT_T) * 1.15,
-    away: easeInOut(seg(t, 7.8, 8.3)),
-    visible: t > 6.7 && t < 8.4,
-  });
+  braid.update(rig.center, BRAID.z, introSt);
+  tassels.L.place(rig.info.endL, BRAID.z, 0);
+  tassels.L.mesh.visible = t > 6.2;
+  tassels.L.uniforms.uWrap.value = 1;
+  tassels.L.uniforms.uDrop.value = 1;
+  tassels.L.uniforms.uLag.value = 0;
 
-  // cámara: cerca del hilo que nace → sube por los hilos hacia el gancho → (destello) → la sombra
-  // del nudo y del corte, que se acerca muy despacio → se aleja: la pieza ya está colgada
-  const { A, R, S } = closeCam;
-  const rise = easeInOut(seg(t, 4.5, 5.95));
-  let d = lerp(A.d * (1 - 0.04 * seg(t, 0, 2.6)), R.d, rise);
-  let y = lerp(A.y, R.y, rise);
-  let x = closeCam.x;
-  const slow = seg(t, W1, 8.4);
-  d = lerp(d, S.d * (1 - 0.08 * slow), inW);
-  y = lerp(y, S.y - 0.03 * slow, inW);
-  x = lerp(x, S.x, inW);
+  // la sombra larga (sólo sombra): tijeras despacio, corte, el sobrante cae, se levanta
+  const CUT_T = 7.9;
+  const after = t - CUT_T;
+  if (shadowCut) {
+    const lift = easeInOut(seg(t, 8.55, 9.15));
+    shadowCut.set({
+      visible: t > 4.4 && t < 9.15,
+      grow: easeInOut(seg(t, 4.4, 5.3)),
+      long: 3.3,
+      cut: t >= CUT_T,
+      fall: Math.max(0, after) * 1.1,
+      enter: easeOut(seg(t, 6.9, 7.55)),
+      open: 0.62 * (1 - easeInOut(seg(t, 7.62, CUT_T))) + 0.18 * easeOut(seg(t, 8.05, 8.25)),
+      away: easeInOut(seg(t, 8.25, 8.7)),
+      lift,
+      sway: after > 0 ? 0.1 * Math.sin(after * 6.5) * Math.exp(-after * 2.4) : 0,
+    });
+  }
+
+  // cámara: cerca del hilo que nace → baja despacio por el muro hasta la sombra → se acerca un
+  // poco mientras se corta → se aleja: la pieza ya está colgada en el muro
+  const { A, S } = closeCam;
+  const down = easeInOut(seg(t, 4.7, 6.5));
+  // mientras llegan las tijeras el encuadre se abre un poco hacia ellas (se ven enteras)
+  const scis = easeInOut(seg(t, 6.6, 7.4)) * (1 - easeInOut(seg(t, 8.3, 8.9)));
+  const d = lerp(A.d * (1 - 0.04 * seg(t, 0, 2.6)), S.d * (1 + 0.18 * scis), down);
+  const y = lerp(A.y, S.y - 0.06 * scis, down);
+  const x = lerp(closeCam.x, S.x + 0.09 * scis * closeCam.portrait, down);
   camPos.set(x, y, BRAID.z + d);
   camLook.set(x, y, 0);
-  const away = easeInOut(seg(t, 8.45, INTRO_END - 0.1));
+  const away = easeInOut(seg(t, 8.9, INTRO_END - 0.1));
   camPos.lerp(finalCam.pos, away);
   camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
 
-  // el destello (subir hacia el sol): la imagen se quema hasta el blanco y vuelve
-  const flash = easeInOut(seg(t, 5.45, W0)) * (1 - easeInOut(seg(t, W1, 6.75)));
-  renderer.toneMappingExposure = 1 + 2.6 * flash;
-  flashEl.style.opacity = String(Math.min(1, flash * 1.15));
-  const sh = inW * (1 - easeInOut(seg(t, 8.15, 8.9)));
+  const sh = easeInOut(seg(t, 4.8, 6.3)) * (1 - easeInOut(seg(t, 8.9, 9.6)));
   introLight(sh, 1 - away);
   if (t > 0.8 && t < 4.4) introLine.classList.add('on');
   else introLine.classList.remove('on');
@@ -721,11 +644,7 @@ function endIntro() {
   jui.setTravelling(false);
   prevTravel = false;
   lastP = -1;
-  introLift = 0;
-  introAlong = 0;
-  renderer.toneMappingExposure = 1;
-  flashEl.style.opacity = '0';
-  cut.group.visible = false;
+  if (shadowCut) shadowCut.group.visible = false;
   tassels.L.uniforms.uLag.value = 0;
   restoreSunFrustum();
   placeJourneyCamera();
@@ -1237,10 +1156,7 @@ function frame(now) {
     }
     dirty = updateJourney(dt, now / 1000) || dirty;
   }
-  if (flow.active) {
-    updateFlow(dt);
-    dirty = true;
-  }
+  if (braidWaves.step(dt)) dirty = true;
   if (dirty) {
     if (phase !== 'loading') applySway(now / 1000);
     renderer.render(scene, camera);
@@ -1346,7 +1262,7 @@ function updateJourney(dt, time) {
   for (const f of fringes) if (f.turn.step(dt, f.scrollSpin(p))) dirty = true;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
   if (makech.dye.step(dt)) dirty = true;
-  if (xux.dye.step(dt)) dirty = true;
+  if (xux.stepDye(dt)) dirty = true;
   if (sala.visible && tapestry.swing.step(dt, time)) {
     dirty = true;
     spot.shadow.needsUpdate = true; // los hilos se mueven: su sombra también
@@ -1385,6 +1301,14 @@ async function start() {
   rig.step(0.016);
   syncHung();
   computeCloseCamera();
+  shadowCut = new ShadowCut({
+    dye,
+    textures,
+    shadow: { x: closeCam.shadowX, yTop: SHADOW_AT.yTop, yKnot: SHADOW_AT.yKnot },
+    sunDir: SUN_REST.offset,
+  });
+  scene.add(shadowCut.group);
+  shadowCut.group.visible = true; // compilar también sus materiales
   applyCamera(finalCam.pos, finalCam.look);
   if (threads) threads.mesh.visible = true; // compilar también su shader antes de empezar
   computeStops();

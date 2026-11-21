@@ -3,7 +3,8 @@
 
 import * as THREE from 'three';
 import { IS_TOUCH } from '../config.js';
-import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing, FringeDye } from './fringe.js';
+import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing } from './fringe.js';
+import { DyeWaves } from '../gl/dyeWaves.js';
 
 function rng(seed) {
   return () => {
@@ -111,6 +112,14 @@ class XuxLamp {
     this.skirt.customDepthMaterial = fringeDepthMaterial(this.uniforms);
     this.group.add(this.skirt);
     this.swing = new FringeSwing(this.uniforms, { omega: 1.9, zeta: 0.18 });
+    // el color entra por la pantalla, pasa por los nudos y baja por el fleco
+    this.dye = new DyeWaves(this.uniforms, {
+      duration: 2.9,
+      solids: [
+        { material: this.shadeMat, pos: -0.2, sheen: true },
+        { material: knotMat, pos: -0.08, factor: 0.95, sheen: true },
+      ],
+    });
     this.hit = { r: 0.28, y0: floorY, y1: shadeTop };
     this.shadeY = shade.position.y;
   }
@@ -130,14 +139,6 @@ export class XuxFamily {
       this.group.add(lamp.group);
       return lamp;
     });
-    // tinte: los flecos se tiñen de arriba abajo; pantallas y nudos cambian a la vez
-    this.dye = new FringeDye(
-      this.lamps.map((l) => l.uniforms),
-      this.lamps.flatMap((l, i) => [
-        { material: l.shadeMat, index: i },
-        { material: l.knotMat, index: i, factor: 0.95 },
-      ])
-    );
     // una sola luz cálida para la familia (barata en móvil)
     this.light = new THREE.PointLight(0xffc583, 0, 3.2, 1.5);
     this.light.position.set(positions[1].x, floorY + 1.55, positions[1].z + 0.25);
@@ -146,13 +147,18 @@ export class XuxFamily {
 
   // un color para las tres (con matices, como hechas en lotes distintos) o la combinación de la casa
   setColor(hex) {
-    if (!hex) {
-      this.dye.set(this.specs.map((s) => s.color));
-      return;
-    }
-    const c = new THREE.Color(hex);
-    const tones = [1, 1.14, 0.9].map((k) => '#' + c.clone().multiplyScalar(k).getHexString());
-    this.dye.set(tones);
+    const c = hex && new THREE.Color(hex);
+    this.lamps.forEach((l, i) => {
+      // un poco después cada una, como una ola que pasa por la familia
+      const tone = c ? c.clone().multiplyScalar([1, 1.14, 0.9][i]) : new THREE.Color(this.specs[i].color);
+      setTimeout(() => l.dye.push(tone), i * 260);
+    });
+  }
+
+  stepDye(dt) {
+    let any = false;
+    for (const l of this.lamps) if (l.dye.step(dt)) any = true;
+    return any;
   }
 
   setOn(k) {

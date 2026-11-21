@@ -1,32 +1,20 @@
 // Material de la fibra (trenza y borlas): MeshPhysicalMaterial con sheen + inyecciones:
-//  · color que "fluye" de una borla a la otra (uFront),
+//  · color que "fluye" en ondas de una borla a la otra (dyeWaves.js),
 //  · oclusión ambiental falsa (vAO) y ligera variación de tono por cabo (vTint),
 //  · en la trenza, la geometría completa se construye en el vertex shader a partir de
 //    una textura de datos (posiciones y tangentes de los tres cabos).
 
 import * as THREE from 'three';
+import { waveUniforms, WAVE_GLSL, WAVE_SHEEN_GLSL } from './dyeWaves.js';
 
+// El tinte va en ondas (ver dyeWaves.js): el color entra por una borla y recorre la trenza.
 export function createDyeUniforms(hex) {
-  const c = new THREE.Color(hex);
-  return {
-    uColOld: { value: c.clone() },
-    uColNew: { value: c.clone() },
-    uSheenOld: { value: new THREE.Color() },
-    uSheenNew: { value: new THREE.Color() },
-    uFront: { value: 2 },
-    uEdge: { value: 0.07 },
-    uFlowing: { value: 0 },
-  };
+  return waveUniforms(hex, { sheen: true, edge: 0.1 });
 }
 
 const FRAG_PARS = /* glsl */ `
-uniform vec3 uColOld;
-uniform vec3 uColNew;
-uniform vec3 uSheenOld;
-uniform vec3 uSheenNew;
-uniform float uFront;
-uniform float uEdge;
-uniform float uFlowing;
+${WAVE_GLSL}
+${WAVE_SHEEN_GLSL}
 varying float vAO;
 varying float vFlow;
 varying float vTint;
@@ -34,10 +22,9 @@ varying float vTint;
 
 const FRAG_DYE = /* glsl */ `
 #include <map_fragment>
-float dyeK = smoothstep(uFront - uEdge, uFront + uEdge, vFlow);
-vec3 dye = mix(uColNew, uColOld, dyeK);
-vec3 dyeSheen = mix(uSheenNew, uSheenOld, dyeK);
-float dyeWet = uFlowing * exp(-pow((vFlow - uFront) / (uEdge * 1.5), 2.0));
+vec3 dye = waveColor(vFlow);
+vec3 dyeSheen = waveSheen(vFlow);
+float dyeWet = waveWet(vFlow) * 0.6;
 diffuseColor.rgb *= dye * vTint * vAO * (1.0 - 0.12 * dyeWet);
 `;
 

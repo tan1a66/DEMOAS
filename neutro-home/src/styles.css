@@ -98,16 +98,6 @@ body {
   transition: opacity 1.4s var(--ease), color 1.2s var(--ease);
 }
 
-/* destello de la entrada (subir hacia el sol) */
-.flash {
-  position: fixed;
-  inset: 0;
-  background: #f8eee1;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
 /* ------------------------------------------------------------ entrada */
 .intro-line {
   position: absolute;

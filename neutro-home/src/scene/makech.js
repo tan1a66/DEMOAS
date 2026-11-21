@@ -3,7 +3,8 @@
 
 import * as THREE from 'three';
 import { IS_TOUCH } from '../config.js';
-import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing, FringeDye } from './fringe.js';
+import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing } from './fringe.js';
+import { DyeWaves } from '../gl/dyeWaves.js';
 
 function rng(seed) {
   return () => {
@@ -103,13 +104,13 @@ export class Makech {
     this.group.add(this.light);
 
     this.swing = new FringeSwing(this.uniforms, { omega: 2.2, zeta: 0.14 });
-    this.dye = new FringeDye([this.uniforms], [{ material: crown.material, factor: 0.85 }]);
+    this.dye = new DyeWaves(this.uniforms, { duration: 2.7, solids: [{ material: crown.material, factor: 0.85, pos: 0 }] });
     // zona que se puede tocar (cilindro en coordenadas locales)
     this.hit = { r: 0.4, y0: -1.08, y1: 0.02 };
   }
 
   setColor(hex) {
-    this.dye.set(hex);
+    this.dye.push(hex);
   }
 
   setOn(k) {

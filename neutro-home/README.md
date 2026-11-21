@@ -3,10 +3,10 @@
 Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
 di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono appena).
 1. **Entrata:** su muro chiaro nasce il filo: scende lungo la coda della treccia già appesa e si
-   apre in moltissimi fili; la camera sale lungo i fili fino al gancio, dove diventano treccia, e
-   va verso il sole (la luce brucia fino al bianco). Dalla luce esce l'ombra della treccia intera,
-   lunghissima, con il nodo: entrano le forbici, taglio, il pezzo in più cade. Poi la camera si
-   allontana e la treccia è al suo posto.
+   apre in moltissimi fili. La camera scende piano lungo il muro: sotto i fili, che si raccolgono,
+   c'è l'ombra della treccia già fatta, lunghissima, con il nodo. Entrano le forbici da sarto,
+   taglio, il pezzo in più cade e la treccia si solleva; la camera si allontana e la treccia è
+   appesa al suo posto. (L'ombra la fanno pezzi che non si vedono: `src/scene/cut.js`.)
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
@@ -20,8 +20,9 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
 5. **Fine:** in fondo alla galleria, sul muro, WORK IN PROGRESS dipinto con lo spray fucsia e la
    firma ALESSIA.STUDIO, sotto un faretto che si muove appena.
 La casa è la galleria di un'hacienda restaurata: portico ad archi sul patio (si intravede appena,
-nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo ogni
-due secondi circa; se il visitante sceglie un colore, quel pezzo resta del colore scelto.
+nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo: un colore
+nuovo entra ogni secondo e mezzo circa e scorre lento lungo il pezzo (più onde insieme,
+`src/gl/dyeWaves.js`); se il visitatore sceglie un colore, quel pezzo resta del colore scelto.
 Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce dorata alla Makech,
 tramonto alle Xux, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
