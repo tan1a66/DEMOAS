@@ -944,7 +944,7 @@ function nearPiece() {
   return Math.abs(journey.p - i) < NEAR ? i : -1;
 }
 // cuánto hay que deslizar para pasar de una pieza a la siguiente
-const scrollPx = () => window.innerHeight * 0.85;
+const scrollPx = () => window.innerHeight * 1.05;
 
 // Desplazar y tocar con el mismo dedo: el gesto dice la intención.
 //  · gesto rápido (aunque empiece sobre una pieza) → recorre la casa;
@@ -1189,10 +1189,8 @@ function endPointer(e) {
   }
   if (sw) {
     // inercia: el recorrido sigue un poco al soltar (sin paradas)
-    if (sw.axis === 'y' && !sw.grabbed) {
-      const v = performance.now() - sw.lastT < 90 ? clamp(sw.v * 0.3, -1.2, 1.2) : 0;
-      journey.settle(journey.target + v);
-    }
+    // al soltar, la cámara se queda donde la ha dejado el dedo: sin inercia ni vuelos
+
     swipe = null;
   }
   ring(false);
@@ -1212,7 +1210,6 @@ canvas.addEventListener('pointerleave', () => {
 });
 
 // Rueda / trackpad: desplazamiento continuo (una pantalla y poco ≈ una pieza).
-let wheelTimer = 0;
 window.addEventListener(
   'wheel',
   (e) => {
@@ -1221,12 +1218,7 @@ window.addEventListener(
     let d = e.deltaY;
     if (e.deltaMode === 1) d *= 18;
     else if (e.deltaMode === 2) d *= window.innerHeight;
-    journey.scrollBy(d / (window.innerHeight * 1.1));
-    // al parar la rueda, se posa en la pieza más cercana (si está cerca)
-    clearTimeout(wheelTimer);
-    wheelTimer = setTimeout(() => {
-      if (journey.target >= journey.intro - 0.05) journey.settle(journey.target);
-    }, 220);
+    journey.scrollBy(d / (window.innerHeight * 1.35));
   },
   { passive: false }
 );

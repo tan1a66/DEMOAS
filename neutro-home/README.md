@@ -22,8 +22,8 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    OUR HISTORY e SHOP (per ora senza destinazione: mostrano "COMING SOON").
 
 Altro: ogni pezzo ha una sosta nello scorrimento (la camera arriva frenando e resta ferma per un
-tratto; tra un pezzo e l'altro va al passo del dito, senza accelerare; uno scorrimento veloce si
-ferma al pezzo successivo); luce dorata da tramonto con polvere che brilla nei raggi; i colori sono in colonna a sinistra
+tratto); tra un pezzo e l'altro va al passo del dito, lenta, senza accelerare; quando si stacca il
+dito si ferma lì (niente inerzia né voli automatici); luce dorata da tramonto con polvere che brilla nei raggi; i colori sono in colonna a sinistra
 dell'oggetto, la freccia di scorrimento al centro in basso; un dito
 "fantasma" mostra una volta sola i gesti (tirare la treccia, far girare la Makech); suono
 facoltativo (pulsante in alto a destra: brezza, uccelli, grilli la sera, forbici, una nota a ogni
@@ -38,7 +38,7 @@ tramonto verso la sala, sera nella sala: il sole si abbassa, le ombre si allunga
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
 attorno alla Makech e la Makech ruota con lo scorrimento (le frange si aprono e restano indietro).
 Nessun testo: logo (senza link), colori, segni di avanzamento e una freccia per proseguire.
-Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, con inerzia;
+Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, senza inerzia;
 vicino a un pezzo lo si può toccare. Stesso dito per scorrere e toccare, decide il gesto:
 gesto rapido = scorre (anche sopra un pezzo); dito appoggiato un attimo o movimento lento = prende il
 pezzo (anello sotto il dito, la pagina non scorre); sulle lampade il gesto orizzontale le fa girare;

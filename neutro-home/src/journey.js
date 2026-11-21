@@ -32,7 +32,7 @@ export class Journey {
     this.count = count;
     this.intro = introSpan;
     this.max = introSpan + (count - 1) * SEG;
-    this.spring = new Spring(0, 5.5, 1);
+    this.spring = new Spring(0, 4.2, 1); // sigue al dedo con calma
   }
 
   get s() {
@@ -59,26 +59,6 @@ export class Journey {
     return k + travel(raw - k * SEG - HOLD);
   }
 
-  // ¿dónde termina el desplazamiento si se suelta con esta inercia? nunca más allá de la pieza
-  // siguiente (cada pieza tiene su pausa) y, si queda cerca de una, se posa en ella
-  settle(target) {
-    const s = this.spring.x;
-    const dir = Math.sign(target - s);
-    let t = target;
-    if (s < this.intro) {
-      if (dir > 0) t = Math.min(t, this.intro);
-    } else {
-      const raw = (s - this.intro) / SEG;
-      if (dir > 0) t = Math.min(t, this.stopS(Math.floor(raw + 1e-3) + 1));
-      if (dir < 0) t = Math.max(t, this.stopS(Math.ceil(raw - 1e-3) - 1));
-    }
-    if (t >= this.intro - 0.05) {
-      const near = Math.round((t - this.intro) / SEG);
-      if (Math.abs(t - this.stopS(near)) < 0.42 * SEG) t = this.stopS(near);
-    }
-    this.goS(t, 3.2);
-  }
-
   get introT() {
     return this.intro > 0 ? clamp(this.spring.x / this.intro, 0, 1) : 1;
   }
@@ -99,7 +79,7 @@ export class Journey {
 
   // desplazamiento continuo (rueda, dedo)
   setTarget(x) {
-    this.spring.omega = 5.5;
+    this.spring.omega = 4.2;
     this.spring.target = clamp(x, 0, this.max);
   }
 
@@ -107,7 +87,7 @@ export class Journey {
     this.setTarget(this.spring.target + d);
   }
 
-  goS(x, omega = 2.6) {
+  goS(x, omega = 1.8) {
     const to = clamp(x, 0, this.max);
     this.spring.target = to;
     this.spring.omega = omega + Math.max(0, Math.abs(this.spring.x - to) - 1) * 0.5;
