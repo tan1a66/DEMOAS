@@ -38,30 +38,48 @@ float lfNoise(vec2 p) {
   return mix(mix(lfHash(i), lfHash(i + vec2(1.0, 0.0)), u.x), mix(lfHash(i + vec2(0.0, 1.0)), lfHash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 float lfFbm(vec2 p) { return 0.55 * lfNoise(p) + 0.3 * lfNoise(p * 2.07 + 1.7) + 0.15 * lfNoise(p * 4.13 + 3.1); }
-const float CELL = 1.35;
-// Una hoja de palma por celda (no en todas): nervio central y foliolos en espiga.
-float frond(vec2 p, vec2 cell) {
-  float h = lfHash(cell);
-  if (h < 0.38) return 0.0;
-  vec2 c = (cell + 0.5 + (vec2(lfHash(cell + 3.1), lfHash(cell + 7.7)) - 0.5) * 0.7) * CELL;
-  float ang = lfHash(cell + 11.3) * 6.2831;
-  // cada hoja se mece a su ritmo
-  ang += 0.05 * sin(uTime * (0.5 + h * 0.4) + h * 20.0);
-  vec2 d = vec2(cos(ang), sin(ang));
-  vec2 q = p - c;
-  float a = dot(q, d);
-  float cc = dot(q, vec2(-d.y, d.x));
-  float L = 0.55 + 0.3 * h;
-  float t = clamp(a / L, -1.0, 1.0);
-  float w = 0.3 * (1.0 - t * t) * (0.6 + 0.4 * (t * 0.5 + 0.5));
-  float along = 1.0 - smoothstep(L * 0.92, L, abs(a));
-  float inside = (1.0 - smoothstep(w * 0.6, w, abs(cc))) * along;
-  float fish = 0.5 + 0.5 * sin((a + abs(cc) * 1.15) * 30.0 + h * 6.0);
-  float leaflets = smoothstep(0.18, 0.62, fish);
-  float rib = (1.0 - smoothstep(0.004, 0.02, abs(cc))) * along;
-  return max(inside * leaflets, rib * 0.8);
+// Copas de palmera enteras (no hojas sueltas): en cada celda grande, a veces, una copa con
+// sus fronds saliendo de un centro; cada fronda es un raquis que se arquea (cae con su peso)
+// y foliolos en espiga. Las palmeras están lejos del muro: penumbra ancha, foliolos difusos.
+const float CELL = 3.4;
+const float NFR = 11.0;
+float frondShape(vec2 q, float L) {
+  float a = q.x;
+  if (a < 0.0 || a > L) return 0.0;
+  float t = a / L;
+  float w = 0.42 * pow(sin(3.14159 * min(1.0, t * 1.04)), 0.75) * (0.55 + 0.45 * t);
+  float b = abs(q.y);
+  // foliolos en espiga, orientados hacia la punta
+  float fish = 0.5 + 0.5 * sin((a - b * 1.1) * 23.0);
+  float leaflets = smoothstep(0.2, 0.75, fish) * (1.0 - smoothstep(w * 0.55, w * 1.05, b));
+  float rib = 1.0 - smoothstep(0.008, 0.04, b);
+  return max(leaflets * 0.9, rib * 0.85) * smoothstep(0.05, 0.3, a);
 }
-// 1 = luz, 0 = sombra de hoja (con penumbra suave: las hojas están lejos del muro)
+float crown(vec2 p, vec2 cell) {
+  float h = lfHash(cell);
+  if (h < 0.42) return 0.0;
+  vec2 c = (cell + 0.5 + (vec2(lfHash(cell + 3.1), lfHash(cell + 7.7)) - 0.5) * 0.6) * CELL;
+  vec2 d = p - c;
+  float L = 1.75 + 0.5 * h;
+  if (dot(d, d) > (L + 0.5) * (L + 0.5)) return 0.0;
+  // la copa se mece entera, muy poco
+  float rot = lfHash(cell + 11.3) * 6.2831 + 0.035 * sin(uTime * (0.35 + h * 0.3) + h * 20.0);
+  float step = 6.2831 / NFR;
+  float k = floor((atan(d.y, d.x) - rot) / step + 0.5);
+  float s = 0.0;
+  for (int j = -1; j <= 1; j++) {
+    float kk = k + float(j);
+    float jit = lfHash(cell + vec2(kk, 2.3));
+    float fa = rot + kk * step + (jit - 0.5) * 0.3 + 0.03 * sin(uTime * (0.9 + jit) + kk);
+    vec2 dir = vec2(cos(fa), sin(fa));
+    vec2 q = vec2(dot(d, dir), dot(d, vec2(-dir.y, dir.x)));
+    // el raquis cae con su peso (hacia abajo en el muro)
+    q.y += (0.1 + 0.08 * jit) * q.x * q.x * dir.x;
+    s = max(s, frondShape(q, L * (0.82 + 0.3 * jit)));
+  }
+  return s;
+}
+// 1 = luz, 0 = sombra de copa (con penumbra suave: las palmeras están lejos del muro)
 float leafLight(vec3 wp) {
   vec3 d = normalize(uSunDir);
   vec3 u = normalize(cross(d, vec3(0.0, 1.0, 0.0)));
@@ -71,9 +89,9 @@ float leafLight(vec3 wp) {
   vec2 g = floor(q / CELL);
   float shade = 0.0;
   for (int i = -1; i <= 1; i++) {
-    for (int j = -1; j <= 1; j++) shade = max(shade, frond(q, g + vec2(float(i), float(j))));
+    for (int j = -1; j <= 1; j++) shade = max(shade, crown(q, g + vec2(float(i), float(j))));
   }
-  return 1.0 - shade;
+  return 1.0 - 0.92 * shade;
 }
 `;
 

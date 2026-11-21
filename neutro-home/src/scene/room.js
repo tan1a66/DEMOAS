@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { plasterMaterial, TILE } from './wall.js';
 import { patchSunlight, sunlight } from '../gl/sunlight.js';
-import { buildPalms, patioGroundMaterial } from './palms.js';
+import { patioGroundMaterial } from './palms.js';
 
 export const ROOM = {
   floor: -2.0,
@@ -30,6 +30,17 @@ export const ROOM = {
 };
 
 // Portal: pilares cada 2,85 (los tabiques llegan a un pilar), arcos de medio punto.
+// Palmeras del patio (se cargan aparte: modelo 3D)
+export const PALM_SPOTS = [
+  { x: -3.0, z: 11.2, h: 5.6 },
+  { x: 1.2, z: 9.4, h: 4.9 },
+  { x: 4.6, z: 12.4, h: 6.2 },
+  { x: 9.8, z: 11.0, h: 5.4 },
+  { x: 12.6, z: 9.3, h: 4.8 },
+  { x: 16.0, z: 12.6, h: 6.3 },
+  { x: 20.6, z: 11.0, h: 5.5 },
+];
+
 export const ARCADE = { pitch: 2.85, origin: 1.5, pillar: 0.56, thick: 0.45, spring: ROOM.floor + 2.45 };
 
 // UV en coordenadas del mundo según la orientación de cada cara (proyección de caja).
@@ -335,18 +346,6 @@ export function buildRoom(textures) {
   ground.position.set((left + right) / 2, groundY, front + ARCADE.thick + 0.32 + 8);
   group.add(ground);
   group.add(farWing());
-  group.add(
-    buildPalms(
-      [
-        { x: -3.0, z: 11.2, h: 5.4 },
-        { x: 3.6, z: 12.6, h: 6.0 },
-        { x: 9.6, z: 11.4, h: 5.2 },
-        { x: 15.2, z: 12.8, h: 6.2 },
-        { x: 20.6, z: 11.0, h: 5.4 },
-      ],
-      groundY
-    )
-  );
   const sky = skyDome();
   group.add(sky);
   group.userData.sky = sky;

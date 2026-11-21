@@ -69,11 +69,6 @@ export const COLORS = [
 ];
 export const DEFAULT_COLOR = 'rosa';
 
-export const CONTACT = {
-  instagram: 'https://ig.me/m/neutro_home',
-  catalog: 'https://neutro.com.mx',
-};
-
 export const PALETTE = {
   earth: 0x1e1712, // fondo de la entrada
 };

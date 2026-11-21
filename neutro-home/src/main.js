@@ -5,7 +5,8 @@ import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, 
 import { bakeTextures } from './gl/textures.js';
 import { buildEnvironment } from './gl/environment.js';
 import { createDyeUniforms } from './gl/fiberMaterial.js';
-import { buildRoom, ROOM } from './scene/room.js';
+import { buildRoom, ROOM, PALM_SPOTS } from './scene/room.js';
+import { loadPalms } from './scene/palms.js';
 import { Makech } from './scene/makech.js';
 import { XuxFamily } from './scene/xux.js';
 import { Turntable } from './scene/fringe.js';
@@ -318,8 +319,8 @@ const piece = new PieceUI({
 });
 
 // ---------------------------------------------------------------- recorrido
-// la entrada ocupa 2,6 unidades de recorrido (≈ 2 pantallas deslizadas); luego cada pieza, 1
-const INTRO_SPAN = 2.6;
+// la entrada ocupa 2,8 unidades de recorrido (≈ 2,4 pantallas deslizadas); luego cada pieza, 1
+const INTRO_SPAN = 2.8;
 const journey = new Journey(STOPS.length, INTRO_SPAN);
 const jui = new JourneyUI({ onGo: (i) => goStop(i), piece });
 function goStop(i) {
@@ -486,7 +487,7 @@ const introP = {
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
-const INTRO_END = 9.4;
+const INTRO_END = 9.9;
 
 // Sol de la fase de sombra: alto, de frente y algo a la izquierda (roza el muro desde arriba).
 // La cola se separa del muro (fuera de cuadro, como en manos de la tejedora): su sombra cae
@@ -553,6 +554,9 @@ function computeCloseCamera() {
   closeCam.A = frame(hA, tip + 0.2 * hA); // hilo que baja: la punta a ~70 % de la altura
   // formación completa a la vista, sin llegar al gancho ni a la onda (se descubren al final)
   closeCam.W = frame(hW, Math.min(tip + 0.2 * hW, -0.1 - hW / 2));
+  // subida: la cámara sube por los hilos hasta donde se vuelven trenza, junto al gancho
+  const hR = fit(0.62, 0.46);
+  closeCam.R = frame(hR, -0.1);
   // la sombra de los cabos sobre el muro (cola separada del muro a BRAID.z + lift)
   const zt = BRAID.z + SHADOW.lift;
   const hS = fit(0.8, 1.2);
@@ -600,89 +604,92 @@ function restoreSunFrustum() {
 }
 
 // La entrada es una función del desplazamiento (t = segundos "de guion", no de reloj).
+const flashEl = $('flash');
 function setIntro(t) {
-  // 1) el hilo baja por la cola  2) se abre en hebras  3) tres cabos  — igual que siempre —
-  // 4) directo a la sombra: la trenza ya está hecha y es larguísima; el nudo se cierra, entran
-  //    las tijeras, corte, el sobrante cae  5) la sombra se recoge y la cámara se aleja
-  introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 2.7)));
-  const bl = seg(t, 2.5, 4.4);
+  // 1) el hilo nace: baja por la cola y se abre en muchísimas hebras  2) la cámara sube por los
+  // hilos hasta la trenza, hacia la luz  3) destello: de la luz sale la sombra de la trenza entera,
+  // larguísima, con su nudo  4) tijeras: corte, el sobrante cae  5) la cámara se aleja
+  introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 3.2)));
+  const bl = seg(t, 2.9, 5.0);
   const bloom = 0.66 * bl * bl;
-  const spray = easeInOut(seg(t, 2.5, 4.0));
-  const split = easeInOut(seg(t, 3.9, 4.8));
-  const gather = easeInOut(seg(t, 4.2, 5.4));
+  const spray = easeInOut(seg(t, 2.9, 4.7));
+  // (todo lo que va de las hebras a la trenza cerrada ocurre dentro del destello)
+  const W0 = 5.95;
+  const W1 = 6.15;
+  const inW = easeInOut(seg(t, W0, W1));
   introP.bloom = bloom;
-  introP.split = split;
-  introP.spread = 0.6 * split;
-  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 7.6, 8.2));
-  // el trenzado ocurre fuera de cuadro, mientras la cámara pasa a la sombra
+  introP.split = inW;
+  introP.spread = 0.6 * inW;
+  introP.tube = 0.5 * inW + 0.5 * easeInOut(seg(t, 8.55, 9.2));
   const END = 0.08;
-  introP.front = t < 5.75 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : lerp(0.52, END, easeInOut(seg(t, 5.75, 6.1)));
-  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 5.6)));
-  const closing = easeInOut(seg(t, 5.9, 6.25));
-  introP.done = closing;
-  introP.tipEnd = lerp(0.085, -0.2, closing);
-  const goOut = easeInOut(seg(t, 5.55, 6.1)) * (1 - easeInOut(seg(t, 7.35, 7.9)));
+  introP.front = lerp(0.74, END, inW);
+  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.2, 5.6)));
+  introP.done = inW;
+  introP.tipEnd = lerp(0.085, -0.2, inW);
+  const goOut = inW * (1 - easeInOut(seg(t, 8.15, 8.65)));
   introLift = SHADOW.lift * goOut;
   introAlong = ALONG * goOut;
   introP.airy = goOut;
   if (threads) {
-    threads.mesh.visible = t > 2.4 && t < 8.25;
+    threads.mesh.visible = t > 2.4 && t < 9.25;
     threads.set({
-      bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
-      front: lerp(introP.front, -0.4, closing), done: 0,
+      bloom, spray, gather: inW, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
+      front: lerp(introP.front, -0.4, inW), done: 0,
     });
   }
   const lifted = goOut > 1e-4;
   braid.update(lifted ? liftCenter() : rig.center, lifted ? introZ : BRAID.z, introSt);
-  // la borla: el cuello se enrolla y las hebras siguen larguísimas hasta el corte
+  // la borla: el cuello ya cerrado y las hebras larguísimas hasta el corte
   const e = rig.info.endL;
   const tEnd = { x: e.x + SHADOW.dir.x * introAlong, y: e.y + SHADOW.dir.y * introAlong, dx: e.dx, dy: e.dy };
   tassels.L.place(tEnd, introZ(0), 0);
-  tassels.L.mesh.visible = t > 5.9;
-  tassels.L.uniforms.uWrap.value = easeInOut(seg(t, 5.9, 6.3));
-  const CUT_T = 6.95;
-  const long = 3.3;
-  tassels.L.uniforms.uDrop.value = t < CUT_T ? lerp(1, long, easeOut(seg(t, 5.95, 6.4))) : 1;
-  // después del corte la borla se balancea un poco
+  tassels.L.mesh.visible = t > W0;
+  tassels.L.uniforms.uWrap.value = inW;
+  const CUT_T = 7.55;
+  tassels.L.uniforms.uDrop.value = t < CUT_T ? lerp(1, 3.3, inW) : 1;
   const after = t - CUT_T;
-  tassels.L.uniforms.uLag.value = after > 0 ? 0.12 * Math.sin(after * 9) * Math.exp(-after * 3.5) : 0;
-  // tijeras: llegan abiertas, cortan, se abren un poco y se van
+  tassels.L.uniforms.uLag.value = after > 0 ? 0.12 * Math.sin(after * 7) * Math.exp(-after * 2.6) : 0;
+  // tijeras: llegan abiertas despacio, cortan, se abren un poco y se van
   cutAt.set(tEnd.x, 0, introZ(0));
   const cutY = tEnd.y + TASSEL_PIVOT + 0.014 - TASSEL.fiberLength;
-  const enter = easeOut(seg(t, 6.35, 6.75));
-  const close = easeInOut(seg(t, 6.75, CUT_T));
-  const reopen = easeOut(seg(t, CUT_T, 7.15)) * 0.35;
+  const enter = easeInOut(seg(t, 6.75, 7.3));
+  const close = easeInOut(seg(t, 7.3, CUT_T));
+  const reopen = easeOut(seg(t, CUT_T, 7.8)) * 0.35;
   cut.set({
     at: cutAt,
     cutY,
     enter,
     open: 0.42 * (1 - close) + 0.42 * reopen,
-    fall: t < CUT_T ? -1 : (t - CUT_T) * 1.3,
-    away: easeInOut(seg(t, 7.1, 7.5)),
-    visible: t > 6.3 && t < 7.9,
+    fall: t < CUT_T ? -1 : (t - CUT_T) * 1.15,
+    away: easeInOut(seg(t, 7.8, 8.3)),
+    visible: t > 6.7 && t < 8.4,
   });
 
-  // cámara: cerca del hilo → se abre para ver toda la cola → baja al muro (la sombra del nudo
-  // y del corte) → se aleja: la pieza ya está colgada en el muro
-  const { A, W, S } = closeCam;
-  const wide = easeInOut(seg(t, 2.6, 5.4));
-  const toS = easeInOut(seg(t, 5.4, 6.0));
-  const near = easeInOut(seg(t, 6.0, 7.3));
-  let d = lerp(A.d, W.d, wide) * (1 - 0.04 * seg(t, 0, 2.6));
-  let y = lerp(A.y, W.y, wide);
-  d = lerp(d, S.d * (1 - 0.12 * near), toS);
-  y = lerp(y, S.y - 0.04 * near, toS);
-  const x = lerp(closeCam.x, S.x, toS);
+  // cámara: cerca del hilo que nace → sube por los hilos hacia el gancho → (destello) → la sombra
+  // del nudo y del corte, que se acerca muy despacio → se aleja: la pieza ya está colgada
+  const { A, R, S } = closeCam;
+  const rise = easeInOut(seg(t, 4.5, 5.95));
+  let d = lerp(A.d * (1 - 0.04 * seg(t, 0, 2.6)), R.d, rise);
+  let y = lerp(A.y, R.y, rise);
+  let x = closeCam.x;
+  const slow = seg(t, W1, 8.4);
+  d = lerp(d, S.d * (1 - 0.08 * slow), inW);
+  y = lerp(y, S.y - 0.03 * slow, inW);
+  x = lerp(x, S.x, inW);
   camPos.set(x, y, BRAID.z + d);
   camLook.set(x, y, 0);
-  const away = easeInOut(seg(t, 7.7, INTRO_END - 0.1));
+  const away = easeInOut(seg(t, 8.45, INTRO_END - 0.1));
   camPos.lerp(finalCam.pos, away);
   camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
 
-  const sh = easeInOut(seg(t, 5.4, 6.0)) * (1 - easeInOut(seg(t, 7.35, 8.1)));
+  // el destello (subir hacia el sol): la imagen se quema hasta el blanco y vuelve
+  const flash = easeInOut(seg(t, 5.45, W0)) * (1 - easeInOut(seg(t, W1, 6.75)));
+  renderer.toneMappingExposure = 1 + 2.6 * flash;
+  flashEl.style.opacity = String(Math.min(1, flash * 1.15));
+  const sh = inW * (1 - easeInOut(seg(t, 8.15, 8.9)));
   introLight(sh, 1 - away);
-  if (t > 0.8 && t < 4.9) introLine.classList.add('on');
+  if (t > 0.8 && t < 4.4) introLine.classList.add('on');
   else introLine.classList.remove('on');
   document.body.classList.toggle('lit', t > INTRO_END - 0.8);
 }
@@ -716,6 +723,8 @@ function endIntro() {
   lastP = -1;
   introLift = 0;
   introAlong = 0;
+  renderer.toneMappingExposure = 1;
+  flashEl.style.opacity = '0';
   cut.group.visible = false;
   tassels.L.uniforms.uLag.value = 0;
   restoreSunFrustum();
@@ -1194,7 +1203,8 @@ let lastLeaf = 0;
 let introDirty = true;
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000);
+  // (el primer fotograma puede llegar con una marca de tiempo anterior: nunca un paso negativo)
+  const dt = clamp((now - last) / 1000, 0, 0.05);
   last = now;
   let dirty = needsRender;
   needsRender = false;
@@ -1361,6 +1371,12 @@ function updateJourney(dt, time) {
 
 // ---------------------------------------------------------------- arranque
 async function start() {
+  // palmeras del patio (modelo 3D): antes de compilar, para que no haya tirones al verlas
+  try {
+    room.add(await loadPalms(PALM_SPOTS, ROOM.floor - 0.12));
+  } catch {
+    /* sin palmeras: el patio sigue siendo luz */
+  }
   computeFinalCamera();
   camera.updateProjectionMatrix();
 
@@ -1439,6 +1455,9 @@ window.__trenza = {
   toScreen,
   tapestry,
   lampPair,
+  makech,
+  xux,
+  fringes,
   pickSala,
   render: () => renderer.render(scene, camera),
   renderer,

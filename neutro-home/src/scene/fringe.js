@@ -265,6 +265,7 @@ export class Turntable {
 
   // extra: giro que pone el propio recorrido (la pieza gira mientras se pasa por delante)
   step(dt, extra = 0) {
+    dt = Math.max(0, dt);
     if (!this.held) {
       this.angle += this.omega * dt;
       this.omega *= Math.exp(-0.9 * dt);
@@ -323,6 +324,7 @@ export class FringeSwing {
   step(dt, time) {
     this.u.uTime.value = time;
     if (!this.active) return false;
+    dt = Math.max(0, dt);
     const h = Math.min(dt, 1 / 30);
     this.lag.target = Math.max(-0.9, Math.min(0.9, this.spin * 0.3));
     for (let i = 0; i < 4; i++) {

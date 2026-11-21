@@ -1,164 +1,77 @@
-// Palmas del patio: tronco anillado algo inclinado y una corona de hojas pinnadas (raquis que se
-// arquea y foliolos que cuelgan). Todo en una sola geometría por palmera; la brisa mueve las hojas
-// en el vertex shader (con el mismo reloj que las sombras de hojas del muro).
+// Palmas del patio: modelo 3D realista ("Palm Tree Realistic" de 00amza, Sketchfab, CC BY 4.0),
+// con la textura reducida (src/assets/palm.glb). Una sola geometría para todas; la brisa mueve la
+// corona en el vertex shader (con el mismo reloj que las sombras de hojas del muro). Desde la
+// galería se ven sólo de refilón, a contraluz y veladas por la luz del patio.
 
 import * as THREE from 'three';
-import { sunlight } from '../gl/sunlight.js';
-import { patchSunlight } from '../gl/sunlight.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import palmUrl from '../assets/palm.glb?url';
+import { sunlight, patchSunlight } from '../gl/sunlight.js';
 
-function rng(seed) {
-  return () => {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-  };
-}
+export async function loadPalms(spots, groundY) {
+  const gltf = await new GLTFLoader().loadAsync(palmUrl);
+  gltf.scene.updateMatrixWorld(true);
+  let src = null;
+  gltf.scene.traverse((o) => {
+    if (o.isMesh && !src) src = o;
+  });
+  // geometría en metros, con el pie en el origen
+  const geo = src.geometry.clone();
+  geo.applyMatrix4(src.matrixWorld);
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const c = bb.getCenter(new THREE.Vector3());
+  geo.translate(-c.x, -bb.min.y, -c.z);
+  geo.computeBoundingSphere();
+  const H = bb.max.y - bb.min.y;
 
-const WIND = /* glsl */ `
-attribute vec3 aWind; // (peso en la hoja, fase, peso del foliolo)
-uniform float uTime;
-vec3 palmWind(vec3 p) {
-  float t = uTime;
-  float sway = sin(t * 0.7 + aWind.y) * 0.6 + sin(t * 1.3 + aWind.y * 2.3) * 0.4;
-  p.x += sway * 0.06 * aWind.x;
-  p.y += (sin(t * 0.9 + aWind.y * 1.7) - 0.4) * 0.035 * aWind.x;
-  p.z += sin(t * 0.8 + aWind.y * 0.7) * 0.04 * aWind.x;
-  p.y += sin(t * 3.1 + aWind.y * 9.0 + p.x * 4.0) * 0.012 * aWind.z;
-  return p;
-}
-`;
-
-function frond(P, C, W, I, top, rnd, opts) {
-  const { azim, elev, len, droop, tint } = opts;
-  const dirH = new THREE.Vector3(Math.cos(azim), 0, Math.sin(azim));
-  const side = new THREE.Vector3(-dirH.z, 0, dirH.x);
-  const n = 34;
-  const rach = [];
-  for (let i = 0; i <= n; i++) {
-    const s = (i / n) * len;
-    const h = s * Math.cos(elev);
-    const v = s * Math.sin(elev) - droop * s * s;
-    rach.push(top.clone().addScaledVector(dirH, h).add(new THREE.Vector3(0, v, 0)));
-  }
-  const phase = rnd() * 6.28;
-  const green = new THREE.Color(tint);
-  for (let i = 2; i < n; i++) {
-    const a = rach[i];
-    const b = rach[i + 1];
-    const t = i / n;
-    const tang = b.clone().sub(a).normalize();
-    const L = 0.62 * Math.sin(Math.PI * Math.min(1, t * 1.08)) * (0.85 + 0.3 * rnd()) + 0.08;
-    const w = 0.035 + 0.015 * rnd();
-    for (const sgn of [-1, 1]) {
-      // foliolo: sale hacia el lado y cuelga (más cuanto más lejos del tronco)
-      const out = side.clone().multiplyScalar(sgn).addScaledVector(tang, 0.35);
-      out.y -= 0.35 + 0.5 * t + 0.25 * rnd();
-      out.normalize();
-      const mid = a.clone().addScaledVector(out, L * 0.5);
-      const tip = a.clone().addScaledVector(out, L).add(new THREE.Vector3(0, -L * 0.25 * (0.5 + t), 0));
-      const wv = tang.clone().multiplyScalar(w);
-      const base = P.length / 3;
-      const pts = [a.clone().sub(wv), a.clone().add(wv), mid.clone().sub(wv.clone().multiplyScalar(0.8)), mid.clone().add(wv.clone().multiplyScalar(0.8)), tip];
-      const col = green.clone().multiplyScalar(0.8 + 0.35 * rnd());
-      pts.forEach((p, k) => {
-        P.push(p.x, p.y, p.z);
-        const shade = k < 2 ? 0.75 : k < 4 ? 0.95 : 1.05;
-        C.push(col.r * shade, col.g * shade, col.b * shade);
-        W.push(t, phase, k < 2 ? 0 : k < 4 ? 0.5 : 1);
-      });
-      I.push(base, base + 1, base + 2, base + 1, base + 3, base + 2, base + 2, base + 3, base + 4);
-    }
-  }
-  // raquis: una cinta fina
-  const base = P.length / 3;
-  for (let i = 0; i <= n; i++) {
-    const p = rach[i];
-    const t = i / n;
-    const ww = 0.022 * (1 - 0.7 * t);
-    P.push(p.x - side.x * ww, p.y, p.z - side.z * ww, p.x + side.x * ww, p.y, p.z + side.z * ww);
-    const c = green.clone().lerp(new THREE.Color('#8a7a3a'), 0.5);
-    C.push(c.r, c.g, c.b, c.r, c.g, c.b);
-    W.push(t, phase, 0, t, phase, 0);
-    if (i < n) {
-      const a = base + i * 2;
-      I.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
-    }
-  }
-}
-
-function palmGeometry(seed, height, lean) {
-  const rnd = rng(seed);
-  const P = [];
-  const C = [];
-  const W = [];
-  const I = [];
-  // tronco: curva suave, anillos (cicatrices de hojas) en el color
-  const leanDir = new THREE.Vector3(Math.cos(lean.a), 0, Math.sin(lean.a));
-  const segs = 22;
-  const ring = 9;
-  const center = (t) =>
-    new THREE.Vector3(0, t * height, 0).addScaledVector(leanDir, lean.k * height * t * t);
-  for (let i = 0; i <= segs; i++) {
-    const t = i / segs;
-    const c = center(t);
-    const r = 0.17 * (1 - 0.38 * t) * (i === 0 ? 1.25 : 1);
-    const band = 0.5 + 0.5 * Math.sin(t * height * 26);
-    const col = new THREE.Color('#8d7d68').multiplyScalar(0.78 + 0.22 * band);
-    for (let j = 0; j < ring; j++) {
-      const a = (j / ring) * Math.PI * 2;
-      P.push(c.x + Math.cos(a) * r, c.y, c.z + Math.sin(a) * r);
-      C.push(col.r, col.g, col.b);
-      W.push(0, 0, 0);
-    }
-  }
-  for (let i = 0; i < segs; i++) {
-    for (let j = 0; j < ring; j++) {
-      const a = i * ring + j;
-      const b = i * ring + ((j + 1) % ring);
-      I.push(a, b, a + ring, b, b + ring, a + ring);
-    }
-  }
-  // corona
-  const top = center(1).add(new THREE.Vector3(0, 0.05, 0));
-  const nf = 15;
-  for (let f = 0; f < nf; f++) {
-    const old = f >= nf - 4; // hojas bajas, más viejas y amarillentas
-    frond(P, C, W, I, top, rnd, {
-      azim: (f / nf) * Math.PI * 2 * 2.618 + rnd() * 0.3,
-      elev: old ? -0.35 - rnd() * 0.4 : 0.1 + rnd() * 0.75,
-      len: 1.7 + rnd() * 0.6,
-      droop: 0.22 + rnd() * 0.14,
-      tint: old ? '#7f7a3a' : rnd() < 0.5 ? '#3f5d2c' : '#4b6a30',
-    });
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  g.setAttribute('aWind', new THREE.Float32BufferAttribute(W, 3));
-  g.setIndex(I);
-  g.computeVertexNormals();
-  g.computeBoundingSphere();
-  return g;
-}
-
-export function buildPalms(spots, groundY) {
-  const group = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.78, side: THREE.DoubleSide });
+  const mat = new THREE.MeshStandardMaterial({
+    map: src.material.map,
+    alphaTest: 0.5,
+    alphaToCoverage: true,
+    side: THREE.DoubleSide,
+    roughness: 0.85,
+    metalness: 0,
+  });
+  const u = { uTime: sunlight.uTime, uPalmH: { value: H } };
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uTime = sunlight.uTime;
+    Object.assign(shader.uniforms, u);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', `#include <common>\n${WIND}`)
-      .replace('#include <begin_vertex>', 'vec3 transformed = palmWind(vec3(position));');
-    // fuera todo está sobreexpuesto (como en una foto de interior): siluetas suaves en la luz
-    shader.fragmentShader = shader.fragmentShader.replace(
-      '#include <dithering_fragment>',
-      'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.42);\n#include <dithering_fragment>'
-    );
+      .replace(
+        '#include <common>',
+        `#include <common>
+uniform float uTime;
+uniform float uPalmH;`
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `vec3 transformed = vec3(position);
+{
+  // la corona se mece (cada palmera a su ritmo); los foliolos tiemblan un poco
+  float w = smoothstep(uPalmH * 0.6, uPalmH, position.y);
+  float ph = modelMatrix[3].x * 0.7 + modelMatrix[3].z * 1.3;
+  transformed.x += w * (sin(uTime * 0.6 + ph) * 0.09 + sin(uTime * 1.4 + ph * 2.0) * 0.03);
+  transformed.z += w * sin(uTime * 0.5 + ph * 1.7) * 0.07;
+  float r = length(position.xz);
+  transformed.y += w * smoothstep(0.4, 2.0, r) * sin(uTime * 2.2 + position.x * 2.0 + position.z * 1.7) * 0.035;
+}`
+      );
+    // a contraluz las hojas transparentan; y todo fuera está velado por la luz (como en una foto)
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.32;')
+      .replace(
+        '#include <dithering_fragment>',
+        'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.3);\n#include <dithering_fragment>'
+      );
   };
-  mat.customProgramCacheKey = () => 'palm';
+  mat.customProgramCacheKey = () => 'palm-glb';
+
+  const group = new THREE.Group();
   spots.forEach((s, i) => {
-    const m = new THREE.Mesh(palmGeometry(31 + i * 17, s.h, { a: s.lean ?? i * 2.1, k: s.k ?? 0.08 }), mat);
+    const m = new THREE.Mesh(geo, mat);
+    m.scale.setScalar(s.h / H);
     m.position.set(s.x, groundY, s.z);
-    m.rotation.y = i * 1.3;
+    m.rotation.y = i * 1.9 + 0.4;
     group.add(m);
   });
   return group;

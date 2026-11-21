@@ -1,11 +1,12 @@
 # Neutro Home · La Trenza — demo 3D (Alessia Studio)
 
 Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
-di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena).
-1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa e si apre in
-   moltissimi fili, che formano tre fasci. Poi si va dritti all'ombra sul muro: la treccia è già
-   fatta e lunghissima, il nodo si chiude, entrano le forbici, taglio, il pezzo in eccesso cade.
-   La camera si allontana e la treccia è al suo posto.
+di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono appena).
+1. **Entrata:** su muro chiaro nasce il filo: scende lungo la coda della treccia già appesa e si
+   apre in moltissimi fili; la camera sale lungo i fili fino al gancio, dove diventano treccia, e
+   va verso il sole (la luce brucia fino al bianco). Dalla luce esce l'ombra della treccia intera,
+   lunghissima, con il nodo: entrano le forbici, taglio, il pezzo in più cade. Poi la camera si
+   allontana e la treccia è al suo posto.
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
@@ -25,7 +26,7 @@ Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce 
 tramonto alle Xux, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
 attorno alla Makech e la Makech ruota con lo scorrimento (le frange si aprono e restano indietro).
-Nessun testo: logo (porta a neutro.com.mx), colori, segni di avanzamento e una freccia per proseguire.
+Nessun testo: logo (senza link), colori, segni di avanzamento e una freccia per proseguire.
 Niente fermate: lo scorrimento (dito, rotella, frecce) muove la camera in modo continuo, con inerzia;
 vicino a un pezzo lo si può toccare. Stesso dito per scorrere e toccare, decide il gesto:
 gesto rapido = scorre (anche sopra un pezzo); dito appoggiato un attimo o movimento lento = prende il
@@ -78,6 +79,11 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
 - `src/stops.js` — i pezzi della mostra; `src/gl/sunlight.js` — luce filtrata dalle foglie.
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.
+
+## Crediti
+- Palme del patio: "Palm Tree Realistic" di 00amza (https://sketchfab.com/00amza), licenza CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). Texture ridotta per il web in `src/assets/palm.glb`.
+  La licenza chiede di citare l'autore dove la demo viene pubblicata.
 
 ## Scelte da confermare con il cliente
 - **Lunghezza:** si usa 2,40 m come nel brief (`MEASURE.realLength`, fattore di scala unico per
