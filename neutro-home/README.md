@@ -8,9 +8,8 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    taglio, il pezzo in più cade e la treccia si solleva; la camera si allontana e la treccia è
    appesa al suo posto. (L'ombra la fanno pezzi che non si vedono: `src/scene/cut.js`.)
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
-3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
-   inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
-   colore (la tinta scende lungo i fili).
+3. **Makech:** il lampadario resta al suo posto e si fa girare col dito (360°, con inerzia): le
+   frange restano indietro e si aprono; passandoci sopra si spostano. Anche lei cambia colore.
 4. **La sala (di sera):** sul muro l'arazzo a frange (sole dorato, onde rosa, fascia verde acqua,
    bande a gradini) sotto un faretto che ne proietta l'ombra; ai lati due lampade da terra di treccia
    gigante, con paralume di filo, nappa aperta sul pavimento e la treccia che continua lunga sul
@@ -18,13 +17,20 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    tocco su una lampada la accende o la spegne; i colori cambiano le due lampade (la tinta sale dal
    pavimento al paralume).
 5. **Fine:** in fondo alla galleria, sul muro, WORK IN PROGRESS dipinto con lo spray fucsia e la
-   firma ALESSIA.STUDIO, sotto un faretto che si muove appena.
+   firma ALESSIA.STUDIO, sotto un faretto che si muove appena; sotto, due pulsanti fluttuanti
+   OUR HISTORY e SHOP (per ora senza destinazione: mostrano "COMING SOON").
+
+Altro: il nome di ogni pezzo appare grande mentre ci si arriva e sparisce all'arrivo; un dito
+"fantasma" mostra una volta sola i gesti (tirare la treccia, far girare la Makech); suono
+facoltativo (pulsante in alto a destra: brezza, uccelli, grilli la sera, forbici, una nota a ogni
+colore, `src/audio.js`); SKIP salta l'entrata e chi torna parte già dalla treccia (`?intro` per
+rivederla); la risoluzione si adatta da sola se il telefono fatica.
 La casa è la galleria di un'hacienda restaurata: portico ad archi sul patio (si intravede appena,
 nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo: un colore
 nuovo entra ogni secondo e mezzo circa e scorre lento lungo il pezzo (più onde insieme,
 `src/gl/dyeWaves.js`); se il visitatore sceglie un colore, quel pezzo resta del colore scelto.
 Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce dorata alla Makech,
-tramonto alle Xux, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
+tramonto verso la sala, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
 attorno alla Makech e la Makech ruota con lo scorrimento (le frange si aprono e restano indietro).
 Nessun testo: logo (senza link), colori, segni di avanzamento e una freccia per proseguire.
@@ -47,7 +53,8 @@ Un solo file HTML autonomo (si apre con doppio clic, senza server):
 npm run build:preview   # → dist-preview/index.html
 ```
 
-Parametri utili nell'URL: `?skip` salta l'entrata (stesso comportamento di `prefers-reduced-motion`).
+Parametri utili nell'URL: `?skip` salta l'entrata (stesso comportamento di `prefers-reduced-motion`);
+`?intro` la mostra anche a chi l'ha già vista.
 
 ## Deploy su Vercel
 Importare il repository e impostare **Root Directory = `neutro-home`** (framework: Vite).
@@ -75,8 +82,8 @@ Importare il repository e impostare **Root Directory = `neutro-home`** (framewor
 - `src/scene/tapestry.js` — l'arazzo: migliaia di fili in strati (sole, rosa, verde acqua, bande),
   spostati dal dito e dalle onde nel vertex shader; `src/scene/floorLamp.js` — le lampade di treccia
   (la stessa trenza in GPU, più grossa, in colonna e sul pavimento, con la borla della Trenza Maya).
-- `src/scene/fringe.js` — frange toccabili (Makech, Xux): migliaia di fili, spostati dal dito,
-  dall'oscillazione e dal giro (piatto rotante con inerzia) nel vertex shader. `makech.js`, `xux.js`.
+- `src/scene/fringe.js` — frange toccabili (Makech, lampade): migliaia di fili, spostati dal dito,
+  dall'oscillazione e dal giro (piatto rotante con inerzia) nel vertex shader. `makech.js`.
 - `src/stops.js` — i pezzi della mostra; `src/gl/sunlight.js` — luce filtrata dalle foglie.
 - Ombra morbida sul muro: luce direzionale con VSM.
 - `src/config.js` — misure, limiti, colori, link.

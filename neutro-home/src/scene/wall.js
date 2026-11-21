@@ -12,7 +12,7 @@ export const SUN_POOLS = [
   new THREE.Vector3(-0.35, 0.35, 0),
   new THREE.Vector3(7.2, 0.1, 3.3),
   new THREE.Vector3(9.8, -0.2, 0),
-  new THREE.Vector3(19.8, -0.1, 3.0),
+  new THREE.Vector3(12.9, -0.1, 3.0),
 ];
 
 export function plasterMaterial(textures, { tint = 0xffffff, pools = true, envMapIntensity = 0.35 } = {}) {

@@ -92,6 +92,18 @@
       <button type="button" class="next-hint" id="nextHint" aria-label="Siguiente pieza"><span></span></button>
       <nav class="dots" id="dots" aria-label="Paradas"></nav>
 
+      <!-- nombre de cada pieza: aparece en el camino y se va al llegar -->
+      <div class="chapter" id="chapter" aria-hidden="true"></div>
+      <!-- final: bajo el muro pintado -->
+      <nav class="end-links" id="endLinks" aria-label="Neutro Home">
+        <a class="float-btn" href="#history" data-go="history">OUR HISTORY</a>
+        <a class="float-btn" href="#shop" data-go="shop">SHOP</a>
+      </nav>
+      <button type="button" class="skip" id="skipIntro" aria-label="Saltar la entrada">SKIP</button>
+      <button type="button" class="sound" id="soundBtn" aria-pressed="false" aria-label="Sonido">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.2L11.5 6v12l-4.3-3.5H4z" /><path class="w1" d="M14.6 9.2a4 4 0 0 1 0 5.6" /><path class="w2" d="M17.1 6.8a7.4 7.4 0 0 1 0 10.4" /><path class="x" d="M15 9.5l5 5M20 9.5l-5 5" /></svg>
+      </button>
+      <div class="ghost-finger" id="ghostFinger" aria-hidden="true"></div>
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
       <div class="cursor" id="cursor" aria-hidden="true"></div>
       <div class="touch-ring" id="touchRing" aria-hidden="true"></div>

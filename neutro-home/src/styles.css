@@ -342,8 +342,8 @@ body.ui-on .dots {
   transform: translate(-50%, -6px);
   max-width: calc(100% - 32px);
   padding: 12px 18px;
-  background: var(--ink);
-  color: var(--cream);
+  background: #2b211a;
+  color: #f4ece0;
   font-size: 12px;
   letter-spacing: 0.06em;
   text-align: center;
@@ -495,4 +495,185 @@ body.lit .vignette {
 }
 .swatch::before {
   left: 10px !important;
+}
+
+/* ------------------------------------------------------------ capítulos (nombre de la pieza) */
+.chapter {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 22%;
+  text-align: center;
+  font-family: var(--display);
+  font-size: clamp(38px, 11vw, 110px);
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  transform: translateY(var(--cy, 0px));
+  text-shadow: 0 1px 24px rgba(244, 236, 224, 0.35);
+  will-change: opacity, transform;
+}
+.chapter.night {
+  color: #f2e6d6;
+  text-shadow: 0 1px 24px rgba(20, 10, 6, 0.35);
+}
+
+/* ------------------------------------------------------------ final: botones flotantes */
+.end-links {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-b) + 46px);
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 1.2s var(--ease), transform 1.4s var(--ease);
+  z-index: 20;
+}
+body.ui-on[data-stop='fin']:not(.travelling) .end-links {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.float-btn {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  color: #f8ecf2;
+  text-decoration: none;
+  padding: 14px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 30, 124, 0.75);
+  background: rgba(40, 14, 26, 0.28);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 30px rgba(216, 30, 124, 0.22);
+  animation: float-a 4.6s ease-in-out infinite;
+  touch-action: manipulation;
+  transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+.float-btn + .float-btn {
+  animation-name: float-b;
+  animation-duration: 5.2s;
+}
+.float-btn:hover,
+.float-btn:focus-visible {
+  background: rgba(216, 30, 124, 0.85);
+  box-shadow: 0 10px 40px rgba(216, 30, 124, 0.45);
+  outline: none;
+}
+@keyframes float-a {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -5px; }
+}
+@keyframes float-b {
+  0%, 100% { translate: 0 -2px; }
+  50% { translate: 0 4px; }
+}
+
+/* ------------------------------------------------------------ saltar la entrada */
+.skip {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-b) + 28px);
+  translate: -50% 0;
+  border: 0;
+  background: none;
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s var(--ease);
+  cursor: pointer;
+  z-index: 20;
+  touch-action: manipulation;
+}
+body.intro:not(.skipping) .skip.on {
+  opacity: 0.6;
+  pointer-events: auto;
+}
+#gl {
+  transition: opacity 0.45s var(--ease);
+}
+body.skipping #gl {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------ sonido */
+.sound {
+  position: fixed;
+  top: calc(var(--safe-t) + 14px);
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  padding: 8px;
+  background: none;
+  color: var(--ink);
+  opacity: 0;
+  transition: opacity 1s var(--ease), color 1.2s var(--ease);
+  cursor: pointer;
+  z-index: 20;
+  touch-action: manipulation;
+}
+body.ready .sound {
+  opacity: 0.7;
+}
+.sound svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sound .w1,
+.sound .w2 {
+  display: none;
+}
+.sound[aria-pressed='true'] .w1,
+.sound[aria-pressed='true'] .w2 {
+  display: inline;
+  animation: sound-wave 2.4s ease-in-out infinite;
+}
+.sound[aria-pressed='true'] .w2 {
+  animation-delay: 0.3s;
+}
+.sound[aria-pressed='true'] .x {
+  display: none;
+}
+@keyframes sound-wave {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ------------------------------------------------------------ dedo que enseña el gesto */
+.ghost-finger {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 250, 244, 0.75) 0 38%, rgba(255, 250, 244, 0.18) 40% 62%, transparent 64%);
+  box-shadow: 0 0 0 1px rgba(255, 250, 244, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  will-change: transform, opacity;
 }

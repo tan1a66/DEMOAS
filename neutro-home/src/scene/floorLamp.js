@@ -39,7 +39,7 @@ function fiberMat(textures, color, extra = {}) {
     color,
     map: textures.fiberAlbedo,
     normalMap: textures.fiberNormal,
-    normalScale: new THREE.Vector2(0.8, 0.8),
+    normalScale: new THREE.Vector2(1.2, 1.2),
     roughness: 0.74,
     sheen: 1,
     sheenColor: new THREE.Color(color).lerp(new THREE.Color('#fff1dc'), 0.45),
@@ -211,7 +211,7 @@ export class BraidLamp {
     // ---------------- pantalla: tambor de hilo vertical
     const R = LAMP.shadeR;
     const sh = LAMP.shadeH;
-    const shadeGeo = verticalFiberUV(new THREE.CylinderGeometry(R, R, sh, 72, 1, true), sh, 14);
+    const shadeGeo = verticalFiberUV(new THREE.CylinderGeometry(R, R, sh, 72, 1, true), sh, 7);
     this.shadeMat = fiberMat(textures, color, { side: THREE.DoubleSide, emissive: new THREE.Color(0), emissiveMap: textures.fiberAlbedo });
     const shade = new THREE.Mesh(shadeGeo, this.shadeMat);
     shade.position.y = this.shadeY;

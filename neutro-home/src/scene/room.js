@@ -1,11 +1,11 @@
 // La casa: la galería de una hacienda yucateca. Al fondo, el muro de cal donde cuelgan las
-// piezas; delante, un portal de arcos abierto a un patio con palmeras; tres arcos transversales
+// piezas; delante, un portal de arcos abierto a un patio con palmeras; dos arcos transversales
 // dividen la galería y cada pieza vive en su propio tramo (no se ve la siguiente hasta cruzar).
-// Unidades del modelo (los ganchos de la trenza están en y = 0).
+// Unidades del modelo (los ganchos de la trenza están en y = 0). Al fondo, el muro pintado.
 //
 //   z   patio (palmeras, losas, jardín; al fondo la otra crujía de la hacienda)
 //   ↑   ═══╤═══════╤═══════╤═══════╤═══════╤═══════╤═══════╤═══════╤═══  portal de arcos
-//   │   A (trenza)    ┃  B (Makech)  ┃  C (Xux)   ┃  D (sala: tapiz y lámparas)
+//   │   A (trenza)        ┃  B (Makech)        ┃  C (sala: tapiz y lámparas)
 //   0 ───────────────────── muro del fondo ─────────────────────────────── ventana →
 
 import * as THREE from 'three';
@@ -19,12 +19,11 @@ export const ROOM = {
   back: 0,
   front: 7.0,
   left: -4.2,
-  right: 18.6,
+  right: 12.9,
   thick: 0.32,
   parts: [
     { x: 1.5, arch: { z: 5.55, w: 1.8, h: 3.35 } },
     { x: 7.2, arch: { z: 5.55, w: 1.8, h: 3.35 } },
-    { x: 12.9, arch: { z: 5.55, w: 1.8, h: 3.35 } },
   ],
   window: { z: 3.0, w: 1.3, y0: -0.8, y1: 1.4 },
 };
@@ -37,8 +36,7 @@ export const PALM_SPOTS = [
   { x: 4.6, z: 12.4, h: 6.2 },
   { x: 9.8, z: 11.0, h: 5.4 },
   { x: 12.6, z: 9.3, h: 4.8 },
-  { x: 16.0, z: 12.6, h: 6.3 },
-  { x: 20.6, z: 11.0, h: 5.5 },
+  { x: 15.0, z: 12.0, h: 5.8 },
 ];
 
 export const ARCADE = { pitch: 2.85, origin: 1.5, pillar: 0.56, thick: 0.45, spring: ROOM.floor + 2.45 };
@@ -288,7 +286,7 @@ float fwNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (
         '#include <emissivemap_fragment>',
         '#include <emissivemap_fragment>\ntotalEmissiveRadiance += fwBright * 0.62;'
       )
-      .replace('#include <dithering_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.5);\n#include <dithering_fragment>');
+      .replace('#include <dithering_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.64);\n#include <dithering_fragment>');
   };
   mat.customProgramCacheKey = () => 'far-wing';
   const g = new THREE.PlaneGeometry(56, 6.2);

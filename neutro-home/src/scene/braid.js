@@ -36,12 +36,15 @@ export class Braid {
       color: 0xffffff,
       map: textures.fiberAlbedo,
       normalMap: textures.fiberNormal,
-      normalScale: new THREE.Vector2(0.9, 0.9),
-      roughness: 0.74,
+      normalScale: new THREE.Vector2(1.25, 1.25),
+      roughness: 0.64,
+      // brillo de fibra: el reflejo se estira alrededor del cabo (como en la cuerda de verdad)
+      anisotropy: 0.6,
+      anisotropyRotation: Math.PI / 2,
       sheen: 1,
       sheenColor: 0xffffff,
-      sheenRoughness: 0.42,
-      specularIntensity: 0.32,
+      sheenRoughness: 0.36,
+      specularIntensity: 0.42,
       envMapIntensity: envIntensity,
     });
     patchBraidMaterial(this.material, this.uniforms, dye);

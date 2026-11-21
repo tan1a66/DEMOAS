@@ -9,7 +9,6 @@ import { DyeWaves } from './gl/dyeWaves.js';
 import { buildRoom, ROOM, PALM_SPOTS } from './scene/room.js';
 import { loadPalms } from './scene/palms.js';
 import { Makech } from './scene/makech.js';
-import { XuxFamily } from './scene/xux.js';
 import { Turntable } from './scene/fringe.js';
 import { Atmosphere } from './scene/atmosphere.js';
 import { Journey, buildPath } from './journey.js';
@@ -27,6 +26,7 @@ import { Tapestry } from './scene/tapestry.js';
 import { LampPair, LAMP } from './scene/floorLamp.js';
 import { ShadowCut } from './scene/cut.js';
 import { WipWall } from './scene/wipWall.js';
+import { Sound } from './audio.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
@@ -90,20 +90,14 @@ scene.add(threads.mesh);
 // Las otras piezas de la casa (se descubren al recorrerla).
 const makech = new Makech({ position: new THREE.Vector3(6.1, 0.45, 3.25), ceilY: ROOM.ceil });
 scene.add(makech.group);
-const XUX_POS = [new THREE.Vector3(9.25, 0, 0.5), new THREE.Vector3(9.85, 0, 0.62), new THREE.Vector3(10.45, 0, 0.5)];
-const xux = new XuxFamily({ textures, floorY: ROOM.floor, positions: XUX_POS });
-scene.add(xux.group);
-const fringes = [
-  { obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 },
-  ...xux.lamps.map((l) => ({ obj: l, swing: l.swing, group: l.group, hit: l.hit, stop: 2, lamp: true })),
-];
+const fringes = [{ obj: makech, swing: makech.swing, group: makech.group, hit: makech.hit, stop: 1 }];
 // cada pieza gira sobre sí misma (plato giratorio): se ve a 360° y los flecos responden.
 // Además el recorrido las hace girar mientras se pasa por delante (la Makech, media vuelta larga).
 for (const f of fringes) f.turn = new Turntable(f.group, f.swing);
 
 // La sala (última estancia, ya de noche): el tapiz de flecos en el muro y, a los lados, dos
 // lámparas de pie de trenza. Una luz cenital baña el tapiz y su sombra cae sobre la cal.
-const SALA_X = 15.75;
+const SALA_X = 10.05; // tercer tramo de la galería
 const LAMP_Z = 0.8;
 const sala = new THREE.Group();
 const tapestry = new Tapestry({ position: new THREE.Vector3(SALA_X, 0.62, 0) });
@@ -136,20 +130,18 @@ const wip = new WipWall({ position: WIP });
 scene.add(wip.mesh);
 const SPOT_A = { pos: spot.position.clone(), target: spot.target.position.clone(), i: 13 };
 const SPOT_B = { pos: new THREE.Vector3(ROOM.right - 2.2, ROOM.ceil - 0.3, WIP.z), target: WIP.clone().setX(ROOM.right), i: 17 };
-// Las luces de las lámparas (Makech, Xux) se reutilizan en la sala: siempre las mismas luces
+// La luz de la Makech se reutiliza en la sala (más una segunda): siempre las mismas luces
 // (cambiar su número obliga a recompilar los materiales y da tirones).
 scene.updateMatrixWorld(true);
 scene.attach(makech.light);
-scene.attach(xux.light);
+const salaLight = new THREE.PointLight(0xffc583, 0, 2.9, 1.6);
+scene.add(salaLight);
 const salaLightOff = new THREE.Vector3(0, LAMP.height - LAMP.shadeH * 0.55, 0.02);
 const pieceLights = [
   { light: makech.light, home: makech.light.position.clone(), dist: makech.light.distance, decay: makech.light.decay },
-  { light: xux.light, home: xux.light.position.clone(), dist: xux.light.distance, decay: xux.light.decay },
+  { light: salaLight, home: new THREE.Vector3(SALA_X, -0.2, 1.0), dist: 2.9, decay: 1.6 },
 ];
 fringes[0].scrollSpin = (p) => clamp(p - 1, -1.2, 1.2) * 2.4;
-fringes.slice(1).forEach((f, k) => {
-  f.scrollSpin = (p) => clamp(p - 2, -1, 1) * (k % 2 ? -0.9 : 0.9);
-});
 
 // Aire: polvo en la luz y haces de sol que cruzan cada espacio.
 const atmosphere = new Atmosphere({
@@ -169,7 +161,7 @@ atmosphere.setPixelRatio(renderer.getPixelRatio());
 scene.add(atmosphere.group);
 const demoSpin = {};
 // cada cuántos segundos entra un color nuevo (las ondas son lentas: varias recorren la pieza a la vez)
-const AUTO_EVERY = { trenza: 1.35, makech: 1.3, xux: 1.4, sala: 1.5 };
+const AUTO_EVERY = { trenza: 1.35, makech: 1.3, sala: 1.5 };
 const autoColor = { idx: -1, last: 0 };
 
 const HUNG_PHASE = 0.4;
@@ -223,7 +215,6 @@ function applyCamera(pos, look) {
 const STOP_FRAMES = [
   null, // la trenza usa computeFinalCamera
   { focus: new THREE.Vector3(6.1, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
-  { focus: new THREE.Vector3(9.85, -0.95, 0.55), dir: new THREE.Vector3(0, 0, -1), w: 1.8, h: 2.3 },
   // (lift: la cámara sube y mira algo hacia abajo: menos techo, más pieza)
   { focus: new THREE.Vector3(SALA_X, -0.7, 0.4), dir: new THREE.Vector3(0, 0, -1), w: 2.75, h: 2.7, lift: 0.8 },
   { focus: new THREE.Vector3(ROOM.right, -0.15, 5.0), dir: new THREE.Vector3(1, 0, 0), w: 1.7, h: 1.35 },
@@ -259,31 +250,28 @@ function computeStops() {
   const fov = portrait ? 48 : 38;
   const S0 = { pos: finalCam.pos.clone(), look: finalCam.look.clone(), fov: 26, stop: 0 };
   const S1 = { ...frameStop(STOP_FRAMES[1], fov), stop: 1 };
-  const S2 = { ...frameStop(STOP_FRAMES[2], fov), stop: 2 };
   // la sala se mira entera (las dos lámparas y el tapiz): en vertical, un objetivo más angular
   const fov3 = portrait ? 56 : 40;
   // en horizontal manda la altura: se baja un poco para que entren las trenzas del suelo
-  const f3 = portrait ? STOP_FRAMES[3] : { ...STOP_FRAMES[3], focus: STOP_FRAMES[3].focus.clone().setY(-0.95), h: 3.25 };
-  const S3 = { ...frameStop(f3, fov3), stop: 3 };
-  const S4 = { ...frameStop(STOP_FRAMES[4], fov3), stop: 4 };
-  S4.pos.x = Math.max(S4.pos.x, ROOM.parts[2].x + 0.45); // dentro de la sala
-  S4.look.x = S4.pos.x + 1;
+  const f2 = portrait ? STOP_FRAMES[2] : { ...STOP_FRAMES[2], focus: STOP_FRAMES[2].focus.clone().setY(-0.95), h: 3.25 };
+  const S2 = { ...frameStop(f2, fov3), stop: 2 };
+  const S3 = { ...frameStop(STOP_FRAMES[3], fov3), stop: 3 };
+  S3.pos.x = Math.max(S3.pos.x, ROOM.parts[1].x + 0.45); // dentro de la sala
+  S3.look.x = S3.pos.x + 1;
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   // La galería: de una pieza a la siguiente se cruza el arco transversal; el portal y el patio
   // quedan de lado, apenas entrevistos (luz) — nunca se miran de frente.
+  // (la pieza siguiente se descubre enmarcada por el arco, antes de cruzarlo)
   const keys = [
     S0,
-    { pos: V(0.6, -0.35, 5.8), look: V(3.6, -0.3, 5.3), fov: (26 + fov) / 2 },
-    { pos: V(2.7, -0.3, 4.7), look: V(6.0, -0.15, 3.6), fov },
+    { pos: V(0.4, -0.35, 5.9), look: V(6.1, -0.05, 3.4), fov: (26 + fov) / 2 },
+    { pos: V(2.7, -0.3, 4.7), look: V(6.0, -0.12, 3.5), fov },
     S1,
-    { pos: V(6.1, -0.5, 4.9), look: V(9.6, -0.4, 5.5), fov },
-    { pos: V(8.4, -0.5, 5.2), look: V(10.0, -0.8, 1.8), fov },
+    { pos: V(6.3, -0.45, 5.4), look: V(8.6, -0.4, 5.6), fov },
+    { pos: V(6.9, -0.45, 5.7), look: V(SALA_X, -0.55, 0.8), fov: (fov + fov3) / 2 },
     S2,
-    { pos: V(11.5, -0.5, 5.7), look: V(14.2, -0.4, 5.5), fov },
-    { pos: V(14.2, -0.45, 5.5), look: V(16.0, -0.6, 1.6), fov: (fov + fov3) / 2 },
+    { pos: V(SALA_X - 0.6, -0.3, 5.9), look: V(ROOM.right, -0.25, 4.4), fov: fov3 },
     S3,
-    { pos: V(15.4, -0.3, 5.9), look: V(18.6, -0.25, 4.4), fov: fov3 },
-    S4,
   ];
   cameraPath = buildPath(keys);
 }
@@ -306,12 +294,78 @@ window.visualViewport?.addEventListener('resize', onResize);
 // ---------------------------------------------------------------- cartelas y colores
 const piece = new PieceUI({
   onColor: (stopId, c) => {
+    sound.note();
     if (stopId === 'trenza') requestColor(c ? c.hex : COLORS.find((x) => x.id === DEFAULT_COLOR).hex);
     else if (stopId === 'makech') makech.setColor(c.hex);
-    else if (stopId === 'xux') xux.setColor(c ? c.hex : null);
     else if (stopId === 'sala') lampPair.setColor(c ? c.hex : COLORS.find((x) => x.id === DEFAULT_COLOR).hex);
   },
 });
+
+// ---------------------------------------------------------------- sonido, capítulos, final, saltar
+const sound = new Sound();
+const soundBtn = $('soundBtn');
+soundBtn.addEventListener('click', () => {
+  const on = sound.toggle();
+  soundBtn.setAttribute('aria-pressed', String(!!on));
+});
+const chapterEl = $('chapter');
+let chapterText = '';
+function setChapter(text, a, y, night = false) {
+  if (text !== chapterText) {
+    chapterText = text;
+    chapterEl.textContent = text;
+  }
+  chapterEl.style.opacity = a.toFixed(3);
+  chapterEl.style.setProperty('--cy', `${y.toFixed(1)}px`);
+  chapterEl.classList.toggle('night', night);
+}
+const TITLES = ['Trenza Maya', 'Makech', 'La Sala'];
+const toastEl = $('toast');
+let toastTimer = 0;
+function toast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('on'), 2200);
+}
+// OUR HISTORY · SHOP: todavía sin destino (la demo es un trabajo en curso)
+for (const a of document.querySelectorAll('#endLinks a')) {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    sound.click();
+    toast('COMING SOON');
+  });
+}
+// quien ya ha visto la entrada empieza directamente en la trenza (la entrada sigue ahí, hacia arriba)
+const SEEN_KEY = 'neutro.trenza.seen';
+const storage = {
+  get(k) {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set(k, v) {
+    try {
+      localStorage.setItem(k, v);
+    } catch {
+      /* sin almacenamiento */
+    }
+  },
+};
+const skipBtn = $('skipIntro');
+function skipIntro() {
+  if (phase !== 'intro') return;
+  document.body.classList.add('skipping');
+  setTimeout(() => {
+    journey.jump(0);
+    setIntro(INTRO_END);
+    endIntro();
+    requestAnimationFrame(() => document.body.classList.remove('skipping'));
+  }, 450);
+}
+skipBtn.addEventListener('click', skipIntro);
 
 // ---------------------------------------------------------------- recorrido
 // la entrada ocupa 3 unidades de recorrido (≈ 2,5 pantallas deslizadas); luego cada pieza, 1
@@ -325,7 +379,6 @@ function goStop(i) {
 const STOP_FOCUS = [
   new THREE.Vector3(0, -0.35, 0),
   new THREE.Vector3(6.1, -0.25, 3.25),
-  new THREE.Vector3(9.85, -1.0, 0.55),
   new THREE.Vector3(SALA_X, -0.8, 0.4),
   new THREE.Vector3(ROOM.right - 0.5, -0.4, 5.0),
 ];
@@ -336,7 +389,6 @@ const shadowFocus = new THREE.Vector3();
 const SUN_KEYS = [
   { dir: new THREE.Vector3(-1.55, 1.75, 1.45), color: new THREE.Color('#fff3e6'), i: 3.3, hemi: 0.36, env: 0.6, glow: 0.8 },
   { dir: new THREE.Vector3(-1.85, 1.3, 1.25), color: new THREE.Color('#ffdcae'), i: 3.1, hemi: 0.31, env: 0.52, glow: 1.0 },
-  { dir: new THREE.Vector3(-2.05, 0.9, 1.05), color: new THREE.Color('#ffb877'), i: 2.6, hemi: 0.25, env: 0.44, glow: 1.25 },
   // anochecer: un último sol rasante y anaranjado; mandan las lámparas y la luz sobre el tapiz
   { dir: new THREE.Vector3(-2.4, 0.42, 0.8), color: new THREE.Color('#ff9658'), i: 1.5, hemi: 0.19, env: 0.34, glow: 0.5 },
   { dir: new THREE.Vector3(-2.6, 0.3, 0.7), color: new THREE.Color('#ff8a50'), i: 1.1, hemi: 0.16, env: 0.3, glow: 0.4 },
@@ -357,7 +409,7 @@ function updateSun(p) {
   scene.environmentIntensity = lerp(a.env, b.env, e);
   atmosphere.uniforms.uGlow.value = lerp(a.glow, b.glow, e);
   atmosphere.uniforms.uColor.value.copy(sun.color).lerp(new THREE.Color('#ffffff'), 0.25);
-  const dusk = clamp(p - 2, 0, 1) + 0.2 * clamp(p - 3, 0, 1);
+  const dusk = clamp(p - 1, 0, 1) + 0.2 * clamp(p - 2, 0, 1);
   sunlight.uLeaf.value = lerp(1, 0.45, dusk);
   sunlight.uArcadeK.value = 1 - 0.5 * dusk;
   room.userData.sky.material.uniforms.uDusk.value = dusk;
@@ -390,7 +442,6 @@ function applySway(time) {
 
 // Al pasar junto a una pieza la cámara la rodea un poco (como caminando a su alrededor).
 const MAKECH_AXIS = new THREE.Vector3(6.1, 0, 3.25);
-const XUX_AXIS = new THREE.Vector3(9.85, 0, 0.62);
 function orbit(v, c, a) {
   const dx = v.x - c.x;
   const dz = v.z - c.z;
@@ -408,12 +459,6 @@ function placeJourneyCamera() {
     const a = o1 < 0 ? -0.35 * o1 * (1 - smoothstep(0.12, 0.3, -o1)) : -0.62 * o1 * (1 - smoothstep(0.15, 0.5, o1));
     orbit(c.pos, MAKECH_AXIS, a);
     orbit(c.look, MAKECH_AXIS, a);
-  }
-  const o2 = journey.p - 2;
-  if (o2 > -0.35 && o2 < 0.75) {
-    const a = -0.25 * o2 * (1 - smoothstep(0.15, 0.35, -o2)) * (1 - smoothstep(0.25, 0.75, o2));
-    orbit(c.pos, XUX_AXIS, a);
-    orbit(c.look, XUX_AXIS, a);
   }
   setCameraBase(c.pos, c.look);
   camera.position.copy(c.pos);
@@ -542,6 +587,7 @@ function restoreSunFrustum() {
 }
 
 // La entrada es una función del desplazamiento (t = segundos "de guion", no de reloj).
+let lastIntroT = 0;
 function setIntro(t) {
   // 1) el hilo nace: baja por la cola y se abre en muchísimas hebras  2) la cámara baja por el
   // muro y, bajo los hilos, aparece la sombra de la trenza ya hecha, larguísima, con su nudo
@@ -577,6 +623,11 @@ function setIntro(t) {
 
   // la sombra larga (sólo sombra): tijeras despacio, corte, el sobrante cae, se levanta
   const CUT_T = 7.9;
+  if (lastIntroT < CUT_T - 0.03 && t >= CUT_T - 0.03) sound.snip();
+  lastIntroT = t;
+  sound.setDusk(0);
+  // el nombre de la pieza aparece mientras la cámara se aleja
+  setChapter(TITLES[0], easeInOut(seg(t, 9.05, 9.4)) * (1 - easeInOut(seg(t, 9.75, 10.15))), (t - 9.6) * -40);
   const after = t - CUT_T;
   if (shadowCut) {
     const lift = easeInOut(seg(t, 8.55, 9.15));
@@ -627,6 +678,7 @@ function disposeThreads() {
 // Volver a la entrada desplazándose hacia arriba: la trenza se "deshace" con el gesto.
 function enterIntro() {
   phase = 'intro';
+  skipBtn.classList.add('on');
   document.body.classList.add('intro');
   jui.setTravelling(true);
   if (drag) {
@@ -640,6 +692,9 @@ function enterIntro() {
 
 function endIntro() {
   phase = 'main';
+  storage.set(SEEN_KEY, '1');
+  skipBtn.classList.remove('on');
+  setChapter('', 0, 0);
   document.body.classList.remove('intro');
   jui.setTravelling(false);
   prevTravel = false;
@@ -662,13 +717,100 @@ function endIntro() {
 
 let nudgeTimer = 0;
 let interacted = false;
+
+// Un dedo "fantasma" enseña el gesto una sola vez: tira de la onda de la trenza; en la Makech,
+// la hace girar. Si el visitante toca antes, se aparta.
+const ghostEl = $('ghostFinger');
+function ghostAnim(dur, frameFn, done) {
+  const t0 = performance.now();
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    if (interacted || phase !== 'main') {
+      ghostEl.style.opacity = '0';
+      done && done(true);
+      return;
+    }
+    frameFn(k);
+    needsRender = true;
+    if (k < 1) requestAnimationFrame(step);
+    else done && done(false);
+  };
+  requestAnimationFrame(step);
+}
+function ghostAt(x, y, a, sc = 1) {
+  ghostEl.style.transform = `translate(${x}px, ${y}px) scale(${sc})`;
+  ghostEl.style.opacity = a.toFixed(3);
+}
+function ghostBraid() {
+  const w = rig.info.waves[0];
+  const p0 = toScreen(w.x, w.y);
+  const d0 = rig.depth[0].x;
+  const pull = 70; // px
+  let grabbed = false;
+  ghostAnim(
+    2600,
+    (k) => {
+      const appear = smoothstep(0, 0.15, k);
+      const press = smoothstep(0.15, 0.25, k);
+      const move = smoothstep(0.25, 0.65, k);
+      const leave = smoothstep(0.72, 0.95, k);
+      if (press > 0.5 && !grabbed) {
+        grabbed = true;
+        rig.grab(0);
+      }
+      if (grabbed && k < 0.7) rig.dragTo(0, d0 + (pull * move) / finalCam.pxpm);
+      if (k >= 0.7 && rig.dragging === 0) {
+        rig.release();
+        rig.depth[0].target = d0; // la onda vuelve a su sitio (con su rebote)
+        rig.active = true;
+      }
+      ghostAt(p0.x, p0.y + pull * move - 10 * leave, appear * (1 - leave), 1.15 - 0.15 * press);
+    },
+    () => {
+      if (rig.dragging === 0) rig.release();
+      rig.depth[0].target = d0;
+      rig.active = true;
+      ghostEl.style.opacity = '0';
+    }
+  );
+}
+function ghostSpin(f) {
+  const c = toScreen(f.group.position.x, f.group.position.y - 0.5, f.group.position.z);
+  let last = c.x - 70;
+  let t = performance.now();
+  ghostAnim(
+    2200,
+    (k) => {
+      const appear = smoothstep(0, 0.15, k);
+      const move = smoothstep(0.2, 0.62, k);
+      const leave = smoothstep(0.7, 0.95, k);
+      const x = c.x - 70 + 140 * move;
+      if (k > 0.2 && k < 0.66) {
+        const now = performance.now();
+        f.turn.drag((x - last) / 110, Math.max(1 / 120, (now - t) / 1000));
+        f.swing.touch(new THREE.Vector3(0, -0.5, 0.2), 0.4);
+        t = now;
+      } else if (k >= 0.66 && f.turn.held) {
+        f.turn.release();
+        f.swing.release();
+      }
+      last = x;
+      ghostAt(x, c.y, appear * (1 - leave), 1);
+    },
+    () => {
+      if (f.turn.held) f.turn.release();
+      f.swing.release();
+      ghostEl.style.opacity = '0';
+    }
+  );
+}
 function showMainUI() {
   if (uiShown) return;
   uiShown = true;
   jui.setStop(0);
   document.body.classList.add('ui-on');
   nudgeTimer = setTimeout(() => {
-    if (!interacted && !REDUCED_MOTION && journey.index === 0) rig.nudge(0);
+    if (!interacted && !REDUCED_MOTION && journey.index === 0 && !journey.moving) ghostBraid();
   }, 2600);
 }
 
@@ -841,6 +983,7 @@ function ring(on, x, y) {
 }
 
 function grabNow(sw, x, y) {
+  interacted = true;
   const c = sw.pending;
   sw.pending = null;
   clearTimeout(sw.timer);
@@ -882,7 +1025,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (near === 0) {
     const target = pickTarget(e.clientX, e.clientY);
     if (target) candidate = { kind: 'braid', target };
-  } else if (near === 3) {
+  } else if (near >= 0 && STOPS[near].id === 'sala') {
     const hit = pickSala(e.clientX, e.clientY);
     if (hit) candidate = { kind: hit.kind, hit };
   } else if (near > 0) {
@@ -998,7 +1141,7 @@ canvas.addEventListener('pointermove', (e) => {
       setGrab(!!pickTarget(e.clientX, e.clientY));
       return;
     }
-    if (near === 3) {
+    if (near >= 0 && STOPS[near].id === 'sala') {
       const hit = pickSala(e.clientX, e.clientY);
       if (hit && hit.kind === 'tapestry') {
         if (hoverTap) tapestry.swing.move(hit.local.x - hoverTap.x, hit.local.y - hoverTap.y);
@@ -1041,6 +1184,7 @@ function endPointer(e) {
       markInteracted();
     } else if (c.kind === 'lamp') {
       c.hit.lamp.toggle();
+      sound.click();
     } else if (c.kind === 'tapestry') {
       tapestry.swing.pluck(c.hit.local);
     } else {
@@ -1160,7 +1304,29 @@ function frame(now) {
   if (dirty) {
     if (phase !== 'loading') applySway(now / 1000);
     renderer.render(scene, camera);
+    adaptResolution(now);
   }
+}
+
+// Resolución adaptable: si el teléfono no llega a ~45 imágenes por segundo, se baja un poco la
+// resolución interna (y se recupera cuando sobra); la imagen sigue nítida y el movimiento fluido.
+const res = { max: renderer.getPixelRatio(), pr: renderer.getPixelRatio(), ema: 16.7, prev: 0, since: 0 };
+function adaptResolution(now) {
+  const dtMs = now - res.prev;
+  res.prev = now;
+  if (dtMs <= 0 || dtMs > 120 || phase === 'loading') return; // sólo cuenta con imágenes seguidas
+  res.ema += (dtMs - res.ema) * 0.06;
+  if (now - res.since < 1800) return;
+  let next = res.pr;
+  if (res.ema > 22 && res.pr > 1) next = Math.max(1, res.pr - 0.25);
+  else if (res.ema < 14.5 && res.pr < res.max) next = Math.min(res.max, res.pr + 0.25);
+  if (next !== res.pr) {
+    res.pr = next;
+    res.since = now;
+    renderer.setPixelRatio(next);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    atmosphere.setPixelRatio(next);
+  } else if (now - res.since > 4000) res.since = now - 1800;
 }
 
 // ---------------------------------------------------------------- recorrido (cada fotograma)
@@ -1193,13 +1359,12 @@ function updateJourney(dt, time) {
   // luces que se encienden al llegar
   const on = (i) => clamp(1 - Math.abs(p - i) * 1.4, 0, 1);
   makech.setOn(on(1));
-  xux.setOn(on(2));
   // la sala: anochece; se encienden las lámparas y la luz sobre el tapiz
-  const night = smoothstep(2.45, 2.95, p);
+  const night = smoothstep(1.45, 1.95, p);
   if (lampPair.step(dt, night)) dirty = true;
-  const lit = smoothstep(2.72, 2.95, p);
+  const lit = smoothstep(1.72, 1.95, p);
   pieceLights.forEach((pl, i) => {
-    if (p > 2.72) {
+    if (p > 1.72) {
       const l = lampPair.lamps[i];
       pl.light.position.copy(l.group.position).add(salaLightOff);
       pl.light.distance = 2.9;
@@ -1209,12 +1374,13 @@ function updateJourney(dt, time) {
       pl.light.position.copy(pl.home);
       pl.light.distance = pl.dist;
       pl.light.decay = pl.decay;
+      if (i > 0) pl.light.intensity = 0;
     }
   });
   // el foco: sobre el tapiz; al final gira hacia el muro pintado y allí se mece un poco
-  const spotK = smoothstep(2.55, 3.0, p);
-  const toWip = smoothstep(3.1, 3.85, p);
-  const sway = smoothstep(3.6, 4.0, p);
+  const spotK = smoothstep(1.55, 2.0, p);
+  const toWip = smoothstep(2.1, 2.85, p);
+  const sway = smoothstep(2.6, 3.0, p);
   spot.position.lerpVectors(SPOT_A.pos, SPOT_B.pos, toWip);
   spot.target.position.lerpVectors(SPOT_A.target, SPOT_B.target, toWip);
   if (sway > 0) {
@@ -1226,17 +1392,30 @@ function updateJourney(dt, time) {
   const spotI = lerp(SPOT_A.i, SPOT_B.i, toWip) * spotK;
   if (Math.abs(spot.intensity - spotI) > 1e-4) dirty = true;
   spot.intensity = spotI;
-  if (journey.moving && p > 3 && p < 3.95) spot.shadow.needsUpdate = true;
+  if (journey.moving && p > 2 && p < 2.95) spot.shadow.needsUpdate = true;
   // sólo se dibuja lo que puede verse
   const showBraid = p < 1.45;
   braid.mesh.visible = pegs.visible = showBraid;
   tassels.L.mesh.visible = tassels.R.mesh.visible = showBraid;
-  makech.group.visible = p > 0.25 && p < 2.6;
-  xux.group.visible = p > 1.15 && p < 2.92;
-  const showSala = p > 2.2;
+  makech.group.visible = p > 0.25 && p < 1.9;
+  const showSala = p > 1.1;
   if (showSala && !sala.visible) spot.shadow.needsUpdate = true;
   sala.visible = showSala;
-  wip.mesh.visible = p > 3.0; // el final no se ve antes (los arcos están alineados)
+  wip.mesh.visible = p > 2.0; // el final no se ve antes (los arcos están alineados)
+  // nombre de la pieza: aparece en el camino, se va al llegar
+  let ca = 0;
+  let ct = '';
+  let cy = 0;
+  for (let i = 1; i < TITLES.length; i++) {
+    const a = smoothstep(i - 0.68, i - 0.48, p) * (1 - smoothstep(i - 0.24, i - 0.08, p));
+    if (a > ca) {
+      ca = a;
+      ct = TITLES[i];
+      cy = (p - (i - 0.36)) * -70;
+    }
+  }
+  setChapter(ct, ca, cy, p > 1.3);
+  sound.setDusk(clamp(p - 1, 0, 1));
   // muestrario vivo: delante de una pieza, cambia sola de color cada pocos segundos (hasta que el
   // visitante elige uno); mientras se toca la pieza, espera
   const st = STOPS[idx];
@@ -1248,21 +1427,24 @@ function updateJourney(dt, time) {
       autoColor.last = time + (idx === 0 ? 1.2 : 0);
     }
     if (time - autoColor.last >= (AUTO_EVERY[st.id] || 2)) {
-      autoColor.last = time;
+      // frases: cuatro colores seguidos y un respiro
+      autoColor.n = (autoColor.n || 0) + 1;
+      autoColor.last = time + (autoColor.n % 4 === 0 ? 2.8 : 0);
       piece.auto(st.id);
     }
   } else if (!still) autoColor.idx = -1;
   // al llegar a una pieza por primera vez, media vuelta suave: invita a girarla
-  if ((idx === 1 || idx === 2) && Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoSpin[idx]) {
+  if (idx === 1 && Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoSpin[idx]) {
     demoSpin[idx] = true;
-    fringes
-      .filter((f) => f.stop === idx)
-      .forEach((f, k) => setTimeout(() => f.turn.impulse(idx === 1 ? 1.5 : 1.2), 700 + k * 220));
+    const f = fringes.find((x) => x.stop === idx);
+    setTimeout(() => {
+      if (!interacted && journey.index === idx && !journey.moving) ghostSpin(f);
+      else f.turn.impulse(1.5);
+    }, 900);
   }
   for (const f of fringes) if (f.turn.step(dt, f.scrollSpin(p))) dirty = true;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
   if (makech.dye.step(dt)) dirty = true;
-  if (xux.stepDye(dt)) dirty = true;
   if (sala.visible && tapestry.swing.step(dt, time)) {
     dirty = true;
     spot.shadow.needsUpdate = true; // los hilos se mueven: su sombra también
@@ -1325,7 +1507,7 @@ async function start() {
   await fontsReady;
   wip.draw(); // con las tipografías ya cargadas
 
-  const skip = REDUCED_MOTION || params.has('skip');
+  const skip = REDUCED_MOTION || params.has('skip') || (storage.get(SEEN_KEY) && !params.has('intro'));
   if (skip) {
     // Sin entrada: aparece la escena final con un fundido.
     journey.jump(0);
@@ -1343,6 +1525,8 @@ async function start() {
   }
   renderer.render(scene, camera);
   $('loader').classList.add('out');
+  document.body.classList.add('ready');
+  if (phase === 'intro') skipBtn.classList.add('on');
   last = performance.now();
   requestAnimationFrame(frame);
 }
@@ -1380,10 +1564,13 @@ window.__trenza = {
   tapestry,
   lampPair,
   makech,
-  xux,
   fringes,
   pickSala,
   render: () => renderer.render(scene, camera),
+  setCam: (p, l) => {
+    setCameraBase(new THREE.Vector3(...p), new THREE.Vector3(...l));
+    needsRender = true;
+  },
   renderer,
 };
 

@@ -86,7 +86,7 @@ void main() {
   float hx0 = fiberH(vUv - vec2(e, 0.0), t);
   float hy1 = fiberH(vUv + vec2(0.0, e), t);
   float hy0 = fiberH(vUv - vec2(0.0, e), t);
-  float k = 0.9;
+  float k = 1.15;
   vec3 n = normalize(vec3(-(hx1 - hx0) * k * 0.35, -(hy1 - hy0) * k, 1.0));
   outColor = vec4(n * 0.5 + 0.5, 1.0);
 }`;
@@ -95,7 +95,8 @@ const FIBER_ALBEDO_FRAG = `${COMMON}${FIBER_HEIGHT}
 void main() {
   float tone;
   float h = fiberH(vUv, tone);
-  float c = tone * (0.86 + 0.14 * clamp(h, 0.0, 1.0));
+  // surcos entre haces y entre hilos algo más marcados (la fibra se lee de cerca)
+  float c = tone * (0.72 + 0.28 * clamp(h, 0.0, 1.0));
   outColor = vec4(vec3(c), 1.0);
 }`;
 
