@@ -49,7 +49,7 @@ export const PATH = [
   // 1 · 01 La valoración: scende, si avvicina e gira di ~90° mentre si scolpisce
   { at: 'valoracion:0.35', target: [0, 0.98, -0.15], az: 62, el: 16, dist: 11, shift: [0.34, 0],
     mobile: { dist: 14 } },
-  { at: 'valoracion:0.7', target: [0.04, 1.05, -0.28], az: 94, el: 13, dist: 8.8, shift: [0.34, 0], rm: true,
+  { at: 'valoracion:0.7', target: [0.04, 1.05, -0.28], az: 94, el: 13, dist: 9.2, shift: [0.37, 0], rm: true,
     mobile: { dist: 10.5 } },
   { at: 'valoracion:1', target: [0.08, 1.14, -0.38], az: 122, el: 15, dist: 5.2, shift: [0.2, 0],
     mobile: { dist: 7.2 } },

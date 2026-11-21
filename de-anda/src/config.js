@@ -87,7 +87,7 @@ export const ZONES = [
     id: 'corporales',
     center: [0.47, 0.47, 0.37],
     radius: 0.09,
-    cam: { az: -38, el: 14, dist: 3.7, shift: [0.31, 0], look: [0, 0.06, 0] },
+    cam: { az: -44, el: 14, dist: 4.1, shift: [0.36, 0], look: [0, 0.06, 0] },
     mobile: { dist: 4.0, shift: [0, 0.2] },
   },
   {
