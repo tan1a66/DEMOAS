@@ -5,18 +5,33 @@
 import * as THREE from 'three';
 import { Spring, clamp } from './model/spring.js';
 
-const HOLD = 0.22; // fracción del recorrido entre piezas en la que la cámara se queda en cada una
+// Cada pieza tiene una pausa: un tramo del desplazamiento en el que la cámara se queda quieta ante
+// ella. Entre una pieza y la siguiente la cámara va al paso del dedo (sin acelerar), con sólo un
+// arranque y una llegada suaves. La pausa añade recorrido; no se recupera con velocidad.
+const HOLD = 0.25; // medio tramo de pausa a cada lado de una pieza (en unidades de desplazamiento)
+const SEG = 1 + 2 * HOLD; // de una pieza a la siguiente: pausa + viaje (1) + pausa
+const CORNER = 0.15; // arranque y llegada suaves (fracción del viaje)
+const VMAX = 1 / (1 - CORNER);
+
+// viaje 0..1 → progreso 0..1 con velocidad constante en el centro (perfil trapezoidal)
+function travel(u) {
+  if (u <= 0) return 0;
+  if (u >= 1) return 1;
+  if (u < CORNER) return (VMAX * u * u) / (2 * CORNER);
+  if (u > 1 - CORNER) return 1 - (VMAX * (1 - u) * (1 - u)) / (2 * CORNER);
+  return VMAX * (u - CORNER / 2);
+}
 
 export class Journey {
   /**
    * count: piezas; introSpan: cuánto recorrido ocupa la entrada (la narración también la
    * decide el desplazamiento: si te paras, se para; si vuelves atrás, se deshace).
-   *   s ∈ [0, introSpan) → entrada;  s = introSpan + i → pieza i.
+   *   s ∈ [0, introSpan) → entrada;  s = introSpan + i·SEG → pieza i.
    */
   constructor(count, introSpan = 0) {
     this.count = count;
     this.intro = introSpan;
-    this.max = introSpan + count - 1;
+    this.max = introSpan + (count - 1) * SEG;
     this.spring = new Spring(0, 5.5, 1);
   }
 
@@ -24,17 +39,24 @@ export class Journey {
     return this.spring.x;
   }
 
-  // progreso entre piezas (0 = trenza, 1 = Makech, 2 = sala, 3 = final). Cada pieza tiene una
-  // pausa: alrededor de cada parada, una parte del desplazamiento deja la cámara quieta ante la
-  // pieza (llega frenando y arranca despacio), para que dé tiempo a verla y a jugar con ella.
+  // posición de desplazamiento de la pieza i
+  stopS(i) {
+    return this.intro + clamp(i, 0, this.count - 1) * SEG;
+  }
+
+  // desplazamiento que corresponde a un progreso p (para saltos de prueba)
+  sOf(p) {
+    const i = Math.floor(p);
+    const f = p - i;
+    return this.intro + i * SEG + (f > 0 ? HOLD + f : 0);
+  }
+
+  // progreso entre piezas (0 = trenza, 1 = Makech, 2 = sala, 3 = final)
   get p() {
     const raw = Math.max(0, this.spring.x - this.intro);
-    const i = Math.min(this.count - 1, Math.floor(raw));
-    const x = raw - i;
-    if (i >= this.count - 1) return this.count - 1;
-    const h = HOLD;
-    const u = clamp((x - h) / (1 - 2 * h), 0, 1);
-    return i + u * u * u * (u * (u * 6 - 15) + 10);
+    const k = Math.min(this.count - 1, Math.floor(raw / SEG));
+    if (k >= this.count - 1) return this.count - 1;
+    return k + travel(raw - k * SEG - HOLD);
   }
 
   // ¿dónde termina el desplazamiento si se suelta con esta inercia? nunca más allá de la pieza
@@ -46,13 +68,13 @@ export class Journey {
     if (s < this.intro) {
       if (dir > 0) t = Math.min(t, this.intro);
     } else {
-      const raw = s - this.intro;
-      if (dir > 0) t = Math.min(t, this.intro + Math.floor(raw + 1e-3) + 1);
-      if (dir < 0) t = Math.max(t, this.intro + Math.ceil(raw - 1e-3) - 1);
+      const raw = (s - this.intro) / SEG;
+      if (dir > 0) t = Math.min(t, this.stopS(Math.floor(raw + 1e-3) + 1));
+      if (dir < 0) t = Math.max(t, this.stopS(Math.ceil(raw - 1e-3) - 1));
     }
     if (t >= this.intro - 0.05) {
-      const near = Math.round(t - this.intro);
-      if (Math.abs(t - this.intro - near) < 0.42) t = this.intro + near;
+      const near = Math.round((t - this.intro) / SEG);
+      if (Math.abs(t - this.stopS(near)) < 0.42 * SEG) t = this.stopS(near);
     }
     this.goS(t, 3.2);
   }
@@ -93,23 +115,23 @@ export class Journey {
 
   // ir a una pieza (marcas laterales, flecha, teclado): vuelo algo más lento
   go(i) {
-    this.goS(this.intro + clamp(i, 0, this.count - 1));
+    this.goS(this.stopS(i));
   }
 
   next() {
-    const t = this.spring.target - this.intro;
+    const t = (this.spring.target - this.intro) / SEG;
     if (t < -1e-3) this.go(0);
     else this.go(Math.floor(t + 1e-3) + 1);
   }
 
   prev() {
-    const t = this.spring.target - this.intro;
+    const t = (this.spring.target - this.intro) / SEG;
     if (t <= 1e-3) this.goS(0);
     else this.go(Math.ceil(t - 1e-3) - 1);
   }
 
   jump(i) {
-    this.spring.set(this.intro + i);
+    this.spring.set(this.stopS(i));
   }
 
   jumpS(x) {

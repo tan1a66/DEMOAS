@@ -146,7 +146,7 @@ fringes[0].scrollSpin = (p) => clamp(p - 1, -1.2, 1.2) * 2.4;
 // Aire: polvo en la luz y haces de sol que cruzan cada espacio.
 const atmosphere = new Atmosphere({
   bounds: { x0: ROOM.left + 0.3, x1: ROOM.right - 0.5, y0: ROOM.floor + 0.2, y1: 2.3, z0: 0.4, z1: ROOM.front - 0.4 },
-  motes: IS_TOUCH ? 320 : 480,
+  motes: IS_TOUCH ? 620 : 900,
   // haces: el punto donde tocan el suelo, delante de cada pieza (bajan desde arriba, del lado del sol)
   shafts: [
     { x: -1.1, y: ROOM.floor, z: 2.3, len: 4.6, w: 0.3 },
@@ -216,7 +216,8 @@ function applyCamera(pos, look) {
 // Paradas de las piezas: encuadre que respeta el logotipo y el texto inferior.
 const STOP_FRAMES = [
   null, // la trenza usa computeFinalCamera
-  { focus: new THREE.Vector3(6.1, -0.1, 3.25), dir: new THREE.Vector3(1, 0, 0), w: 1.05, h: 1.4 },
+  // de tres cuartos: detrás, el arco y un trozo del portal con la palmera
+  { focus: new THREE.Vector3(6.1, -0.1, 3.25), dir: new THREE.Vector3(0.85, 0, 0.53).normalize(), w: 1.05, h: 1.4 },
   // (lift: la cámara sube y mira algo hacia abajo: menos techo, más pieza)
   { focus: new THREE.Vector3(SALA_X, -0.7, 0.4), dir: new THREE.Vector3(0, 0, -1), w: 2.75, h: 2.7, lift: 0.8 },
   { focus: new THREE.Vector3(ROOM.right, -0.15, 5.0), dir: new THREE.Vector3(1, 0, 0), w: 1.7, h: 1.35 },
@@ -326,24 +327,6 @@ for (const a of document.querySelectorAll('#endLinks a')) {
     toast('COMING SOON');
   });
 }
-// quien ya ha visto la entrada empieza directamente en la trenza (la entrada sigue ahí, hacia arriba)
-const SEEN_KEY = 'neutro.trenza.seen';
-const storage = {
-  get(k) {
-    try {
-      return localStorage.getItem(k);
-    } catch {
-      return null;
-    }
-  },
-  set(k, v) {
-    try {
-      localStorage.setItem(k, v);
-    } catch {
-      /* sin almacenamiento */
-    }
-  },
-};
 const skipBtn = $('skipIntro');
 // SKIP: directo al final (el muro pintado, con OUR HISTORY y SHOP)
 let skipping = false;
@@ -384,8 +367,9 @@ const shadowFocus = new THREE.Vector3();
 // Juegos de luz: la tarde avanza con el recorrido. El sol baja, se vuelve dorado y luego de
 // atardecer; las sombras se alargan y giran; las lámparas cobran protagonismo.
 const SUN_KEYS = [
-  { dir: new THREE.Vector3(-1.55, 1.75, 1.45), color: new THREE.Color('#fff3e6'), i: 3.3, hemi: 0.36, env: 0.6, glow: 0.8 },
-  { dir: new THREE.Vector3(-1.85, 1.3, 1.25), color: new THREE.Color('#ffdcae'), i: 3.1, hemi: 0.31, env: 0.52, glow: 1.0 },
+  // hora dorada: sol bajo y cálido, sombras largas, polvo que brilla en los haces
+  { dir: new THREE.Vector3(-1.55, 1.6, 1.45), color: new THREE.Color('#ffe0b8'), i: 3.5, hemi: 0.3, env: 0.52, glow: 1.35 },
+  { dir: new THREE.Vector3(-1.95, 1.05, 1.2), color: new THREE.Color('#ffcb8e'), i: 3.3, hemi: 0.27, env: 0.48, glow: 1.6 },
   // anochecer: un último sol rasante y anaranjado; mandan las lámparas y la luz sobre el tapiz
   { dir: new THREE.Vector3(-2.4, 0.42, 0.8), color: new THREE.Color('#ff9658'), i: 1.5, hemi: 0.19, env: 0.34, glow: 0.5 },
   { dir: new THREE.Vector3(-2.6, 0.3, 0.7), color: new THREE.Color('#ff8a50'), i: 1.1, hemi: 0.16, env: 0.3, glow: 0.4 },
@@ -688,7 +672,6 @@ function enterIntro() {
 
 function endIntro() {
   phase = 'main';
-  storage.set(SEEN_KEY, '1');
   skipBtn.classList.remove('on');
   document.body.classList.remove('intro');
   jui.setTravelling(false);
@@ -1499,7 +1482,7 @@ async function start() {
   await fontsReady;
   wip.draw(); // con las tipografías ya cargadas
 
-  const skip = REDUCED_MOTION || params.has('skip') || (storage.get(SEEN_KEY) && !params.has('intro'));
+  const skip = REDUCED_MOTION || params.has('skip');
   if (skip) {
     // Sin entrada: aparece la escena final con un fundido.
     journey.jump(0);
@@ -1548,7 +1531,7 @@ window.__trenza = {
     needsRender = true;
   },
   jumpP: (p) => {
-    journey.jumpS(INTRO_SPAN + p);
+    journey.jumpS(journey.sOf(p));
     needsRender = true;
   },
   requestColor,

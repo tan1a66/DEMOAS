@@ -55,7 +55,7 @@ export class Atmosphere {
             p += vec3(sin(t * 0.9) * 0.12, sin(t * 0.7 + 1.3) * 0.08 + sin(t * 0.23) * 0.1, cos(t * 0.8) * 0.12);
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             gl_Position = projectionMatrix * mv;
-            float size = (2.2 + aSeed * 3.0) * uPixelRatio;
+            float size = (2.4 + aSeed * 3.4) * uPixelRatio;
             gl_PointSize = clamp(size * 3.2 / -mv.z, 1.0, 18.0 * uPixelRatio);
             // centelleo: cada mota entra y sale de la luz
             vA = 0.25 + 0.75 * pow(0.5 + 0.5 * sin(uTime * (0.4 + aSeed * 0.6) + aSeed * 30.0), 3.0);
@@ -68,7 +68,7 @@ export class Atmosphere {
           void main() {
             vec2 d = gl_PointCoord - 0.5;
             float a = smoothstep(0.5, 0.0, length(d));
-            gl_FragColor = vec4(uColor * a * vA * 0.55 * uGlow, 1.0);
+            gl_FragColor = vec4(uColor * a * vA * 0.75 * uGlow, 1.0);
           }`,
       })
     );
@@ -109,7 +109,7 @@ export class Atmosphere {
           float along = smoothstep(0.0, 0.35, vS.x) * (1.0 - smoothstep(0.88, 1.0, vS.x)) * (0.55 + 0.45 * vS.x);
           // vetas y un leve parpadeo, como polvo atravesando el haz
           float streak = 0.75 + 0.25 * sin(vS.y * 9.0 + vSeed + uTime * 0.15);
-          float a = across * along * streak * 0.12 * uGlow;
+          float a = across * along * streak * 0.16 * uGlow;
           gl_FragColor = vec4(uColor * a, 1.0);
         }`,
     });

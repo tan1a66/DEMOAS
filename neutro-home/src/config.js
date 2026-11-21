@@ -6,8 +6,8 @@ export const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
 export const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const QUALITY = IS_TOUCH
-  ? { maxPixelRatio: 2, shadowMap: 1024, shadowRadius: 7, shadowSamples: 10, radial: 10 }
-  : { maxPixelRatio: 2, shadowMap: 2048, shadowRadius: 9, shadowSamples: 16, radial: 12 };
+  ? { maxPixelRatio: 2.5, shadowMap: 1536, shadowRadius: 7, shadowSamples: 10, radial: 12 }
+  : { maxPixelRatio: 2, shadowMap: 2048, shadowRadius: 9, shadowSamples: 16, radial: 14 };
 
 // Perchas: ganchos de cedro (como los que incluye la pieza real).
 export const PEGS = {

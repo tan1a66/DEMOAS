@@ -189,8 +189,8 @@ function bake(renderer, size, frag, uniforms = {}) {
 const lin = (hex) => new THREE.Color(hex); // THREE.Color convierte sRGB → lineal
 
 export function bakeTextures(renderer, { mobile }) {
-  const fiberSize = 512;
-  const wallSize = mobile ? 1024 : 2048;
+  const fiberSize = 1024; // más definición en la fibra de cerca
+  const wallSize = 2048;
   return {
     fiberNormal: bake(renderer, fiberSize, FIBER_NORMAL_FRAG),
     fiberAlbedo: bake(renderer, fiberSize, FIBER_ALBEDO_FRAG),

@@ -22,12 +22,13 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    OUR HISTORY e SHOP (per ora senza destinazione: mostrano "COMING SOON").
 
 Altro: ogni pezzo ha una sosta nello scorrimento (la camera arriva frenando e resta ferma per un
-tratto; uno scorrimento veloce si ferma al pezzo successivo); i colori sono in colonna a sinistra
+tratto; tra un pezzo e l'altro va al passo del dito, senza accelerare; uno scorrimento veloce si
+ferma al pezzo successivo); luce dorata da tramonto con polvere che brilla nei raggi; i colori sono in colonna a sinistra
 dell'oggetto, la freccia di scorrimento al centro in basso; un dito
 "fantasma" mostra una volta sola i gesti (tirare la treccia, far girare la Makech); suono
 facoltativo (pulsante in alto a destra: brezza, uccelli, grilli la sera, forbici, una nota a ogni
-colore, `src/audio.js`); SKIP (in basso a destra) porta dritto al muro finale e chi torna parte già
-dalla treccia (`?intro` per rivedere l'entrata); la risoluzione si adatta da sola se il telefono fatica.
+colore, `src/audio.js`); SKIP (in basso a destra) porta dritto al muro finale;
+ricaricando si riparte sempre dall'entrata; la risoluzione si adatta da sola se il telefono fatica.
 La casa è la galleria di un'hacienda restaurata: portico ad archi sul patio (si intravede appena,
 nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo: un colore
 nuovo entra ogni secondo e mezzo circa e scorre lento lungo il pezzo (più onde insieme,
