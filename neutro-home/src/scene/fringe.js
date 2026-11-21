@@ -148,9 +148,11 @@ export function fringeGeometry(threads, seedBase = 0) {
       const ref = Math.abs(T.z) < 0.9 ? Z : X;
       e2.copy(ref).addScaledVector(T, -T.dot(ref)).normalize();
       e1.crossVectors(e2, T);
-      const t = i / (m - 1);
-      const r = th.r0 + (th.r1 - th.r0) * t;
-      const ao = th.ao0 + (th.ao1 - th.ao0) * t;
+      const f = i / (m - 1);
+      // t (peso del balanceo y del tinte): por defecto a lo largo del hilo; puede darse un tramo
+      const t = th.t0 !== undefined ? th.t0 + (th.t1 - th.t0) * f : f;
+      const r = th.r0 + (th.r1 - th.r0) * f;
+      const ao = th.ao0 + (th.ao1 - th.ao0) * f;
       for (let k = 0; k < sides; k++) {
         const ang = (k / sides) * Math.PI * 2 + rot;
         const cx = Math.cos(ang);

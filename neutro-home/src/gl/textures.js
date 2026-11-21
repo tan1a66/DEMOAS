@@ -54,17 +54,19 @@ float fiberH(vec2 uv, out float tone) {
   float bundle = smoothstep(0.0, 0.12, bf) * smoothstep(1.0, 0.88, bf);
   float bTone = hash11(mod(bi, bundles) + 3.0);
 
-  // hilos finos
-  float lanes = 170.0;
+  // cordoncinos (como en la foto: cada cabo son muchos cordones torcidos)
+  float lanes = 46.0;
   float wob = 0.22 * sin(2.0 * PI * (uv.x * 2.0) + hash11(bi) * 6.28) + 0.12 * sin(2.0 * PI * uv.x * 5.0 + bi);
   float ly = uv.y * lanes + wob;
   float li = floor(ly);
   float lf = fract(ly);
   float r = hash11(mod(li, lanes) + 11.0);
-  float prof = pow(sin(lf * PI), 0.7);
+  float prof = pow(sin(lf * PI), 0.6);
+  // ritorto: estrías en diagonal a lo largo de cada cordón
+  float ply = 0.5 + 0.5 * sin(2.0 * PI * (uv.x * 22.0 + lf * 1.35 + r * 3.0));
   // interrupciones a lo largo del hilo
   float brk = vnoise(vec2(uv.x * 7.0 + r * 13.0, li), vec2(7.0, lanes));
-  float strand = prof * (0.55 + 0.45 * r) * (0.55 + 0.45 * smoothstep(0.15, 0.55, brk));
+  float strand = prof * (0.6 + 0.4 * r) * (0.62 + 0.38 * ply) * (0.7 + 0.3 * smoothstep(0.15, 0.55, brk));
 
   // grupos medianos
   float groups = 38.0;

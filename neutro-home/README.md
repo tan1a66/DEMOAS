@@ -8,8 +8,9 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    taglio, il pezzo in più cade e la treccia si solleva; la camera si allontana e la treccia è
    appesa al suo posto. (L'ombra la fanno pezzi che non si vedono: `src/scene/cut.js`.)
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
-3. **Makech:** il lampadario resta al suo posto e si fa girare col dito (360°, con inerzia): le
-   frange restano indietro e si aprono; passandoci sopra si spostano. Anche lei cambia colore.
+3. **Makech:** cupola di fili che sotto si chiude in un nodo intrecciato, una legatura (l'"elastico")
+   e la nappa che si stringe e si apre in fondo. Resta al suo posto e si fa girare col dito (360°,
+   con inerzia); passandoci sopra i fili si spostano. Anche lei cambia colore.
 4. **La sala (di sera):** sul muro l'arazzo a frange (sole dorato, onde rosa, fascia verde acqua,
    bande a gradini) sotto un faretto che ne proietta l'ombra; ai lati due lampade da terra di treccia
    gigante, con paralume di filo, nappa aperta sul pavimento e la treccia che continua lunga sul
@@ -20,11 +21,13 @@ di Mérida (sole di pomeriggio filtrato dalle chiome delle palme, che si muovono
    firma ALESSIA.STUDIO, sotto un faretto che si muove appena; sotto, due pulsanti fluttuanti
    OUR HISTORY e SHOP (per ora senza destinazione: mostrano "COMING SOON").
 
-Altro: il nome di ogni pezzo appare grande mentre ci si arriva e sparisce all'arrivo; un dito
+Altro: ogni pezzo ha una sosta nello scorrimento (la camera arriva frenando e resta ferma per un
+tratto; uno scorrimento veloce si ferma al pezzo successivo); i colori sono in colonna a sinistra
+dell'oggetto, la freccia di scorrimento al centro in basso; un dito
 "fantasma" mostra una volta sola i gesti (tirare la treccia, far girare la Makech); suono
 facoltativo (pulsante in alto a destra: brezza, uccelli, grilli la sera, forbici, una nota a ogni
-colore, `src/audio.js`); SKIP salta l'entrata e chi torna parte già dalla treccia (`?intro` per
-rivederla); la risoluzione si adatta da sola se il telefono fatica.
+colore, `src/audio.js`); SKIP (in basso a destra) porta dritto al muro finale e chi torna parte già
+dalla treccia (`?intro` per rivedere l'entrata); la risoluzione si adatta da sola se il telefono fatica.
 La casa è la galleria di un'hacienda restaurata: portico ad archi sul patio (si intravede appena,
 nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo: un colore
 nuovo entra ogni secondo e mezzo circa e scorre lento lungo il pezzo (più onde insieme,

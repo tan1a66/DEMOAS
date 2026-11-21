@@ -176,9 +176,11 @@ const pieceEl = $('piece');
 // Zona libre de la pantalla para encuadrar la pieza: entre el logotipo y los colores.
 function freeArea() {
   const w = window.innerWidth;
+  const h = window.innerHeight;
   const top = brandEl.getBoundingClientRect().bottom + 10;
+  // los colores van en columna a la izquierda; las marcas de recorrido a la derecha; la flecha abajo
   const pr = pieceEl.getBoundingClientRect();
-  return { x0: 36, x1: w - 36, y0: top, y1: pr.top - 8 };
+  return { x0: Math.max(36, pr.right + 6), x1: w - 38, y0: top, y1: h - 58 };
 }
 const CONTENT = { x0: -0.55, x1: 0.55, y0: -0.93, y1: 0.19 };
 const finalCam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), pxpm: 300 };
@@ -301,25 +303,13 @@ const piece = new PieceUI({
   },
 });
 
-// ---------------------------------------------------------------- sonido, capítulos, final, saltar
+// ---------------------------------------------------------------- sonido, final, saltar
 const sound = new Sound();
 const soundBtn = $('soundBtn');
 soundBtn.addEventListener('click', () => {
   const on = sound.toggle();
   soundBtn.setAttribute('aria-pressed', String(!!on));
 });
-const chapterEl = $('chapter');
-let chapterText = '';
-function setChapter(text, a, y, night = false) {
-  if (text !== chapterText) {
-    chapterText = text;
-    chapterEl.textContent = text;
-  }
-  chapterEl.style.opacity = a.toFixed(3);
-  chapterEl.style.setProperty('--cy', `${y.toFixed(1)}px`);
-  chapterEl.classList.toggle('night', night);
-}
-const TITLES = ['Trenza Maya', 'Makech', 'La Sala'];
 const toastEl = $('toast');
 let toastTimer = 0;
 function toast(text) {
@@ -355,16 +345,23 @@ const storage = {
   },
 };
 const skipBtn = $('skipIntro');
-function skipIntro() {
-  if (phase !== 'intro') return;
+// SKIP: directo al final (el muro pintado, con OUR HISTORY y SHOP)
+let skipping = false;
+function skipIntro(e) {
+  if (e) e.preventDefault();
+  if (phase !== 'intro' || skipping) return;
+  skipping = true;
   document.body.classList.add('skipping');
   setTimeout(() => {
-    journey.jump(0);
+    journey.jump(STOPS.length - 1);
     setIntro(INTRO_END);
     endIntro();
-    requestAnimationFrame(() => document.body.classList.remove('skipping'));
+    needsRender = true;
+    skipping = false;
+    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('skipping')));
   }, 450);
 }
+skipBtn.addEventListener('pointerup', skipIntro);
 skipBtn.addEventListener('click', skipIntro);
 
 // ---------------------------------------------------------------- recorrido
@@ -626,8 +623,7 @@ function setIntro(t) {
   if (lastIntroT < CUT_T - 0.03 && t >= CUT_T - 0.03) sound.snip();
   lastIntroT = t;
   sound.setDusk(0);
-  // el nombre de la pieza aparece mientras la cámara se aleja
-  setChapter(TITLES[0], easeInOut(seg(t, 9.05, 9.4)) * (1 - easeInOut(seg(t, 9.75, 10.15))), (t - 9.6) * -40);
+
   const after = t - CUT_T;
   if (shadowCut) {
     const lift = easeInOut(seg(t, 8.55, 9.15));
@@ -694,7 +690,6 @@ function endIntro() {
   phase = 'main';
   storage.set(SEEN_KEY, '1');
   skipBtn.classList.remove('on');
-  setChapter('', 0, 0);
   document.body.classList.remove('intro');
   jui.setTravelling(false);
   prevTravel = false;
@@ -1211,7 +1206,10 @@ function endPointer(e) {
   }
   if (sw) {
     // inercia: el recorrido sigue un poco al soltar (sin paradas)
-    if (sw.axis === 'y' && !sw.grabbed && performance.now() - sw.lastT < 90) journey.scrollBy(clamp(sw.v * 0.3, -1.2, 1.2));
+    if (sw.axis === 'y' && !sw.grabbed) {
+      const v = performance.now() - sw.lastT < 90 ? clamp(sw.v * 0.3, -1.2, 1.2) : 0;
+      journey.settle(journey.target + v);
+    }
     swipe = null;
   }
   ring(false);
@@ -1231,6 +1229,7 @@ canvas.addEventListener('pointerleave', () => {
 });
 
 // Rueda / trackpad: desplazamiento continuo (una pantalla y poco ≈ una pieza).
+let wheelTimer = 0;
 window.addEventListener(
   'wheel',
   (e) => {
@@ -1240,6 +1239,11 @@ window.addEventListener(
     if (e.deltaMode === 1) d *= 18;
     else if (e.deltaMode === 2) d *= window.innerHeight;
     journey.scrollBy(d / (window.innerHeight * 1.1));
+    // al parar la rueda, se posa en la pieza más cercana (si está cerca)
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => {
+      if (journey.target >= journey.intro - 0.05) journey.settle(journey.target);
+    }, 220);
   },
   { passive: false }
 );
@@ -1402,19 +1406,6 @@ function updateJourney(dt, time) {
   if (showSala && !sala.visible) spot.shadow.needsUpdate = true;
   sala.visible = showSala;
   wip.mesh.visible = p > 2.0; // el final no se ve antes (los arcos están alineados)
-  // nombre de la pieza: aparece en el camino, se va al llegar
-  let ca = 0;
-  let ct = '';
-  let cy = 0;
-  for (let i = 1; i < TITLES.length; i++) {
-    const a = smoothstep(i - 0.68, i - 0.48, p) * (1 - smoothstep(i - 0.24, i - 0.08, p));
-    if (a > ca) {
-      ca = a;
-      ct = TITLES[i];
-      cy = (p - (i - 0.36)) * -70;
-    }
-  }
-  setChapter(ct, ca, cy, p > 1.3);
   sound.setDusk(clamp(p - 1, 0, 1));
   // muestrario vivo: delante de una pieza, cambia sola de color cada pocos segundos (hasta que el
   // visitante elige uno); mientras se toca la pieza, espera
@@ -1444,6 +1435,7 @@ function updateJourney(dt, time) {
   }
   for (const f of fringes) if (f.turn.step(dt, f.scrollSpin(p))) dirty = true;
   for (const f of fringes) if (f.swing.step(dt, time)) dirty = true;
+  makech.syncSolids();
   if (makech.dye.step(dt)) dirty = true;
   if (sala.visible && tapestry.swing.step(dt, time)) {
     dirty = true;

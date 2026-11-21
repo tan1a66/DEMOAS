@@ -2,6 +2,7 @@
 // fleco que cae. Tejida a mano en Yucatán. Aquí: miles de hilos que se pueden tocar.
 
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { IS_TOUCH } from '../config.js';
 import { fringeGeometry, fringeMaterial, fringeDepthMaterial, fringeUniforms, FringeSwing } from './fringe.js';
 import { DyeWaves } from '../gl/dyeWaves.js';
@@ -13,16 +14,53 @@ function rng(seed) {
   };
 }
 
-// Perfil de la cúpula (radio, altura) desde la corona hasta el borde y el fleco corto.
+// Perfil de la cúpula (radio, altura): desde la corona se abre, y abajo se cierra hacia el centro,
+// donde los hilos se recogen en un nudo tejido; bajo el nudo, una lazada (el "elástico") y la borla.
 const DOME = [
   [0.07, 0.0],
-  [0.19, -0.02],
-  [0.29, -0.07],
-  [0.345, -0.15],
-  [0.36, -0.25],
-  [0.345, -0.33],
-  [0.3, -0.4],
+  [0.2, -0.03],
+  [0.3, -0.09],
+  [0.352, -0.18],
+  [0.358, -0.27],
+  [0.33, -0.355],
+  [0.26, -0.435],
+  [0.15, -0.495],
+  [0.066, -0.53],
 ];
+const KNOT = { y: -0.6, h: 0.15, r: 0.07 };
+const BAND = { y: -0.69, h: 0.03, r: 0.05 };
+const TASSEL_END = -1.15;
+
+// nudo tejido: lóbulos de cuerda en espiga alrededor de un bulbo (como el de la foto)
+function wovenKnot(mat) {
+  const parts = [];
+  const rows = 4;
+  const per = 8;
+  for (let row = 0; row < rows; row++) {
+    const v = (row + 0.5) / rows;
+    const y = KNOT.y + KNOT.h / 2 - v * KNOT.h;
+    // bulbo: más ancho en el medio
+    const rr = KNOT.r * (0.78 + 0.28 * Math.sin(Math.PI * v));
+    for (let j = 0; j < per; j++) {
+      const a = ((j + (row % 2) * 0.5) / per) * Math.PI * 2;
+      const g = new THREE.SphereGeometry(1, 14, 10);
+      g.scale(0.025, 0.036, 0.018);
+      g.rotateZ(row % 2 ? 0.62 : -0.62); // espiga: una fila hacia un lado, la siguiente al otro
+      g.rotateY(-a + Math.PI / 2);
+      g.translate(Math.cos(a) * rr, y, Math.sin(a) * rr);
+      parts.push(g);
+    }
+  }
+  const core = new THREE.SphereGeometry(KNOT.r * 0.82, 24, 16);
+  core.scale(1, 1.05, 1);
+  core.translate(0, KNOT.y, 0);
+  parts.push(core);
+  const g = mergeGeometries(parts.map((p) => p.toNonIndexed()));
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, mat);
+  m.castShadow = true;
+  return m;
+}
 
 export class Makech {
   constructor({ position, color = '#C27E6E', ceilY }) {
@@ -32,39 +70,37 @@ export class Makech {
     const domeN = IS_TOUCH ? 900 : 1250;
     const colN = IS_TOUCH ? 520 : 700;
 
-    // cúpula: cada hilo baja por la superficie y termina en un fleco corto bajo el borde
+    // cúpula: cada hilo baja por la superficie y se recoge abajo, en el nudo
+    // (la cúpula se mueve poco: es la borla la que se balancea)
     for (let n = 0; n < domeN; n++) {
       const a = (n / domeN) * Math.PI * 2 + (rnd() - 0.5) * 0.02;
-      const lay = 1 + (rnd() - 0.5) * 0.035;
-      const tailLen = 0.03 + rnd() * 0.07;
+      const lay = 1 + (rnd() - 0.5) * 0.03;
       const pts = [];
-      const steps = 11;
+      const steps = 14;
       for (let i = 0; i <= steps; i++) {
         const p = domeCurve.getPoint(i / steps);
         pts.push(new THREE.Vector3(Math.cos(a) * p.x * lay, p.y, Math.sin(a) * p.x * lay));
       }
-      const last = pts[pts.length - 1];
-      for (let i = 1; i <= 2; i++) {
-        const k = i / 2;
-        pts.push(new THREE.Vector3(last.x * (1 - 0.06 * k), last.y - tailLen * k, last.z * (1 - 0.06 * k)));
-      }
-      threads.push({ pts, r0: 0.0028, r1: 0.0024, tint: 0.88 + rnd() * 0.22, ao0: 0.8, ao1: 0.7 + rnd() * 0.25 });
+      threads.push({ pts, r0: 0.0028, r1: 0.0024, tint: 0.88 + rnd() * 0.22, ao0: 0.8, ao1: 0.6 + rnd() * 0.2, t0: 0, t1: 0.42 });
     }
-    // columna: fleco largo que cae desde dentro de la cúpula
+    // borla: sale de la lazada, se estrecha un poco y se abre al final; puntas cortadas a la par
+    const top = BAND.y - BAND.h / 2 + 0.004;
     for (let n = 0; n < colN; n++) {
       const a = rnd() * Math.PI * 2;
-      const r = 0.05 + Math.sqrt(rnd()) * 0.15;
-      const yEnd = -1.02 - rnd() * 0.06 + (r - 0.12) * 0.25;
+      const rr = Math.sqrt(rnd());
+      const r0 = 0.012 + rr * 0.034;
+      const r1 = 0.03 + rr * 0.085 + rnd() * 0.012;
+      const yEnd = TASSEL_END - rnd() * 0.018;
       const pts = [];
-      const steps = 7;
+      const steps = 8;
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        const y = -0.3 + (yEnd + 0.3) * t;
-        const rr = r * (1 - 0.18 * t) * (1 + 0.06 * Math.sin(t * Math.PI));
-        pts.push(new THREE.Vector3(Math.cos(a) * rr, y, Math.sin(a) * rr));
+        const y = top + (yEnd - top) * t;
+        // cuello estrecho justo bajo la lazada, luego se abre poco a poco
+        const r = r0 * (1 - 0.15 * Math.sin(Math.min(1, t * 3) * Math.PI)) + (r1 - r0) * Math.pow(t, 1.7);
+        pts.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r));
       }
-      const outer = r / 0.2;
-      threads.push({ pts, r0: 0.0026, r1: 0.0022, tint: 0.86 + rnd() * 0.24, ao0: 0.45, ao1: 0.55 + 0.45 * outer });
+      threads.push({ pts, r0: 0.0026, r1: 0.0022, tint: 0.86 + rnd() * 0.24, ao0: 0.45, ao1: 0.55 + 0.45 * rr, t0: 0.48, t1: 1 });
     }
 
     this.uniforms = fringeUniforms({ pivot: new THREE.Vector3(0, 0, 0), hang: 1.0, pushR: 0.11 });
@@ -76,6 +112,26 @@ export class Makech {
     this.group = new THREE.Group();
     this.group.position.copy(position);
     this.group.add(this.mesh);
+
+    // nudo y lazada (sólidos que siguen el balanceo de la borla)
+    const fiber = (c, rough = 0.7) =>
+      new THREE.MeshPhysicalMaterial({
+        color: c,
+        roughness: rough,
+        sheen: 1,
+        sheenColor: new THREE.Color(c).lerp(new THREE.Color('#fff1dc'), 0.45),
+        sheenRoughness: 0.4,
+        specularIntensity: 0.3,
+      });
+    this.knotMat = fiber(color);
+    this.bandMat = fiber(new THREE.Color(color).multiplyScalar(1.05), 0.45);
+    this.solids = new THREE.Group();
+    this.solids.add(wovenKnot(this.knotMat));
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(BAND.r, BAND.r * 1.02, BAND.h, 40), this.bandMat);
+    band.position.y = BAND.y;
+    band.castShadow = true;
+    this.solids.add(band);
+    this.group.add(this.solids);
 
     // corona tejida y cable hasta el techo
     const crown = new THREE.Mesh(
@@ -104,13 +160,28 @@ export class Makech {
     this.group.add(this.light);
 
     this.swing = new FringeSwing(this.uniforms, { omega: 2.2, zeta: 0.14 });
-    this.dye = new DyeWaves(this.uniforms, { duration: 2.7, solids: [{ material: crown.material, factor: 0.85, pos: 0 }] });
+    this.dye = new DyeWaves(this.uniforms, {
+      duration: 2.9,
+      solids: [
+        { material: crown.material, factor: 0.85, pos: 0 },
+        { material: this.knotMat, pos: 0.44, sheen: true },
+        { material: this.bandMat, pos: 0.47, factor: 1.05, sheen: true },
+      ],
+    });
     // zona que se puede tocar (cilindro en coordenadas locales)
-    this.hit = { r: 0.4, y0: -1.08, y1: 0.02 };
+    this.hit = { r: 0.4, y0: TASSEL_END - 0.04, y1: 0.02 };
   }
 
   setColor(hex) {
     this.dye.push(hex);
+  }
+
+  // el nudo y la lazada siguen el balanceo de los hilos (mismo giro que en el vertex shader)
+  syncSolids() {
+    const u = this.uniforms;
+    const w = Math.pow(0.45, 1.35);
+    const k = 0.4 + 0.6 * w;
+    this.solids.rotation.set(u.uSwing.value.y * k, -u.uSpin.value * w, u.uSwing.value.x * k, 'XZY');
   }
 
   setOn(k) {

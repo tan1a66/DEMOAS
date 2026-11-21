@@ -125,12 +125,12 @@ body {
 
 /* ------------------------------------------------------------ colores (sin textos) */
 .piece {
+  /* los colores, en columna a la izquierda del objeto */
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(var(--safe-b) + 22px);
+  left: calc(env(safe-area-inset-left, 0px) + 4px);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  justify-content: center;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.7s var(--ease);
@@ -143,7 +143,7 @@ body.ui-on:not(.travelling) .piece button {
 }
 .piece .swatches {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateX(-6px);
   transition: opacity 0.9s var(--ease), transform 1.1s var(--ease);
 }
 .piece.in .swatches {
@@ -152,7 +152,8 @@ body.ui-on:not(.travelling) .piece button {
 }
 .swatches {
   display: flex;
-  gap: 2px;
+  flex-direction: column;
+  gap: 0;
 }
 /* muestra de hilo: un pequeño ovillo con sus vueltas */
 .swatch {
@@ -221,9 +222,11 @@ body.ui-on:not(.travelling) .piece button {
 
 /* flecha que invita a seguir (sin palabras) */
 .next-hint {
+  /* señal de desplazamiento: al centro, abajo */
   position: absolute;
-  right: 6px;
-  bottom: calc(var(--safe-b) + 26px);
+  left: 50%;
+  margin-left: -20px;
+  bottom: calc(var(--safe-b) + 14px);
   width: 40px;
   height: 52px;
   border: 0;
@@ -425,9 +428,6 @@ body.lit .vignette {
   .brand {
     top: 10px;
   }
-  .piece {
-    bottom: 4px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -497,30 +497,6 @@ body.lit .vignette {
   left: 10px !important;
 }
 
-/* ------------------------------------------------------------ capítulos (nombre de la pieza) */
-.chapter {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 22%;
-  text-align: center;
-  font-family: var(--display);
-  font-size: clamp(38px, 11vw, 110px);
-  letter-spacing: 0.14em;
-  text-indent: 0.14em;
-  color: var(--ink);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 3;
-  transform: translateY(var(--cy, 0px));
-  text-shadow: 0 1px 24px rgba(244, 236, 224, 0.35);
-  will-change: opacity, transform;
-}
-.chapter.night {
-  color: #f2e6d6;
-  text-shadow: 0 1px 24px rgba(20, 10, 6, 0.35);
-}
-
 /* ------------------------------------------------------------ final: botones flotantes */
 .end-links {
   position: fixed;
@@ -582,12 +558,11 @@ body.ui-on[data-stop='fin']:not(.travelling) .end-links {
 /* ------------------------------------------------------------ saltar la entrada */
 .skip {
   position: fixed;
-  left: 50%;
-  bottom: calc(var(--safe-b) + 28px);
-  translate: -50% 0;
+  right: 8px;
+  bottom: calc(var(--safe-b) + 18px);
   border: 0;
   background: none;
-  padding: 10px 14px;
+  padding: 16px 14px;
   font-family: var(--sans);
   font-size: 10px;
   font-weight: 500;
@@ -602,7 +577,7 @@ body.ui-on[data-stop='fin']:not(.travelling) .end-links {
   touch-action: manipulation;
 }
 body.intro:not(.skipping) .skip.on {
-  opacity: 0.6;
+  opacity: 0.75;
   pointer-events: auto;
 }
 #gl {

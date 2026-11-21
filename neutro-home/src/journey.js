@@ -1,9 +1,11 @@
 // El recorrido: una sola cámara que viaja por la casa siguiendo el desplazamiento, sin paradas.
-// "p" es continuo (0 = trenza, 1 = Makech, 2 = Xux); el gesto mueve un objetivo y un muelle
+// "p" es continuo (0 = trenza, 1 = Makech, 2 = sala); el gesto mueve un objetivo y un muelle
 // lleva la cámara hacia él con suavidad (y con inercia al soltar).
 
 import * as THREE from 'three';
 import { Spring, clamp } from './model/spring.js';
+
+const HOLD = 0.22; // fracción del recorrido entre piezas en la que la cámara se queda en cada una
 
 export class Journey {
   /**
@@ -22,9 +24,37 @@ export class Journey {
     return this.spring.x;
   }
 
-  // progreso entre piezas (0 = trenza, 1 = Makech, 2 = Xux)
+  // progreso entre piezas (0 = trenza, 1 = Makech, 2 = sala, 3 = final). Cada pieza tiene una
+  // pausa: alrededor de cada parada, una parte del desplazamiento deja la cámara quieta ante la
+  // pieza (llega frenando y arranca despacio), para que dé tiempo a verla y a jugar con ella.
   get p() {
-    return Math.max(0, this.spring.x - this.intro);
+    const raw = Math.max(0, this.spring.x - this.intro);
+    const i = Math.min(this.count - 1, Math.floor(raw));
+    const x = raw - i;
+    if (i >= this.count - 1) return this.count - 1;
+    const h = HOLD;
+    const u = clamp((x - h) / (1 - 2 * h), 0, 1);
+    return i + u * u * u * (u * (u * 6 - 15) + 10);
+  }
+
+  // ¿dónde termina el desplazamiento si se suelta con esta inercia? nunca más allá de la pieza
+  // siguiente (cada pieza tiene su pausa) y, si queda cerca de una, se posa en ella
+  settle(target) {
+    const s = this.spring.x;
+    const dir = Math.sign(target - s);
+    let t = target;
+    if (s < this.intro) {
+      if (dir > 0) t = Math.min(t, this.intro);
+    } else {
+      const raw = s - this.intro;
+      if (dir > 0) t = Math.min(t, this.intro + Math.floor(raw + 1e-3) + 1);
+      if (dir < 0) t = Math.max(t, this.intro + Math.ceil(raw - 1e-3) - 1);
+    }
+    if (t >= this.intro - 0.05) {
+      const near = Math.round(t - this.intro);
+      if (Math.abs(t - this.intro - near) < 0.42) t = this.intro + near;
+    }
+    this.goS(t, 3.2);
   }
 
   get introT() {
