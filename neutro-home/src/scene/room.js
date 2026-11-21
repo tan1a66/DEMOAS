@@ -158,7 +158,7 @@ function arcade() {
 
 // Pasta: el suelo de mosaicos de cemento de las casas de Mérida (rosetones de cuatro piezas).
 function pastaFloorMaterial() {
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.46, metalness: 0, envMapIntensity: 0.6 });
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.36, metalness: 0, envMapIntensity: 0.7 });
   mat.onBeforeCompile = (shader) => {
     patchSunlight(shader);
     shader.fragmentShader = shader.fragmentShader
@@ -195,14 +195,13 @@ float psBand(float v, float a, float b, float w) { return smoothstep(a - w, a + 
   float dm = a.x + a.y;
   c = mix(c, coal, 1.0 - smoothstep(0.16 - w, 0.16 + w, dm));
   c = mix(c, terra, 1.0 - smoothstep(0.06 - w, 0.06 + w, dm));
-  // dibujo suave (pasta vieja, colores lavados); a lo lejos se funde en su color medio
-  c = mix(c, vec3(0.63, 0.5, 0.37), 0.38 + 0.62 * smoothstep(0.08, 0.3, w));
-  c *= 0.86;
-  // juntas, desgaste y tono de cada pieza
+  // pasta restaurada: colores limpios y algo suaves; a lo lejos se funde en su color medio
+  c = mix(c, vec3(0.63, 0.5, 0.37), 0.25 + 0.75 * smoothstep(0.08, 0.3, w));
+  c *= 0.9;
+  // juntas finas
   float joint = smoothstep(0.5 - w * 1.5, 0.5 - w * 0.2, max(a.x, a.y));
-  c *= 1.0 - 0.35 * joint * (1.0 - smoothstep(0.1, 0.3, w));
-  c *= 0.9 + 0.1 * psHash(floor(tc)) ;
-  c = mix(c, c * 0.86 + 0.06, psNoise(vWPos.xz * 1.7) * 0.5);
+  c *= 1.0 - 0.22 * joint * (1.0 - smoothstep(0.1, 0.3, w));
+  c *= 0.97 + 0.03 * psHash(floor(tc));
   diffuseColor.rgb = c;
 }`
       );
@@ -228,7 +227,7 @@ function skyDome() {
         vec3 c = mix(hor, zen, smoothstep(0.0, 0.55, e));
         float sun = pow(max(0.0, dot(normalize(vDir), normalize(uSunDir))), 6.0);
         c += vec3(1.0, 0.8, 0.55) * sun * mix(0.35, 0.6, uDusk);
-        gl_FragColor = vec4(c * mix(1.05, 0.75, uDusk), 1.0);
+        gl_FragColor = vec4(c * mix(1.12, 0.78, uDusk), 1.0);
         #include <colorspace_fragment>
       }`,
   });
@@ -238,7 +237,7 @@ function skyDome() {
   return m;
 }
 
-// La otra crujía de la hacienda, al fondo del patio: muro ocre con su portal y buganvilias.
+// La otra crujía de la hacienda, al fondo del patio: muro ocre con su portal, muy velado por la luz.
 function farWing() {
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 });
   mat.onBeforeCompile = (shader) => {
@@ -268,11 +267,6 @@ float fwNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (
   c = mix(c, deep, inside);
   // cornisa
   c *= 1.0 - 0.22 * (1.0 - smoothstep(0.0, 0.06, abs(q.y - 2.6)));
-  // buganvilias (fucsia) que cuelgan del pretil
-  float b = fwNoise(q * vec2(1.3, 2.0) + 3.0) * 0.65 + fwNoise(q * 4.0) * 0.35;
-  float bh = smoothstep(1.2, 2.9, q.y);
-  float bug = smoothstep(0.6, 0.74, b) * bh * smoothstep(0.4, 0.6, fwNoise(vec2(q.x * 0.35, 1.0)));
-  c = mix(c, vec3(0.74, 0.16, 0.42) * (0.8 + 0.3 * fwNoise(q * 9.0)), bug * 0.9);
   diffuseColor.rgb = c;
   fwBright = c * (1.0 - 0.85 * inside);
 }`
@@ -283,7 +277,7 @@ float fwNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (
         '#include <emissivemap_fragment>',
         '#include <emissivemap_fragment>\ntotalEmissiveRadiance += fwBright * 0.62;'
       )
-      .replace('#include <dithering_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.93, 0.86, 0.74), 0.18);\n#include <dithering_fragment>');
+      .replace('#include <dithering_fragment>', 'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.5);\n#include <dithering_fragment>');
   };
   mat.customProgramCacheKey = () => 'far-wing';
   const g = new THREE.PlaneGeometry(56, 6.2);
@@ -344,16 +338,11 @@ export function buildRoom(textures) {
   group.add(
     buildPalms(
       [
-        { x: -7.2, z: 13.4, h: 6.0 },
-        { x: -3.0, z: 10.2, h: 5.2 },
-        { x: 0.9, z: 12.8, h: 6.3 },
-        { x: 4.4, z: 9.4, h: 4.6 },
-        { x: 6.6, z: 13.6, h: 6.0 },
-        { x: 10.4, z: 10.0, h: 5.0 },
-        { x: 12.3, z: 13.0, h: 6.4 },
-        { x: 16.0, z: 10.2, h: 4.8 },
-        { x: 17.6, z: 12.4, h: 5.6 },
-        { x: 21.0, z: 10.5, h: 5.2 },
+        { x: -3.0, z: 11.2, h: 5.4 },
+        { x: 3.6, z: 12.6, h: 6.0 },
+        { x: 9.6, z: 11.4, h: 5.2 },
+        { x: 15.2, z: 12.8, h: 6.2 },
+        { x: 20.6, z: 11.0, h: 5.4 },
       ],
       groundY
     )

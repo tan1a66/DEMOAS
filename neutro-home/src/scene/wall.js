@@ -5,10 +5,6 @@
 import * as THREE from 'three';
 import { patchSunlight } from '../gl/sunlight.js';
 
-// Zócalo pintado (almagre gastado) en la parte baja de los muros, como en las haciendas.
-const ZOCALO = { top: -2.0 + 0.5, color: new THREE.Color('#b48a6c'), base: new THREE.Color('#ddd1c1') };
-const zocRatio = new THREE.Vector3(ZOCALO.color.r / ZOCALO.base.r, ZOCALO.color.g / ZOCALO.base.g, ZOCALO.color.b / ZOCALO.base.b);
-
 export const TILE = 1.4; // metros que cubre una repetición de la textura
 
 // Centros de las manchas de luz (una por parada del recorrido).
@@ -31,8 +27,6 @@ export function plasterMaterial(textures, { tint = 0xffffff, pools = true, envMa
   });
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uPools = { value: SUN_POOLS };
-    shader.uniforms.uZocTop = { value: ZOCALO.top };
-    shader.uniforms.uZocCol = { value: zocRatio };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -42,8 +36,6 @@ export function plasterMaterial(textures, { tint = 0xffffff, pools = true, envMa
         `#include <common>
 varying vec3 vWPos;
 uniform vec3 uPools[4];
-uniform float uZocTop;
-uniform vec3 uZocCol;
 float lowFreq(vec3 p) {
   vec2 q = p.xy + p.zz * 0.7;
   return 0.5 + 0.25 * sin(dot(q, vec2(1.7, 2.3)) + 0.6) * sin(dot(q, vec2(-2.1, 1.3)) + 1.7)
@@ -53,13 +45,7 @@ float lowFreq(vec3 p) {
       .replace(
         '#include <map_fragment>',
         `#include <map_fragment>
-diffuseColor.rgb *= 0.95 + 0.1 * lowFreq(vWPos);
-// zócalo: borde a mano, la cal asoma donde la pintura se ha gastado, filete oscuro encima
-float zH = uZocTop + 0.008 * sin(vWPos.x * 2.7 + vWPos.z * 2.1) + 0.004 * sin(vWPos.x * 13.0 + vWPos.z * 11.0);
-float zb = 1.0 - smoothstep(zH - 0.003, zH + 0.003, vWPos.y);
-zb *= 1.0 - 0.35 * smoothstep(0.62, 0.85, lowFreq(vWPos * 4.0 + 1.3));
-float zl = 1.0 - smoothstep(0.004, 0.009, abs(vWPos.y - zH - 0.03));
-diffuseColor.rgb *= mix(vec3(1.0), uZocCol, zb) * (1.0 - 0.4 * zl);`
+diffuseColor.rgb *= 0.95 + 0.1 * lowFreq(vWPos);`
       )
       .replace(
         '#include <aomap_fragment>',

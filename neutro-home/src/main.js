@@ -1,7 +1,7 @@
 import './styles.css';
 import * as THREE from 'three';
 
-import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE } from './config.js';
+import { BRAID, PEGS, QUALITY, IS_TOUCH, REDUCED_MOTION, COLORS, DEFAULT_COLOR, PALETTE, TASSEL } from './config.js';
 import { bakeTextures } from './gl/textures.js';
 import { buildEnvironment } from './gl/environment.js';
 import { createDyeUniforms } from './gl/fiberMaterial.js';
@@ -15,7 +15,7 @@ import { STOPS } from './stops.js';
 import { JourneyUI } from './ui/journeyUi.js';
 import { buildPegs } from './scene/pegs.js';
 import { Braid, hungStructure, introStructure } from './scene/braid.js';
-import { Tassel } from './scene/tassel.js';
+import { Tassel, TASSEL_PIVOT } from './scene/tassel.js';
 import { Threads } from './scene/threads.js';
 import { Rig } from './model/rig.js';
 import { clamp, lerp, smoothstep } from './model/spring.js';
@@ -23,6 +23,8 @@ import { PieceUI } from './ui/ui.js';
 import { sunlight } from './gl/sunlight.js';
 import { Tapestry } from './scene/tapestry.js';
 import { LampPair, LAMP } from './scene/floorLamp.js';
+import { Cut } from './scene/cut.js';
+import { WipWall } from './scene/wipWall.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('gl');
@@ -128,6 +130,12 @@ spot.shadow.camera.far = 5;
 spot.shadow.autoUpdate = false;
 spot.shadow.needsUpdate = true;
 scene.add(spot, spot.target);
+// El final: en el muro del fondo, pintado con spray fucsia (el foco gira hacia él y se mece).
+const WIP = new THREE.Vector3(ROOM.right - 0.004, -0.15, 5.0);
+const wip = new WipWall({ position: WIP });
+scene.add(wip.mesh);
+const SPOT_A = { pos: spot.position.clone(), target: spot.target.position.clone(), i: 13 };
+const SPOT_B = { pos: new THREE.Vector3(ROOM.right - 2.2, ROOM.ceil - 0.3, WIP.z), target: WIP.clone().setX(ROOM.right), i: 17 };
 // Las luces de las lámparas (Makech, Xux) se reutilizan en la sala: siempre las mismas luces
 // (cambiar su número obliga a recompilar los materiales y da tirones).
 scene.updateMatrixWorld(true);
@@ -160,8 +168,9 @@ const atmosphere = new Atmosphere({
 atmosphere.setPixelRatio(renderer.getPixelRatio());
 scene.add(atmosphere.group);
 const demoSpin = {};
-const demoColor = {};
-const DEMO_COLORS = { trenza: 'fucsia', makech: 'azul', xux: 'fucsia', sala: 'verde' };
+// cada cuántos segundos cambia de color la pieza (lo que tarda el tinte en recorrerla y un respiro)
+const AUTO_EVERY = { trenza: 2.0, makech: 2.0, xux: 2.2, sala: 2.7 };
+const autoColor = { idx: -1, last: 0 };
 
 const HUNG_PHASE = 0.4;
 const rig = new Rig();
@@ -221,6 +230,7 @@ const STOP_FRAMES = [
   { focus: new THREE.Vector3(9.85, -0.95, 0.55), dir: new THREE.Vector3(0, 0, -1), w: 1.8, h: 2.3 },
   // (lift: la cámara sube y mira algo hacia abajo: menos techo, más pieza)
   { focus: new THREE.Vector3(SALA_X, -0.7, 0.4), dir: new THREE.Vector3(0, 0, -1), w: 2.75, h: 2.7, lift: 0.8 },
+  { focus: new THREE.Vector3(ROOM.right, -0.15, 5.0), dir: new THREE.Vector3(1, 0, 0), w: 1.7, h: 1.35 },
 ];
 let cameraPath = null;
 const up = new THREE.Vector3(0, 1, 0);
@@ -259,21 +269,25 @@ function computeStops() {
   // en horizontal manda la altura: se baja un poco para que entren las trenzas del suelo
   const f3 = portrait ? STOP_FRAMES[3] : { ...STOP_FRAMES[3], focus: STOP_FRAMES[3].focus.clone().setY(-0.95), h: 3.25 };
   const S3 = { ...frameStop(f3, fov3), stop: 3 };
+  const S4 = { ...frameStop(STOP_FRAMES[4], fov3), stop: 4 };
+  S4.pos.x = Math.max(S4.pos.x, ROOM.parts[2].x + 0.45); // dentro de la sala
+  S4.look.x = S4.pos.x + 1;
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
-  // La galería: entre una pieza y la siguiente la cámara se vuelve hacia el patio (las palmeras
-  // tras el portal), cruza el arco transversal y gira hacia la pieza nueva.
+  // La galería: de una pieza a la siguiente se cruza el arco transversal; el portal y el patio
+  // quedan de lado, apenas entrevistos (luz) — nunca se miran de frente.
   const keys = [
     S0,
     { pos: V(0.6, -0.35, 5.8), look: V(3.6, -0.3, 5.3), fov: (26 + fov) / 2 },
-    { pos: V(2.6, -0.4, 5.0), look: V(3.4, 0.3, 10.0), fov },
+    { pos: V(2.7, -0.3, 4.7), look: V(6.0, -0.15, 3.6), fov },
     S1,
-    { pos: V(6.1, -0.5, 4.9), look: V(8.2, -0.35, 6.6), fov },
-    { pos: V(8.2, -0.4, 5.0), look: V(9.1, 0.3, 10.0), fov },
+    { pos: V(6.1, -0.5, 4.9), look: V(9.6, -0.4, 5.5), fov },
+    { pos: V(8.4, -0.5, 5.2), look: V(10.0, -0.8, 1.8), fov },
     S2,
-    { pos: V(11.5, -0.5, 5.9), look: V(14.2, -0.3, 6.9), fov },
-    { pos: V(13.9, -0.4, 5.0), look: V(14.8, 0.3, 10.0), fov },
-    { pos: V(14.9, -0.4, 6.0), look: V(16.4, -0.6, 1.2), fov: (fov + fov3) / 2 },
+    { pos: V(11.5, -0.5, 5.7), look: V(14.2, -0.4, 5.5), fov },
+    { pos: V(14.2, -0.45, 5.5), look: V(16.0, -0.6, 1.6), fov: (fov + fov3) / 2 },
     S3,
+    { pos: V(15.4, -0.3, 5.9), look: V(18.6, -0.25, 4.4), fov: fov3 },
+    S4,
   ];
   cameraPath = buildPath(keys);
 }
@@ -304,8 +318,8 @@ const piece = new PieceUI({
 });
 
 // ---------------------------------------------------------------- recorrido
-// la entrada ocupa 3 unidades de recorrido (≈ 2,5 pantallas deslizadas); luego cada pieza, 1
-const INTRO_SPAN = 3.0;
+// la entrada ocupa 2,6 unidades de recorrido (≈ 2 pantallas deslizadas); luego cada pieza, 1
+const INTRO_SPAN = 2.6;
 const journey = new Journey(STOPS.length, INTRO_SPAN);
 const jui = new JourneyUI({ onGo: (i) => goStop(i), piece });
 function goStop(i) {
@@ -317,6 +331,7 @@ const STOP_FOCUS = [
   new THREE.Vector3(6.1, -0.25, 3.25),
   new THREE.Vector3(9.85, -1.0, 0.55),
   new THREE.Vector3(SALA_X, -0.8, 0.4),
+  new THREE.Vector3(ROOM.right - 0.5, -0.4, 5.0),
 ];
 const sunOffset = sun.position.clone().sub(sun.target.position);
 const shadowFocus = new THREE.Vector3();
@@ -328,6 +343,7 @@ const SUN_KEYS = [
   { dir: new THREE.Vector3(-2.05, 0.9, 1.05), color: new THREE.Color('#ffb877'), i: 2.6, hemi: 0.25, env: 0.44, glow: 1.25 },
   // anochecer: un último sol rasante y anaranjado; mandan las lámparas y la luz sobre el tapiz
   { dir: new THREE.Vector3(-2.4, 0.42, 0.8), color: new THREE.Color('#ff9658'), i: 1.5, hemi: 0.19, env: 0.34, glow: 0.5 },
+  { dir: new THREE.Vector3(-2.6, 0.3, 0.7), color: new THREE.Color('#ff8a50'), i: 1.1, hemi: 0.16, env: 0.3, glow: 0.4 },
 ];
 const sunDirTmp = new THREE.Vector3();
 function updateSun(p) {
@@ -345,7 +361,7 @@ function updateSun(p) {
   scene.environmentIntensity = lerp(a.env, b.env, e);
   atmosphere.uniforms.uGlow.value = lerp(a.glow, b.glow, e);
   atmosphere.uniforms.uColor.value.copy(sun.color).lerp(new THREE.Color('#ffffff'), 0.25);
-  const dusk = clamp(p - 2, 0, 1);
+  const dusk = clamp(p - 2, 0, 1) + 0.2 * clamp(p - 3, 0, 1);
   sunlight.uLeaf.value = lerp(1, 0.45, dusk);
   sunlight.uArcadeK.value = 1 - 0.5 * dusk;
   room.userData.sky.material.uniforms.uDusk.value = dusk;
@@ -470,7 +486,7 @@ const introP = {
 };
 const introSt = introStructure(introP);
 const introLine = $('introLine');
-const INTRO_END = 11.0;
+const INTRO_END = 9.4;
 
 // Sol de la fase de sombra: alto, de frente y algo a la izquierda (roza el muro desde arriba).
 // La cola se separa del muro (fuera de cuadro, como en manos de la tejedora): su sombra cae
@@ -484,7 +500,32 @@ const SUN_REST = {
 };
 const SUN_TIGHT = 0.6; // media anchura del mapa de sombras sobre la zona de la sombra
 let introLift = 0;
-const introZ = (s) => BRAID.z + introLift * (1 - smoothstep(0.44, 0.62, s));
+// además la cola se aleja en la dirección del sol (su sombra no cambia, pero sale de cuadro)
+const ALONG = 1.0;
+let introAlong = 0;
+const liftW = (s) => 1 - smoothstep(0.44, 0.62, s);
+const introZ = (s) => BRAID.z + liftW(s) * (introLift + introAlong * SHADOW.dir.z);
+const liftedCenter = { px: null, py: null, tx: null, ty: null };
+function liftCenter() {
+  const c = rig.center;
+  if (!liftedCenter.px) {
+    liftedCenter.px = new Float32Array(c.px.length);
+    liftedCenter.py = new Float32Array(c.py.length);
+  }
+  const N = c.px.length;
+  const ds = BRAID.length / (N - 1);
+  for (let i = 0; i < N; i++) {
+    const w = liftW(i * ds) * introAlong;
+    liftedCenter.px[i] = c.px[i] + SHADOW.dir.x * w;
+    liftedCenter.py[i] = c.py[i] + SHADOW.dir.y * w;
+  }
+  liftedCenter.tx = c.tx;
+  liftedCenter.ty = c.ty;
+  return liftedCenter;
+}
+const cut = new Cut();
+scene.add(cut.group);
+const cutAt = new THREE.Vector3();
 
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
@@ -515,9 +556,9 @@ function computeCloseCamera() {
   // la sombra de los cabos sobre el muro (cola separada del muro a BRAID.z + lift)
   const zt = BRAID.z + SHADOW.lift;
   const hS = fit(0.8, 1.2);
-  // (sobre el zócalo; en horizontal algo a la izquierda: la otra cola queda fuera de cuadro)
-  closeCam.S = frame(hS, tip + 0.24 - SHADOW_K.y * zt, info.endL.x + SHADOW_K.x * zt - (aspect > 1 ? 0.14 : 0.02));
-  closeCam.shadowY = (s) => tip + s - SHADOW_K.y * zt;
+  // (en horizontal algo a la izquierda: la otra cola queda fuera de cuadro)
+  // encuadre: el nudo arriba, el punto del corte y las hebras largas debajo
+  closeCam.S = frame(hS, tip - 0.15 - SHADOW_K.y * zt, info.endL.x + SHADOW_K.x * zt - (aspect > 1 ? 0.14 : 0.02));
 }
 
 // Luz de la entrada: la tarde normal ↔ el sol alto de la sombra (sh = 0..1).
@@ -561,7 +602,8 @@ function restoreSunFrustum() {
 // La entrada es una función del desplazamiento (t = segundos "de guion", no de reloj).
 function setIntro(t) {
   // 1) el hilo baja por la cola  2) se abre en hebras  3) tres cabos  — igual que siempre —
-  // 4) la cámara pasa a la sombra: se trenzan  5) borla  6) la sombra se recoge y la pieza aparece
+  // 4) directo a la sombra: la trenza ya está hecha y es larguísima; el nudo se cierra, entran
+  //    las tijeras, corte, el sobrante cae  5) la sombra se recoge y la cámara se aleja
   introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 2.7)));
   const bl = seg(t, 2.5, 4.4);
   const bloom = 0.66 * bl * bl;
@@ -571,61 +613,74 @@ function setIntro(t) {
   introP.bloom = bloom;
   introP.split = split;
   introP.spread = 0.6 * split;
-  // los cabos son haces de hilos: sólo un alma fina les da cuerpo mientras se trenzan; la trenza
-  // "sólida" aparece al final, cuando la cámara ya se aleja
-  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 9.2, 9.9));
-  // trenzado a mano: el frente avanza a golpes, un cruce cada vez. Casi todo ocurre fuera de
-  // cuadro (deprisa, mientras la sombra llega); en sombra se ven sólo los últimos cruces
+  introP.tube = 0.5 * easeInOut(seg(t, 4.9, 5.6)) + 0.5 * easeInOut(seg(t, 7.6, 8.2));
+  // el trenzado ocurre fuera de cuadro, mientras la cámara pasa a la sombra
   const END = 0.08;
-  const NSTEP = 13;
-  const STEP = (0.52 - END) / NSTEP;
-  const u = seg(t, 6.2, 7.0) * 10 + seg(t, 7.0, 7.9) * 3;
-  const kk = Math.min(NSTEP - 1, Math.floor(u));
-  const stepped = 0.52 - STEP * (kk + smoothstep(0.08, 0.72, u - kk));
-  introP.front = t < 6.2 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : Math.max(END, stepped);
-  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 6.0)));
-  // cierre (en sombra): las últimas vueltas se recogen en el cuello, que se enrolla, y el fleco cae
-  const closing = easeInOut(seg(t, 7.9, 8.6));
+  introP.front = t < 5.75 ? lerp(0.74, 0.52, easeInOut(seg(t, 5.0, 5.6))) : lerp(0.52, END, easeInOut(seg(t, 5.75, 6.1)));
+  introP.scale = lerp(0.13, 1, easeInOut(seg(t, 3.0, 5.6)));
+  const closing = easeInOut(seg(t, 5.9, 6.25));
   introP.done = closing;
   introP.tipEnd = lerp(0.085, -0.2, closing);
-  // la cola se separa del muro cuando ya está fuera de cuadro, y vuelve antes de verse
-  introLift = SHADOW.lift * easeInOut(seg(t, 6.15, 6.95)) * (1 - easeInOut(seg(t, 9.0, 9.6)));
-  introP.airy = introLift / SHADOW.lift;
+  const goOut = easeInOut(seg(t, 5.55, 6.1)) * (1 - easeInOut(seg(t, 7.35, 7.9)));
+  introLift = SHADOW.lift * goOut;
+  introAlong = ALONG * goOut;
+  introP.airy = goOut;
   if (threads) {
-    threads.mesh.visible = t > 2.4 && t < 9.95;
+    threads.mesh.visible = t > 2.4 && t < 8.25;
     threads.set({
       bloom, spray, gather, time: t, tube: introP.tube, tipEnd: introP.tipEnd, taper: introP.taper,
       front: lerp(introP.front, -0.4, closing), done: 0,
     });
   }
-  braid.update(rig.center, introLift > 1e-4 ? introZ : BRAID.z, introSt);
-  // la borla izquierda: el cuello se enrolla vuelta a vuelta y luego cae el fleco
-  const wrap = easeInOut(seg(t, 7.9, 8.7));
-  tassels.L.place(rig.info.endL, introZ(0), 0);
-  tassels.L.mesh.visible = t > 7.9;
-  tassels.L.uniforms.uWrap.value = wrap;
-  tassels.L.uniforms.uDrop.value = easeOut(seg(t, 8.3, 9.1));
+  const lifted = goOut > 1e-4;
+  braid.update(lifted ? liftCenter() : rig.center, lifted ? introZ : BRAID.z, introSt);
+  // la borla: el cuello se enrolla y las hebras siguen larguísimas hasta el corte
+  const e = rig.info.endL;
+  const tEnd = { x: e.x + SHADOW.dir.x * introAlong, y: e.y + SHADOW.dir.y * introAlong, dx: e.dx, dy: e.dy };
+  tassels.L.place(tEnd, introZ(0), 0);
+  tassels.L.mesh.visible = t > 5.9;
+  tassels.L.uniforms.uWrap.value = easeInOut(seg(t, 5.9, 6.3));
+  const CUT_T = 6.95;
+  const long = 3.3;
+  tassels.L.uniforms.uDrop.value = t < CUT_T ? lerp(1, long, easeOut(seg(t, 5.95, 6.4))) : 1;
+  // después del corte la borla se balancea un poco
+  const after = t - CUT_T;
+  tassels.L.uniforms.uLag.value = after > 0 ? 0.12 * Math.sin(after * 9) * Math.exp(-after * 3.5) : 0;
+  // tijeras: llegan abiertas, cortan, se abren un poco y se van
+  cutAt.set(tEnd.x, 0, introZ(0));
+  const cutY = tEnd.y + TASSEL_PIVOT + 0.014 - TASSEL.fiberLength;
+  const enter = easeOut(seg(t, 6.35, 6.75));
+  const close = easeInOut(seg(t, 6.75, CUT_T));
+  const reopen = easeOut(seg(t, CUT_T, 7.15)) * 0.35;
+  cut.set({
+    at: cutAt,
+    cutY,
+    enter,
+    open: 0.42 * (1 - close) + 0.42 * reopen,
+    fall: t < CUT_T ? -1 : (t - CUT_T) * 1.3,
+    away: easeInOut(seg(t, 7.1, 7.5)),
+    visible: t > 6.3 && t < 7.9,
+  });
 
-  // cámara: cerca del hilo → se abre para ver toda la cola → baja al muro, donde cae la sombra,
-  // y la acompaña mientras se trenza → se aleja: la pieza ya está colgada en el muro
+  // cámara: cerca del hilo → se abre para ver toda la cola → baja al muro (la sombra del nudo
+  // y del corte) → se aleja: la pieza ya está colgada en el muro
   const { A, W, S } = closeCam;
   const wide = easeInOut(seg(t, 2.6, 5.4));
-  const toS = easeInOut(seg(t, 5.5, 6.3));
-  const near = easeInOut(seg(t, 6.9, 9.0));
+  const toS = easeInOut(seg(t, 5.4, 6.0));
+  const near = easeInOut(seg(t, 6.0, 7.3));
   let d = lerp(A.d, W.d, wide) * (1 - 0.04 * seg(t, 0, 2.6));
   let y = lerp(A.y, W.y, wide);
-  const fy = closeCam.shadowY(introP.front);
-  d = lerp(d, S.d * (1 - 0.1 * near), toS);
-  y = lerp(y, S.y + (fy - S.y) * 0.2 * near, toS);
+  d = lerp(d, S.d * (1 - 0.12 * near), toS);
+  y = lerp(y, S.y - 0.04 * near, toS);
   const x = lerp(closeCam.x, S.x, toS);
   camPos.set(x, y, BRAID.z + d);
   camLook.set(x, y, 0);
-  const away = easeInOut(seg(t, 9.5, INTRO_END - 0.1));
+  const away = easeInOut(seg(t, 7.7, INTRO_END - 0.1));
   camPos.lerp(finalCam.pos, away);
   camLook.lerp(finalCam.look, away);
   applyCamera(camPos, camLook);
 
-  const sh = easeInOut(seg(t, 5.5, 6.4)) * (1 - easeInOut(seg(t, 9.0, 9.8)));
+  const sh = easeInOut(seg(t, 5.4, 6.0)) * (1 - easeInOut(seg(t, 7.35, 8.1)));
   introLight(sh, 1 - away);
   if (t > 0.8 && t < 4.9) introLine.classList.add('on');
   else introLine.classList.remove('on');
@@ -660,6 +715,9 @@ function endIntro() {
   prevTravel = false;
   lastP = -1;
   introLift = 0;
+  introAlong = 0;
+  cut.group.visible = false;
+  tassels.L.uniforms.uLag.value = 0;
   restoreSunFrustum();
   placeJourneyCamera();
   rim.intensity = 0;
@@ -1227,9 +1285,22 @@ function updateJourney(dt, time) {
       pl.light.decay = pl.decay;
     }
   });
+  // el foco: sobre el tapiz; al final gira hacia el muro pintado y allí se mece un poco
   const spotK = smoothstep(2.55, 3.0, p);
-  if (Math.abs(spot.intensity - 13 * spotK) > 1e-4) dirty = true;
-  spot.intensity = 13 * spotK;
+  const toWip = smoothstep(3.1, 3.85, p);
+  const sway = smoothstep(3.6, 4.0, p);
+  spot.position.lerpVectors(SPOT_A.pos, SPOT_B.pos, toWip);
+  spot.target.position.lerpVectors(SPOT_A.target, SPOT_B.target, toWip);
+  if (sway > 0) {
+    spot.target.position.y += sway * (Math.sin(time * 0.41) * 0.07 + Math.sin(time * 0.93 + 1.2) * 0.025);
+    spot.target.position.z += sway * (Math.sin(time * 0.33 + 0.4) * 0.16 + Math.sin(time * 0.77) * 0.04);
+    dirty = true;
+  }
+  spot.target.updateMatrixWorld();
+  const spotI = lerp(SPOT_A.i, SPOT_B.i, toWip) * spotK;
+  if (Math.abs(spot.intensity - spotI) > 1e-4) dirty = true;
+  spot.intensity = spotI;
+  if (journey.moving && p > 3 && p < 3.95) spot.shadow.needsUpdate = true;
   // sólo se dibuja lo que puede verse
   const showBraid = p < 1.45;
   braid.mesh.visible = pegs.visible = showBraid;
@@ -1239,12 +1310,22 @@ function updateJourney(dt, time) {
   const showSala = p > 2.2;
   if (showSala && !sala.visible) spot.shadow.needsUpdate = true;
   sala.visible = showSala;
-  // al llegar a una pieza por primera vez, el color se demuestra solo (si aún no se ha tocado)
-  if (Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoColor[idx]) {
-    demoColor[idx] = true;
-    const id = STOPS[idx].id;
-    setTimeout(() => piece.demo(id, DEMO_COLORS[id]), idx === 0 ? 4200 : 2300);
-  }
+  wip.mesh.visible = p > 3.0; // el final no se ve antes (los arcos están alineados)
+  // muestrario vivo: delante de una pieza, cambia sola de color cada pocos segundos (hasta que el
+  // visitante elige uno); mientras se toca la pieza, espera
+  const st = STOPS[idx];
+  const still = Math.abs(p - idx) < 0.06 && Math.abs(journey.spring.v) < 0.25;
+  if (still && st.colors && !drag && !fringeTouch && !tapTouch) {
+    // (con el reloj real: si el teléfono va lento, el ritmo no cambia)
+    if (autoColor.idx !== idx) {
+      autoColor.idx = idx;
+      autoColor.last = time + (idx === 0 ? 1.2 : 0);
+    }
+    if (time - autoColor.last >= (AUTO_EVERY[st.id] || 2)) {
+      autoColor.last = time;
+      piece.auto(st.id);
+    }
+  } else if (!still) autoColor.idx = -1;
   // al llegar a una pieza por primera vez, media vuelta suave: invita a girarla
   if ((idx === 1 || idx === 2) && Math.abs(p - idx) < 0.05 && Math.abs(journey.spring.v) < 0.2 && !demoSpin[idx]) {
     demoSpin[idx] = true;
@@ -1302,6 +1383,7 @@ async function start() {
 
   const fontsReady = document.fonts ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
   await fontsReady;
+  wip.draw(); // con las tipografías ya cargadas
 
   const skip = REDUCED_MOTION || params.has('skip');
   if (skip) {

@@ -148,6 +148,11 @@ export function buildPalms(spots, groundY) {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${WIND}`)
       .replace('#include <begin_vertex>', 'vec3 transformed = palmWind(vec3(position));');
+    // fuera todo está sobreexpuesto (como en una foto de interior): siluetas suaves en la luz
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <dithering_fragment>',
+      'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.42);\n#include <dithering_fragment>'
+    );
   };
   mat.customProgramCacheKey = () => 'palm';
   spots.forEach((s, i) => {
@@ -191,6 +196,10 @@ float pgNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (
   float garden = smoothstep(9.2, 9.6, vWPos.z + 0.3 * pgNoise(q * 1.5));
   diffuseColor.rgb = mix(stone, grass, garden);
 }`
+      )
+      .replace(
+        '#include <dithering_fragment>',
+        'gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.97, 0.92, 0.83), 0.38);\n#include <dithering_fragment>'
       );
   };
   mat.customProgramCacheKey = () => 'patio-ground';

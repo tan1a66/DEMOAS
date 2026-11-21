@@ -162,7 +162,7 @@ attribute float aPart;  // 0 = cuello (hilo enrollado), 1 = fleco
 uniform float uLag;     // retraso del fleco respecto al cuello (radianes)
 uniform float uPivot;   // altura local del giro (base del cuello)
 uniform float uWrap;    // cierre: el hilo del cuello se enrolla de arriba abajo (0..1)
-uniform float uDrop;    // cierre: el fleco cae desde el cuello (0..1)
+uniform float uDrop;    // cierre: el fleco cae desde el cuello (0..1; > 1: largo, sin cortar)
 vec3 tasselClose(vec3 p) {
   if (aPart < 0.5) {
     // vuelta a vuelta: la parte aún no enrollada queda escondida dentro de la trenza
@@ -172,7 +172,7 @@ vec3 tasselClose(vec3 p) {
   } else {
     float top = uPivot + 0.014;
     p.y = top + (p.y - top) * uDrop;
-    p.xz *= mix(0.55, 1.0, uDrop);
+    p.xz *= mix(0.55, 1.0, min(uDrop, 1.0)); // > 1: hebras aún largas, antes del corte
   }
   return p;
 }

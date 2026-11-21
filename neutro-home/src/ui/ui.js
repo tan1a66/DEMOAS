@@ -12,33 +12,25 @@ export class PieceUI {
     this.el = $('piece');
     this.stop = null;
     this.chosen = Object.fromEntries(STOPS.map((s) => [s.id, s.defaultColor || null]));
-    this.used = false; // el visitante ya ha elegido algún color
-    this.demoTimer = 0;
+    this.manual = new Set(); // piezas en las que el visitante ya ha elegido
     this._buildSwatches();
-    $('swatches').classList.add('invite');
   }
 
-  // Demostración (una vez por pieza, mientras no se haya tocado ningún color): un ovillo se
-  // "pulsa" solo, el color corre por la pieza y vuelve al de antes. Así se entiende sin palabras.
-  demo(stopId, colorId) {
-    if (this.used || !this.stop || this.stop.id !== stopId) return;
-    const before = this.chosen[stopId];
-    const b = this.buttons.find((x) => x.dataset.id === colorId);
-    if (!b) return;
+  // Muestrario vivo: mientras el visitante no elige, la pieza cambia sola de color cada pocos
+  // segundos; el ovillo correspondiente se "pulsa", así se entiende que los colores se tocan.
+  // Cuando el visitante elige un color, esa pieza se queda con el suyo.
+  auto(stopId) {
+    if (!this.stop || this.stop.id !== stopId || this.manual.has(stopId)) return false;
+    const cur = COLORS.findIndex((c) => c.id === this.chosen[stopId]);
+    const next = COLORS[(cur + 1 + COLORS.length) % COLORS.length];
+    const b = this.buttons.find((x) => x.dataset.id === next.id);
     b.classList.remove('ghost');
     void b.offsetWidth;
     b.classList.add('ghost');
-    this.chosen[stopId] = colorId;
+    this.chosen[stopId] = next.id;
     this._render();
-    this.onColor(stopId, COLORS.find((x) => x.id === colorId));
-    clearTimeout(this.demoTimer);
-    this.demoTimer = setTimeout(() => {
-      b.classList.remove('ghost');
-      if (this.used || this.chosen[stopId] !== colorId) return;
-      this.chosen[stopId] = before;
-      if (this.stop && this.stop.id === stopId) this._render();
-      this.onColor(stopId, COLORS.find((x) => x.id === before) || null);
-    }, 2300);
+    this.onColor(stopId, next);
+    return true;
   }
 
   _buildSwatches() {
@@ -79,12 +71,8 @@ export class PieceUI {
 
   select(colorId) {
     if (!this.stop || !this.stop.colors) return;
-    if (!this.used) {
-      this.used = true;
-      clearTimeout(this.demoTimer);
-      $('swatches').classList.remove('invite');
-      for (const b of this.buttons) b.classList.remove('ghost');
-    }
+    this.manual.add(this.stop.id);
+    for (const b of this.buttons) b.classList.remove('ghost');
     if (this.chosen[this.stop.id] === colorId) return;
     this.chosen[this.stop.id] = colorId;
     this._render();
@@ -96,6 +84,7 @@ export class PieceUI {
     if (this.stop === s) return;
     this.stop = s;
     document.body.dataset.stop = s.id;
+    for (const b of this.buttons) b.classList.remove('ghost');
     this._render();
     this.el.classList.remove('in');
     void this.el.offsetWidth;

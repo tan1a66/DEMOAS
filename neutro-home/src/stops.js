@@ -4,4 +4,5 @@ export const STOPS = [
   { id: 'makech', colors: true, defaultColor: 'rosa' },
   { id: 'xux', colors: true, defaultColor: null }, // empieza con la combinación de la casa
   { id: 'sala', colors: true, defaultColor: 'rosa' }, // el color cambia las dos lámparas
+  { id: 'fin', colors: false, defaultColor: null }, // muro pintado: WORK IN PROGRESS · ALESSIA.STUDIO
 ];

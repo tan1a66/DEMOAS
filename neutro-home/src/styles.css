@@ -393,7 +393,12 @@ body.ui-on .dots {
 }
 
 /* ------------------------------------------------------------ la sala, de noche: el texto se aclara */
-body[data-stop='sala'] {
+body.ui-on[data-stop='fin'] .piece {
+  opacity: 0;
+  pointer-events: none;
+}
+body[data-stop='sala'],
+body[data-stop='fin'] {
   --ink: #f2e6d6;
   --ink-soft: rgba(242, 230, 214, 0.62);
 }
@@ -457,31 +462,7 @@ body.lit .vignette {
   scale: 1;
 }
 
-/* Invitación a jugar con los colores (sin palabras): los ovillos hacen una ola de vez en cuando
-   hasta que se elige uno; en la demostración, un ovillo "se pulsa" solo. */
-.swatches.invite .swatch::before {
-  animation: yarn-wave 7s var(--ease) infinite;
-}
-.swatches.invite .swatch:nth-child(2)::before { animation-delay: 0.08s; }
-.swatches.invite .swatch:nth-child(3)::before { animation-delay: 0.16s; }
-.swatches.invite .swatch:nth-child(4)::before { animation-delay: 0.24s; }
-.swatches.invite .swatch:nth-child(5)::before { animation-delay: 0.32s; }
-.swatches.invite .swatch:nth-child(6)::before { animation-delay: 0.4s; }
-.swatches.invite .swatch:nth-child(7)::before { animation-delay: 0.48s; }
-.swatches.invite .swatch:nth-child(8)::before { animation-delay: 0.56s; }
-@keyframes yarn-wave {
-  0%,
-  86%,
-  100% {
-    translate: 0 0;
-  }
-  90% {
-    translate: 0 -6px;
-  }
-  94% {
-    translate: 0 1px;
-  }
-}
+/* Muestrario vivo: cuando la pieza cambia sola de color, su ovillo "se pulsa". */
 .swatch.ghost {
   isolation: isolate;
 }

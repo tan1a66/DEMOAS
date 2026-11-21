@@ -3,10 +3,9 @@
 Una mostra senza parole, pensata per iPhone in verticale: solo i pezzi, i loro colori e la luce
 di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena).
 1. **Entrata:** su muro chiaro un filo scende lungo la coda della treccia già appesa e si apre in
-   moltissimi fili, che formano tre fasci. Poi la camera lascia i fili e scende sul muro: il sole
-   sale e rade la calce, e l'intreccio (a ritmo di mano, un incrocio alla volta) e la chiusura della
-   nappa si vedono solo in ombra, tra le foglie di palma. L'ombra si ritira, la camera si allontana
-   e la treccia è al suo posto.
+   moltissimi fili, che formano tre fasci. Poi si va dritti all'ombra sul muro: la treccia è già
+   fatta e lunghissima, il nodo si chiude, entrano le forbici, taglio, il pezzo in eccesso cade.
+   La camera si allontana e la treccia è al suo posto.
 2. **Trenza Maya:** si tirano le onde, le code e le nappe; otto colori che scorrono da una nappa all'altra.
 3. **Makech** e **famiglia Xux:** il pezzo resta al suo posto e si fa girare col dito (360°, con
    inerzia): le frange restano indietro e si aprono; passandoci sopra si spostano. Anche loro cambiano
@@ -17,6 +16,11 @@ di Mérida (sole di pomeriggio filtrato da foglie di palma che si muovono appena
    pavimento fino alla sua nappa. Il dito apre le frange dell'arazzo, un tocco le fa ondeggiare; un
    tocco su una lampada la accende o la spegne; i colori cambiano le due lampade (la tinta sale dal
    pavimento al paralume).
+5. **Fine:** in fondo alla galleria, sul muro, WORK IN PROGRESS dipinto con lo spray fucsia e la
+   firma ALESSIA.STUDIO, sotto un faretto che si muove appena.
+La casa è la galleria di un'hacienda restaurata: portico ad archi sul patio (si intravede appena,
+nella luce), soffitto alto con travi, pavimento in cementine. Ogni pezzo cambia colore da solo ogni
+due secondi circa; se il visitante sceglie un colore, quel pezzo resta del colore scelto.
 Luce e camera: la sera avanza con lo scorrimento (pomeriggio alla treccia, luce dorata alla Makech,
 tramonto alle Xux, sera nella sala: il sole si abbassa, le ombre si allungano, le lampade si accendono); fasci di sole
 e pulviscolo nell'aria; camera "a mano" che respira e accompagna il passo; passando, la camera gira
