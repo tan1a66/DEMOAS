@@ -111,7 +111,7 @@ sala.add(tapestry.group, lampPair.group);
 scene.add(sala);
 const spot = new THREE.SpotLight('#ffd6a2', 0, 0, 0.52, 0.8, 1.3);
 // alta y algo de lado (como un foco en el techo): los flecos dejan su sombra en la cal
-spot.position.set(SALA_X - 0.5, ROOM.ceil - 0.3, 0.95);
+spot.position.set(SALA_X - 0.5, 2.3, 0.95);
 spot.target.position.set(SALA_X + 0.05, -0.25, 0);
 spot.castShadow = true;
 spot.shadow.mapSize.set(QUALITY.shadowMap, QUALITY.shadowMap);
@@ -129,7 +129,7 @@ const WIP = new THREE.Vector3(ROOM.right - 0.004, -0.15, 5.0);
 const wip = new WipWall({ position: WIP });
 scene.add(wip.mesh);
 const SPOT_A = { pos: spot.position.clone(), target: spot.target.position.clone(), i: 13 };
-const SPOT_B = { pos: new THREE.Vector3(ROOM.right - 2.2, ROOM.ceil - 0.3, WIP.z), target: WIP.clone().setX(ROOM.right), i: 17 };
+const SPOT_B = { pos: new THREE.Vector3(ROOM.right - 2.2, 2.3, WIP.z), target: WIP.clone().setX(ROOM.right), i: 17 };
 // La luz de la Makech se reutiliza en la sala (más una segunda): siempre las mismas luces
 // (cambiar su número obliga a recompilar los materiales y da tirones).
 scene.updateMatrixWorld(true);
@@ -145,7 +145,7 @@ fringes[0].scrollSpin = (p) => clamp(p - 1, -1.2, 1.2) * 2.4;
 
 // Aire: polvo en la luz y haces de sol que cruzan cada espacio.
 const atmosphere = new Atmosphere({
-  bounds: { x0: ROOM.left + 0.3, x1: ROOM.right - 0.5, y0: ROOM.floor + 0.2, y1: ROOM.ceil - 0.25, z0: 0.4, z1: ROOM.front - 0.4 },
+  bounds: { x0: ROOM.left + 0.3, x1: ROOM.right - 0.5, y0: ROOM.floor + 0.2, y1: 2.3, z0: 0.4, z1: ROOM.front - 0.4 },
   motes: IS_TOUCH ? 320 : 480,
   // haces: el punto donde tocan el suelo, delante de cada pieza (bajan desde arriba, del lado del sol)
   shafts: [
@@ -180,7 +180,7 @@ function freeArea() {
   const top = brandEl.getBoundingClientRect().bottom + 10;
   // los colores van en columna a la izquierda; las marcas de recorrido a la derecha; la flecha abajo
   const pr = pieceEl.getBoundingClientRect();
-  return { x0: Math.max(36, pr.right + 6), x1: w - 38, y0: top, y1: h - 58 };
+  return { x0: Math.max(36, pr.right + 16), x1: w - 40, y0: top, y1: h - 58 };
 }
 const CONTENT = { x0: -0.55, x1: 0.55, y0: -0.93, y1: 0.19 };
 const finalCam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), pxpm: 300 };
@@ -269,8 +269,8 @@ function computeStops() {
     { pos: V(0.4, -0.35, 5.9), look: V(6.1, -0.05, 3.4), fov: (26 + fov) / 2 },
     { pos: V(2.7, -0.3, 4.7), look: V(6.0, -0.12, 3.5), fov },
     S1,
-    { pos: V(6.3, -0.45, 5.4), look: V(8.6, -0.4, 5.6), fov },
-    { pos: V(6.9, -0.45, 5.7), look: V(SALA_X, -0.55, 0.8), fov: (fov + fov3) / 2 },
+    { pos: V(6.6, -0.45, 6.0), look: V(SALA_X, -0.35, 0.6), fov },
+    { pos: V(8.2, -0.45, 5.6), look: V(SALA_X, -0.55, 0.6), fov: (fov + fov3) / 2 },
     S2,
     { pos: V(SALA_X - 0.6, -0.3, 5.9), look: V(ROOM.right, -0.25, 4.4), fov: fov3 },
     S3,
@@ -589,7 +589,7 @@ function setIntro(t) {
   // 1) el hilo nace: baja por la cola y se abre en muchísimas hebras  2) la cámara baja por el
   // muro y, bajo los hilos, aparece la sombra de la trenza ya hecha, larguísima, con su nudo
   // 3) tijeras de sastre: corte, el sobrante cae; la trenza se levanta  4) la cámara se aleja
-  introP.cut = 0.8 * (1 - easeOut(seg(t, 0.3, 3.2)));
+  introP.cut = 0.63 * (1 - easeOut(seg(t, 0.05, 3.0)));
   const bl = seg(t, 2.9, 5.0);
   const bloom = 0.66 * bl * bl;
   const spray = easeInOut(seg(t, 2.9, 4.7));
@@ -659,7 +659,7 @@ function setIntro(t) {
 
   const sh = easeInOut(seg(t, 4.8, 6.3)) * (1 - easeInOut(seg(t, 8.9, 9.6)));
   introLight(sh, 1 - away);
-  if (t > 0.8 && t < 4.4) introLine.classList.add('on');
+  if (t > 0.15 && t < 4.4) introLine.classList.add('on');
   else introLine.classList.remove('on');
   document.body.classList.toggle('lit', t > INTRO_END - 0.8);
 }

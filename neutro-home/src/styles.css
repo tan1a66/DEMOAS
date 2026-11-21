@@ -93,6 +93,8 @@ body {
   letter-spacing: 0.38em;
   margin-right: -0.38em;
   color: var(--ink);
+  /* se lee sobre cualquier fondo (cal, vigas, noche) */
+  text-shadow: 0 0 14px var(--halo, rgba(246, 238, 226, 0.75)), 0 0 3px var(--halo, rgba(246, 238, 226, 0.6));
   text-decoration: none;
   opacity: 0;
   transition: opacity 1.4s var(--ease), color 1.2s var(--ease);
@@ -402,6 +404,7 @@ body.ui-on[data-stop='fin'] .piece {
 }
 body[data-stop='sala'],
 body[data-stop='fin'] {
+  --halo: rgba(30, 18, 12, 0.55);
   --ink: #f2e6d6;
   --ink-soft: rgba(242, 230, 214, 0.62);
 }

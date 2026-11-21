@@ -15,7 +15,7 @@ import { patioGroundMaterial } from './palms.js';
 
 export const ROOM = {
   floor: -2.0,
-  ceil: 2.6,
+  ceil: 3.1, // techos altos de hacienda: las vigas quedan arriba, fuera de los encuadres
   back: 0,
   front: 7.0,
   left: -4.2,
