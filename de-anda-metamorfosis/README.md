@@ -1,6 +1,8 @@
 # Dr. Roberto de Anda — «Metamorfosis» (demo conceptual, Alessia Studio)
 
-Scrollytelling 3D: una Venere di marmo in un tempio bianco sospeso sulle nuvole.
+Scrollytelling 3D: una Venere di marmo in un tempio classico bianco affacciato sul mare
+(archi con archivolti e chiavi di volta, colonne con capitello corinzio, trabeazione con
+dentelli, vasi, cipressi, vasca d'acqua che riflette).
 Si apre all'alba (nebbia, luce fredda, tende chiuse, marmo opaco). Scorrendo sale il sole:
 la nebbia si dirada, le tende si aprono nel vento, entrano i raggi di luce, compaiono le
 ombre delle foglie d'ulivo e il marmo diventa levigato e luminoso. Il finale è al tramonto,
@@ -48,13 +50,18 @@ Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
 
 | File | Contenuto |
 | --- | --- |
-| `src/config.js` | **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone interattive |
-| `src/drone-path.js` | tappe del drone e **atmosfere** (sole, cielo, nebbia, tende, raggi, ombre d'ulivo, luna) per ogni punto dello scroll |
-| `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi, colonne, tende, cielo |
+| `src/config.js` | **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua |
+| `src/drone-path.js` | tappe del drone (anche le soste sulle zone nel capitolo 04) e **atmosfere** (sole, cielo, mare, nebbia, tende, raggi, ombre d'ulivo) per ogni punto dello scroll |
+| `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi e decorazioni, colonne, vasi, cipressi, tende, cielo e mare |
+| `src/three/post.js` | luce volumetrica (raggi calcolati dalle ombre del sole) e profondità di campo |
 | `src/i18n.js` | tutti i testi ES/EN (parole tra `*asterischi*` = corsivo oro) e messaggio WhatsApp |
 | `src/styles.css` | palette, tipografia, altezze dei capitoli (= lunghezza dello scroll) |
 | `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo compare ogni testo |
 | `public/img/doctor.jpg` | **foto del dottore** (da aggiungere: senza foto compare un segnaposto con il monogramma) |
+
+Tutto si guida con lo scroll, senza pulsanti (restano solo WhatsApp e la lingua): nel capitolo
+04 il drone si ferma su viso, collo, petto e vita (`{ zone: '…', hold }` in `drone-path.js`),
+la zona si illumina e a sinistra cambia la descrizione.
 
 Le tappe del drone si scrivono come angoli attorno a un punto guardato (`az`, `el`, `dist`),
 con `shift` per spostare la statua sullo schermo e `mobile` per i valori da telefono.
@@ -80,13 +87,23 @@ Lo script (`scripts/optimize-model.mjs`, gltf-transform + meshoptimizer + three-
 Nota: se il modello è stato generato con il piano gratuito di Meshy, verificare le
 condizioni di licenza di Meshy prima di pubblicare il sito.
 
+## La luce
+
+- **Raggi volumetrici** (desktop): un passaggio a mezza risoluzione cammina lungo ogni raggio di
+  vista e legge la mappa d'ombra del sole, quindi i raggi entrano davvero dagli archi e sono
+  tagliati da colonne e statua; più forti guardando verso il sole. Intensità in `post.js`
+  (`acc * 0.03`) e per capitolo con `beams` in `drone-path.js`.
+- **Pulviscolo**: brilla solo dove arriva il sole (legge la stessa mappa d'ombra).
+- **Telefono / iPhone**: niente calcolo volumetrico; raggi leggeri disegnati, pulviscolo semplice,
+  modello da 120k triangoli, ombre e riflesso a risoluzione ridotta, risoluzione massima 1,5×.
+
 ## Prestazioni
 
 - Desktop: modello 300k, riflesso dell'acqua a metà risoluzione, ombre del sole 2048 e del
-  gobo d'ulivo 1024, profondità di campo, risoluzione massima 1,5×.
+  gobo d'ulivo 1024, raggi volumetrici, profondità di campo, risoluzione massima 1,5×.
 - Telefono: modello 120k, riflesso a 0,3, ombre 1024/512, shader più leggeri.
 - Le ombre si calcolano una volta per frame (non di nuovo nel riflesso dell'acqua).
-- Qualità adattiva: sotto 48 fps per 2 secondi si spegne la profondità di campo, poi si
-  abbassa la risoluzione.
+- Qualità adattiva: sotto 48 fps per 2 secondi si spegne la profondità di campo, poi i raggi
+  volumetrici (tornano quelli disegnati), poi si abbassa la risoluzione.
 - `prefers-reduced-motion`: niente scroll morbido né voli; inquadrature fisse per capitolo
   cambiate con una dissolvenza.

@@ -181,13 +181,38 @@ export function createFigureMaterial({ physical = false, lowQuality = false }) {
   return mat;
 }
 
+// Pavimento: grandi lastre di marmo (con fughe sottili, ognuna di un tono
+// appena diverso) e una cornice di marmo grigio (bardiglio) attorno alla vasca
+const INLAY = /* glsl */ `
+float hash21(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+vec3 floorInlay(vec3 base, vec3 wp) {
+  if (wp.y < -0.02) return base; // solo la superficie del pavimento
+  vec2 q = abs(wp.xz) - vec2(3.2, 3.6);
+  float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0); // distanza dal bordo della vasca
+  float aa = fwidth(d) * 1.5;
+  vec3 col = base;
+  // lastre 1.2 × 0.8 m a giunti sfalsati
+  vec2 g = wp.xz / vec2(1.2, 0.8);
+  g.x += 0.5 * mod(floor(g.y), 2.0);
+  vec2 cell = floor(g), f = fract(g);
+  col *= 0.965 + 0.06 * hash21(cell);
+  float e = min(min(f.x, 1.0 - f.x) * 1.2, min(f.y, 1.0 - f.y) * 0.8);
+  col *= mix(0.9, 1.0, smoothstep(0.0, 0.012 + fwidth(e), e));
+  // cornice grigia attorno alla vasca
+  float band = smoothstep(0.32 - aa, 0.32 + aa, d) * (1.0 - smoothstep(0.62 - aa, 0.62 + aa, d));
+  vec3 bardiglio = vec3(0.56, 0.58, 0.6) * (0.9 + 0.2 * snoise(wp * 1.7));
+  col = mix(col, bardiglio, band * 0.85);
+  return col;
+}
+`;
+
 // ---------------------------------------------------------------------------
 //  La pietra del tempio (coordinate del mondo, anche per InstancedMesh)
 //  tone: colore di base; veins: quanto si vedono le venature (0..1);
 //  polished: pavimento lucido; stucco: muri intonacati, grana morbida
 // ---------------------------------------------------------------------------
 let stoneCount = 0;
-export function createStoneMaterial({ tone = '#f1ebe2', roughness = 0.6, veins = 0.6, polished = false, stucco = false, lowQuality = false }) {
+export function createStoneMaterial({ tone = '#f1ebe2', roughness = 0.6, veins = 0.6, polished = false, stucco = false, inlay = false, lowQuality = false }) {
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(tone), roughness, metalness: 0, dithering: true });
   mat.toneMapped = false;
   const id = stoneCount++;
@@ -208,7 +233,7 @@ export function createStoneMaterial({ tone = '#f1ebe2', roughness = 0.6, veins =
         }`
       );
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', `#include <common>\nvarying vec3 vWorldPos;\nuniform float uTime;\n${NEUTRAL}${NOISE}${MARBLE}`)
+      .replace('#include <common>', `#include <common>\nvarying vec3 vWorldPos;\nuniform float uTime;\n${NEUTRAL}${NOISE}${MARBLE}${inlay ? INLAY : ''}`)
       .replace(
         '#include <color_fragment>',
         /* glsl */ `#include <color_fragment>
@@ -216,7 +241,8 @@ export function createStoneMaterial({ tone = '#f1ebe2', roughness = 0.6, veins =
         vec3 m = marbleColor(vWorldPos * ${polished ? '0.32' : '0.6'}, goldVein);
         vec3 base = diffuseColor.rgb;
         diffuseColor.rgb = mix(base, base * (m / uMarbleA), ${veins.toFixed(2)});
-        ${stucco ? 'diffuseColor.rgb *= 0.97 + 0.05 * snoise(vWorldPos * 1.7) + 0.02 * snoise(vWorldPos * 9.0);' : ''}`
+        ${stucco ? 'diffuseColor.rgb *= 0.97 + 0.05 * snoise(vWorldPos * 1.7) + 0.02 * snoise(vWorldPos * 9.0);' : ''}
+        ${inlay ? 'diffuseColor.rgb = floorInlay(diffuseColor.rgb, vWorldPos);' : ''}`
       )
       .replace(
         '#include <normal_fragment_maps>',

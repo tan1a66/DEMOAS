@@ -19,7 +19,7 @@ import { loadModel, createStatue } from './three/statue.js';
 import { modelUrl } from './three/model-source.js';
 import { createDust } from './three/dust.js';
 import { Drone, resolveShot } from './three/drone.js';
-import { DepthOfField } from './three/post.js';
+import { PostFX } from './three/post.js';
 import { marbleUniforms } from './three/materials.js';
 import { renderAllTitles, createLayer } from './ui/text.js';
 import { createLoader } from './ui/loader.js';
@@ -87,9 +87,13 @@ async function boot() {
   // ---------------------------------------------------------------- scroll + drone
   initScroll({ smooth: !reducedMotion });
   let mobileLayout = portraitLayout();
-  const drone = new Drone(camera, { mobile: mobileLayout, reducedMotion });
-  const dof = new DepthOfField(renderer, { samples: lowQuality ? 0 : 4, taps: lowQuality ? 12 : 20 });
-  dof.enabled = quality.dof;
+  // le zone della statua in coordinate del mondo: diventano soste del drone (04)
+  statue.object.updateMatrixWorld(true);
+  const zonesWorld = Object.fromEntries(statue.zones.map((z) => [z.id, { center: statue.toWorld(z.center), cam: z.cam, mobile: z.mobile }]));
+  const drone = new Drone(camera, { mobile: mobileLayout, reducedMotion, zones: zonesWorld });
+  const post = new PostFX(renderer, { samples: lowQuality ? 0 : 4, taps: lowQuality ? 12 : 20, volumetric: quality.volumetric });
+  post.dofEnabled = quality.dof;
+  temple.setBeamPlanes(!quality.volumetric);
 
   // punti dello scroll della levigatura e delle atmosfere (ricalcolati se cambia il layout)
   let anchors;
@@ -100,7 +104,7 @@ async function boot() {
       atm: ATMOSPHERES.map((a) => ({
         s: resolveAnchor(a.at),
         sunAz: a.sun.az, sunEl: a.sun.el, sunIntensity: a.sun.intensity, sunColor: col(a.sun.color),
-        zenith: col(a.sky.zenith), horizon: col(a.sky.horizon),
+        zenith: col(a.sky.zenith), horizon: col(a.sky.horizon), sea: col(a.sky.sea || '#4c7f9c'),
         ambient: a.ambient, fill: a.fill, fog: a.fog, mist: a.mist,
         gobo: a.gobo, goboAz: a.goboAz, goboEl: a.goboEl,
         open: a.curtains.open, wind: a.curtains.wind, beams: a.beams, moon: a.moon,
@@ -112,7 +116,7 @@ async function boot() {
   // stato dell'atmosfera interpolato
   const atm = {
     sunDir: new THREE.Vector3(), sunIntensity: 0, sunColor: new THREE.Color(),
-    zenith: new THREE.Color(), horizon: new THREE.Color(),
+    zenith: new THREE.Color(), horizon: new THREE.Color(), sea: new THREE.Color(),
     ambient: 0, fill: 0, fog: 0, mist: 0, gobo: 0, goboAz: 0, goboEl: 0, open: 0, wind: 0, beams: 0, moon: 0,
   };
   const NUM = ['sunIntensity', 'ambient', 'fill', 'fog', 'mist', 'gobo', 'goboAz', 'goboEl', 'open', 'wind', 'beams', 'moon'];
@@ -129,6 +133,7 @@ async function boot() {
     atm.sunColor.copy(a.sunColor).lerp(b.sunColor, k);
     atm.zenith.copy(a.zenith).lerp(b.zenith, k);
     atm.horizon.copy(a.horizon).lerp(b.horizon, k);
+    atm.sea.copy(a.sea).lerp(b.sea, k);
     return atm;
   }
 
@@ -142,7 +147,7 @@ async function boot() {
     stage.setSize(size.w, size.h, pixelRatio);
     camera.aspect = size.w / size.h;
     const db = renderer.getDrawingBufferSize(new THREE.Vector2());
-    dof.setSize(db.x, db.y);
+    post.setSize(db.x, db.y);
     temple.water.getRenderTarget().setSize(Math.round(db.x * quality.reflection), Math.round(db.y * quality.reflection));
     pxScale = db.y / (2 * Math.tan(deg(camera.fov) / 2));
     if (portraitLayout() !== mobileLayout) {
@@ -181,7 +186,7 @@ async function boot() {
   }
 
   // ---------------------------------------------------------------- testi e procedure
-  const procedures = createProcedures({ statue, drone, reducedMotion, veil });
+  const procedures = createProcedures({ statue, reducedMotion });
   const layers = [...document.querySelectorAll('[data-layer]')].map((el) => ({ el, layer: createLayer(el, { reducedMotion }) }));
 
   onLangChange(() => {
@@ -290,8 +295,8 @@ async function boot() {
       statue.setSpin(deg(DOCTOR_SPIN.degrees * w + Math.sin(elapsed * 0.22) * 2 * w));
     }
 
-    // --- procedure: punti cliccabili e voli solo nel capitolo 04 ---
-    procedures.setEnabled(ch.id === 'procedimientos' && ch.progress > 0.06);
+    // --- procedure: la zona accesa dipende dallo scroll nel capitolo 04 ---
+    procedures.update(ch.id, ch.progress, dt);
     lastChapter = ch.id;
 
     // --- camera ---
@@ -315,14 +320,20 @@ async function boot() {
 
     // --- polvere nella luce ---
     const dofAmount = cam.dof;
-    dust.update({ time: elapsed, pxScale, focus: cam.focus, aperture: dofAmount, amount: 0.35 + 0.65 * atm.beams, sunDir: atm.sunDir });
-
-    procedures.update(camera, size.w, size.h);
+    dust.update({
+      time: elapsed, pxScale, focus: cam.focus, aperture: dofAmount, amount: 0.35 + 0.65 * atm.beams, sunDir: atm.sunDir,
+      sun: post.volumetric ? stage.lights.sun : null, cameraPos: cam.position,
+    });
 
     // --- disegno: ombre una volta per frame, poi la scena (con o senza sfocatura) ---
     renderer.shadowMap.needsUpdate = true;
     const viewCam = debug ? debug.camera : camera;
-    dof.render(scene, viewCam, debug && viewCam !== camera ? 0 : dofAmount, cam.focus);
+    post.render(scene, viewCam, {
+      dof: debug && viewCam !== camera ? 0 : dofAmount,
+      focus: cam.focus,
+      // raggi di luce: più forti quando il sole è alto e la nebbia si è aperta
+      light: { sun: stage.lights.sun, sunDir: atm.sunDir, color: atm.sunColor, amount: atm.beams * Math.min(1, atm.sunIntensity / 2.2) * 0.9 },
+    });
 
     // --- qualità adattiva: prima via la profondità di campo, poi meno pixel ---
     if (ADAPT && !testShot) {
@@ -333,8 +344,11 @@ async function boot() {
         if (fpsMon.acc >= ADAPTIVE.sampleSeconds) {
           const fps = fpsMon.frames / fpsMon.acc;
           if (fps < ADAPTIVE.minFps) {
-            if (dof.enabled && dofAmount > 0.05) dof.enabled = false;
-            else if (pixelRatio > ADAPTIVE.minPixelRatio) {
+            if (post.dofEnabled && dofAmount > 0.05) post.dofEnabled = false;
+            else if (post.volumetric) {
+              post.volumetric = false;
+              temple.setBeamPlanes(true);
+            } else if (pixelRatio > ADAPTIVE.minPixelRatio) {
               pixelRatio = Math.max(ADAPTIVE.minPixelRatio, pixelRatio - 0.25);
               resize();
             }
@@ -352,7 +366,7 @@ async function boot() {
       sculpt: atm.sunIntensity,
       polish,
       fragments: 0,
-      dofOn: dof.enabled && dofAmount > 0.02,
+      dofOn: post.dofEnabled && dofAmount > 0.02,
     });
   }
 

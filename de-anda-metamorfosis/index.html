@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Manrope:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600;1,700&family=Manrope:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -45,9 +45,6 @@
         </a>
       </div>
     </header>
-
-    <!-- Punti cliccabili sulla statua (04 · Procedimientos) -->
-    <div id="hotspots"></div>
 
     <!-- =====================================================================
          Testi: livelli fissi sopra la scena. data-window = finestra del
@@ -110,15 +107,15 @@
       </section>
 
       <!-- 04 · Procedimientos -->
-      <section class="layer layer-proc" data-layer="procedimientos" data-window="0.08,1">
+      <section class="layer layer-proc" data-layer="procedimientos" data-window="0.04,1">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="proc.label">04 · Procedimientos</p>
           <h2 class="title" data-i18n-title="proc.title">Elige una zona. Descubre cómo.</h2>
           <ul class="proc-list" data-reveal="text">
-            <li><button type="button" data-zone="faciales" aria-pressed="false"><span class="n">i</span><span data-i18n="proc.faciales">Faciales</span></button></li>
-            <li><button type="button" data-zone="corporales" aria-pressed="false"><span class="n">ii</span><span data-i18n="proc.corporales">Corporales</span></button></li>
-            <li><button type="button" data-zone="noquirurgicos" aria-pressed="false"><span class="n">iii</span><span data-i18n="proc.noquirurgicos">No quirúrgicos</span></button></li>
-            <li><button type="button" data-zone="reconstructivos" aria-pressed="false"><span class="n">iv</span><span data-i18n="proc.reconstructivos">Reconstructivos</span></button></li>
+            <li data-zone="faciales"><span class="n">i</span><span data-i18n="proc.faciales">Faciales</span></li>
+            <li data-zone="noquirurgicos"><span class="n">ii</span><span data-i18n="proc.noquirurgicos">No quirúrgicos</span></li>
+            <li data-zone="reconstructivos"><span class="n">iii</span><span data-i18n="proc.reconstructivos">Reconstructivos</span></li>
+            <li data-zone="corporales"><span class="n">iv</span><span data-i18n="proc.corporales">Corporales</span></li>
           </ul>
           <div class="proc-desc" data-reveal="text">
             <p class="proc-text" aria-live="polite"></p>

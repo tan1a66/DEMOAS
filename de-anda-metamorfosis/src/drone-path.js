@@ -22,6 +22,8 @@
 //  dof:     profondità di campo 0..1 (solo primi piani: costa)
 //  fov:     apertura verticale in gradi (facoltativo)
 //  rm:      true = inquadratura fissa del capitolo con prefers-reduced-motion
+//  zone:    al posto di target/az/el/dist: inquadratura su una zona di config.js
+//  hold:    sosta: la camera resta ferma per questa frazione del capitolo
 //  mobile:  campi da cambiare su telefono (schermo verticale). Se manca, su
 //           telefono la distanza è moltiplicata per MOBILE.distScale e la statua
 //           va in alto (MOBILE.shift).
@@ -78,11 +80,17 @@ export const PATH = [
   { at: 'doctor:0.85', target: [0, 1.75, 0], az: 324, el: 9, dist: 5.8, shift: [0.3, 0],
     mobile: { dist: 7.6, shift: [0, 0.24] } },
 
-  // 4 · 04 Procedimientos: vista frontale (i voli verso le zone sono in config.js)
-  { at: 'procedimientos:0.2', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
+  // 4 · 04 Procedimientos: vista frontale, poi il drone si ferma su ogni zona
+  //     scorrendo (dall'alto in basso). Le inquadrature delle zone sono in config.js
+  //     (ZONES → cam); hold = quanto dura la sosta, in frazioni del capitolo.
+  { at: 'procedimientos:0.1', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
     mobile: { dist: 6.6, shift: [0, 0.22] } },
-  { at: 'procedimientos:0.9', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
-    mobile: { dist: 6.6, shift: [0, 0.22] } },
+  { at: 'procedimientos:0.27', zone: 'faciales', hold: 0.08 },
+  { at: 'procedimientos:0.46', zone: 'noquirurgicos', hold: 0.08 },
+  { at: 'procedimientos:0.65', zone: 'reconstructivos', hold: 0.08, rm: true },
+  { at: 'procedimientos:0.84', zone: 'corporales', hold: 0.08 },
+  { at: 'procedimientos:0.98', target: [0, 1.85, 0], az: 356, el: 7, dist: 5.2, shift: [0.27, 0],
+    mobile: { dist: 7.2, shift: [0, 0.22] } },
 
   // 5 · 05 Tu valoración: sale e si allontana, il tempio al tramonto, la luna
   { at: 'final:0.6', target: [0, 1.5, 0], az: 362, el: 15, dist: 16, shift: [0.06, 0.02],
@@ -94,7 +102,7 @@ export const PATH = [
 // =============================================================================
 //  Atmosfere: stessi punti dello scroll; tra una tappa e l'altra i valori sfumano.
 //  sun:      sole (az/el in gradi come sopra: 180 = dietro al tempio), intensità, colore
-//  sky:      colore dello zenit e dell'orizzonte
+//  sky:      colore dello zenit, dell'orizzonte e del mare
 //  ambient:  luce diffusa; fill: luce morbida dal lato della camera
 //  fog:      densità della foschia; mist: nebbia bassa sul pavimento (0..1)
 //  gobo:     ombre di foglie d'ulivo sulla statua (0..1); goboAz/goboEl: da dove
@@ -104,19 +112,19 @@ export const PATH = [
 const G = { goboAz: -40, goboEl: 42 };
 export const ATMOSPHERES = [
   // alba velata: luce fredda e bassa, nebbia, tende chiuse, la luna che tramonta
-  { at: 'hero:0', sun: { az: 200, el: 3, intensity: 0.7, color: '#ffd6c4' }, sky: { zenith: '#cdd6e2', horizon: '#efe4de' },
+  { at: 'hero:0', sun: { az: 200, el: 3, intensity: 0.7, color: '#ffd2bd' }, sky: { zenith: '#b4bfd7', horizon: '#f2dcd2', sea: '#6c84a3' },
     ambient: 0.8, fill: 0.35, fog: 0.028, mist: 1, gobo: 0, ...G, curtains: { open: 0, wind: 0.22 }, beams: 0.15, moon: 0.55 },
-  { at: 'valoracion:0.5', sun: { az: 196, el: 13, intensity: 2.0, color: '#ffe1c4' }, sky: { zenith: '#d5dee8', horizon: '#f3eae1' },
+  { at: 'valoracion:0.5', sun: { az: 196, el: 13, intensity: 2.2, color: '#ffdfbf' }, sky: { zenith: '#a6bfda', horizon: '#f3e6db', sea: '#55869f' },
     ambient: 0.72, fill: 0.5, fog: 0.024, mist: 0.5, gobo: 0.35, ...G, curtains: { open: 0.4, wind: 0.4 }, beams: 0.8, moon: 0.15 },
-  { at: 'precision:0.5', sun: { az: 192, el: 22, intensity: 2.6, color: '#ffeedb' }, sky: { zenith: '#d7e2ec', horizon: '#f5efe7' },
+  { at: 'precision:0.5', sun: { az: 192, el: 22, intensity: 2.8, color: '#ffeedb' }, sky: { zenith: '#90b3d6', horizon: '#f2ece5', sea: '#3c7ca3' },
     ambient: 0.66, fill: 0.55, fog: 0.014, mist: 0.12, gobo: 0.75, ...G, curtains: { open: 0.85, wind: 0.45 }, beams: 1, moon: 0 },
-  { at: 'precision:0.92', sun: { az: 200, el: 26, intensity: 2.6, color: '#fff0de' }, sky: { zenith: '#d7e2ec', horizon: '#f5efe7' },
+  { at: 'precision:0.92', sun: { az: 200, el: 26, intensity: 2.8, color: '#fff0de' }, sky: { zenith: '#90b3d6', horizon: '#f2ece5', sea: '#3c7ca3' },
     ambient: 0.7, fill: 0.7, fog: 0.012, mist: 0.08, gobo: 0.85, goboAz: -45, goboEl: 40, curtains: { open: 0.9, wind: 0.45 }, beams: 1, moon: 0 },
-  { at: 'doctor:0.4', sun: { az: 195, el: 32, intensity: 2.5, color: '#fff2e3' }, sky: { zenith: '#d6e2ec', horizon: '#f5efe7' },
+  { at: 'doctor:0.4', sun: { az: 195, el: 30, intensity: 2.7, color: '#fff2e3' }, sky: { zenith: '#8fb2d6', horizon: '#f2ece5', sea: '#3a7aa2' },
     ambient: 0.75, fill: 0.62, fog: 0.012, mist: 0.05, gobo: 0.5, ...G, curtains: { open: 0.85, wind: 0.4 }, beams: 0.8, moon: 0 },
-  { at: 'procedimientos:0.3', sun: { az: 190, el: 34, intensity: 2.4, color: '#fff2e3' }, sky: { zenith: '#d6e2ec', horizon: '#f5efe7' },
+  { at: 'procedimientos:0.3', sun: { az: 190, el: 30, intensity: 2.6, color: '#fff2e3' }, sky: { zenith: '#8fb2d6', horizon: '#f2ece5', sea: '#3a7aa2' },
     ambient: 0.8, fill: 0.78, fog: 0.012, mist: 0.04, gobo: 0.3, ...G, curtains: { open: 0.85, wind: 0.35 }, beams: 0.7, moon: 0 },
   // finale al tramonto: luce d'oro bassa, raggi lunghi, sorge la luna
-  { at: 'final:0.7', sun: { az: 165, el: 6, intensity: 2.4, color: '#ffcb93' }, sky: { zenith: '#d4d2dc', horizon: '#f6dcc2' },
+  { at: 'final:0.7', sun: { az: 165, el: 6, intensity: 2.6, color: '#ffc287' }, sky: { zenith: '#7d8cb6', horizon: '#f6c497', sea: '#485d86' },
     ambient: 0.62, fill: 0.5, fog: 0.018, mist: 0.3, gobo: 0, ...G, curtains: { open: 0.9, wind: 0.32 }, beams: 1, moon: 0.7 },
 ];

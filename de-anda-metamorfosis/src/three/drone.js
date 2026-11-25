@@ -4,7 +4,7 @@
 //  - due curve CatmullRom (posizione e punto guardato) costruite dalle tappe di
 //    drone-path.js; lo scroll sceglie il punto sulle curve
 //  - smorzamento morbido verso il punto desiderato + leggera oscillazione
-//  - "voli" verso le zone (04): traiettoria curva da dove si è alla zona scelta
+//  - nel capitolo 04 le tappe possono essere zone della statua (config.js)
 //  - con prefers-reduced-motion: inquadrature fisse per capitolo, cambiate
 //    sotto una dissolvenza (la gestisce main.js)
 
@@ -44,21 +44,44 @@ export function resolveShot(s, mobile) {
 const wobble = (t, s) => Math.sin(t * 1.0 + s) * 0.6 + Math.sin(t * 2.31 + s * 1.7) * 0.3 + Math.sin(t * 4.7 + s * 0.3) * 0.1;
 
 export class Drone {
-  constructor(camera, { mobile, reducedMotion }) {
+  /**
+   * zones: { id: { center: Vector3 (mondo), cam, mobile } } — le zone di config.js,
+   * usate dalle tappe del percorso scritte come { at, zone: 'faciales' }.
+   */
+  constructor(camera, { mobile, reducedMotion, zones = {} }) {
     this.camera = camera;
     this.mobile = mobile;
     this.reducedMotion = reducedMotion;
-    // stato attuale (smorzato) e desiderato
+    this.zones = zones;
+    // stato attuale (smorzato)
     this.cur = { pos: new THREE.Vector3(), target: new THREE.Vector3(), shift: new THREE.Vector2(), dof: 0, fov: 32 };
-    this.zone = { blend: 0, t: 0, from: null, to: null, ctrl: new THREE.Vector3() };
     this.initialized = false;
     this.build();
   }
 
+  /** Tappa scritta come { zone: 'id' } → inquadratura sulla zona (config.js) */
+  zoneShot(s) {
+    const z = this.zones[s.zone];
+    if (!z) return null;
+    const c = z.cam;
+    const look = z.center.clone().add(new THREE.Vector3(...(c.look || [0, 0, 0])));
+    return { target: look.toArray(), az: c.az, el: c.el, dist: c.dist, shift: c.shift, dof: s.dof ?? 0.6, mobile: z.mobile, rm: s.rm };
+  }
+
   /** (Ri)costruisce le curve: da chiamare se cambia il layout o il dispositivo */
   build() {
-    this.shots = PATH.map((s) => resolveShot(s, this.mobile));
-    this.anchors = PATH.map((s) => resolveAnchor(s.at));
+    // le tappe con "hold" diventano due punti uguali: lì la camera si ferma un poco
+    this.entries = [];
+    for (const s of PATH) {
+      const shot = s.zone ? this.zoneShot(s) : s;
+      if (!shot) continue;
+      const [id, p] = s.at.split(':');
+      if (s.hold) {
+        this.entries.push({ shot, at: `${id}:${Number(p) - s.hold / 2}` }, { shot, at: `${id}:${Number(p) + s.hold / 2}` });
+      } else this.entries.push({ shot, at: s.at });
+    }
+    this.shots = this.entries.map((e) => resolveShot(e.shot, this.mobile));
+    this.anchors = this.entries.map((e) => resolveAnchor(e.at));
     this.posCurve = new THREE.CatmullRomCurve3(this.shots.map((s) => s.pos), false, 'centripetal', 0.5);
     this.targetCurve = new THREE.CatmullRomCurve3(this.shots.map((s) => s.target), false, 'centripetal', 0.5);
   }
@@ -85,66 +108,12 @@ export class Drone {
 
   /** Inquadratura fissa di un capitolo (reduced motion) */
   chapterShot(chapterId) {
-    const idx = PATH.map((s, i) => [s, i]).filter(([s]) => s.at.startsWith(chapterId + ':'));
+    const idx = this.entries.map((e, i) => [e, i]).filter(([e]) => e.at.startsWith(chapterId + ':'));
     if (!idx.length) return null;
-    const marked = idx.find(([s]) => s.rm);
+    const marked = idx.find(([e]) => e.shot.rm);
     const [, i] = marked || (chapterId === 'hero' ? idx[0] : idx[idx.length - 1]);
     const s = this.shots[i];
     return { pos: s.pos.clone(), target: s.target.clone(), shift: new THREE.Vector2(...s.shift), dof: s.dof, fov: s.fov };
-  }
-
-  // ---------------------------------------------------------------------------
-  //  Voli verso le zone
-  // ---------------------------------------------------------------------------
-  zoneShot(zone, worldCenter) {
-    const c = { ...zone.cam, ...(this.mobile ? zone.mobile : {}) };
-    const look = worldCenter.clone().add(new THREE.Vector3(...(c.look || [0, 0, 0])));
-    const s = resolveShot({ target: look.toArray(), az: c.az, el: c.el, dist: c.dist, shift: c.shift, dof: 0.7 }, false);
-    s.fov = this.mobile ? MOBILE.fov : DESKTOP.fov;
-    return s;
-  }
-
-  /** Prepara un volo da dove si trova la camera ora verso `shot` */
-  flyTo(shot) {
-    const from = {
-      pos: this.camera.position.clone(),
-      target: this.cur.target.clone(),
-      shift: this.cur.shift.clone(),
-      dof: this.cur.dof,
-      fov: this.cur.fov,
-    };
-    // punto di controllo: a metà strada, spinto lontano dall'asse della statua e
-    // un po' in alto → traiettoria curva, mai attraverso la statua
-    const mid = from.pos.clone().lerp(shot.pos, 0.5);
-    const away = new THREE.Vector3(mid.x, 0, mid.z + 0.35);
-    if (away.lengthSq() < 1e-4) away.set(0, 0, 1);
-    away.normalize();
-    const len = from.pos.distanceTo(shot.pos);
-    this.zone.ctrl.copy(mid).addScaledVector(away, len * 0.45).add(new THREE.Vector3(0, len * 0.18, 0));
-    this.zone.from = from;
-    this.zone.to = { ...shot, shift: new THREE.Vector2(...shot.shift) };
-    this.zone.t = 0;
-  }
-
-  zoneState() {
-    const z = this.zone;
-    if (!z.to) return null;
-    const t = z.t;
-    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // easeInOutCubic
-    const a = z.from.pos, b = z.to.pos, c = z.ctrl;
-    const it = 1 - e;
-    const pos = new THREE.Vector3(
-      it * it * a.x + 2 * it * e * c.x + e * e * b.x,
-      it * it * a.y + 2 * it * e * c.y + e * e * b.y,
-      it * it * a.z + 2 * it * e * c.z + e * e * b.z
-    );
-    return {
-      pos,
-      target: z.from.target.clone().lerp(z.to.target, e),
-      shift: z.from.shift.clone().lerp(z.to.shift, e),
-      dof: THREE.MathUtils.lerp(z.from.dof, z.to.dof, e),
-      fov: THREE.MathUtils.lerp(z.from.fov, z.to.fov, e),
-    };
   }
 
   // ---------------------------------------------------------------------------
@@ -153,20 +122,7 @@ export class Drone {
   //  override: inquadratura forzata (reduced motion), senza smorzamento
   // ---------------------------------------------------------------------------
   update({ scroll, dt, time, idle = 0, override = null }) {
-    let want = override || this.sample(scroll);
-    // miscela con il volo verso una zona
-    const zs = this.zone.blend > 0 ? this.zoneState() : null;
-    if (zs) {
-      const b = this.zone.blend;
-      want = {
-        pos: want.pos.clone().lerp(zs.pos, b),
-        target: want.target.clone().lerp(zs.target, b),
-        shift: want.shift.clone().lerp(zs.shift, b),
-        dof: THREE.MathUtils.lerp(want.dof, zs.dof, b),
-        fov: THREE.MathUtils.lerp(want.fov, zs.fov, b),
-      };
-    }
-
+    const want = override || this.sample(scroll);
     const c = this.cur;
     if (!this.initialized || override) {
       c.pos.copy(want.pos);

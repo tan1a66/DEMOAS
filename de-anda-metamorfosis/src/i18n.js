@@ -38,8 +38,8 @@ export const STRINGS = {
     'doctor.photoAlt': 'Retrato del Dr. Roberto de Anda Gómez',
 
     'proc.label': '04 · Procedimientos',
-    'proc.title': 'Elige una zona. *Descubre cómo.*',
-    'proc.hint': 'Toca una zona en la lista o sobre la escultura.',
+    'proc.title': 'Zona por zona. *Descubre cómo.*',
+    'proc.hint': 'Desliza para recorrer cada zona.',
     'proc.faciales': 'Faciales',
     'proc.corporales': 'Corporales',
     'proc.noquirurgicos': 'No quirúrgicos',
@@ -93,8 +93,8 @@ export const STRINGS = {
     'doctor.photoAlt': 'Portrait of Dr. Roberto de Anda Gómez',
 
     'proc.label': '04 · Procedures',
-    'proc.title': 'Choose an area. *Discover how.*',
-    'proc.hint': 'Tap an area in the list or on the sculpture.',
+    'proc.title': 'Area by area. *Discover how.*',
+    'proc.hint': 'Scroll to explore each area.',
     'proc.faciales': 'Facial',
     'proc.corporales': 'Body',
     'proc.noquirurgicos': 'Non-surgical',

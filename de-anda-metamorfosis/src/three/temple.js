@@ -22,7 +22,8 @@ export const LAYOUT = {
   PLATFORM: { x0: -8.4, x1: 8.4, z0: -8.6, z1: 9.4, thickness: 1.4 },
   SIDE_WALL_X: 7.5,
   BACK_WALL_Z: -8.2,
-  WALL_HEIGHT: 5.4,
+  WALL_HEIGHT: 7.4, // muri laterali (quello in fondo è più alto)
+  BACK_HEIGHT: 8.6,
 };
 
 // rumore 2D economico per cielo e nuvole
@@ -51,6 +52,7 @@ function createSky() {
     uCloud: { value: new THREE.Color('#fbf6ef') },
     uMist: { value: 0.5 },
     uMoon: { value: 0 },
+    uSea: { value: new THREE.Color('#4c7f9c') },
     uTime: { value: 0 },
   };
   const mat = new THREE.ShaderMaterial({
@@ -63,7 +65,7 @@ function createSky() {
         gl_Position = p.xyww; // sempre sul fondo
       }`,
     fragmentShader: /* glsl */ `
-      uniform vec3 uSunDir, uZenith, uHorizon, uSunColor, uCloud;
+      uniform vec3 uSunDir, uZenith, uHorizon, uSunColor, uCloud, uSea;
       uniform float uMist, uMoon, uTime;
       varying vec3 vDir;
       ${NOISE2}
@@ -79,12 +81,18 @@ function createSky() {
         float clouds = smoothstep(0.48, 0.82, c) * smoothstep(-0.01, 0.2, d.y) * (1.0 - smoothstep(0.3, 0.75, d.y));
         vec3 cc = mix(uCloud, uSunColor * 1.15 + 0.08, pow(sd, 2.5) * 0.65);
         col = mix(col, cc, clouds * 0.8);
-        // mare di nuvole sotto la piattaforma
-        float below = smoothstep(0.015, -0.1, d.y);
-        vec2 uv2 = d.xz / (-d.y + 0.06) * 1.1 + vec2(uTime * 0.006, uTime * 0.0025);
-        float c2 = fbm2(uv2);
-        vec3 sea = mix(uHorizon * 0.9, uCloud, smoothstep(0.32, 0.78, c2));
-        sea = mix(sea, uSunColor * 1.1, pow(sd, 6.0) * 0.35 * smoothstep(0.4, 0.8, c2));
+        // il mare, sotto l'orizzonte: blu profondo, più chiaro lontano,
+        // con il luccichio del sole che danza sulle onde
+        float below = smoothstep(0.004, -0.02, d.y);
+        float far = smoothstep(-0.25, 0.0, d.y);
+        vec2 uv2 = d.xz / (-d.y + 0.02) * 2.2 + vec2(uTime * 0.02, uTime * 0.008);
+        float waves = fbm2(uv2 * 3.0);
+        vec3 sea = mix(uSea * 0.75, mix(uSea, uHorizon, 0.45), far);
+        vec3 sunFlat = normalize(vec3(uSunDir.x, 0.0, uSunDir.z));
+        float glitterDir = pow(max(dot(normalize(vec3(d.x, 0.0, d.z)), sunFlat), 0.0), 40.0);
+        float glitter = smoothstep(0.62, 0.8, waves) * glitterDir * (0.4 + uSunDir.y * 2.0);
+        sea += uSunColor * glitter * 1.4;
+        sea = mix(sea, uHorizon, far * far * 0.55); // foschia sul mare lontano
         col = mix(col, sea, below);
         // foschia all'orizzonte (all'alba più fitta)
         col = mix(col, uHorizon, (0.25 + uMist * 0.6) * (1.0 - smoothstep(0.0, 0.3 + uMist * 0.3, abs(d.y))));
@@ -139,40 +147,170 @@ function archWall({ length, height, thickness, arches }) {
   return g;
 }
 
-/** Colonna scanalata: profilo al tornio + scanalature + abaco quadrato. */
+/**
+ * Colonna: base, fusto scanalato con leggera rastremazione e capitello
+ * "corinzio" stilizzato (campana a foglie + abaco), una geometria a parte.
+ */
 function columnGeometry(height) {
-  const pts = [];
-  const shaft0 = 0.32, shaft1 = height - 0.42;
+  const capH = 0.62; // altezza del capitello
+  const shaft0 = 0.36, shaft1 = height - capH - 0.06;
   const prof = [
-    [0.0, 0], [0.44, 0], [0.44, 0.1], [0.4, 0.13], [0.4, 0.17], [0.35, 0.22], [0.32, 0.26],
-    [0.3, shaft0], [0.27, shaft1],
-    [0.29, shaft1 + 0.06], [0.33, shaft1 + 0.14], [0.39, shaft1 + 0.24], [0.42, shaft1 + 0.28], [0.0, shaft1 + 0.28],
-  ];
-  for (const [r, y] of prof) pts.push(new THREE.Vector2(r, y));
-  const segs = 96;
-  const lathe = new THREE.LatheGeometry(pts, segs);
-  // scanalature: solchi verticali sul fusto
+    [0.0, 0], [0.5, 0], [0.5, 0.12], [0.46, 0.15], [0.47, 0.2], [0.41, 0.25], [0.4, 0.29], [0.35, 0.33],
+    [0.33, shaft0], [0.29, shaft1], [0.32, shaft1 + 0.02], [0.32, shaft1 + 0.06], [0.0, shaft1 + 0.06],
+  ].map(([r, y]) => new THREE.Vector2(r, y));
+  const lathe = new THREE.LatheGeometry(prof, 120);
   const p = lathe.attributes.position;
-  const FLUTES = 20;
+  const FLUTES = 24;
   for (let i = 0; i < p.count; i++) {
     const y = p.getY(i);
     if (y < shaft0 - 0.001 || y > shaft1 + 0.001) continue;
     const x = p.getX(i), z = p.getZ(i);
     const r = Math.hypot(x, z);
     if (r < 0.01) continue;
-    const th = Math.atan2(z, x);
-    const k = 1 - 0.055 * Math.pow(0.5 + 0.5 * Math.cos(th * FLUTES), 2.2);
-    p.setXYZ(i, (x / r) * r * k, y, (z / r) * r * k);
+    const k = 1 - 0.06 * Math.pow(0.5 + 0.5 * Math.cos(Math.atan2(z, x) * FLUTES), 2.4);
+    p.setXYZ(i, x * k, y, z * k);
   }
   lathe.deleteAttribute('uv');
   lathe.computeVertexNormals();
-  const abacus = new THREE.BoxGeometry(0.98, 0.16, 0.98, 1, 1, 1);
-  abacus.translate(0, shaft1 + 0.36, 0);
-  abacus.deleteAttribute('uv');
-  const plinth = new THREE.BoxGeometry(0.98, 0.1, 0.98);
-  plinth.translate(0, 0.05, 0);
+  const plinth = new THREE.BoxGeometry(1.08, 0.12, 1.08);
+  plinth.translate(0, 0.06, 0);
   plinth.deleteAttribute('uv');
-  return mergeGeometries([lathe.toNonIndexed(), abacus.toNonIndexed(), plinth.toNonIndexed()]);
+  const shaft = mergeGeometries([lathe.toNonIndexed(), plinth.toNonIndexed()]);
+
+  // capitello: campana che si allarga, con due giri di "foglie" (costole)
+  const y0 = shaft1 + 0.06;
+  const bell = new THREE.LatheGeometry(
+    [[0.0, 0], [0.31, 0], [0.33, 0.08], [0.37, 0.2], [0.43, 0.34], [0.5, 0.44], [0.0, 0.44]].map(([r, y]) => new THREE.Vector2(r, y)),
+    96
+  );
+  const bp = bell.attributes.position;
+  for (let i = 0; i < bp.count; i++) {
+    const x = bp.getX(i), y = bp.getY(i), z = bp.getZ(i);
+    const r = Math.hypot(x, z);
+    if (r < 0.01) continue;
+    const th = Math.atan2(z, x);
+    const row = y < 0.22 ? 0 : 1; // due giri di foglie sfalsati
+    const leaf = Math.pow(Math.abs(Math.sin(th * 8 + row * 0.39)), 0.6);
+    const k = 1 + 0.12 * leaf * Math.sin(Math.min(1, y / 0.44) * Math.PI);
+    bp.setXYZ(i, x * k, y, z * k);
+  }
+  bell.translate(0, y0, 0);
+  bell.deleteAttribute('uv');
+  bell.computeVertexNormals();
+  const abacus = new THREE.BoxGeometry(1.08, 0.14, 1.08);
+  abacus.translate(0, y0 + 0.51, 0);
+  abacus.deleteAttribute('uv');
+  const capital = mergeGeometries([bell.toNonIndexed(), abacus.toNonIndexed()]);
+  return { shaft, capital };
+}
+
+/** Fascia ad arco (archivolto): corona circolare tra r1 e r2, in rilievo di depth */
+function archBand(a, r1, r2, depth, z) {
+  const sh = new THREE.Shape();
+  sh.moveTo(a.c + r2, a.spring);
+  sh.absarc(a.c, a.spring, r2, 0, Math.PI, false);
+  sh.lineTo(a.c - r1, a.spring);
+  sh.absarc(a.c, a.spring, r1, Math.PI, 0, true);
+  sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 1, curveSegments: 56 });
+  g.translate(0, 0, z);
+  g.deleteAttribute('uv');
+  return g.toNonIndexed();
+}
+
+/** Chiave di volta: trapezio in rilievo in cima all'arco */
+function keystone(a, z) {
+  const r = a.w / 2;
+  const sh = new THREE.Shape();
+  sh.moveTo(a.c - 0.17, a.spring + r - 0.06);
+  sh.lineTo(a.c + 0.17, a.spring + r - 0.06);
+  sh.lineTo(a.c + 0.27, a.spring + r + 0.56);
+  sh.lineTo(a.c - 0.27, a.spring + r + 0.56);
+  sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.24, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 });
+  g.translate(0, 0, z);
+  g.deleteAttribute('uv');
+  return g.toNonIndexed();
+}
+
+/**
+ * Decorazioni di un muro sulla faccia z = face (verso il cortile): archivolti
+ * a due fasce, imposte, stipiti, trabeazione (architrave, fregio, cornice).
+ * Restituisce la pietra e le chiavi di volta separate.
+ */
+function wallOrnaments({ arches, length, height, face }) {
+  const stone = [];
+  const gold = [];
+  for (const a of arches) {
+    const r = a.w / 2;
+    stone.push(archBand(a, r, r + 0.26, 0.07, face));
+    stone.push(archBand(a, r + 0.26, r + 0.36, 0.14, face));
+    for (const sgn of [-1, 1]) {
+      const x0 = sgn < 0 ? a.c - r - 0.42 : a.c + r;
+      const x1 = sgn < 0 ? a.c - r : a.c + r + 0.42;
+      stone.push(box(x0, x1, a.spring - 0.2, a.spring, face, face + 0.16)); // imposta
+      const j0 = sgn < 0 ? a.c - r - 0.26 : a.c + r;
+      const j1 = sgn < 0 ? a.c - r : a.c + r + 0.26;
+      stone.push(box(j0, j1, 0, a.spring - 0.2, face, face + 0.06)); // stipite
+    }
+    gold.push(keystone(a, face));
+  }
+  // trabeazione lungo tutto il muro
+  const L2 = length / 2;
+  stone.push(box(-L2, L2, height - 1.05, height - 0.7, face, face + 0.22)); // architrave
+  stone.push(box(-L2, L2, height - 0.7, height - 0.32, face, face + 0.12)); // fregio
+  stone.push(box(-L2, L2, height - 0.32, height - 0.2, face, face + 0.42)); // listello
+  stone.push(box(-L2, L2, height - 0.2, height, face, face + 0.58)); // cornice
+  return { stone, gold };
+}
+
+/** Dentelli sotto la cornice: posizioni lungo il muro */
+function dentilPositions(length, y, face, step = 0.26) {
+  const out = [];
+  for (let x = -length / 2 + 0.2; x < length / 2 - 0.1; x += step) out.push([x, y, face]);
+  return out;
+}
+
+/** Vaso monumentale (cratere) su piedistallo, al tornio */
+function urnGeometry() {
+  const prof = [
+    [0, 0], [0.42, 0], [0.42, 0.62], [0.36, 0.66], [0.36, 0.7], [0.2, 0.74], [0.14, 0.82], [0.17, 0.9], [0.3, 1.0],
+    [0.44, 1.18], [0.5, 1.36], [0.46, 1.52], [0.34, 1.62], [0.3, 1.7], [0.42, 1.78], [0.46, 1.84], [0.4, 1.86], [0, 1.86],
+  ].map(([r, y]) => new THREE.Vector2(r, y));
+  const g = new THREE.LatheGeometry(prof, 72);
+  g.deleteAttribute('uv');
+  g.computeVertexNormals();
+  const ped = new THREE.BoxGeometry(0.9, 0.62, 0.9);
+  ped.translate(0, 0.31, 0);
+  ped.deleteAttribute('uv');
+  return mergeGeometries([g.toNonIndexed(), ped.toNonIndexed()]);
+}
+
+/** Cipresso: colonna verde scura che si stringe in punta, chioma a ciuffi */
+function cypressGeometry(height = 5.4) {
+  const pts = [];
+  const N = 44;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    let r;
+    if (t < 0.05) r = 0.11; // tronco
+    else r = 0.62 * Math.pow(1 - t, 0.78) * (0.55 + 0.45 * Math.min(1, (t - 0.05) / 0.22));
+    pts.push(new THREE.Vector2(Math.max(r, 0.001), t * height));
+  }
+  const g = new THREE.LatheGeometry(pts, 40);
+  // chioma: ciuffi irregolari (rumore semplice in angolo e altezza)
+  const p = g.attributes.position;
+  const n2 = (a, b) => Math.sin(a * 1.7 + Math.sin(b * 2.3)) * Math.cos(b * 1.3 + a * 0.6);
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    if (y < height * 0.05) continue;
+    const th = Math.atan2(z, x);
+    const k = 1 + 0.16 * n2(th * 3, y * 2.4) + 0.08 * n2(th * 7 + 2, y * 6.1);
+    p.setXYZ(i, x * k, y, z * k);
+  }
+  g.deleteAttribute('uv');
+  g.computeVertexNormals();
+  return g;
 }
 
 function box(x0, x1, y0, y1, z0, z1) {
@@ -193,7 +331,7 @@ function createWater(width, depth, resolution) {
       tDiffuse: { value: null },
       textureMatrix: { value: null },
       uTime: { value: 0 },
-      uTint: { value: new THREE.Color('#e8eef0') },
+      uTint: { value: new THREE.Color('#c4dfdb') },
       uCamPos: { value: new THREE.Vector3() },
     },
     vertexShader: /* glsl */ `
@@ -242,7 +380,7 @@ function createWater(width, depth, resolution) {
 
 /** Fondo della vasca con caustiche animate */
 function createPoolBottom(width, depth, y) {
-  const mat = createStoneMaterial({ tone: '#efe7dc', roughness: 0.6, veins: 0.4 });
+  const mat = createStoneMaterial({ tone: '#e9eeeb', roughness: 0.45, veins: 0.35 });
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader) => {
     prev(shader);
@@ -396,7 +534,7 @@ export function createTemple({ quality }) {
   group.add(sky.mesh);
 
   // ---- piattaforma (4 lastre attorno alla vasca) + fondo vasca + gradini ----
-  const floorMat = createStoneMaterial({ tone: '#f3eee6', roughness: 0.22, veins: 0.32, polished: true });
+  const floorMat = createStoneMaterial({ tone: '#f3eee6', roughness: 0.22, veins: 0.32, polished: true, inlay: true });
   const slabs = [
     box(F.x0, F.x1, -F.thickness, 0, P.z, F.z1),
     box(F.x0, F.x1, -F.thickness, 0, F.z0, -P.z),
@@ -427,50 +565,110 @@ export function createTemple({ quality }) {
   water.position.y = P.water;
   group.add(water);
 
-  // ---- muri con archi, cornicioni ----
+  // ---- muri con archi, decorazioni e colonne ----
   const wallMat = createStoneMaterial({ tone: '#f1ebe2', roughness: 0.88, veins: 0.15, stucco: true });
-  const H = L.WALL_HEIGHT;
-  const sideArches = [-4.6, -0.6, 3.4].map((c) => ({ c, w: 2.5, spring: 2.9 }));
-  const side = archWall({ length: 16.4, height: H, thickness: 0.7, arches: sideArches });
-  const backArches = [{ c: -4.6, w: 2.6, spring: 3.0 }, { c: 0, w: 3.6, spring: 3.4 }, { c: 4.6, w: 2.6, spring: 3.0 }];
-  const back = archWall({ length: 2 * L.SIDE_WALL_X + 0.7, height: H + 1.2, thickness: 0.7, arches: backArches });
-  const walls = [];
-  for (const sgn of [-1, 1]) {
-    const g = side.clone();
-    g.rotateY(Math.PI / 2);
-    g.translate(sgn * L.SIDE_WALL_X, 0, -1.0);
-    walls.push(g.toNonIndexed());
-  }
-  const bg = back.clone();
-  bg.translate(0, 0, L.BACK_WALL_Z);
-  walls.push(bg.toNonIndexed());
-  // cornicioni
-  walls.push(box(-L.SIDE_WALL_X - 0.55, -L.SIDE_WALL_X + 0.55, H, H + 0.3, -9.2 + 0.55, 7.2));
-  walls.push(box(L.SIDE_WALL_X - 0.55, L.SIDE_WALL_X + 0.55, H, H + 0.3, -9.2 + 0.55, 7.2));
-  walls.push(box(-L.SIDE_WALL_X - 0.55, L.SIDE_WALL_X + 0.55, H + 1.2, H + 1.5, L.BACK_WALL_Z - 0.55, L.BACK_WALL_Z + 0.55));
-  for (const g of walls) {
+  const ornMat = createStoneMaterial({ tone: '#f5f0e8', roughness: 0.55, veins: 0.3 });
+  // capitelli e chiavi di volta: marmo bianco un po' più lucido dei muri
+  const carvedMat = createStoneMaterial({ tone: '#f7f3ec', roughness: 0.42, veins: 0.25 });
+  const H = L.WALL_HEIGHT, HB = L.BACK_HEIGHT, T = 0.7;
+  const sideLen = 16.4;
+  const sideArches = [-4.6, -0.6, 3.4].map((c) => ({ c, w: 2.8, spring: 4.0 }));
+  const backArches = [{ c: -5.0, w: 2.8, spring: 4.0 }, { c: 0, w: 4.2, spring: 4.6 }, { c: 5.0, w: 2.8, spring: 4.0 }];
+  const backLen = 2 * L.SIDE_WALL_X + T;
+  const noUV = (g) => {
     if (g.attributes.uv) g.deleteAttribute('uv');
-  }
-  const wallMesh = new THREE.Mesh(mergeGeometries(walls), wallMat);
-  wallMesh.castShadow = wallMesh.receiveShadow = true;
-  group.add(wallMesh);
+    return g;
+  };
 
-  // ---- colonne scanalate davanti ai pilastri ----
-  const colGeo = columnGeometry(H);
-  const colPos = [];
-  for (const sgn of [-1, 1]) for (const z of [-6.6, -2.6, 1.4, 5.4]) colPos.push([sgn * (L.SIDE_WALL_X - 0.75), z]);
-  for (const x of [-6.6, -2.45, 2.45, 6.6]) colPos.push([x, L.BACK_WALL_Z + 0.75]);
-  const columns = new THREE.InstancedMesh(colGeo, createStoneMaterial({ tone: '#f4efe7', roughness: 0.6, veins: 0.25 }), colPos.length);
+  // muro sinistro costruito "di fronte" e poi ruotato; il destro è lo specchio
+  const sideWall = archWall({ length: sideLen, height: H, thickness: T, arches: sideArches });
+  const sideOrn = wallOrnaments({ arches: sideArches, length: sideLen, height: H, face: T / 2 });
+  const toLeft = new THREE.Matrix4().makeTranslation(-L.SIDE_WALL_X, 0, -1.0).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2));
+  const leftStone = mergeGeometries([noUV(sideWall), ...sideOrn.stone]);
+  leftStone.applyMatrix4(toLeft);
+  const leftGold = mergeGeometries(sideOrn.gold);
+  leftGold.applyMatrix4(toLeft);
+
+  const backWall = archWall({ length: backLen, height: HB, thickness: T, arches: backArches });
+  const backOrn = wallOrnaments({ arches: backArches, length: backLen, height: HB, face: T / 2 });
+  const backStone = mergeGeometries([noUV(backWall), ...backOrn.stone]);
+  backStone.translate(0, 0, L.BACK_WALL_Z);
+  const backGold = mergeGeometries(backOrn.gold);
+  backGold.translate(0, 0, L.BACK_WALL_Z);
+
+  const addMesh = (geo, mat, mirror = false) => {
+    const m = new THREE.Mesh(geo, mat);
+    if (mirror) m.scale.x = -1; // specchio: il muro destro
+    m.castShadow = m.receiveShadow = true;
+    group.add(m);
+    return m;
+  };
+  addMesh(leftStone, wallMat);
+  addMesh(leftStone, wallMat, true);
+  addMesh(backStone, wallMat);
+  addMesh(leftGold, carvedMat);
+  addMesh(leftGold, carvedMat, true);
+  addMesh(backGold, carvedMat);
+
+  // dentelli sotto le cornici (lato cortile)
+  const dentGeo = new THREE.BoxGeometry(0.13, 0.15, 0.12);
+  dentGeo.deleteAttribute('uv');
+  const dent = [];
+  for (const [x, y, f] of dentilPositions(sideLen, H - 0.4, T / 2 + 0.17)) {
+    const v = new THREE.Vector3(x, y, f).applyMatrix4(toLeft);
+    dent.push(v, new THREE.Vector3(-v.x, v.y, v.z));
+  }
+  for (const [x, y, f] of dentilPositions(backLen, HB - 0.4, T / 2 + 0.17)) dent.push(new THREE.Vector3(x, y, L.BACK_WALL_Z + f));
+  const dentils = new THREE.InstancedMesh(dentGeo, ornMat, dent.length);
   const m4 = new THREE.Matrix4();
-  colPos.forEach(([x, z], i) => columns.setMatrixAt(i, m4.makeTranslation(x, 0, z)));
-  columns.castShadow = columns.receiveShadow = true;
-  group.add(columns);
+  dent.forEach((v, i) => dentils.setMatrixAt(i, m4.makeTranslation(v.x, v.y, v.z)));
+  dentils.castShadow = true;
+  group.add(dentils);
+
+  // colonne davanti ai pilastri, con capitello corinzio stilizzato
+  const col = columnGeometry(H - 1.05);
+  const colPos = [];
+  for (const sgn of [-1, 1]) for (const z of [-6.4, -2.4, 1.6, 5.6]) colPos.push([sgn * (L.SIDE_WALL_X - T / 2 - 0.55), z]);
+  for (const x of [-6.9, -2.85, 2.85, 6.9]) colPos.push([x, L.BACK_WALL_Z + T / 2 + 0.55]);
+  const shafts = new THREE.InstancedMesh(col.shaft, createStoneMaterial({ tone: '#f4efe7', roughness: 0.5, veins: 0.3 }), colPos.length);
+  const capitals = new THREE.InstancedMesh(col.capital, carvedMat, colPos.length);
+  colPos.forEach(([x, z], i) => {
+    m4.makeTranslation(x, 0, z);
+    shafts.setMatrixAt(i, m4);
+    capitals.setMatrixAt(i, m4);
+  });
+  shafts.castShadow = shafts.receiveShadow = true;
+  capitals.castShadow = true;
+  group.add(shafts, capitals);
+
+  // vasi monumentali agli angoli della vasca
+  const urns = new THREE.InstancedMesh(urnGeometry(), ornMat, 4);
+  [[-P.x - 1.1, P.z + 1.1], [P.x + 1.1, P.z + 1.1], [-P.x - 1.1, -P.z - 1.1], [P.x + 1.1, -P.z - 1.1]].forEach(([x, z], i) => urns.setMatrixAt(i, m4.makeTranslation(x, 0, z)));
+  urns.castShadow = urns.receiveShadow = true;
+  group.add(urns);
+
+  // cipressi in fioriere di marmo negli angoli in fondo, davanti agli archi
+  // laterali (come in un giardino all'italiana): il verde mediterraneo
+  const cypressMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#2e4630'), roughness: 0.95 });
+  cypressMat.toneMapped = false;
+  cypressMat.onBeforeCompile = (shader) => addToneMapping(shader);
+  const cyPos = [[-5.0, -6.3], [5.0, -6.3]];
+  const cypresses = new THREE.InstancedMesh(cypressGeometry(), cypressMat, cyPos.length);
+  const planters = new THREE.InstancedMesh(box(-0.5, 0.5, 0, 0.55, -0.5, 0.5), ornMat, cyPos.length);
+  cyPos.forEach(([x, z], i) => {
+    const sc = 0.9 + ((i * 37) % 10) / 40;
+    cypresses.setMatrixAt(i, m4.compose(new THREE.Vector3(x, 0.4, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), i * 1.3), new THREE.Vector3(1, sc, 1)));
+    planters.setMatrixAt(i, m4.makeTranslation(x, 0, z));
+  });
+  cypresses.castShadow = cypresses.receiveShadow = true;
+  planters.castShadow = planters.receiveShadow = true;
+  group.add(cypresses, planters);
 
   // ---- tende negli archi in fondo ----
   const curtains = [];
   let ph = 0;
   for (const a of backArches) {
-    const hgt = a.spring + a.w / 2 - 0.3;
+    const hgt = a.spring + a.w / 2 - 0.4;
     for (const sgn of [-1, 1]) {
       const c = createCurtain({ width: a.w / 2 + 0.18, height: hgt, side: sgn, phase: (ph += 1.7) });
       // appesa davanti all'arco, dal suo bordo esterno verso il centro
@@ -488,7 +686,7 @@ export function createTemple({ quality }) {
       const plane = new THREE.Mesh(new THREE.PlaneGeometry(a.w * 0.9, 14), beamMat);
       plane.geometry.translate(0, 7, 0); // parte dall'arco e si allunga
       plane.rotation.order = 'YXZ';
-      plane.userData = { x: a.c, rot };
+      plane.userData = { x: a.c, y: a.spring * 0.75, rot };
       beams.add(plane);
     }
   }
@@ -513,6 +711,10 @@ export function createTemple({ quality }) {
     sky,
     water,
     floor,
+    /** raggi disegnati (piani): servono dove non c'è la luce volumetrica */
+    setBeamPlanes(on) {
+      beams.visible = on;
+    },
     /** Stato dell'ambiente (vedi LIGHTS in drone-path.js) */
     update({ time, sunDir, sky: s, mist: mistAmount, wind, open, beams: beamAmount, moon, sunColor, cameraPos }) {
       sky.uniforms.uTime.value = time;
@@ -522,6 +724,7 @@ export function createTemple({ quality }) {
       sky.uniforms.uSunColor.value.copy(sunColor);
       sky.uniforms.uMist.value = mistAmount;
       sky.uniforms.uMoon.value = moon;
+      if (s.sea) sky.uniforms.uSea.value.copy(s.sea);
       water.material.uniforms.uTime.value = time;
       water.material.uniforms.uCamPos.value.copy(cameraPos);
       for (const u of curtainUniforms) {
@@ -534,7 +737,7 @@ export function createTemple({ quality }) {
       // raggi: orientati come la luce del sole che entra dagli archi
       dir.copy(sunDir).negate();
       beams.children.forEach((b) => {
-        b.position.set(b.userData.x, 2.6, LAYOUT.BACK_WALL_Z);
+        b.position.set(b.userData.x, b.userData.y, LAYOUT.BACK_WALL_Z);
         b.lookAt(b.position.clone().add(dir));
         b.rotateX(Math.PI / 2);
         b.rotateY(b.userData.rot);

@@ -22,28 +22,30 @@ export const COLORS = {
 export const QUALITY = {
   desktop: {
     model: '/models/venus-desktop.glb', // ~300k triangoli
-    motes: 420, // polvere sospesa nella luce
+    motes: 1100, // pulviscolo: brilla solo dove passa il sole
     maxPixelRatio: 1.5,
     shadowMap: 2048, // ombre del sole (archi, colonne)
     goboShadow: 1024, // ombre delle foglie e della statua su sé stessa
     reflection: 0.5, // risoluzione del riflesso nell'acqua (frazione dello schermo)
     dof: true, // profondità di campo nei primi piani
+    volumetric: true, // raggi di luce veri (dalle ombre del sole)
     physical: true, // MeshPhysicalMaterial (sheen, clearcoat) per la statua
   },
   mobile: {
     model: '/models/venus-mobile.glb', // ~120k triangoli
-    motes: 200,
+    motes: 220,
     maxPixelRatio: 1.5,
     shadowMap: 1024,
     goboShadow: 512,
     reflection: 0.3,
     dof: true, // si spegne da sola se gli fps scendono
+    volumetric: false, // su telefono: raggi leggeri disegnati, senza calcolo
     physical: false,
   },
 };
 
 // Qualità adattiva: sotto questi fps per ~2 s si scende di un gradino
-// (prima via la profondità di campo, poi risoluzione più bassa).
+// (prima via la profondità di campo, poi i raggi volumetrici, poi meno pixel).
 export const ADAPTIVE = { minFps: 48, sampleSeconds: 2, minPixelRatio: 1 };
 
 // ----------------------------------------------------------------------------
@@ -57,7 +59,8 @@ export const POLISH = { start: 'valoracion:0.3', end: 'precision:0.8' };
 export const DOCTOR_SPIN = { degrees: 18 };
 
 // ----------------------------------------------------------------------------
-//  Zone interattive (04 · Procedimientos)
+//  Zone della statua (04 · Procedimientos): scorrendo il drone si ferma su
+//  ognuna (ordine e soste in drone-path.js) e la zona si illumina d'oro
 //  center: coordinate relative al bounding box del modello (0..1 su x, y, z;
 //          lei guarda verso +z, il viso è girato un po' verso la sua destra)
 //  radius: raggio del bagliore in frazioni dell'altezza della statua
@@ -91,13 +94,11 @@ export const ZONES = [
   },
   {
     id: 'reconstructivos',
-    center: [0.44, 0.755, 0.66],
-    radius: 0.07,
+    center: [0.45, 0.79, 0.6], // parte alta del petto, al centro (elegante, mai insistente)
+    radius: 0.06,
     // inquadratura volutamente ampia: elegante, mai insistente
-    cam: { az: 22, el: 10, dist: 2.2, shift: [0.26, 0.02], look: [0, 0.14, 0] },
+    cam: { az: 20, el: 8, dist: 2.6, shift: [0.27, 0.02], look: [0, 0.24, 0] },
     mobile: { dist: 3.0, shift: [0, 0.2] },
   },
 ];
 
-// Durata del volo verso una zona (secondi)
-export const ZONE_FLIGHT = { duration: 1.9 };

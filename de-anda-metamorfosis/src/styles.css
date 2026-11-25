@@ -14,6 +14,8 @@
   --gold-deep: #9a7443;
   --line: rgba(43, 39, 34, 0.16);
   --serif: 'Cormorant Garamond', 'Cormorant', Georgia, 'Times New Roman', serif;
+  /* titoli: maiuscole romane da iscrizione, monumentali */
+  --display: 'Cinzel', 'Trajan Pro', 'Cormorant Garamond', Georgia, serif;
   --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --edge: clamp(1.4rem, 6.2vw, 7.5rem); /* margine sinistro della colonna di testo */
   --col: min(35rem, 39vw);
@@ -72,7 +74,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .chapter[data-chapter='valoracion'] { height: calc(250 * var(--vh)); }
 .chapter[data-chapter='precision'] { height: calc(400 * var(--vh)); }
 .chapter[data-chapter='doctor'] { height: calc(210 * var(--vh)); }
-.chapter[data-chapter='procedimientos'] { height: calc(230 * var(--vh)); }
+.chapter[data-chapter='procedimientos'] { height: calc(520 * var(--vh)); }
 .chapter[data-chapter='final'] { height: calc(170 * var(--vh)); }
 
 /* ---------------------------------------------------------------- loader */
@@ -85,7 +87,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   place-items: center;
 }
 .loader-inner { display: grid; justify-items: center; gap: 1.4rem; }
-.loader-mark { font-family: var(--serif); font-size: 1.9rem; font-weight: 400; letter-spacing: 0.02em; }
+.loader-mark { font-family: var(--display); font-size: 1.7rem; font-weight: 600; letter-spacing: 0.04em; }
 .loader-mark i, .monogram span, .portrait-fallback i { color: var(--gold); font-style: normal; padding: 0 0.06em; }
 .loader-line { position: relative; width: min(15rem, 54vw); height: 1px; background: rgba(184, 145, 90, 0.22); overflow: hidden; }
 .loader-line i { position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left center; }
@@ -113,9 +115,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .site-header > * { pointer-events: auto; }
 .monogram {
-  font-family: var(--serif);
-  font-size: 1.65rem;
-  font-weight: 400;
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 600;
   letter-spacing: 0.01em;
   text-decoration: none;
   line-height: 1;
@@ -174,26 +176,33 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 .title {
   margin: 0 0 1.7rem;
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(2.5rem, 4.5vw, 4.7rem);
-  line-height: 1.02;
-  letter-spacing: -0.012em;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 3.6vw, 3.9rem);
+  line-height: 1.08;
+  letter-spacing: 0.01em;
   color: var(--ink);
   text-wrap: balance;
 }
 .title .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.04em 0.02em 0.12em; margin: -0.04em -0.02em -0.12em; }
 .title .wi { display: inline-block; will-change: transform; }
-.title .w.em { font-style: italic; color: var(--gold); }
-.title-hero { font-size: clamp(3.3rem, 7.2vw, 7.6rem); font-weight: 300; line-height: 0.94; margin-bottom: 1.6rem; }
-.title-slogan { font-size: clamp(2.9rem, 5.6vw, 6.1rem); font-weight: 300; line-height: 0.98; }
-.title-doctor { font-size: clamp(2.2rem, 3.6vw, 3.7rem); }
+.title .w.em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 1.18em;
+  letter-spacing: -0.005em;
+  color: var(--gold-deep);
+}
+.title-hero { font-size: clamp(2.4rem, 4.1vw, 4.6rem); font-weight: 700; line-height: 1.02; margin-bottom: 1.4rem; }
+.title-slogan { font-size: clamp(2.5rem, 4.6vw, 5rem); font-weight: 700; line-height: 1.04; }
+.title-doctor { font-size: clamp(1.8rem, 2.9vw, 3rem); }
 
-.text { margin: 0; max-width: 29rem; font-size: clamp(0.97rem, 1.04vw, 1.1rem); line-height: 1.78; color: var(--ink-soft); }
-.subtitle { margin: 0 0 1.4rem; font-family: var(--serif); font-style: italic; font-size: clamp(1.3rem, 1.75vw, 1.75rem); line-height: 1.3; color: var(--ink-soft); }
+.text { margin: 0; max-width: 29rem; font-size: clamp(0.97rem, 1.04vw, 1.1rem); font-weight: 500; line-height: 1.78; color: var(--ink-soft); }
+.subtitle { margin: 0 0 1.4rem; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: clamp(1.3rem, 1.75vw, 1.75rem); line-height: 1.3; color: var(--ink-soft); }
 .creds { margin: 0; font-size: 0.66rem; letter-spacing: 0.3em; color: var(--ink-faint); }
 .epigraph { margin: 2.6rem 0 0; max-width: 24rem; padding-left: 1.1rem; border-left: 1px solid rgba(184, 145, 90, 0.55); }
-.epigraph blockquote { margin: 0 0 0.45rem; font-family: var(--serif); font-style: italic; font-size: 1.12rem; line-height: 1.35; color: var(--ink); }
+.epigraph blockquote { margin: 0 0 0.45rem; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.12rem; line-height: 1.35; color: var(--ink); }
 .epigraph figcaption { font-size: 0.74rem; line-height: 1.6; color: var(--ink-soft); }
 .epigraph cite { display: block; margin-top: 0.3rem; font-style: normal; font-size: 0.6rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
 
@@ -272,28 +281,28 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .portrait.no-photo img { display: none; }
 .portrait.no-photo .portrait-fallback { display: flex; }
-.role { margin: 0 0 0.9rem; font-family: var(--serif); font-style: italic; font-size: 1.22rem; color: var(--ink); line-height: 1.3; }
+.role { margin: 0 0 0.9rem; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.22rem; color: var(--ink); line-height: 1.3; }
 .layer-doctor .text { font-size: clamp(0.92rem, 0.98vw, 1.02rem); line-height: 1.72; }
 
 /* ---------------------------------------------------------------- 04 · Procedimientos */
 .proc-list { list-style: none; margin: 0 0 1.6rem; padding: 0; border-top: 1px solid var(--line); }
 .proc-list li { border-bottom: 1px solid var(--line); }
-.proc-list button {
+.proc-list li {
   position: relative;
   display: flex;
   align-items: baseline;
   gap: 1.1rem;
-  width: 100%;
   padding: 0.72rem 0;
-  text-align: left;
-  font-family: var(--serif);
-  font-size: clamp(1.35rem, 1.9vw, 1.9rem);
-  line-height: 1.15;
-  color: var(--ink);
-  transition: color 0.5s var(--ease), padding 0.6s var(--ease);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.02rem, 1.35vw, 1.35rem);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  color: var(--ink-faint);
+  transition: color 0.6s var(--ease), padding 0.7s var(--ease);
 }
 .proc-list .n { width: 1.8rem; font-family: var(--sans); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
-.proc-list button::after {
+.proc-list li::after {
   content: '';
   position: absolute;
   left: 0;
@@ -303,13 +312,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   background: var(--gold);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.7s var(--ease);
+  transition: transform 0.8s var(--ease);
 }
-.proc-list button:hover,
-.proc-list button:focus-visible { color: var(--gold-deep); padding-left: 0.4rem; }
-.proc-list button:hover::after,
-.proc-list button.is-active::after { transform: scaleX(1); }
-.proc-list button.is-active { color: var(--gold); font-style: italic; padding-left: 0.4rem; }
+.proc-list li.is-active { color: var(--gold-deep); padding-left: 0.4rem; }
+.proc-list li.is-active::after { transform: scaleX(1); }
 .proc-desc { min-height: 7.5rem; }
 .proc-text { margin: 0 0 0.9rem; max-width: 28rem; font-size: 0.98rem; line-height: 1.72; color: var(--ink-soft); }
 .proc-desc:not(.has-zone) .proc-text { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
@@ -324,58 +330,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: background-size 0.6s var(--ease);
 }
 .proc-link:hover { background-size: 100% 1px; }
-
-/* punti cliccabili sulla statua */
-#hotspots { position: fixed; inset: 0; z-index: 8; pointer-events: none; opacity: 0; transition: opacity 0.8s var(--ease); }
-#hotspots.is-visible { opacity: 1; }
-#hotspots.is-visible .hotspot { pointer-events: auto; }
-.hotspot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  margin: -1.3rem 0 0 -1.3rem;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-}
-.hotspot.is-hidden { visibility: hidden; }
-.hotspot-dot {
-  width: 0.62rem;
-  height: 0.62rem;
-  border-radius: 50%;
-  background: var(--gold);
-  box-shadow: 0 0 0 2px rgba(243, 238, 230, 0.9), 0 0 18px 4px rgba(215, 168, 95, 0.55);
-  transition: transform 0.5s var(--ease);
-}
-.hotspot-ring {
-  position: absolute;
-  inset: 0.5rem;
-  border-radius: 50%;
-  border: 1px solid rgba(215, 168, 95, 0.9);
-  animation: ring 2.4s var(--ease) infinite;
-}
-@keyframes ring { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.5); opacity: 0; } }
-.hotspot-label {
-  position: absolute;
-  left: 2.4rem;
-  white-space: nowrap;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink);
-  opacity: 0;
-  transform: translateX(-0.4rem);
-  transition: opacity 0.4s var(--ease), transform 0.5s var(--ease);
-  text-shadow: 0 0 12px rgba(243, 238, 230, 0.9);
-}
-.hotspot:hover .hotspot-label,
-.hotspot.is-hover .hotspot-label,
-.hotspot.is-active .hotspot-label { opacity: 1; transform: none; }
-.hotspot:hover .hotspot-dot,
-.hotspot.is-active .hotspot-dot { transform: scale(1.35); }
 
 /* ---------------------------------------------------------------- 05 · Tu valoración */
 .btn-gold {
@@ -429,8 +383,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   border: 1px solid var(--line);
   pointer-events: none;
 }
-.debug-overview .layers,
-.debug-overview #hotspots { opacity: 0.12; }
+.debug-overview .layers { opacity: 0.12; }
 
 /* =============================================================================
    Telefono / schermo verticale: statua in alto, testo in basso
@@ -452,10 +405,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
   .eyebrow, .label { margin-bottom: 1rem; font-size: 0.6rem; }
   .label::before, .eyebrow::before { width: 1.6rem; }
-  .title { font-size: clamp(2rem, 8.6vw, 2.9rem); margin-bottom: 1rem; }
-  .title-hero { font-size: clamp(2.6rem, 12vw, 3.6rem); }
-  .title-slogan { font-size: clamp(2.3rem, 10vw, 3.3rem); }
-  .title-doctor { font-size: clamp(1.8rem, 7.4vw, 2.4rem); }
+  .title { font-size: clamp(1.65rem, 7vw, 2.4rem); margin-bottom: 1rem; }
+  .title-hero { font-size: clamp(2.1rem, 9.6vw, 3rem); }
+  .title-slogan { font-size: clamp(1.9rem, 8.4vw, 2.7rem); }
+  .title-doctor { font-size: clamp(1.45rem, 6vw, 2rem); }
   .text { font-size: 0.93rem; line-height: 1.66; }
   .subtitle { font-size: 1.15rem; margin-bottom: 0.8rem; }
   .creds { font-size: 0.56rem; letter-spacing: 0.24em; }
@@ -473,12 +426,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .layer-doctor .text { font-size: 0.84rem; line-height: 1.58; }
 
   .proc-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.2rem; margin-bottom: 1rem; }
-  .proc-list button { font-size: 1.22rem; padding: 0.55rem 0; gap: 0.6rem; }
+  .proc-list li { font-size: 0.86rem; padding: 0.6rem 0; gap: 0.5rem; }
   .proc-list .n { width: 1.3rem; font-size: 0.55rem; }
   .proc-desc { min-height: 6.6rem; }
   .proc-text { font-size: 0.88rem; line-height: 1.58; margin-bottom: 0.6rem; }
   .proc-link { font-size: 0.8rem; }
-  .hotspot-label { display: none; }
 
   .btn-gold { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
   /* il footer arriva in fondo alla pagina: il testo finale gli lascia spazio */
@@ -487,5 +439,5 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-hint i::after, .hotspot-ring { animation: none; }
+  .scroll-hint i::after { animation: none; }
 }
