@@ -351,7 +351,7 @@ function createPoolBottom(width, depth, y) {
 }
 
 // =============================================================================
-//  Tende: piano con pieghe e vento nel vertex shader
+//  Tende: piano con pieghe e brezza leggera nel vertex shader
 // =============================================================================
 function createCurtain({ width, side, arch, worldX, style }) {
   // side = -1: tenda appesa dal lato sinistro dell'arco, +1: dal destro.
@@ -406,18 +406,27 @@ function createCurtain({ width, side, arch, worldX, style }) {
           free *= y > T ? 0.22 : mix(0.25, 1.0, (T - y) / T);` : `
           // raccolta verso il lato: più in basso che in alto
           p.x = mix(xo, xo * ${f(st.keep)}, open * (0.25 + 0.75 * v * v));`}
-          // pieghe verticali, irregolari e più profonde quando la tenda è raccolta
+          // pieghe verticali: irregolari, più profonde quando la tenda è raccolta;
+          // scendendo ruotano appena, come una stoffa vera
           float S = ${f(st.seed)};
-          float fa = (0.034 + 0.03 * open) * ${f(st.folds)};
-          p.z += (sin(xo * ${f(10 * st.folds + 1)} + S) * 0.72 + sin(xo * ${f(23.7 + st.seed * 3.1)} + S * 2.3) * 0.28)
-               * fa * (0.7 + 0.3 * sin(xo * 1.7 + S * 0.7));
-          // vento: raffiche irregolari che arrivano prima da un lato e poi dall'altro
-          float tw = uTime - ${f(worldX)} * 0.22;
-          float g = sin(tw * 0.23 + 1.1) + 0.7 * sin(tw * 0.37 + 2.9) + 0.45 * sin(tw * 0.61 + S);
-          float wind = uWind * ${f(st.wind)} * (0.3 + 0.7 * smoothstep(-0.7, 1.7, g)) * free;
+          float fa = (0.03 + 0.03 * open) * ${f(st.folds)};
+          float fx = xo + v * 0.05 * sin(xo * 2.3 + S);
+          float folds = sin(fx * ${f(10 * st.folds + 1)} + S) * 0.7 + sin(fx * ${f(23.7 + st.seed * 3.1)} + S * 2.3) * 0.3;
+          // brezza leggera: raffiche lente, che arrivano prima da un lato e poi dall'altro
+          float tw = uTime - ${f(worldX)} * 0.18;
+          float g = sin(tw * 0.11 + 1.1) + 0.7 * sin(tw * 0.19 + 2.9) + 0.45 * sin(tw * 0.31 + S);
+          float breeze = uWind * ${f(0.5 + 0.5 * st.wind)} * (0.45 + 0.55 * smoothstep(-0.8, 1.6, g)) * free;
           float t = uTime + S * 2.7;
-          p.z += (sin(t * 0.9 + xo * 1.6 + v * 2.2) * 0.5 + sin(t * 1.7 + xo * 3.1 - v * 1.3) * 0.25 + 0.55) * v * v * wind;
-          p.x += sin(t * 0.7 + v * 3.0) * 0.06 * v * wind;
+          float hang = pow(v, 1.6); // in alto è appesa e ferma, in basso si muove
+          // le pieghe respirano appena
+          p.z += folds * fa * (0.75 + 0.25 * sin(xo * 1.7 + S * 0.7)) * (1.0 + 0.35 * breeze * hang * sin(t * 0.6 + xo * 0.8));
+          // si gonfia di poco verso il cortile
+          p.z += hang * breeze * 0.16;
+          // piccole onde che salgono lungo la stoffa e corrono di lato
+          p.z += hang * breeze * (sin(xo * 2.1 - t * 1.15 + v * 3.4) * 0.11 + sin(xo * 4.3 + t * 1.7 - v * 5.0) * 0.04);
+          // l'orlo trema appena
+          p.z += smoothstep(0.8, 1.0, v) * breeze * sin(xo * 9.0 - t * 3.1) * 0.015;
+          p.x += hang * breeze * sin(t * 0.5 + v * 2.0 + S) * 0.035;
           return p;
         }`
       )
