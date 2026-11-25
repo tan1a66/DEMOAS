@@ -1,7 +1,7 @@
 // =============================================================================
 //  i18n.js — tutti i testi del sito, in spagnolo (es) e inglese (en)
 // =============================================================================
-//  Nei titoli le parole tra *asterischi* diventano corsivo oro.
+//  Nei titoli le parole tra *asterischi* diventano corsivo azzurro.
 //  Nell'HTML: data-i18n="chiave" (testo semplice) o data-i18n-title="chiave"
 //  (titolo con parole animate una dopo l'altra).
 
@@ -19,6 +19,7 @@ export const STRINGS = {
     'hero.title': 'Dr. Roberto *de Anda*',
     'hero.subtitle': 'Cirujano Plástico, Estético y Reconstructivo',
     'hero.creds': 'UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.',
+    'hero.about': 'Quién soy',
     'hero.scroll': 'Desliza para descubrir',
     'hero.epigraph': '«Mi ánimo me lleva a contar las formas mudadas en cuerpos nuevos.»',
     'hero.epigraphBy': 'Ovidio, Metamorfosis',
@@ -31,13 +32,28 @@ export const STRINGS = {
     'precision.title': 'Tu belleza merece *precisión.*',
     'precision.text': 'Planificación detallada, técnica actualizada y un objetivo claro: resultados naturales, en armonía con tu cuerpo.',
 
-    'doctor.label': '03 · El doctor',
+    'menu.label': 'Mérida · Yucatán',
+    'menu.title': 'Tu mejor versión empieza con *una conversación.*',
+    'menu.about': 'Quién soy',
+    'menu.aboutText': 'Formación y certificaciones',
+    'menu.proc': 'Procedimientos',
+    'menu.procText': 'Zona por zona',
+    'menu.contact': 'Contacto',
+    'menu.contactText': 'Agenda tu valoración',
+
+    'doctor.label': 'Quién soy',
     'doctor.title': 'Dr. Roberto *de Anda Gómez*',
     'doctor.role': 'Cirujano Plástico, Estético y Reconstructivo',
-    'doctor.text': 'Médico cirujano por la UNAM, certificado por el Consejo Mexicano de Cirugía Plástica, Estética y Reconstructiva y miembro de la Asociación Mexicana de Cirugía Plástica, Estética y Reconstructiva. Atiende en Mérida, Yucatán.',
+    'doctor.intro': 'Médico cirujano por la UNAM. Atiende en Mérida, Yucatán.',
     'doctor.photoAlt': 'Retrato del Dr. Roberto de Anda Gómez',
+    'doctor.credTitle': 'Formación y *certificaciones.*',
+    'doctor.cred1': 'Médico cirujano · Universidad Nacional Autónoma de México',
+    'doctor.cred2': 'Certificado por el Consejo Mexicano de Cirugía Plástica, Estética y Reconstructiva',
+    'doctor.cred3': 'Miembro de la Asociación Mexicana de Cirugía Plástica, Estética y Reconstructiva',
+    'doctor.placeTitle': 'Consulta en *Mérida.*',
+    'doctor.toProc': 'Ver procedimientos →',
 
-    'proc.label': '04 · Procedimientos',
+    'proc.label': 'Procedimientos',
     'proc.title': 'Zona por zona. *Descubre cómo.*',
     'proc.hint': 'Desliza para recorrer cada zona.',
     'proc.faciales': 'Faciales',
@@ -50,8 +66,6 @@ export const STRINGS = {
     'proc.reconstructivos.text': 'Cirugía para restaurar la forma y la función después de un accidente, una enfermedad o una cirugía previa.',
     'proc.link': 'En tu valoración conocerás cada opción, sus tiempos y su recuperación →',
 
-    'final.label': '05 · Tu valoración',
-    'final.title': 'Tu mejor versión empieza con *una conversación.*',
     'final.cta': 'Agenda tu valoración →',
     'final.address': 'Calle 4 #136, Residencial Montecristo, Mérida, Yucatán',
 
@@ -75,6 +89,7 @@ export const STRINGS = {
     'hero.title': 'Dr. Roberto *de Anda*',
     'hero.subtitle': 'Plastic, Aesthetic & Reconstructive Surgeon',
     'hero.creds': 'UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.',
+    'hero.about': 'About me',
     'hero.scroll': 'Scroll to discover',
     'hero.epigraph': '“My mind leads me to tell of forms changed into new bodies.”',
     'hero.epigraphBy': 'Ovid, Metamorphoses',
@@ -87,13 +102,28 @@ export const STRINGS = {
     'precision.title': 'Your beauty deserves *precision.*',
     'precision.text': 'Careful planning, up-to-date technique and one clear goal: natural results, in harmony with your body.',
 
-    'doctor.label': '03 · The doctor',
+    'menu.label': 'Mérida · Yucatán',
+    'menu.title': 'Your best self begins with *a conversation.*',
+    'menu.about': 'About me',
+    'menu.aboutText': 'Training and certifications',
+    'menu.proc': 'Procedures',
+    'menu.procText': 'Area by area',
+    'menu.contact': 'Contact',
+    'menu.contactText': 'Book your consultation',
+
+    'doctor.label': 'About me',
     'doctor.title': 'Dr. Roberto *de Anda Gómez*',
     'doctor.role': 'Plastic, Aesthetic & Reconstructive Surgeon',
-    'doctor.text': 'Medical degree from UNAM, board certified by the Mexican Council of Plastic, Aesthetic and Reconstructive Surgery and member of the Mexican Association of Plastic, Aesthetic and Reconstructive Surgery. Practicing in Mérida, Yucatán.',
+    'doctor.intro': 'Medical degree from UNAM. Practicing in Mérida, Yucatán.',
     'doctor.photoAlt': 'Portrait of Dr. Roberto de Anda Gómez',
+    'doctor.credTitle': 'Training and *certifications.*',
+    'doctor.cred1': 'Medical degree · National Autonomous University of Mexico',
+    'doctor.cred2': 'Board certified by the Mexican Council of Plastic, Aesthetic and Reconstructive Surgery',
+    'doctor.cred3': 'Member of the Mexican Association of Plastic, Aesthetic and Reconstructive Surgery',
+    'doctor.placeTitle': 'Consultations in *Mérida.*',
+    'doctor.toProc': 'See procedures →',
 
-    'proc.label': '04 · Procedures',
+    'proc.label': 'Procedures',
     'proc.title': 'Area by area. *Discover how.*',
     'proc.hint': 'Scroll to explore each area.',
     'proc.faciales': 'Facial',
@@ -106,8 +136,6 @@ export const STRINGS = {
     'proc.reconstructivos.text': 'Surgery to restore form and function after an accident, an illness or a previous surgery.',
     'proc.link': "In your consultation you'll learn about every option, its timing and recovery →",
 
-    'final.label': '05 · Your consultation',
-    'final.title': 'Your best self begins with *a conversation.*',
     'final.cta': 'Book your consultation →',
     'final.address': 'Calle 4 #136, Residencial Montecristo, Mérida, Yucatán',
 

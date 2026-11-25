@@ -251,12 +251,13 @@ export class PostFX {
    * dof: 0..1, focus: distanza messa a fuoco
    * light: { sun (DirectionalLight), sunDir, color, amount } per i raggi
    * water: { y, time, color } quando la camera è a pelo d'acqua
+   * overlay: scena disegnata sopra, nitida (i titoli 3D, che leggono la profondità)
    */
-  render(scene, camera, { dof = 0, focus = 5, light = null, water = null }) {
+  render(scene, camera, { dof = 0, focus = 5, light = null, water = null, overlay = null }) {
     const r = this.renderer;
     const dofAmount = this.dofEnabled ? dof : 0;
     const beams = this.volumetric && light && light.amount > 0.01 && light.sun.shadow.map;
-    if (!beams && dofAmount < 0.02 && !water) {
+    if (!beams && dofAmount < 0.02 && !water && !overlay) {
       r.setRenderTarget(null);
       r.render(scene, camera);
       return;
@@ -295,5 +296,11 @@ export class PostFX {
     this.quad.material = this.composeMat;
     r.setRenderTarget(null);
     r.render(this.quadScene, this.quadCamera);
+    if (overlay) {
+      const auto = r.autoClear;
+      r.autoClear = false;
+      r.render(overlay, camera);
+      r.autoClear = auto;
+    }
   }
 }

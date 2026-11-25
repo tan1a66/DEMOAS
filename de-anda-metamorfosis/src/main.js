@@ -9,10 +9,10 @@
 
 import './styles.css';
 import * as THREE from 'three';
-import { QUALITY, ADAPTIVE, POLISH, DOCTOR_SPIN } from './config.js';
+import { QUALITY, ADAPTIVE, POLISH, DOCTOR_SPIN, TITLE_FLIGHTS } from './config.js';
 import { ATMOSPHERES } from './drone-path.js';
 import { applyStaticTexts, setLang, onLangChange } from './i18n.js';
-import { initScroll, measure, resolveAnchor, scrollFraction, currentChapter, getChapters, getLenis, gsap, ScrollTrigger } from './core/scroll.js';
+import { initScroll, measure, resolveAnchor, scrollFraction, currentChapter, getChapters, getLenis, scrollY as currentScroll, gsap, ScrollTrigger } from './core/scroll.js';
 import { createStage } from './three/stage.js';
 import { createTemple, LAYOUT } from './three/temple.js';
 import { loadModel, createStatue } from './three/statue.js';
@@ -20,6 +20,7 @@ import { modelUrl } from './three/model-source.js';
 import { createDust } from './three/dust.js';
 import { Drone, resolveShot } from './three/drone.js';
 import { PostFX } from './three/post.js';
+import { createTitles3D } from './three/titles3d.js';
 import { marbleUniforms } from './three/materials.js';
 import { renderAllTitles, createLayer } from './ui/text.js';
 import { createLoader } from './ui/loader.js';
@@ -94,6 +95,16 @@ async function boot() {
   const post = new PostFX(renderer, { samples: lowQuality ? 0 : 4, taps: lowQuality ? 12 : 20, volumetric: quality.volumetric });
   post.dofEnabled = quality.dof;
   temple.setBeamPlanes(!quality.volumetric);
+  // titoli che passano dietro la statua (non con reduced motion: lì restano i titoli HTML)
+  const titles = reducedMotion ? null : createTitles3D({ flights: TITLE_FLIGHTS, depthTexture: post.target.depthTexture });
+  const statueCenter = new THREE.Vector3(0, 1.75, 0);
+  const viewport = new THREE.Vector2(1, 1);
+  const drawingBuffer = new THREE.Vector2(1, 1);
+  let titlesTimer = 0;
+  const rebuildTitles = () => {
+    clearTimeout(titlesTimer);
+    titlesTimer = setTimeout(() => titles?.build(), 120);
+  };
 
   // punti dello scroll della levigatura e delle atmosfere (ricalcolati se cambia il layout)
   let anchors;
@@ -148,6 +159,8 @@ async function boot() {
     camera.aspect = size.w / size.h;
     const db = renderer.getDrawingBufferSize(new THREE.Vector2());
     post.setSize(db.x, db.y);
+    viewport.set(size.w, size.h);
+    drawingBuffer.copy(db);
     temple.water.getRenderTarget().setSize(Math.round(db.x * quality.reflection), Math.round(db.y * quality.reflection));
     pxScale = db.y / (2 * Math.tan(deg(camera.fov) / 2));
     if (portraitLayout() !== mobileLayout) {
@@ -169,11 +182,13 @@ async function boot() {
     lastH = h;
     resize();
     ScrollTrigger.refresh();
+    rebuildTitles();
   });
   ScrollTrigger.addEventListener('refresh', () => {
     measure();
     computeAnchors();
     drone.build();
+    titles?.layout();
   });
 
   // ---------------------------------------------------------------- dissolvenza (reduced motion)
@@ -185,12 +200,46 @@ async function boot() {
       .to(veilEl, { autoAlpha: 0, duration: 0.6, ease: 'power1.out' });
   }
 
+  // ---------------------------------------------------------------- navigazione
+  //  Dall'indice (e dal bottone "Quién soy" dell'apertura) alle sezioni:
+  //  se sono vicine si scorre fin lì, se sono lontane una breve dissolvenza
+  //  calda e si riparte già sul posto (senza attraversare tutto il racconto).
+  const GOTO = { doctor: 'doctor:0.16', procedimientos: 'procedimientos:0.12', menu: 'menu:0.45' };
+  function goTo(id) {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const y = resolveAnchor(GOTO[id] || `${id}:0`) * max;
+    const screens = Math.abs(y - currentScroll()) / innerHeight;
+    const lenis = getLenis();
+    const jump = () => {
+      if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+      else window.scrollTo(0, y);
+      drone.initialized = false;
+      titles?.snap();
+      ScrollTrigger.update();
+    };
+    if (reducedMotion || !lenis || screens > 2.4) {
+      gsap.timeline()
+        .to(veilEl, { autoAlpha: 1, duration: 0.4, ease: 'power1.in' })
+        .add(jump)
+        .to(veilEl, { autoAlpha: 0, duration: 0.9, delay: 0.2, ease: 'power1.out' });
+    } else {
+      lenis.scrollTo(y, { duration: 1.6 + screens * 0.35, easing: (t) => 1 - Math.pow(1 - t, 3) });
+    }
+  }
+  document.querySelectorAll('[data-goto]').forEach((a) =>
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      goTo(a.dataset.goto);
+    })
+  );
+
   // ---------------------------------------------------------------- testi e procedure
   const procedures = createProcedures({ statue, reducedMotion });
   const layers = [...document.querySelectorAll('[data-layer]')].map((el) => ({ el, layer: createLayer(el, { reducedMotion }) }));
 
   onLangChange(() => {
     renderAllTitles();
+    rebuildTitles();
     layers.forEach(({ layer }) => layer.refresh());
     bindWhatsApp();
     procedures.renderTexts();
@@ -330,6 +379,10 @@ async function boot() {
     const waterY = LAYOUT.POOL.water;
     underAmount = clamp01((waterY + 0.6 - cam.position.y) / 0.6);
     temple.setUnderwater(underAmount);
+    // titoli: dietro di lei, poi davanti
+    const titlesOn = titles
+      ? titles.update({ scroll: sReal, dt, camera, focus: cam.focus, statue: statueCenter, viewport, drawingBuffer, hidden: diving })
+      : false;
 
     // --- atmosfera: cielo, acqua, tende, raggi, nebbia, luci ---
     temple.update({
@@ -339,7 +392,7 @@ async function boot() {
     stage.applyLights(
       {
         sunDir: atm.sunDir, sunIntensity: atm.sunIntensity, sunColor: atm.sunColor, gobo: atm.gobo,
-        goboAz: atm.goboAz, goboEl: atm.goboEl, fill: atm.fill, ambient: atm.ambient, fog: atm.fog, horizon: atm.horizon,
+        goboAz: atm.goboAz, goboEl: atm.goboEl, fill: atm.fill, ambient: atm.ambient, fog: atm.fog, horizon: atm.horizon, zenith: atm.zenith,
       },
       cam.position,
       elapsed
@@ -360,8 +413,9 @@ async function boot() {
       dof: debug && viewCam !== camera ? 0 : dofAmount,
       focus: cam.focus,
       // raggi di luce: più forti quando il sole è alto e la nebbia si è aperta
-      light: { sun: stage.lights.sun, sunDir: atm.sunDir, color: atm.sunColor, amount: atm.beams * Math.min(1, atm.sunIntensity / 2.2) * 0.9 },
+      light: { sun: stage.lights.sun, sunDir: atm.sunDir, color: atm.sunColor, amount: atm.beams * Math.min(1, atm.sunIntensity / 2.2) * 0.7 },
       // a pelo d'acqua: l'azzurro dell'acqua prende un po' del colore del sole
+      overlay: titlesOn && !debug ? titles.scene : null,
       water: underAmount > 0.5 ? { y: waterY, time: elapsed, color: waterColor.copy(waterBase).lerp(atm.sunColor, 0.18).multiplyScalar(0.5 + 0.3 * Math.min(1, atm.sunIntensity / 2.5)) } : null,
     });
 
@@ -405,6 +459,8 @@ async function boot() {
   await loader.done();
   createTextTriggers();
   ScrollTrigger.refresh();
+  await document.fonts?.ready;
+  titles?.build();
 
   // per i test automatici: salto istantaneo a un punto dello scroll
   window.__dda = {
@@ -418,6 +474,7 @@ async function boot() {
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
       else window.scrollTo(0, y);
       drone.initialized = false; // la camera salta subito al punto, senza smorzamento
+      titles?.snap();
       ScrollTrigger.update();
     },
     /** apre il "work in progress" con la camera già nell'acqua (senza discesa) */

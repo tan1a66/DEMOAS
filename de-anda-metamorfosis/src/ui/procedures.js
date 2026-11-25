@@ -1,14 +1,17 @@
 // =============================================================================
 //  procedures.js — 04 · Procedimientos, tutto guidato dallo scroll
 // =============================================================================
-//  Nessun pulsante: scorrendo, il drone si ferma su ogni zona (le tappe
-//  { zone: '…' } in drone-path.js), la zona si illumina d'oro e a sinistra
-//  la voce corrispondente della lista si accende e compare la sua descrizione.
+//  Scorrendo, il drone si ferma su ogni zona (le tappe { zone: '…' } in
+//  drone-path.js), la zona si illumina e a sinistra la voce corrispondente
+//  della lista si accende e compare la sua descrizione. Con DEMO_MODE un clic
+//  su una voce apre il "work in progress".
 
 import { gsap } from '../core/scroll.js';
 import { t } from '../i18n.js';
 import { setZoneAmount } from '../three/statue.js';
 import { PATH } from '../drone-path.js';
+import { DEMO_MODE } from '../config.js';
+import { showWip } from './whatsapp.js';
 
 export function createProcedures({ statue, reducedMotion }) {
   const list = document.querySelector('.proc-list');
@@ -23,6 +26,21 @@ export function createProcedures({ statue, reducedMotion }) {
     half: (s.hold || 0) / 2 + 0.075, // la zona resta accesa un po' prima e dopo la sosta
   }));
   const amounts = statue.zones.map(() => 0);
+
+  // ogni voce (Faciales, No quirúrgicos…) si apre: per ora "work in progress"
+  if (DEMO_MODE) {
+    list.querySelectorAll('[data-zone]').forEach((li) => {
+      li.addEventListener('click', showWip);
+      li.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showWip();
+        }
+      });
+    });
+  } else {
+    list.querySelectorAll('[data-zone]').forEach((li) => li.removeAttribute('role'));
+  }
   let active = null;
 
   function renderTexts() {

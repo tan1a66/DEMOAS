@@ -57,6 +57,7 @@
           <h1 class="title title-hero" data-i18n-title="hero.title">Dr. Roberto de Anda</h1>
           <p class="subtitle" data-reveal="text" data-i18n="hero.subtitle">Cirujano Plástico, Estético y Reconstructivo</p>
           <p class="creds" data-reveal="text" data-i18n="hero.creds">UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.</p>
+          <a class="btn-about" href="#quien-soy" data-goto="doctor" data-reveal="text"><span data-i18n="hero.about">Quién soy</span><i aria-hidden="true"></i></a>
           <figure class="epigraph" data-reveal="text">
             <blockquote lang="la">In nova fert animus mutatas dicere formas corpora.</blockquote>
             <figcaption><span data-i18n="hero.epigraph"></span> <cite data-i18n="hero.epigraphBy">Ovidio, Metamorfosis</cite></figcaption>
@@ -65,7 +66,7 @@
       </section>
 
       <!-- 01 · La valoración -->
-      <section class="layer" data-layer="valoracion" data-window="0.16,0.9">
+      <section class="layer" data-layer="valoracion" data-window="0.26,0.92">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="valoracion.label">01 · La valoración</p>
           <h2 class="title" data-i18n-title="valoracion.title">Antes de esculpir, escuchamos.</h2>
@@ -73,13 +74,14 @@
         </div>
       </section>
 
-      <!-- 02 · La precisión: durante il giro attorno al corpo resta solo l'etichetta -->
-      <section class="layer layer-label-only" data-layer="precision.label" data-window="0.04,0.66">
+      <!-- 02 · La precisión: durante il giro attorno al corpo le parole del titolo
+           le passano dietro (titles3d.js); qui solo l'etichetta -->
+      <section class="layer layer-label-only" data-layer="precision.label" data-window="0.04,0.6">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
         </div>
       </section>
-      <section class="layer layer-slogan" data-layer="precision" data-window="0.68,1">
+      <section class="layer layer-slogan" data-layer="precision" data-window="0.62,1">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
           <h2 class="title title-slogan" data-i18n-title="precision.title">Tu belleza merece precisión.</h2>
@@ -87,10 +89,23 @@
         </div>
       </section>
 
-      <!-- 03 · El doctor -->
-      <section class="layer layer-doctor" data-layer="doctor" data-window="0.14,0.92">
+      <!-- Indice: qui finisce il racconto. Tre strade: Quién soy, Procedimientos, Contacto -->
+      <section class="layer layer-menu" data-layer="menu" data-window="0.2,1">
         <div class="col">
-          <p class="label" data-reveal="first" data-i18n="doctor.label">03 · El doctor</p>
+          <p class="label" data-reveal="first" data-i18n="menu.label">Mérida · Yucatán</p>
+          <h2 class="title" data-i18n-title="menu.title">Tu mejor versión empieza con una conversación.</h2>
+          <nav class="menu-list" data-reveal="text" aria-label="Índice">
+            <a href="#quien-soy" data-goto="doctor"><span class="n">i</span><span class="m" data-i18n="menu.about">Quién soy</span><span class="d" data-i18n="menu.aboutText">Formación y certificaciones</span></a>
+            <a href="#procedimientos" data-goto="procedimientos"><span class="n">ii</span><span class="m" data-i18n="menu.proc">Procedimientos</span><span class="d" data-i18n="menu.procText">Zona por zona</span></a>
+            <a href="#" class="js-wa"><span class="n">iii</span><span class="m" data-i18n="menu.contact">Contacto</span><span class="d" data-i18n="menu.contactText">Agenda tu valoración</span></a>
+          </nav>
+        </div>
+      </section>
+
+      <!-- Quién soy · 1: presentazione -->
+      <section class="layer layer-doctor" data-layer="doctor" data-window="0.06,0.36">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
           <h2 class="title title-doctor" data-i18n-title="doctor.title">Dr. Roberto de Anda Gómez</h2>
           <div class="doctor-row">
             <figure class="portrait" data-reveal="portrait">
@@ -99,37 +114,53 @@
             </figure>
             <div class="doctor-copy">
               <p class="role" data-reveal="text" data-i18n="doctor.role"></p>
-              <p class="text" data-reveal="text" data-i18n="doctor.text"></p>
+              <p class="text" data-reveal="text" data-i18n="doctor.intro"></p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 04 · Procedimientos -->
-      <section class="layer layer-proc" data-layer="procedimientos" data-window="0.04,1">
+      <!-- Quién soy · 2: formazione e certificazioni (solo quello che sappiamo) -->
+      <section class="layer layer-cred" data-layer="doctor.formacion" data-window="0.38,0.68">
         <div class="col">
-          <p class="label" data-reveal="first" data-i18n="proc.label">04 · Procedimientos</p>
-          <h2 class="title" data-i18n-title="proc.title">Elige una zona. Descubre cómo.</h2>
+          <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
+          <h2 class="title" data-i18n-title="doctor.credTitle">Formación y certificaciones.</h2>
+          <ul class="cred-list" data-reveal="text">
+            <li><span class="k">UNAM</span><span class="v" data-i18n="doctor.cred1"></span></li>
+            <li><span class="k">C.M.C.P.E.R.</span><span class="v" data-i18n="doctor.cred2"></span></li>
+            <li><span class="k">A.M.C.P.E.R.</span><span class="v" data-i18n="doctor.cred3"></span></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Quién soy · 3: dove riceve -->
+      <section class="layer layer-consulta" data-layer="doctor.consulta" data-window="0.7,1">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
+          <h2 class="title" data-i18n-title="doctor.placeTitle">Consulta en Mérida.</h2>
+          <p class="address" data-reveal="text" data-i18n="final.address">Calle 4 #136, Residencial Montecristo, Mérida, Yucatán</p>
+          <div class="consulta-actions" data-reveal="text">
+            <a class="btn-accent js-wa" href="#" data-i18n="final.cta">Agenda tu valoración →</a>
+            <a class="link-goto" href="#procedimientos" data-goto="procedimientos" data-i18n="doctor.toProc">Ver procedimientos</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Procedimientos: solo le zone (il drone si ferma su ognuna) -->
+      <section class="layer layer-proc" data-layer="procedimientos" data-window="0.06,1">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="proc.label">Procedimientos</p>
+          <h2 class="title" data-i18n-title="proc.title">Zona por zona. Descubre cómo.</h2>
           <ul class="proc-list" data-reveal="text">
-            <li data-zone="faciales"><span class="n">i</span><span data-i18n="proc.faciales">Faciales</span></li>
-            <li data-zone="noquirurgicos"><span class="n">ii</span><span data-i18n="proc.noquirurgicos">No quirúrgicos</span></li>
-            <li data-zone="reconstructivos"><span class="n">iii</span><span data-i18n="proc.reconstructivos">Reconstructivos</span></li>
-            <li data-zone="corporales"><span class="n">iv</span><span data-i18n="proc.corporales">Corporales</span></li>
+            <li data-zone="faciales" tabindex="0" role="button"><span class="n">i</span><span data-i18n="proc.faciales">Faciales</span></li>
+            <li data-zone="noquirurgicos" tabindex="0" role="button"><span class="n">ii</span><span data-i18n="proc.noquirurgicos">No quirúrgicos</span></li>
+            <li data-zone="reconstructivos" tabindex="0" role="button"><span class="n">iii</span><span data-i18n="proc.reconstructivos">Reconstructivos</span></li>
+            <li data-zone="corporales" tabindex="0" role="button"><span class="n">iv</span><span data-i18n="proc.corporales">Corporales</span></li>
           </ul>
           <div class="proc-desc" data-reveal="text">
             <p class="proc-text" aria-live="polite"></p>
             <a class="proc-link js-wa" href="#"></a>
           </div>
-        </div>
-      </section>
-
-      <!-- 05 · Tu valoración -->
-      <section class="layer layer-final" data-layer="final" data-window="0.3,1">
-        <div class="col">
-          <p class="label" data-reveal="first" data-i18n="final.label">05 · Tu valoración</p>
-          <h2 class="title" data-i18n-title="final.title">Tu mejor versión empieza con una conversación.</h2>
-          <a class="btn-accent js-wa" href="#" data-reveal="text" data-i18n="final.cta">Agenda tu valoración →</a>
-          <p class="address" data-reveal="text" data-i18n="final.address">Calle 4 #136, Residencial Montecristo, Mérida, Yucatán</p>
         </div>
       </section>
 
@@ -144,9 +175,9 @@
       <div class="chapter" data-chapter="hero"></div>
       <div class="chapter" data-chapter="valoracion"></div>
       <div class="chapter" data-chapter="precision"></div>
-      <div class="chapter" data-chapter="doctor"></div>
-      <div class="chapter" data-chapter="procedimientos"></div>
-      <div class="chapter" data-chapter="final"></div>
+      <div class="chapter" data-chapter="menu" id="indice"></div>
+      <div class="chapter" data-chapter="doctor" id="quien-soy"></div>
+      <div class="chapter" data-chapter="procedimientos" id="procedimientos"></div>
     </main>
 
     <!-- Demo: i pulsanti mostrano "Work in progress" (DEMO_MODE in src/config.js) -->

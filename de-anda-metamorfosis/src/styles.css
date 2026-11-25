@@ -62,7 +62,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .veil {
   position: fixed;
   inset: 0;
-  background: var(--ivory);
+  background: #efd3c0; /* il colore del tramonto */
   z-index: 30;
   opacity: 0;
   visibility: hidden;
@@ -71,12 +71,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* ---------------------------------------------------------------- capitoli (solo altezza di scroll) */
 #story { position: relative; z-index: 1; pointer-events: none; }
-.chapter[data-chapter='hero'] { height: calc(130 * var(--vh)); }
-.chapter[data-chapter='valoracion'] { height: calc(250 * var(--vh)); }
-.chapter[data-chapter='precision'] { height: calc(400 * var(--vh)); }
-.chapter[data-chapter='doctor'] { height: calc(210 * var(--vh)); }
-.chapter[data-chapter='procedimientos'] { height: calc(520 * var(--vh)); }
-.chapter[data-chapter='final'] { height: calc(170 * var(--vh)); }
+.chapter[data-chapter='hero'] { height: calc(120 * var(--vh)); }
+.chapter[data-chapter='valoracion'] { height: calc(230 * var(--vh)); }
+.chapter[data-chapter='precision'] { height: calc(360 * var(--vh)); }
+.chapter[data-chapter='menu'] { height: calc(170 * var(--vh)); }
+.chapter[data-chapter='doctor'] { height: calc(330 * var(--vh)); }
+.chapter[data-chapter='procedimientos'] { height: calc(480 * var(--vh)); }
 
 /* ---------------------------------------------------------------- loader */
 #loader {
@@ -158,7 +158,30 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .layer .col { width: var(--col); margin-left: var(--edge); padding-top: 3rem; }
 .layer.is-active a,
-.layer.is-active button { pointer-events: auto; }
+.layer.is-active button,
+.layer.is-active [role='button'] { pointer-events: auto; }
+
+/* "Quién soy": il dottore si presenta (con DEMO_MODE → work in progress) */
+.btn-about {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.5rem 0 0;
+  padding: 0.85rem 1.35rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent-deep);
+  transition: background-color 0.5s var(--ease), color 0.5s var(--ease);
+}
+.btn-about i { position: relative; width: 1.6rem; height: 1px; background: currentColor; transition: width 0.5s var(--ease); }
+.btn-about i::after { content: ''; position: absolute; right: 0; top: -3px; width: 7px; height: 7px; border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: rotate(45deg); }
+.btn-about:hover { background: var(--accent); color: var(--ivory); }
+.btn-about:hover i { width: 2.2rem; }
 
 .eyebrow,
 .label {
@@ -185,6 +208,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   color: var(--ink);
   text-wrap: balance;
 }
+/* titolo disegnato in 3D (titles3d.js): l'HTML tiene il posto ma non si vede */
+.title.is-3d { visibility: hidden; }
 .title .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.04em 0.02em 0.12em; margin: -0.04em -0.02em -0.12em; }
 .title .wi { display: inline-block; will-change: transform; }
 .title .w.em {
@@ -316,6 +341,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: transform 0.8s var(--ease);
 }
 .proc-list li.is-active { color: var(--accent-deep); padding-left: 0.4rem; }
+/* ogni voce si può aprire (con DEMO_MODE → work in progress) */
+.proc-list li[role='button'] { cursor: pointer; outline: none; }
+.proc-list li[role='button']:hover,
+.proc-list li[role='button']:focus-visible { color: var(--accent-deep); }
+.proc-list li[role='button']:hover::after,
+.proc-list li[role='button']:focus-visible::after { transform: scaleX(1); }
 .proc-list li.is-active::after { transform: scaleX(1); }
 .proc-desc { min-height: 7.5rem; }
 .proc-text { margin: 0 0 0.9rem; max-width: 28rem; font-size: 0.98rem; line-height: 1.72; color: var(--ink-soft); }
@@ -332,7 +363,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .proc-link:hover { background-size: 100% 1px; }
 
-/* ---------------------------------------------------------------- 05 · Tu valoración */
+/* ---------------------------------------------------------------- pulsante principale */
 .btn-accent {
   display: inline-flex;
   align-items: center;
@@ -350,7 +381,60 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   transition: background-color 0.5s var(--ease), transform 0.6s var(--ease), box-shadow 0.6s var(--ease);
 }
 .btn-accent:hover { background: var(--accent-deep); transform: translateY(-2px); box-shadow: 0 1.6rem 2.6rem -1.4rem rgba(35, 70, 100, 0.7); }
-.address { margin: 0; max-width: 22rem; font-size: 0.82rem; line-height: 1.7; letter-spacing: 0.04em; color: var(--ink-soft); }
+.address { margin: 0 0 1.6rem; max-width: 22rem; font-size: 0.82rem; line-height: 1.7; letter-spacing: 0.04em; color: var(--ink-soft); }
+
+/* ---------------------------------------------------------------- indice */
+.menu-list { display: grid; margin: 0.4rem 0 0; border-top: 1px solid var(--line); max-width: 30rem; }
+.menu-list a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  align-items: baseline;
+  row-gap: 0.15rem;
+  padding: 1rem 0 0.95rem;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+}
+.menu-list .n { grid-row: span 2; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+.menu-list .m { font-family: var(--display); font-weight: 600; font-size: clamp(1.25rem, 1.9vw, 1.8rem); letter-spacing: 0.04em; transition: color 0.5s var(--ease), transform 0.7s var(--ease); }
+.menu-list .d { font-size: 0.64rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); }
+.menu-list a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 1px;
+  width: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s var(--ease);
+}
+.menu-list a:hover .m,
+.menu-list a:focus-visible .m { color: var(--accent-deep); transform: translateX(0.4rem); }
+.menu-list a:hover::after,
+.menu-list a:focus-visible::after { transform: scaleX(1); }
+
+/* ---------------------------------------------------------------- Quién soy: formazione e consulta */
+.cred-list { list-style: none; margin: 0; padding: 0; max-width: 31rem; border-top: 1px solid var(--line); }
+.cred-list li { display: grid; grid-template-columns: 8.2rem 1fr; gap: 1rem; padding: 0.95rem 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.cred-list .k { font-family: var(--display); font-weight: 600; font-size: 0.86rem; letter-spacing: 0.08em; color: var(--accent-deep); }
+.cred-list .v { font-size: clamp(0.9rem, 0.98vw, 1rem); line-height: 1.6; color: var(--ink-soft); }
+.consulta-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.8rem; }
+.consulta-actions .btn-accent { margin: 0; }
+.link-goto {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--accent-deep);
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  padding-bottom: 0.3rem;
+  transition: background-size 0.6s var(--ease);
+}
+.link-goto:hover { background-size: 100% 1px; }
 
 /* ---------------------------------------------------------------- work in progress (demo) */
 .wip {
@@ -359,9 +443,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   z-index: 45;
   display: grid;
   place-items: center;
-  /* niente pannello: la scena resta visibile (la camera è a pelo d'acqua),
-     solo un alone chiaro dietro alle parole */
-  background: radial-gradient(ellipse 34rem 15rem at 50% 50%, rgba(243, 238, 230, 0.62), rgba(243, 238, 230, 0) 72%);
+  /* niente pannello né sfumature: la scena resta visibile (camera a pelo d'acqua) */
   opacity: 0;
   visibility: hidden;
   cursor: pointer;
@@ -425,8 +507,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     width: 100%;
     margin: 0;
     padding: 5.5rem var(--edge) calc(2rem + env(safe-area-inset-bottom));
-    /* solo una sfumatura avorio trasparente, mai un riquadro */
-    background: linear-gradient(to top, rgba(243, 238, 230, 0.96) 0%, rgba(243, 238, 230, 0.9) 52%, var(--ivory-0) 100%);
   }
   .eyebrow, .label { margin-bottom: 1rem; font-size: 0.6rem; }
   .label::before, .eyebrow::before { width: 1.6rem; }
@@ -458,8 +538,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .proc-link { font-size: 0.8rem; }
 
   .btn-accent { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
-  /* il footer arriva in fondo alla pagina: il testo finale gli lascia spazio */
-  .layer-final .col { padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); }
+  /* il footer arriva in fondo alla pagina: l'ultimo testo gli lascia spazio */
+  .layer-proc .col { padding-bottom: calc(4.4rem + env(safe-area-inset-bottom)); }
+  .menu-list a { padding: 0.75rem 0 0.7rem; }
+  .menu-list .m { font-size: 1.15rem; }
+  .menu-list .d { font-size: 0.56rem; }
+  .cred-list li { grid-template-columns: 1fr; gap: 0.2rem; padding: 0.7rem 0; }
+  .cred-list .k { font-size: 0.74rem; }
+  .cred-list .v { font-size: 0.84rem; line-height: 1.5; }
+  .address { margin-bottom: 1rem; }
+  /* niente fondi dietro ai testi: le lettere piccole più scure per leggersi sulla scena */
+  .text, .proc-text, .cred-list .v, .address, .epigraph figcaption { color: var(--ink); }
+  .menu-list .d, .creds { color: var(--ink-soft); }
   .site-footer { font-size: 0.56rem; letter-spacing: 0.1em; }
 }
 

@@ -55,12 +55,30 @@ export const ADAPTIVE = { minFps: 48, sampleSeconds: 2, minPixelRatio: 1 };
 // ----------------------------------------------------------------------------
 //  La trasformazione: la statua è opaca all'alba e diventa marmo levigato e
 //  luminoso mentre sale la luce. Punti 'capitolo:avanzamento' dello scroll
-//  (capitoli: hero, valoracion, precision, doctor, procedimientos, final).
+//  (capitoli: hero, valoracion, precision, menu, doctor, procedimientos).
 // ----------------------------------------------------------------------------
 export const POLISH = { start: 'valoracion:0.3', end: 'precision:0.8' };
 
 // La statua ruota piano durante "03 · El doctor" (gradi, andata e ritorno)
 export const DOCTOR_SPIN = { degrees: 18 };
+
+// -----------------------------------------------------------------------------
+//  Titoli che giocano con la statua (three/titles3d.js): le parole partono
+//  dietro di lei, la attraversano con lo scroll e arrivano davanti, al loro
+//  posto nella colonna di testo. in = [partenza, arrivo] del volo, out =
+//  [inizio, fine] dell'uscita, in punti dello scroll ('capitolo:avanzamento').
+//  La chiave è il data-layer del livello in index.html; il titolo HTML resta
+//  invisibile. Con prefers-reduced-motion si vedono i titoli HTML normali.
+// -----------------------------------------------------------------------------
+export const TITLE_FLIGHTS = {
+  valoracion: { in: ['hero:0.46', 'valoracion:0.3'], out: ['valoracion:0.88', 'valoracion:0.96'] },
+  precision: { in: ['precision:0.05', 'precision:0.66'], out: ['precision:0.95', 'precision:1'] },
+  menu: { in: ['precision:0.985', 'menu:0.3'], out: ['menu:0.93', 'menu:0.995'] },
+  doctor: { in: ['menu:0.995', 'doctor:0.12'], out: ['doctor:0.32', 'doctor:0.37'] },
+  'doctor.formacion': { in: ['doctor:0.35', 'doctor:0.48'], out: ['doctor:0.64', 'doctor:0.69'] },
+  'doctor.consulta': { in: ['doctor:0.67', 'doctor:0.8'], out: ['doctor:0.97', 'doctor:0.995'] },
+  procedimientos: { in: ['doctor:0.995', 'procedimientos:0.1'] },
+};
 
 // ----------------------------------------------------------------------------
 //  Zone della statua (04 · Procedimientos): scorrendo il drone si ferma su
@@ -80,21 +98,21 @@ export const ZONES = [
     center: [0.41, 0.902, 0.68],
     radius: 0.055,
     cam: { az: -24, el: 4, dist: 1.05, shift: [0.24, 0.02] },
-    mobile: { dist: 1.45, shift: [0, 0.2] },
+    mobile: { dist: 1.7, shift: [0, 0.36] },
   },
   {
     id: 'corporales',
     center: [0.44, 0.615, 0.62],
     radius: 0.09,
     cam: { az: 30, el: 10, dist: 2.5, shift: [0.27, 0], look: [0, 0.05, 0] },
-    mobile: { dist: 3.4, shift: [0, 0.2] },
+    mobile: { dist: 3.9, shift: [0, 0.36] },
   },
   {
     id: 'noquirurgicos',
     center: [0.44, 0.83, 0.62],
     radius: 0.06,
     cam: { az: -12, el: 6, dist: 1.4, shift: [0.25, 0], look: [0, 0.04, 0] },
-    mobile: { dist: 1.9, shift: [0, 0.2] },
+    mobile: { dist: 2.2, shift: [0, 0.36] },
   },
   {
     id: 'reconstructivos',
@@ -102,7 +120,7 @@ export const ZONES = [
     radius: 0.06,
     // inquadratura volutamente ampia: elegante, mai insistente
     cam: { az: 20, el: 8, dist: 2.6, shift: [0.27, 0.02], look: [0, 0.24, 0] },
-    mobile: { dist: 3.0, shift: [0, 0.2] },
+    mobile: { dist: 3.5, shift: [0, 0.36] },
   },
 ];
 

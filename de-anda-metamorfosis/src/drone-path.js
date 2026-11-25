@@ -8,7 +8,7 @@
 //  In modalità ?debug il percorso è disegnato nella scena (tasto O: vista dall'alto).
 //
 //  at:      punto dello scroll, 'capitolo:avanzamento' (0..1 dentro al capitolo)
-//           capitoli: hero, valoracion, precision, doctor, procedimientos, final
+//           capitoli: hero, valoracion, precision, menu (indice), doctor (Quién soy), procedimientos
 //  target:  punto guardato [x, y, z]. La statua sta sul piedistallo: i piedi a
 //           y ≈ 0.8, la testa a y ≈ 2.6; lei guarda verso +z. Punti utili:
 //             viso [-0.02, 2.5, 0.12]   busto [0, 2.25, 0.05]   vita [0, 1.95, 0.05]
@@ -57,17 +57,19 @@ export const DIVE = {
 };
 
 export const PATH = [
-  // 0 · Apertura, all'alba: lontano e alto, il tempio nella nebbia sopra le nuvole
-  { at: 'hero:0', target: [0, 1.6, 0], az: 12, el: 11, dist: 25, shift: [0.2, -0.04],
-    mobile: { dist: 38, el: 10, shift: [0, 0.14] } },
-  { at: 'hero:0.9', target: [0, 1.65, 0], az: 15, el: 10, dist: 18, shift: [0.24, -0.02],
-    mobile: { dist: 27 } },
+  // 0 · Apertura: già dentro il cortile, al tramonto. Non serve vedere tutto il
+  //     tempio: lei, un pezzo di arco, la luce radente (la camera sta dal lato
+  //     del sole: si vede il lato illuminato). Si avvicina piano.
+  { at: 'hero:0', target: [0, 2.05, 0], az: 338, el: 2, dist: 7.4, shift: [0.26, -0.02],
+    mobile: { dist: 10.5, el: 3, shift: [0, 0.17] } },
+  { at: 'hero:0.9', target: [0, 2.0, 0], az: 352, el: 4, dist: 6.5, shift: [0.27, 0],
+    mobile: { dist: 9.4 } },
 
-  // 1 · 01 La valoración: entra nel cortile, scende e gira di ~90°, sale il sole
-  { at: 'valoracion:0.35', target: [0, 1.7, 0], az: 18, el: 9, dist: 10.5, shift: [0.27, 0],
-    mobile: { dist: 15 } },
-  { at: 'valoracion:0.7', target: [0, 1.8, 0], az: 50, el: 8, dist: 6.3, shift: [0.29, 0], rm: true,
-    mobile: { dist: 6.4, el: 10 } },
+  // 1 · 01 La valoración: gira verso il suo fianco sinistro, controluce
+  { at: 'valoracion:0.35', target: [0, 1.85, 0], az: 50, el: 6, dist: 5.9, shift: [0.27, 0],
+    mobile: { dist: 8.2 } },
+  { at: 'valoracion:0.7', target: [0, 1.85, 0], az: 76, el: 8, dist: 5.2, shift: [0.29, 0], rm: true,
+    mobile: { dist: 6.6, el: 10 } },
   { at: 'valoracion:1', target: [0.02, 1.95, 0], az: 100, el: 10, dist: 4.5, shift: [0.2, 0],
     mobile: { dist: 5.8 } },
 
@@ -88,30 +90,38 @@ export const PATH = [
   { at: 'precision:1', target: [-0.02, 2.5, 0.12], az: 342, el: 2, dist: 1.1, shift: [0.24, -0.02], dof: 1,
     mobile: { dist: 1.55, shift: [0, 0.2] } },
 
-  // 3 · 03 El doctor: si allontana, tre quarti a media distanza, statua a destra
-  { at: 'doctor:0.3', target: [0, 1.75, 0], az: 330, el: 8, dist: 5.6, shift: [0.3, 0],
-    mobile: { dist: 7.4, shift: [0, 0.24] } },
-  { at: 'doctor:0.85', target: [0, 1.75, 0], az: 324, el: 9, dist: 5.8, shift: [0.3, 0],
-    mobile: { dist: 7.6, shift: [0, 0.24] } },
+  // 3 · Indice (qui finisce il racconto): si allontana, il tempio al tramonto
+  //     ma non tutto; a sinistra Quién soy · Procedimientos · Contacto
+  { at: 'menu:0.35', target: [0, 1.75, 0], az: 12, el: 7, dist: 10.5, shift: [0.26, 0.02],
+    mobile: { dist: 15, shift: [0, 0.26] } },
+  { at: 'menu:0.9', target: [0, 1.75, 0], az: 16, el: 8, dist: 11.5, shift: [0.26, 0.02],
+    mobile: { dist: 16, shift: [0, 0.26] } },
 
-  // 4 · 04 Procedimientos: vista frontale, poi il drone si ferma su ogni zona
+  // 4 · Quién soy, in tre momenti: presentazione (tre quarti), formazione
+  //     (più vicino, il lato illuminato), consulta (più largo)
+  { at: 'doctor:0.14', target: [0, 1.8, 0], az: 330, el: 8, dist: 5.6, shift: [0.3, 0],
+    mobile: { dist: 7.4, shift: [0, 0.24] } },
+  { at: 'doctor:0.3', target: [0, 1.85, 0], az: 322, el: 8, dist: 5.4, shift: [0.3, 0],
+    mobile: { dist: 7.2, shift: [0, 0.24] } },
+  { at: 'doctor:0.52', target: [-0.02, 2.25, 0.04], az: 292, el: 5, dist: 2.9, shift: [0.27, 0], dof: 0.4, rm: true,
+    mobile: { dist: 5.2, shift: [0, 0.36] } },
+  { at: 'doctor:0.64', target: [-0.02, 2.3, 0.04], az: 284, el: 4, dist: 2.7, shift: [0.27, 0], dof: 0.4,
+    mobile: { dist: 5, shift: [0, 0.36] } },
+  { at: 'doctor:0.86', target: [0, 1.7, 0], az: 344, el: 6, dist: 7.6, shift: [0.27, 0],
+    mobile: { dist: 10.5, shift: [0, 0.24] } },
+
+  // 5 · Procedimientos: vista frontale, poi il drone si ferma su ogni zona
   //     scorrendo (dall'alto in basso). Le inquadrature delle zone sono in config.js
   //     (ZONES → cam); hold = quanto dura la sosta, in frazioni del capitolo.
-  { at: 'procedimientos:0.1', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
-    mobile: { dist: 6.6, shift: [0, 0.22] } },
   //     Soste e distanze volutamente diverse: un ritmo regolare sembra una macchina.
+  { at: 'procedimientos:0.1', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
+    mobile: { dist: 7.4, shift: [0, 0.34] } },
   { at: 'procedimientos:0.265', zone: 'faciales', hold: 0.1 },
   { at: 'procedimientos:0.45', zone: 'noquirurgicos', hold: 0.06 },
   { at: 'procedimientos:0.63', zone: 'reconstructivos', hold: 0.075, rm: true },
   { at: 'procedimientos:0.84', zone: 'corporales', hold: 0.09 },
   { at: 'procedimientos:0.98', target: [0, 1.85, 0], az: 356, el: 7, dist: 5.2, shift: [0.27, 0],
-    mobile: { dist: 7.2, shift: [0, 0.22] } },
-
-  // 5 · 05 Tu valoración: sale e si allontana, il tempio al tramonto, la luna
-  { at: 'final:0.6', target: [0, 1.5, 0], az: 362, el: 15, dist: 16, shift: [0.06, 0.02],
-    mobile: { dist: 24, shift: [0, 0.24] } },
-  { at: 'final:1', target: [0, 1.5, 0], az: 366, el: 18, dist: 19, shift: [0.06, 0.02],
-    mobile: { dist: 28, shift: [0, 0.24] } },
+    mobile: { dist: 8, shift: [0, 0.34] } },
 ];
 
 // =============================================================================
@@ -124,22 +134,26 @@ export const PATH = [
 //  curtains: open = quanto sono raccolte (0..1), wind = vento
 //  beams:    raggi di luce dagli archi (0..1); moon: luna (0..1)
 // =============================================================================
-const G = { goboAz: -40, goboEl: 42 };
+// Sempre al tramonto: il sole è basso alla destra di lei (az ~262) ed entra
+// radente dagli archi del muro laterale. Cambiano solo di poco altezza, colore
+// e direzione tra un capitolo e l'altro (e tende, raggi, ombre d'ulivo).
+// Attenzione: con il sole così basso i muri fanno ombra; tra az 258 e 268 la
+// luce passa dall'arco centrale del lato destro e prende tutta la statua.
+const G = { goboAz: 262, goboEl: 16 };
 export const ATMOSPHERES = [
-  // alba velata: luce fredda e bassa, nebbia, tende chiuse, la luna che tramonta
-  { at: 'hero:0', sun: { az: 200, el: 3, intensity: 0.7, color: '#ffd2bd' }, sky: { zenith: '#b4bfd7', horizon: '#f2dcd2', sea: '#6c84a3' },
-    ambient: 0.8, fill: 0.35, fog: 0.028, mist: 1, gobo: 0, ...G, curtains: { open: 0, wind: 0.22 }, beams: 0.15, moon: 0.55 },
-  { at: 'valoracion:0.5', sun: { az: 196, el: 13, intensity: 2.2, color: '#ffdfbf' }, sky: { zenith: '#a6bfda', horizon: '#f3e6db', sea: '#55869f' },
-    ambient: 0.72, fill: 0.5, fog: 0.024, mist: 0.5, gobo: 0.35, ...G, curtains: { open: 0.4, wind: 0.4 }, beams: 0.8, moon: 0.15 },
-  { at: 'precision:0.5', sun: { az: 192, el: 22, intensity: 2.8, color: '#ffeedb' }, sky: { zenith: '#90b3d6', horizon: '#f2ece5', sea: '#3c7ca3' },
-    ambient: 0.66, fill: 0.55, fog: 0.014, mist: 0.12, gobo: 0.75, ...G, curtains: { open: 0.85, wind: 0.45 }, beams: 1, moon: 0 },
-  { at: 'precision:0.92', sun: { az: 200, el: 26, intensity: 2.8, color: '#fff0de' }, sky: { zenith: '#90b3d6', horizon: '#f2ece5', sea: '#3c7ca3' },
-    ambient: 0.7, fill: 0.7, fog: 0.012, mist: 0.08, gobo: 0.85, goboAz: -45, goboEl: 40, curtains: { open: 0.9, wind: 0.45 }, beams: 1, moon: 0 },
-  { at: 'doctor:0.4', sun: { az: 195, el: 30, intensity: 2.7, color: '#fff2e3' }, sky: { zenith: '#8fb2d6', horizon: '#f2ece5', sea: '#3a7aa2' },
-    ambient: 0.75, fill: 0.62, fog: 0.012, mist: 0.05, gobo: 0.5, ...G, curtains: { open: 0.85, wind: 0.4 }, beams: 0.8, moon: 0 },
-  { at: 'procedimientos:0.3', sun: { az: 190, el: 30, intensity: 2.6, color: '#fff2e3' }, sky: { zenith: '#8fb2d6', horizon: '#f2ece5', sea: '#3a7aa2' },
-    ambient: 0.8, fill: 0.78, fog: 0.012, mist: 0.04, gobo: 0.3, ...G, curtains: { open: 0.85, wind: 0.35 }, beams: 0.7, moon: 0 },
-  // finale al tramonto: luce d'oro bassa, raggi lunghi, sorge la luna
-  { at: 'final:0.7', sun: { az: 165, el: 6, intensity: 2.6, color: '#ffc287' }, sky: { zenith: '#7d8cb6', horizon: '#f6c497', sea: '#485d86' },
-    ambient: 0.62, fill: 0.5, fog: 0.018, mist: 0.3, gobo: 0, ...G, curtains: { open: 0.9, wind: 0.32 }, beams: 1, moon: 0.7 },
+  { at: 'hero:0', sun: { az: 264, el: 10, intensity: 3.2, color: '#ffc896' }, sky: { zenith: '#8494c0', horizon: '#f6c9a2', sea: '#4f6a95' },
+    ambient: 0.42, fill: 0.26, fog: 0.008, mist: 0.08, gobo: 0.45, ...G, curtains: { open: 0.55, wind: 0.34 }, beams: 0.75, moon: 0 },
+  { at: 'valoracion:0.5', sun: { az: 262, el: 9, intensity: 3.3, color: '#ffc491' }, sky: { zenith: '#8291bd', horizon: '#f6c59d', sea: '#4c6590' },
+    ambient: 0.4, fill: 0.28, fog: 0.008, mist: 0.06, gobo: 0.55, ...G, curtains: { open: 0.7, wind: 0.4 }, beams: 0.8, moon: 0 },
+  { at: 'precision:0.5', sun: { az: 260, el: 8.5, intensity: 3.3, color: '#ffc18d' }, sky: { zenith: '#7f8eba', horizon: '#f6c299', sea: '#4a628c' },
+    ambient: 0.4, fill: 0.32, fog: 0.007, mist: 0.04, gobo: 0.75, ...G, curtains: { open: 0.85, wind: 0.45 }, beams: 0.8, moon: 0 },
+  { at: 'precision:0.92', sun: { az: 264, el: 8, intensity: 3.2, color: '#ffc391' }, sky: { zenith: '#7f8eba', horizon: '#f6c299', sea: '#4a628c' },
+    ambient: 0.44, fill: 0.4, fog: 0.007, mist: 0.03, gobo: 0.8, goboAz: 268, goboEl: 18, curtains: { open: 0.9, wind: 0.45 }, beams: 0.8, moon: 0 },
+  // indice: il sole tocca il mare, luce più rosata, sorge la luna
+  { at: 'menu:0.6', sun: { az: 258, el: 5, intensity: 3.0, color: '#ffb381' }, sky: { zenith: '#6f7dab', horizon: '#f5b68c', sea: '#435781' },
+    ambient: 0.4, fill: 0.3, fog: 0.01, mist: 0.12, gobo: 0.2, ...G, curtains: { open: 0.9, wind: 0.32 }, beams: 0.9, moon: 0.55 },
+  { at: 'doctor:0.45', sun: { az: 262, el: 6, intensity: 3.1, color: '#ffbb88' }, sky: { zenith: '#727fad', horizon: '#f5b98e', sea: '#455984' },
+    ambient: 0.44, fill: 0.36, fog: 0.008, mist: 0.04, gobo: 0.6, ...G, curtains: { open: 0.85, wind: 0.4 }, beams: 0.8, moon: 0.45 },
+  { at: 'procedimientos:0.3', sun: { az: 264, el: 6, intensity: 3.0, color: '#ffbb88' }, sky: { zenith: '#727fad', horizon: '#f5b98e', sea: '#455984' },
+    ambient: 0.52, fill: 0.5, fog: 0.008, mist: 0.03, gobo: 0.35, ...G, curtains: { open: 0.85, wind: 0.35 }, beams: 0.75, moon: 0.4 },
 ];

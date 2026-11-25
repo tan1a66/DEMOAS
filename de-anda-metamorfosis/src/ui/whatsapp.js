@@ -20,7 +20,7 @@ export function whatsappUrl() {
 //  messaggio compare quando la camera è arrivata a pelo d'acqua.
 let wipOpen = false;
 let wipOpenedAt = 0;
-function showWip() {
+export function showWip() {
   const el = document.querySelector('.wip');
   if (!el || wipOpen) return;
   wipOpen = true;

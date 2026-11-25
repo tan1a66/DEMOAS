@@ -80,7 +80,8 @@ export function createStage(canvas, quality) {
   const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 90);
 
   // ---- luci ----
-  const hemi = new THREE.HemisphereLight(new THREE.Color('#f4f1ec'), new THREE.Color('#c9bba8'), 0.9);
+  // al tramonto le ombre sono fresche (il cielo alto) e il suolo rimanda caldo
+  const hemi = new THREE.HemisphereLight(new THREE.Color('#b9c1de'), new THREE.Color('#d6b398'), 0.9);
   scene.add(hemi);
 
   const sun = new THREE.DirectionalLight(new THREE.Color('#ffe6c4'), 2.5);
@@ -101,7 +102,7 @@ export function createStage(canvas, quality) {
   gobo.shadow.camera.far = 20;
   scene.add(gobo, gobo.target);
 
-  const fill = new THREE.DirectionalLight(new THREE.Color('#f7f2ea'), 0.6);
+  const fill = new THREE.DirectionalLight(new THREE.Color('#ccd2e8'), 0.6); // fresca, contro il sole caldo
   scene.add(fill, fill.target);
 
   // ---- riflessi: ambiente generato dal cielo (aggiornato da main.js) ----
@@ -151,7 +152,8 @@ export function createStage(canvas, quality) {
       fill.intensity = state.fill;
       hemi.intensity = state.ambient;
       scene.fog.density = state.fog;
-      scene.fog.color.copy(state.horizon);
+      // foschia tra l'orizzonte e il cielo alto: non tutto arancione
+      scene.fog.color.copy(state.horizon).lerp(state.zenith, 0.4);
     },
 
     setSize(width, height, pixelRatio) {

@@ -2,14 +2,18 @@
 
 Scrollytelling 3D: una Venere di marmo in un tempio classico bianco affacciato sul mare
 (archi con archivolti e chiavi di volta, colonne doriche scanalate, trabeazione, vasca
-d'acqua che riflette, tende).
-Si apre all'alba (nebbia, luce fredda, tende chiuse, marmo opaco). Scorrendo sale il sole:
-la nebbia si dirada, le tende si aprono nel vento, entrano i raggi di luce, compaiono le
-ombre delle foglie d'ulivo e il marmo diventa levigato e luminoso. Il finale è al tramonto,
-con la luna. Epigrafe: Ovidio, *Metamorfosi* («forme mutate in corpi nuovi»).
+d'acqua che riflette, tende). Sempre al tramonto: il sole basso entra radente dagli archi.
 
-La statua non si trasforma nella forma: la trasformazione la fa la luce. Il chirurgo rivela
-la versione migliore, non cambia la persona.
+La pagina è un'unica grande apertura che racconta (Mérida · La valoración · La precisión)
+e arriva a un **indice**: *Quién soy* · *Procedimientos* · *Contacto*.
+- **Quién soy**: presentazione con foto, formazione e certificazioni (UNAM, C.M.C.P.E.R.,
+  A.M.C.P.E.R.), consulta a Mérida. Solo i dati che abbiamo, niente inventato.
+- **Procedimientos**: solo le zone; il drone si ferma su ognuna scorrendo.
+- **Contacto** e tutti gli altri pulsanti (Agendar, le singole zone…): *work in progress*.
+
+I titoli dei capitoli giocano con la statua: le parole partono dietro di lei (lei le copre),
+la attraversano con lo scroll e arrivano davanti, al loro posto. Epigrafe: Ovidio,
+*Metamorfosi* («forme mutate in corpi nuovi»).
 
 Stack: Vite + Three.js + GSAP ScrollTrigger + Lenis, three-mesh-bvh; una sola pagina,
 build statica. Demo privata (`noindex`).
@@ -50,7 +54,8 @@ Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
 
 | File | Contenuto |
 | --- | --- |
-| `src/config.js` | **`DEMO_MODE`** (vedi sotto), **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua |
+| `src/config.js` | **`DEMO_MODE`** (vedi sotto), **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua, **tempi dei titoli che volano** (`TITLE_FLIGHTS`) |
+| `src/three/titles3d.js` | i titoli 3D: parole ridisegnate dal titolo HTML, dietro/davanti alla statua leggendo la profondità della scena |
 | `src/drone-path.js` | tappe del drone (anche le soste sulle zone nel capitolo 04), molle e inclinazione della camera, inquadratura nell'acqua (`DIVE`) e **atmosfere** (sole, cielo, mare, nebbia, tende, raggi, ombre d'ulivo) per ogni punto dello scroll |
 | `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi e decorazioni, colonne, tende (`CURTAINS`: il carattere di ognuna), cielo e mare |
 | `src/three/post.js` | luce volumetrica (raggi calcolati dalle ombre del sole), profondità di campo, vista a pelo d'acqua |
@@ -59,7 +64,7 @@ Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
 | `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo compare ogni testo |
 | `public/img/doctor.jpg` | **foto del dottore** (da aggiungere: senza foto compare un segnaposto con il monogramma) |
 
-**`DEMO_MODE = true`** (demo da mostrare): i pulsanti "Agendar" non aprono WhatsApp. La camera
+**`DEMO_MODE = true`** (demo da mostrare): i pulsanti "Agendar", "Contacto" e le singole zone non aprono nulla. La camera
 scende nella vasca e si ferma con l'obiettivo a pelo d'acqua, metà sopra e metà sotto; compare
 "Work in progress · alessia.studio" e un tocco riporta al racconto. Con `false` i pulsanti aprono
 WhatsApp con il messaggio nella lingua scelta.
@@ -73,9 +78,11 @@ lato e passano all'altro. La camera ha il peso di una camera vera: molle che si 
 piccolo assestamento, oscillazione non periodica, leggera inclinazione nelle curve, soste di
 durata diversa sulle zone del capitolo 04.
 
-Tutto si guida con lo scroll, senza pulsanti (restano solo WhatsApp e la lingua): nel capitolo
-04 il drone si ferma su viso, collo, petto e vita (`{ zone: '…', hold }` in `drone-path.js`),
-la zona si illumina e a sinistra cambia la descrizione.
+Il racconto si guida con lo scroll. Dall'indice (e dal bottone *Quién soy* dell'apertura) si va
+alle sezioni: se sono vicine si scorre fin lì, se sono lontane c'è una breve dissolvenza calda
+(`data-goto` nell'HTML, `GOTO` in `main.js`). In *Procedimientos* il drone si ferma su viso,
+collo, petto e vita (`{ zone: '…', hold }` in `drone-path.js`), la zona si illumina e a
+sinistra cambia la descrizione.
 
 Le tappe del drone si scrivono come angoli attorno a un punto guardato (`az`, `el`, `dist`),
 con `shift` per spostare la statua sullo schermo e `mobile` per i valori da telefono.
