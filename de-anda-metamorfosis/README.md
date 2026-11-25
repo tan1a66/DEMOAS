@@ -78,7 +78,7 @@ lato e passano all'altro. La camera ha il peso di una camera vera: molle che si 
 piccolo assestamento, oscillazione non periodica, leggera inclinazione nelle curve, soste di
 durata diversa sulle zone del capitolo 04.
 
-Il racconto si guida con lo scroll. Dall'indice (e dal bottone *Quién soy* dell'apertura) si va
+Il racconto si guida con lo scroll. Dall'indice (e da *Menú* in alto, che porta all'indice) si va
 alle sezioni: se sono vicine si scorre fin lì, se sono lontane c'è una breve dissolvenza calda
 (`data-goto` nell'HTML, `GOTO` in `main.js`). In *Procedimientos* il drone si ferma su viso,
 collo, petto e vita (`{ zone: '…', hold }` in `drone-path.js`), la zona si illumina e a

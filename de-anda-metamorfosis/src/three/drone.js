@@ -128,6 +128,9 @@ export class Drone {
         this.entries.push({ shot, at: `${id}:${Number(p) - s.hold / 2}` }, { shot, at: `${id}:${Number(p) + s.hold / 2}` });
       } else this.entries.push({ shot, at: s.at });
     }
+    // solo le tappe dei capitoli che si stanno scorrendo (racconto o una pagina)
+    this.entries = this.entries.filter((e) => resolveAnchor(e.at) !== null);
+    if (this.entries.length === 1) this.entries.push(this.entries[0]);
     this.shots = this.entries.map((e) => resolveShot(e.shot, this.mobile));
     this.anchors = this.entries.map((e) => resolveAnchor(e.at));
     this.posCurve = new THREE.CatmullRomCurve3(this.shots.map((s) => s.pos), false, 'centripetal', 0.5);

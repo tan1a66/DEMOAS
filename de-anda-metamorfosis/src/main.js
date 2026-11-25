@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { QUALITY, ADAPTIVE, POLISH, DOCTOR_SPIN, TITLE_FLIGHTS } from './config.js';
 import { ATMOSPHERES } from './drone-path.js';
 import { applyStaticTexts, setLang, onLangChange } from './i18n.js';
-import { initScroll, measure, resolveAnchor, scrollFraction, currentChapter, getChapters, getLenis, scrollY as currentScroll, gsap, ScrollTrigger } from './core/scroll.js';
+import { initScroll, measure, resolveAnchor, hasChapter, scrollFraction, currentChapter, getChapters, getLenis, scrollY as currentScroll, gsap, ScrollTrigger } from './core/scroll.js';
 import { createStage } from './three/stage.js';
 import { createTemple, LAYOUT } from './three/temple.js';
 import { loadModel, createStatue } from './three/statue.js';
@@ -111,8 +111,10 @@ async function boot() {
   const col = (hex) => new THREE.Color(hex);
   function computeAnchors() {
     anchors = {
+      // nelle pagine (Quién soy, Procedimientos) il marmo è già levigato
       polish: [resolveAnchor(POLISH.start), resolveAnchor(POLISH.end)],
-      atm: ATMOSPHERES.map((a) => ({
+      // solo le atmosfere dei capitoli che si stanno scorrendo
+      atm: ATMOSPHERES.filter((a) => resolveAnchor(a.at) !== null).map((a) => ({
         s: resolveAnchor(a.at),
         sunAz: a.sun.az, sunEl: a.sun.el, sunIntensity: a.sun.intensity, sunColor: col(a.sun.color),
         zenith: col(a.sky.zenith), horizon: col(a.sky.horizon), sea: col(a.sky.sea || '#4c7f9c'),
@@ -200,31 +202,67 @@ async function boot() {
       .to(veilEl, { autoAlpha: 0, duration: 0.6, ease: 'power1.out' });
   }
 
-  // ---------------------------------------------------------------- navigazione
-  //  Dall'indice (e dal bottone "Quién soy" dell'apertura) alle sezioni:
-  //  se sono vicine si scorre fin lì, se sono lontane una breve dissolvenza
-  //  calda e si riparte già sul posto (senza attraversare tutto il racconto).
-  const GOTO = { doctor: 'doctor:0.16', procedimientos: 'procedimientos:0.12', menu: 'menu:0.45' };
-  function goTo(id) {
-    const max = document.documentElement.scrollHeight - innerHeight;
-    const y = resolveAnchor(GOTO[id] || `${id}:0`) * max;
-    const screens = Math.abs(y - currentScroll()) / innerHeight;
+  // ---------------------------------------------------------------- pagine e navigazione
+  //  Il racconto (apertura → valoración → precisión → indice) si scorre e
+  //  FINISCE all'indice. Quién soy e Procedimientos sono pagine a sé: ci si
+  //  entra dall'indice (o da "Menú" in alto, che porta all'indice) e solo lì
+  //  si scorre il loro contenuto. Si passa da una pagina
+  //  all'altra con una breve dissolvenza calda; l'indirizzo cambia (#quien-soy,
+  //  #procedimientos, #indice) e il tasto "indietro" del browser funziona.
+  const STORY = ['hero', 'valoracion', 'precision', 'menu'];
+  const HASH = { doctor: '#quien-soy', procedimientos: '#procedimientos', menu: '#indice', hero: '' };
+  // dove si arriva: le pagine si aprono dall'inizio e scorrono da sole fino al titolo
+  const ARRIVE = { doctor: ['doctor:0', 'doctor:0.15'], procedimientos: ['procedimientos:0', 'procedimientos:0.12'], menu: ['menu:0.45'], hero: ['hero:0'] };
+  let mode = 'story';
+  const modeOf = (id) => (STORY.includes(id) ? 'story' : id);
+
+  function setMode(m) {
+    if (m === mode && document.documentElement.dataset.mode) return;
+    mode = m;
+    document.documentElement.dataset.mode = m;
+    const show = m === 'story' ? STORY : [m];
+    document.querySelectorAll('[data-chapter]').forEach((el) => (el.hidden = !show.includes(el.dataset.chapter)));
+    layers?.forEach(({ el, layer }) => !show.includes(el.dataset.layer.split('.')[0]) && layer.active && layer.hide());
+    getLenis()?.resize();
+    measure();
+    ScrollTrigger.refresh(); // finestre dei testi, atmosfere, percorso del drone, titoli
+  }
+
+  function jumpTo(anchor) {
+    const y = resolveAnchor(anchor) * Math.max(1, document.documentElement.scrollHeight - innerHeight);
     const lenis = getLenis();
-    const jump = () => {
-      if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
-      else window.scrollTo(0, y);
-      drone.initialized = false;
-      titles?.snap();
-      ScrollTrigger.update();
-    };
-    if (reducedMotion || !lenis || screens > 2.4) {
-      gsap.timeline()
-        .to(veilEl, { autoAlpha: 1, duration: 0.4, ease: 'power1.in' })
-        .add(jump)
-        .to(veilEl, { autoAlpha: 0, duration: 0.9, delay: 0.2, ease: 'power1.out' });
-    } else {
-      lenis.scrollTo(y, { duration: 1.6 + screens * 0.35, easing: (t) => 1 - Math.pow(1 - t, 3) });
+    if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+    else window.scrollTo(0, y);
+    drone.initialized = false;
+    titles?.snap();
+    ScrollTrigger.update();
+  }
+
+  function goTo(id, { push = true } = {}) {
+    const target = modeOf(id);
+    const [from, to] = ARRIVE[id] || [`${id}:0`];
+    const lenis = getLenis();
+    if (push && location.hash !== HASH[id]) history.pushState(null, '', HASH[id] || location.pathname + location.search);
+    // nel racconto, verso un punto vicino: si scorre
+    if (target === mode && target === 'story' && lenis && !reducedMotion) {
+      const y = resolveAnchor(from) * Math.max(1, document.documentElement.scrollHeight - innerHeight);
+      const screens = Math.abs(y - currentScroll()) / innerHeight;
+      if (screens < 2.4) return lenis.scrollTo(y, { duration: 1.6 + screens * 0.35, easing: (t) => 1 - Math.pow(1 - t, 3) });
     }
+    // altrimenti: dissolvenza, cambio pagina, si riparte sul posto
+    gsap.timeline()
+      .to(veilEl, { autoAlpha: 1, duration: 0.4, ease: 'power1.in' })
+      .add(() => {
+        setMode(target);
+        jumpTo(from);
+      })
+      .to(veilEl, { autoAlpha: 0, duration: 0.9, delay: 0.2, ease: 'power1.out' })
+      // all'ingresso di una pagina la camera arriva e il titolo vola fin al suo posto
+      .add(() => {
+        if (!to || reducedMotion || !lenis) return;
+        const y = resolveAnchor(to) * Math.max(1, document.documentElement.scrollHeight - innerHeight);
+        lenis.scrollTo(y, { duration: 2.8, easing: (t) => 1 - Math.pow(1 - t, 3) });
+      }, '-=0.5');
   }
   document.querySelectorAll('[data-goto]').forEach((a) =>
     a.addEventListener('click', (e) => {
@@ -232,10 +270,16 @@ async function boot() {
       goTo(a.dataset.goto);
     })
   );
+  // tasto "indietro" / "avanti" del browser
+  const fromHash = () => Object.keys(HASH).find((k) => HASH[k] && HASH[k] === location.hash) || 'hero';
+  window.addEventListener('popstate', () => goTo(fromHash(), { push: false }));
 
   // ---------------------------------------------------------------- testi e procedure
   const procedures = createProcedures({ statue, reducedMotion });
   const layers = [...document.querySelectorAll('[data-layer]')].map((el) => ({ el, layer: createLayer(el, { reducedMotion }) }));
+  // si apre già in una pagina se l'indirizzo lo dice (#quien-soy, #procedimientos, #indice)
+  const startAt = fromHash();
+  setMode(modeOf(startAt));
 
   onLangChange(() => {
     renderAllTitles();
@@ -247,9 +291,7 @@ async function boot() {
   document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
   document.querySelector('.monogram').addEventListener('click', (e) => {
     e.preventDefault();
-    const lenis = getLenis();
-    if (lenis) lenis.scrollTo(0, { duration: 2.4 });
-    else window.scrollTo(0, 0);
+    goTo('hero');
   });
 
   /** Ogni livello di testo è visibile in una finestra del suo capitolo (data-window) */
@@ -259,15 +301,18 @@ async function boot() {
       const [a, b] = el.dataset.window.split(',').map(Number);
       const range = () => getChapters().find((c) => c.id === chapterId);
       ScrollTrigger.create({
+        // capitolo in un'altra pagina: finestra fuori dallo scroll, mai attiva
         start: () => {
           const c = range();
+          if (!c) return -1e6;
           return a <= 0 && c.start === 0 ? -1 : c.start + (c.end - c.start) * a;
         },
         end: () => {
           const c = range();
+          if (!c) return -1e6 + 1;
           return c.start + (c.end - c.start) * b + (b >= 1 && c.end >= document.documentElement.scrollHeight - innerHeight - 1 ? 100 : 0);
         },
-        onToggle: (self) => (self.isActive ? layer.show() : layer.hide()),
+        onToggle: (self) => (self.isActive && hasChapter(chapterId) ? layer.show() : layer.hide()),
       });
     });
     // "Desliza para descubrir": entra dopo il titolo, sparisce appena si scorre
@@ -358,7 +403,8 @@ async function boot() {
 
     // --- la luce sale, il marmo si leviga ---
     atmosphereAt(s);
-    const polish = smooth(clamp01((s - anchors.polish[0]) / (anchors.polish[1] - anchors.polish[0])));
+    const [p0, p1] = anchors.polish;
+    const polish = p0 === null || p1 === null ? 1 : smooth(clamp01((s - p0) / Math.max(1e-6, p1 - p0)));
     statue.setPolish(polish);
 
     // --- la statua ruota piano in 03 · El doctor ---
@@ -461,6 +507,7 @@ async function boot() {
   ScrollTrigger.refresh();
   await document.fonts?.ready;
   titles?.build();
+  if (startAt !== 'hero') jumpTo(ARRIVE[startAt][1] || ARRIVE[startAt][0]);
 
   // per i test automatici: salto istantaneo a un punto dello scroll
   window.__dda = {
@@ -469,6 +516,7 @@ async function boot() {
     stage,
     temple,
     jump(anchor) {
+      setMode(modeOf(anchor.split(':')[0]));
       const y = resolveAnchor(anchor) * (document.documentElement.scrollHeight - innerHeight);
       const lenis = getLenis();
       if (lenis) lenis.scrollTo(y, { immediate: true, force: true });

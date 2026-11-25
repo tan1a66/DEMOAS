@@ -179,11 +179,16 @@ export function createTitles3D({ flights, depthTexture }) {
         w.w = w.boxW + w.pad * 2;
         w.h = w.boxH + w.pad * 2;
       }
+      const in0 = resolveAnchor(t.f.in[0]), in1 = resolveAnchor(t.f.in[1]);
+      // capitolo in un'altra pagina: il titolo resta spento
+      t.off = in0 === null || in1 === null;
+      const out0 = t.f.out ? resolveAnchor(t.f.out[0]) : null;
+      const out1 = t.f.out ? resolveAnchor(t.f.out[1]) : null;
       t.a = {
-        in0: resolveAnchor(t.f.in[0]),
-        in1: resolveAnchor(t.f.in[1]),
-        out0: t.f.out ? resolveAnchor(t.f.out[0]) : 2,
-        out1: t.f.out ? resolveAnchor(t.f.out[1]) : 3,
+        in0: in0 ?? 0,
+        in1: Math.max((in1 ?? 1), (in0 ?? 0) + 1e-4),
+        out0: out0 ?? 2,
+        out1: Math.max(out1 ?? 3, (out0 ?? 2) + 1e-4),
       };
     }
   }
@@ -236,6 +241,10 @@ export function createTitles3D({ flights, depthTexture }) {
       const dxG = side > 0 ? statueNdc.x + sr * 1.25 + 0.05 - minX : statueNdc.x - sr * 1.25 - 0.05 - maxX;
       const dyG = (statueNdc.y - gcy) * 0.85;
       for (const w of t.words) {
+        if (t.off) {
+          w.mesh.visible = false;
+          continue;
+        }
         const q = clamp01((t.p - w.i * st) / span);
         const o = clamp01((t.o - (n - 1 - w.i) * st * 0.5) / (1 - st * 0.5 * (n - 1)));
         const opacity = smoothstep(0, 0.12, q) * (1 - easeOut(o)) * fade;

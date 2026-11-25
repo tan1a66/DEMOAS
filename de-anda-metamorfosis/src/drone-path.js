@@ -97,8 +97,11 @@ export const PATH = [
   { at: 'menu:0.9', target: [0, 1.75, 0], az: 16, el: 8, dist: 11.5, shift: [0.26, 0.02],
     mobile: { dist: 16, shift: [0, 0.26] } },
 
-  // 4 · Quién soy, in tre momenti: presentazione (tre quarti), formazione
-  //     (più vicino, il lato illuminato), consulta (più largo)
+  // 4 · Quién soy (pagina: si entra dall'indice), in tre momenti: presentazione
+  //     (tre quarti), formazione (più vicino, il lato illuminato), consulta (più largo).
+  //     All'ingresso la camera arriva da lontano mentre il titolo vola.
+  { at: 'doctor:0', target: [0, 1.75, 0], az: 346, el: 7, dist: 9.5, shift: [0.27, 0.02],
+    mobile: { dist: 13, shift: [0, 0.26] } },
   { at: 'doctor:0.14', target: [0, 1.8, 0], az: 330, el: 8, dist: 5.6, shift: [0.3, 0],
     mobile: { dist: 7.4, shift: [0, 0.24] } },
   { at: 'doctor:0.3', target: [0, 1.85, 0], az: 322, el: 8, dist: 5.4, shift: [0.3, 0],
@@ -110,10 +113,12 @@ export const PATH = [
   { at: 'doctor:0.86', target: [0, 1.7, 0], az: 344, el: 6, dist: 7.6, shift: [0.27, 0],
     mobile: { dist: 10.5, shift: [0, 0.24] } },
 
-  // 5 · Procedimientos: vista frontale, poi il drone si ferma su ogni zona
+  // 5 · Procedimientos (pagina): arriva da lontano, vista frontale, poi il drone si ferma su ogni zona
   //     scorrendo (dall'alto in basso). Le inquadrature delle zone sono in config.js
   //     (ZONES → cam); hold = quanto dura la sosta, in frazioni del capitolo.
   //     Soste e distanze volutamente diverse: un ritmo regolare sembra una macchina.
+  { at: 'procedimientos:0', target: [0, 1.75, 0], az: 6, el: 7, dist: 9.5, shift: [0.27, 0.02],
+    mobile: { dist: 13, shift: [0, 0.3] } },
   { at: 'procedimientos:0.1', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
     mobile: { dist: 7.4, shift: [0, 0.34] } },
   { at: 'procedimientos:0.265', zone: 'faciales', hold: 0.1 },

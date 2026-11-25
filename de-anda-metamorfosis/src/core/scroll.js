@@ -22,16 +22,23 @@ export function initScroll({ smooth }) {
   // animazioni a tempo reale anche se un frame è lento (niente "rallentatore")
   gsap.ticker.lagSmoothing(0);
   measure();
+  // misure prima che ScrollTrigger ricalcoli le finestre dei testi (refreshInit)
+  // e di nuovo dopo (refresh), per chi le legge negli ascoltatori di 'refresh'
+  ScrollTrigger.addEventListener('refreshInit', measure);
   ScrollTrigger.addEventListener('refresh', measure);
   return lenis;
 }
 
 export const getLenis = () => lenis;
 
-/** Misura posizione e lunghezza di ogni capitolo (data-chapter nell'HTML). */
+/**
+ * Misura posizione e lunghezza di ogni capitolo (data-chapter nell'HTML).
+ * Contano solo i capitoli visibili: il racconto (fino all'indice) e le pagine
+ * (Quién soy, Procedimientos) si scorrono separatamente (main.js → setMode).
+ */
 export function measure() {
   maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-  const els = [...document.querySelectorAll('[data-chapter]')];
+  const els = [...document.querySelectorAll('[data-chapter]')].filter((el) => !el.hidden);
   chapters = els.map((el, i) => {
     const start = i === 0 ? 0 : el.offsetTop;
     const next = els[i + 1];
@@ -44,13 +51,19 @@ export const getChapters = () => chapters;
 export const scrollY = () => (lenis ? lenis.scroll : window.scrollY);
 export const scrollFraction = () => Math.min(1, Math.max(0, scrollY() / maxScroll));
 
-/** 'precision:0.5' → frazione dello scroll totale (0..1) */
+/** Il capitolo è nella parte di pagina che si sta scorrendo? */
+export const hasChapter = (id) => chapters.some((c) => c.id === id);
+
+/**
+ * 'precision:0.5' → frazione dello scroll totale (0..1).
+ * null se il capitolo ora non è visibile (è in un'altra pagina).
+ */
 export function resolveAnchor(anchor) {
   const [id, p] = anchor.split(':');
   const ch = chapters.find((c) => c.id === id);
   if (!ch) {
-    console.warn(`[scroll] capitolo sconosciuto: ${anchor}`);
-    return 0;
+    if (!document.querySelector(`[data-chapter="${id}"]`)) console.warn(`[scroll] capitolo sconosciuto: ${anchor}`);
+    return null;
   }
   return (ch.start + (ch.end - ch.start) * Number(p ?? 0)) / maxScroll;
 }

@@ -73,11 +73,12 @@ export const DOCTOR_SPIN = { degrees: 18 };
 export const TITLE_FLIGHTS = {
   valoracion: { in: ['hero:0.46', 'valoracion:0.3'], out: ['valoracion:0.88', 'valoracion:0.96'] },
   precision: { in: ['precision:0.05', 'precision:0.66'], out: ['precision:0.95', 'precision:1'] },
-  menu: { in: ['precision:0.985', 'menu:0.3'], out: ['menu:0.93', 'menu:0.995'] },
-  doctor: { in: ['menu:0.995', 'doctor:0.12'], out: ['doctor:0.32', 'doctor:0.37'] },
+  menu: { in: ['precision:0.985', 'menu:0.3'] }, // l'indice è la fine del racconto: resta
+  // pagine (si entra dall'indice): il titolo vola mentre la pagina si apre
+  doctor: { in: ['doctor:0', 'doctor:0.12'], out: ['doctor:0.32', 'doctor:0.37'] },
   'doctor.formacion': { in: ['doctor:0.35', 'doctor:0.48'], out: ['doctor:0.64', 'doctor:0.69'] },
-  'doctor.consulta': { in: ['doctor:0.67', 'doctor:0.8'], out: ['doctor:0.97', 'doctor:0.995'] },
-  procedimientos: { in: ['doctor:0.995', 'procedimientos:0.1'] },
+  'doctor.consulta': { in: ['doctor:0.67', 'doctor:0.8'] },
+  procedimientos: { in: ['procedimientos:0', 'procedimientos:0.1'] },
 };
 
 // ----------------------------------------------------------------------------

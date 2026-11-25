@@ -11,6 +11,7 @@ export const STRINGS = {
     'meta.description': 'Cirujano Plástico, Estético y Reconstructivo en Mérida, Yucatán. Tu belleza merece precisión.',
     'header.cta': 'Agendar valoración',
     'header.ctaShort': 'Agendar',
+    'header.menu': 'Menú',
     'header.home': 'Inicio',
 
     'loader.label': 'Preparando el mármol',
@@ -19,7 +20,6 @@ export const STRINGS = {
     'hero.title': 'Dr. Roberto *de Anda*',
     'hero.subtitle': 'Cirujano Plástico, Estético y Reconstructivo',
     'hero.creds': 'UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.',
-    'hero.about': 'Quién soy',
     'hero.scroll': 'Desliza para descubrir',
     'hero.epigraph': '«Mi ánimo me lleva a contar las formas mudadas en cuerpos nuevos.»',
     'hero.epigraphBy': 'Ovidio, Metamorfosis',
@@ -81,6 +81,7 @@ export const STRINGS = {
     'meta.description': 'Plastic, Aesthetic & Reconstructive Surgeon in Mérida, Yucatán. Your beauty deserves precision.',
     'header.cta': 'Book a consultation',
     'header.ctaShort': 'Book',
+    'header.menu': 'Menu',
     'header.home': 'Home',
 
     'loader.label': 'Preparing the marble',
@@ -89,7 +90,6 @@ export const STRINGS = {
     'hero.title': 'Dr. Roberto *de Anda*',
     'hero.subtitle': 'Plastic, Aesthetic & Reconstructive Surgeon',
     'hero.creds': 'UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.',
-    'hero.about': 'About me',
     'hero.scroll': 'Scroll to discover',
     'hero.epigraph': '“My mind leads me to tell of forms changed into new bodies.”',
     'hero.epigraphBy': 'Ovid, Metamorphoses',

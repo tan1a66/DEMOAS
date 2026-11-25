@@ -146,6 +146,26 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .btn-pill:hover { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
 .btn-pill .short { display: none; }
 
+/* Menú: porta all'indice da qualsiasi punto */
+.btn-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--ink);
+  transition: color 0.5s var(--ease);
+}
+.btn-menu i { position: relative; width: 1.25rem; height: 7px; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; transition: width 0.5s var(--ease); }
+.btn-menu:hover { color: var(--accent-deep); }
+.btn-menu:hover i { width: 1.6rem; }
+
+/* capitoli delle altre pagine: fuori dallo scroll */
+.chapter[hidden] { display: none; }
+
 /* ---------------------------------------------------------------- livelli di testo */
 .layers { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
 .layer {
@@ -161,27 +181,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .layer.is-active button,
 .layer.is-active [role='button'] { pointer-events: auto; }
 
-/* "Quién soy": il dottore si presenta (con DEMO_MODE → work in progress) */
-.btn-about {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.9rem;
-  margin: 1.5rem 0 0;
-  padding: 0.85rem 1.35rem;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--accent-deep);
-  transition: background-color 0.5s var(--ease), color 0.5s var(--ease);
-}
-.btn-about i { position: relative; width: 1.6rem; height: 1px; background: currentColor; transition: width 0.5s var(--ease); }
-.btn-about i::after { content: ''; position: absolute; right: 0; top: -3px; width: 7px; height: 7px; border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: rotate(45deg); }
-.btn-about:hover { background: var(--accent); color: var(--ivory); }
-.btn-about:hover i { width: 2.2rem; }
 
 .eyebrow,
 .label {
@@ -501,6 +500,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .btn-pill .long { display: none; }
   .btn-pill .short { display: inline; }
   .monogram { font-size: 1.45rem; }
+  .header-right { gap: 0.95rem; }
+  .btn-menu span { display: none; }
+  .btn-menu { padding: 0.7rem 0.15rem; }
+  .btn-menu i { width: 1.35rem; }
 
   .layer { align-items: flex-end; }
   .layer .col {
