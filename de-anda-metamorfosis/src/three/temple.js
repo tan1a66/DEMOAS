@@ -149,7 +149,7 @@ function archWall({ length, height, thickness, arches }) {
 
 /**
  * Colonna: base, fusto scanalato con leggera rastremazione e capitello
- * "corinzio" stilizzato (campana a foglie + abaco), una geometria a parte.
+ * dorico (echino + abaco), una geometria a parte.
  */
 function columnGeometry(height) {
   const capH = 0.62; // altezza del capitello
@@ -177,23 +177,12 @@ function columnGeometry(height) {
   plinth.deleteAttribute('uv');
   const shaft = mergeGeometries([lathe.toNonIndexed(), plinth.toNonIndexed()]);
 
-  // capitello: campana che si allarga, con due giri di "foglie" (costole)
+  // capitello dorico: echino morbido e abaco, linee pulite
   const y0 = shaft1 + 0.06;
   const bell = new THREE.LatheGeometry(
-    [[0.0, 0], [0.31, 0], [0.33, 0.08], [0.37, 0.2], [0.43, 0.34], [0.5, 0.44], [0.0, 0.44]].map(([r, y]) => new THREE.Vector2(r, y)),
+    [[0.0, 0], [0.31, 0], [0.31, 0.05], [0.34, 0.07], [0.34, 0.1], [0.38, 0.17], [0.45, 0.27], [0.5, 0.38], [0.52, 0.44], [0.0, 0.44]].map(([r, y]) => new THREE.Vector2(r, y)),
     96
   );
-  const bp = bell.attributes.position;
-  for (let i = 0; i < bp.count; i++) {
-    const x = bp.getX(i), y = bp.getY(i), z = bp.getZ(i);
-    const r = Math.hypot(x, z);
-    if (r < 0.01) continue;
-    const th = Math.atan2(z, x);
-    const row = y < 0.22 ? 0 : 1; // due giri di foglie sfalsati
-    const leaf = Math.pow(Math.abs(Math.sin(th * 8 + row * 0.39)), 0.6);
-    const k = 1 + 0.12 * leaf * Math.sin(Math.min(1, y / 0.44) * Math.PI);
-    bp.setXYZ(i, x * k, y, z * k);
-  }
   bell.translate(0, y0, 0);
   bell.deleteAttribute('uv');
   bell.computeVertexNormals();
@@ -240,7 +229,7 @@ function keystone(a, z) {
  */
 function wallOrnaments({ arches, length, height, face }) {
   const stone = [];
-  const gold = [];
+  const carved = [];
   for (const a of arches) {
     const r = a.w / 2;
     stone.push(archBand(a, r, r + 0.26, 0.07, face));
@@ -253,7 +242,7 @@ function wallOrnaments({ arches, length, height, face }) {
       const j1 = sgn < 0 ? a.c - r : a.c + r + 0.26;
       stone.push(box(j0, j1, 0, a.spring - 0.2, face, face + 0.06)); // stipite
     }
-    gold.push(keystone(a, face));
+    carved.push(keystone(a, face));
   }
   // trabeazione lungo tutto il muro
   const L2 = length / 2;
@@ -261,56 +250,7 @@ function wallOrnaments({ arches, length, height, face }) {
   stone.push(box(-L2, L2, height - 0.7, height - 0.32, face, face + 0.12)); // fregio
   stone.push(box(-L2, L2, height - 0.32, height - 0.2, face, face + 0.42)); // listello
   stone.push(box(-L2, L2, height - 0.2, height, face, face + 0.58)); // cornice
-  return { stone, gold };
-}
-
-/** Dentelli sotto la cornice: posizioni lungo il muro */
-function dentilPositions(length, y, face, step = 0.26) {
-  const out = [];
-  for (let x = -length / 2 + 0.2; x < length / 2 - 0.1; x += step) out.push([x, y, face]);
-  return out;
-}
-
-/** Vaso monumentale (cratere) su piedistallo, al tornio */
-function urnGeometry() {
-  const prof = [
-    [0, 0], [0.42, 0], [0.42, 0.62], [0.36, 0.66], [0.36, 0.7], [0.2, 0.74], [0.14, 0.82], [0.17, 0.9], [0.3, 1.0],
-    [0.44, 1.18], [0.5, 1.36], [0.46, 1.52], [0.34, 1.62], [0.3, 1.7], [0.42, 1.78], [0.46, 1.84], [0.4, 1.86], [0, 1.86],
-  ].map(([r, y]) => new THREE.Vector2(r, y));
-  const g = new THREE.LatheGeometry(prof, 72);
-  g.deleteAttribute('uv');
-  g.computeVertexNormals();
-  const ped = new THREE.BoxGeometry(0.9, 0.62, 0.9);
-  ped.translate(0, 0.31, 0);
-  ped.deleteAttribute('uv');
-  return mergeGeometries([g.toNonIndexed(), ped.toNonIndexed()]);
-}
-
-/** Cipresso: colonna verde scura che si stringe in punta, chioma a ciuffi */
-function cypressGeometry(height = 5.4) {
-  const pts = [];
-  const N = 44;
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    let r;
-    if (t < 0.05) r = 0.11; // tronco
-    else r = 0.62 * Math.pow(1 - t, 0.78) * (0.55 + 0.45 * Math.min(1, (t - 0.05) / 0.22));
-    pts.push(new THREE.Vector2(Math.max(r, 0.001), t * height));
-  }
-  const g = new THREE.LatheGeometry(pts, 40);
-  // chioma: ciuffi irregolari (rumore semplice in angolo e altezza)
-  const p = g.attributes.position;
-  const n2 = (a, b) => Math.sin(a * 1.7 + Math.sin(b * 2.3)) * Math.cos(b * 1.3 + a * 0.6);
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    if (y < height * 0.05) continue;
-    const th = Math.atan2(z, x);
-    const k = 1 + 0.16 * n2(th * 3, y * 2.4) + 0.08 * n2(th * 7 + 2, y * 6.1);
-    p.setXYZ(i, x * k, y, z * k);
-  }
-  g.deleteAttribute('uv');
-  g.computeVertexNormals();
-  return g;
+  return { stone, carved };
 }
 
 function box(x0, x1, y0, y1, z0, z1) {
@@ -356,7 +296,7 @@ function createWater(width, depth, resolution) {
         vec2 rip = vec2(n2(p * 2.2 + uTime * 0.22), n2(p * 2.2 - uTime * 0.19 + 7.0)) - 0.5;
         rip += 0.5 * (vec2(n2(p * 6.0 - uTime * 0.4), n2(p * 6.0 + uTime * 0.37 + 3.0)) - 0.5);
         vec4 uv = vUv;
-        uv.xy += rip * 0.035 * uv.w;
+        uv.xy += rip * 0.012 * uv.w;
         vec3 refl = texture2DProj(tDiffuse, uv).rgb;
         vec3 V = normalize(uCamPos - vWorld);
         float fres = 0.08 + 0.92 * pow(1.0 - max(V.y, 0.0), 4.0);
@@ -379,13 +319,15 @@ function createWater(width, depth, resolution) {
 }
 
 /** Fondo della vasca con caustiche animate */
+const causticAmount = { value: 0.1 }; // più forti quando la camera è sott'acqua
 function createPoolBottom(width, depth, y) {
   const mat = createStoneMaterial({ tone: '#e9eeeb', roughness: 0.45, veins: 0.35 });
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (shader) => {
     prev(shader);
+    shader.uniforms.uCaustic = causticAmount;
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\n' + NOISE2)
+      .replace('#include <common>', '#include <common>\nuniform float uCaustic;\n' + NOISE2)
       .replace(
         '#include <emissivemap_fragment>',
         /* glsl */ `#include <emissivemap_fragment>
@@ -394,7 +336,7 @@ function createPoolBottom(width, depth, y) {
           float c1 = abs(n2(q + uTime * 0.25) - n2(q * 1.3 - uTime * 0.21 + 4.0));
           float c2 = abs(n2(q * 2.1 - uTime * 0.3) - n2(q * 1.7 + uTime * 0.27 + 9.0));
           float caustic = pow(1.0 - smoothstep(0.0, 0.12, min(c1, c2)), 2.0);
-          totalEmissiveRadiance += vec3(1.0, 0.97, 0.9) * caustic * 0.32;
+          totalEmissiveRadiance += vec3(1.0, 0.97, 0.9) * caustic * uCaustic;
         }`
       );
   };
@@ -409,18 +351,24 @@ function createPoolBottom(width, depth, y) {
 // =============================================================================
 //  Tende: piano con pieghe e vento nel vertex shader
 // =============================================================================
-function createCurtain({ width, height, side, phase }) {
-  // side = -1: tenda di sinistra (bordo esterno a sinistra), +1: di destra.
-  // In coordinate locali il bordo esterno è in x = 0 e la tenda pende da y = 0.
-  const geo = new THREE.PlaneGeometry(width, height, 28, 56);
-  geo.translate((-side * width) / 2, -height / 2, 0);
+function createCurtain({ width, side, arch, worldX, style }) {
+  // side = -1: tenda appesa dal lato sinistro dell'arco, +1: dal destro.
+  // Coordinate locali: bordo esterno in x = 0, pavimento in y = 0. La geometria
+  // ha altezza 1 e nello shader viene "appesa" alla curva dell'arco: il bordo
+  // alto segue l'arco invece di essere una linea dritta.
+  // style: il carattere della tenda (vedi CURTAINS più sotto).
+  const st = { gather: 1, keep: 0.32, tie: 0, wind: 1, folds: 1, pool: 0, seed: 0, ...style };
+  const geo = new THREE.PlaneGeometry(width, 1, 30, 72);
+  geo.translate((-side * width) / 2, 0.5, 0);
+  const cLocal = -side * arch.inner; // centro dell'arco rispetto al bordo esterno
+  const f = (x) => Number(x).toFixed(4);
   const uniforms = { uTime: { value: 0 }, uWind: { value: 0.4 }, uOpen: { value: 0 }, uGlow: { value: new THREE.Color('#ffe7c9') }, uBack: { value: 0.3 } };
   const mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color('#fbf8f3'),
     roughness: 0.85,
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: 0.62,
+    opacity: 0.6,
     depthWrite: false,
   });
   mat.toneMapped = false;
@@ -432,25 +380,49 @@ function createCurtain({ width, height, side, phase }) {
         `#include <common>
         uniform float uTime, uWind, uOpen;
         vec3 curtain(vec3 p) {
-          float w = ${width.toFixed(3)}, h = ${height.toFixed(3)};
-          float u = abs(p.x) / w;         // 0 = bordo verso il centro dell'arco
-          float v = clamp(-p.y / h, 0.0, 1.0); // 0 in alto, 1 in basso
-          // si raccoglie verso il bordo esterno (tenda aperta), più in basso che in alto
-          p.x = mix(p.x, p.x * 0.32, uOpen * (0.3 + 0.7 * v));
-          // pieghe verticali
-          p.z += sin(p.x * 11.0) * 0.045 + sin(p.x * 23.0 + 1.3) * 0.015;
-          // vento: si gonfia verso l'interno, di più in basso
-          float t = uTime + ${phase.toFixed(2)};
-          float gust = 0.6 + 0.4 * sin(t * 0.37);
-          p.z += (sin(t * 0.9 + p.x * 1.6 + v * 2.2) * 0.5 + sin(t * 1.7 + p.x * 3.1 - v * 1.3) * 0.25 + 0.55) * v * v * uWind * gust;
-          p.x += sin(t * 0.7 + v * 3.0) * 0.08 * v * uWind;
+          float xo = p.x;
+          float dx = xo - (${f(cLocal)});
+          float r = ${f(arch.r)};
+          // bordo alto: la curva dell'arco (un filo più in basso)
+          float top = ${f(arch.spring)} + sqrt(max(r * r - dx * dx, 0.0)) - 0.05;
+          float y = p.y;       // 0 in basso, 1 in alto
+          float v = 1.0 - y;
+          // lunghezza: le tende più lunghe si appoggiano a terra e l'orlo si piega in avanti
+          float py = mix(${f(-st.pool)}, top, y);
+          float pool = max(0.02 - py, 0.0);
+          p.y = max(py, 0.02);
+          p.z += pool * 0.85;
+          float open = uOpen * ${f(st.gather)};
+          float free = 1.0 - min(pool * 9.0, 1.0); // l'orlo a terra non si muove
+          ${st.tie > 0 ? `
+          // legata a metà altezza: sopra il drappo scende in diagonale verso il nodo,
+          // sotto la stoffa ricade e si riapre un poco
+          float T = ${f(st.tie)};
+          float w = y > T ? mix(1.0, 0.28, pow((y - T) / (1.0 - T), 0.75)) : mix(1.0, 0.62, pow((T - y) / T, 1.2));
+          p.x = mix(xo, xo * ${f(st.keep)}, open * w);
+          p.z += 0.07 * open * exp(-pow((y - T) * 7.0, 2.0)); // la stoffa raccolta nel nodo
+          free *= y > T ? 0.22 : mix(0.25, 1.0, (T - y) / T);` : `
+          // raccolta verso il lato: più in basso che in alto
+          p.x = mix(xo, xo * ${f(st.keep)}, open * (0.25 + 0.75 * v * v));`}
+          // pieghe verticali, irregolari e più profonde quando la tenda è raccolta
+          float S = ${f(st.seed)};
+          float fa = (0.034 + 0.03 * open) * ${f(st.folds)};
+          p.z += (sin(xo * ${f(10 * st.folds + 1)} + S) * 0.72 + sin(xo * ${f(23.7 + st.seed * 3.1)} + S * 2.3) * 0.28)
+               * fa * (0.7 + 0.3 * sin(xo * 1.7 + S * 0.7));
+          // vento: raffiche irregolari che arrivano prima da un lato e poi dall'altro
+          float tw = uTime - ${f(worldX)} * 0.22;
+          float g = sin(tw * 0.23 + 1.1) + 0.7 * sin(tw * 0.37 + 2.9) + 0.45 * sin(tw * 0.61 + S);
+          float wind = uWind * ${f(st.wind)} * (0.3 + 0.7 * smoothstep(-0.7, 1.7, g)) * free;
+          float t = uTime + S * 2.7;
+          p.z += (sin(t * 0.9 + xo * 1.6 + v * 2.2) * 0.5 + sin(t * 1.7 + xo * 3.1 - v * 1.3) * 0.25 + 0.55) * v * v * wind;
+          p.x += sin(t * 0.7 + v * 3.0) * 0.06 * v * wind;
           return p;
         }`
       )
       .replace('#include <beginnormal_vertex>', `
         vec3 p0 = curtain(position);
         vec3 px = curtain(position + vec3(0.02, 0.0, 0.0));
-        vec3 py = curtain(position + vec3(0.0, 0.02, 0.0));
+        vec3 py = curtain(position + vec3(0.0, 0.01, 0.0));
         vec3 objectNormal = normalize(cross(px - p0, py - p0));`)
       .replace('#include <begin_vertex>', 'vec3 transformed = p0;');
     shader.fragmentShader = shader.fragmentShader
@@ -458,7 +430,7 @@ function createCurtain({ width, height, side, phase }) {
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uGlow * uBack;');
     addToneMapping(shader);
   };
-  mat.customProgramCacheKey = () => `curtain-${width}-${height}-${side}-${phase}`;
+  mat.customProgramCacheKey = () => `curtain-${width}-${side}-${worldX}-${arch.spring}-${arch.r}-${JSON.stringify(st)}`;
   const mesh = new THREE.Mesh(geo, mat);
   mesh.renderOrder = 4;
   mesh.frustumCulled = false;
@@ -586,15 +558,15 @@ export function createTemple({ quality }) {
   const toLeft = new THREE.Matrix4().makeTranslation(-L.SIDE_WALL_X, 0, -1.0).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2));
   const leftStone = mergeGeometries([noUV(sideWall), ...sideOrn.stone]);
   leftStone.applyMatrix4(toLeft);
-  const leftGold = mergeGeometries(sideOrn.gold);
-  leftGold.applyMatrix4(toLeft);
+  const leftCarved = mergeGeometries(sideOrn.carved);
+  leftCarved.applyMatrix4(toLeft);
 
   const backWall = archWall({ length: backLen, height: HB, thickness: T, arches: backArches });
   const backOrn = wallOrnaments({ arches: backArches, length: backLen, height: HB, face: T / 2 });
   const backStone = mergeGeometries([noUV(backWall), ...backOrn.stone]);
   backStone.translate(0, 0, L.BACK_WALL_Z);
-  const backGold = mergeGeometries(backOrn.gold);
-  backGold.translate(0, 0, L.BACK_WALL_Z);
+  const backCarved = mergeGeometries(backOrn.carved);
+  backCarved.translate(0, 0, L.BACK_WALL_Z);
 
   const addMesh = (geo, mat, mirror = false) => {
     const m = new THREE.Mesh(geo, mat);
@@ -606,26 +578,13 @@ export function createTemple({ quality }) {
   addMesh(leftStone, wallMat);
   addMesh(leftStone, wallMat, true);
   addMesh(backStone, wallMat);
-  addMesh(leftGold, carvedMat);
-  addMesh(leftGold, carvedMat, true);
-  addMesh(backGold, carvedMat);
+  addMesh(leftCarved, carvedMat);
+  addMesh(leftCarved, carvedMat, true);
+  addMesh(backCarved, carvedMat);
 
-  // dentelli sotto le cornici (lato cortile)
-  const dentGeo = new THREE.BoxGeometry(0.13, 0.15, 0.12);
-  dentGeo.deleteAttribute('uv');
-  const dent = [];
-  for (const [x, y, f] of dentilPositions(sideLen, H - 0.4, T / 2 + 0.17)) {
-    const v = new THREE.Vector3(x, y, f).applyMatrix4(toLeft);
-    dent.push(v, new THREE.Vector3(-v.x, v.y, v.z));
-  }
-  for (const [x, y, f] of dentilPositions(backLen, HB - 0.4, T / 2 + 0.17)) dent.push(new THREE.Vector3(x, y, L.BACK_WALL_Z + f));
-  const dentils = new THREE.InstancedMesh(dentGeo, ornMat, dent.length);
   const m4 = new THREE.Matrix4();
-  dent.forEach((v, i) => dentils.setMatrixAt(i, m4.makeTranslation(v.x, v.y, v.z)));
-  dentils.castShadow = true;
-  group.add(dentils);
 
-  // colonne davanti ai pilastri, con capitello corinzio stilizzato
+  // colonne davanti ai pilastri, con capitello dorico
   const col = columnGeometry(H - 1.05);
   const colPos = [];
   for (const sgn of [-1, 1]) for (const z of [-6.4, -2.4, 1.6, 5.6]) colPos.push([sgn * (L.SIDE_WALL_X - T / 2 - 0.55), z]);
@@ -641,42 +600,39 @@ export function createTemple({ quality }) {
   capitals.castShadow = true;
   group.add(shafts, capitals);
 
-  // vasi monumentali agli angoli della vasca
-  const urns = new THREE.InstancedMesh(urnGeometry(), ornMat, 4);
-  [[-P.x - 1.1, P.z + 1.1], [P.x + 1.1, P.z + 1.1], [-P.x - 1.1, -P.z - 1.1], [P.x + 1.1, -P.z - 1.1]].forEach(([x, z], i) => urns.setMatrixAt(i, m4.makeTranslation(x, 0, z)));
-  urns.castShadow = urns.receiveShadow = true;
-  group.add(urns);
-
-  // cipressi in fioriere di marmo negli angoli in fondo, davanti agli archi
-  // laterali (come in un giardino all'italiana): il verde mediterraneo
-  const cypressMat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#2e4630'), roughness: 0.95 });
-  cypressMat.toneMapped = false;
-  cypressMat.onBeforeCompile = (shader) => addToneMapping(shader);
-  const cyPos = [[-5.0, -6.3], [5.0, -6.3]];
-  const cypresses = new THREE.InstancedMesh(cypressGeometry(), cypressMat, cyPos.length);
-  const planters = new THREE.InstancedMesh(box(-0.5, 0.5, 0, 0.55, -0.5, 0.5), ornMat, cyPos.length);
-  cyPos.forEach(([x, z], i) => {
-    const sc = 0.9 + ((i * 37) % 10) / 40;
-    cypresses.setMatrixAt(i, m4.compose(new THREE.Vector3(x, 0.4, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), i * 1.3), new THREE.Vector3(1, sc, 1)));
-    planters.setMatrixAt(i, m4.makeTranslation(x, 0, z));
-  });
-  cypresses.castShadow = cypresses.receiveShadow = true;
-  planters.castShadow = planters.receiveShadow = true;
-  group.add(cypresses, planters);
-
   // ---- tende negli archi in fondo ----
+  // L'architettura è simmetrica, le stoffe no: ogni tenda ha il suo carattere,
+  // come in un luogo vissuto. Per arco (da sinistra): le tende appese a sinistra
+  // (L) e a destra (R); null = nessuna tenda da quel lato.
+  //   gather: quanto si raccoglie quando si apre   keep: larghezza che resta
+  //   tie: legata a questa altezza (0 = libera)     wind: quanto la prende il vento
+  //   folds: pieghe                                 pool: lunghezza in più a terra
+  const CURTAINS = [
+    // arco sinistro: una sola tenda, larga quanto l'arco, legata bassa a sinistra
+    { L: { full: true, gather: 1, keep: 0.12, tie: 0.36, wind: 0.55, folds: 0.9, pool: 0.12, seed: 0.4 }, R: null },
+    // arco centrale: a sinistra raccolta del tutto, a destra lasciata al vento
+    { L: { gather: 0.95, keep: 0.26, wind: 0.6, folds: 1.05, pool: 0.16, seed: 1.9 },
+      R: { gather: 0.42, keep: 0.4, wind: 1.3, folds: 1.2, pool: -0.04, seed: 3.3 } },
+    // arco destro: a sinistra legata più in alto, a destra quasi chiusa e lunga
+    { L: { gather: 1, keep: 0.14, tie: 0.48, wind: 0.45, folds: 1.1, pool: 0.05, seed: 4.6 },
+      R: { gather: 0.6, keep: 0.34, wind: 0.95, folds: 0.95, pool: 0.2, seed: 5.8 } },
+  ];
   const curtains = [];
-  let ph = 0;
-  for (const a of backArches) {
-    const hgt = a.spring + a.w / 2 - 0.4;
-    for (const sgn of [-1, 1]) {
-      const c = createCurtain({ width: a.w / 2 + 0.18, height: hgt, side: sgn, phase: (ph += 1.7) });
-      // appesa davanti all'arco, dal suo bordo esterno verso il centro
-      c.mesh.position.set(a.c + sgn * (a.w / 2 + 0.06), hgt + 0.02, L.BACK_WALL_Z + 0.45);
+  backArches.forEach((a, i) => {
+    const r = a.w / 2;
+    const inner = r - 0.03; // il bordo esterno della tenda sta appena dentro l'apertura
+    for (const [key, sgn] of [['L', -1], ['R', 1]]) {
+      const style = CURTAINS[i][key];
+      if (!style) continue;
+      const width = style.full ? inner * 2 : inner + 0.15;
+      const worldX = a.c + sgn * inner;
+      const c = createCurtain({ width, side: sgn, arch: { r, inner, spring: a.spring }, worldX, style });
+      // appesa dentro lo spessore dell'arco, dal bordo verso il centro
+      c.mesh.position.set(worldX, 0, L.BACK_WALL_Z + 0.12 + (key === 'R' ? 0.015 : 0));
       curtains.push(c);
       group.add(c.mesh);
     }
-  }
+  });
 
   // ---- raggi di luce dagli archi in fondo ----
   const beamMat = beamMaterial();
@@ -714,6 +670,10 @@ export function createTemple({ quality }) {
     /** raggi disegnati (piani): servono dove non c'è la luce volumetrica */
     setBeamPlanes(on) {
       beams.visible = on;
+    },
+    /** 0..1: la camera è sott'acqua (caustiche più vive sul fondo) */
+    setUnderwater(amount) {
+      causticAmount.value = 0.1 + 0.16 * amount;
     },
     /** Stato dell'ambiente (vedi LIGHTS in drone-path.js) */
     update({ time, sunDir, sky: s, mist: mistAmount, wind, open, beams: beamAmount, moon, sunColor, cameraPos }) {

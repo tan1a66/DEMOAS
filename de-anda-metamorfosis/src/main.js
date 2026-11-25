@@ -14,7 +14,7 @@ import { ATMOSPHERES } from './drone-path.js';
 import { applyStaticTexts, setLang, onLangChange } from './i18n.js';
 import { initScroll, measure, resolveAnchor, scrollFraction, currentChapter, getChapters, getLenis, gsap, ScrollTrigger } from './core/scroll.js';
 import { createStage } from './three/stage.js';
-import { createTemple } from './three/temple.js';
+import { createTemple, LAYOUT } from './three/temple.js';
 import { loadModel, createStatue } from './three/statue.js';
 import { modelUrl } from './three/model-source.js';
 import { createDust } from './three/dust.js';
@@ -266,6 +266,29 @@ async function boot() {
   let testShot = null; // inquadratura forzata dai test automatici
   const fpsMon = { acc: 0, frames: 0, warm: 0 };
 
+  // ---------------------------------------------------------------- work in progress: nell'acqua
+  //  Il clic su un pulsante (DEMO_MODE) apre il velo "Work in progress": la
+  //  camera scende nella vasca e si ferma a pelo d'acqua. Scroll fermo finché
+  //  il velo è aperto; alla chiusura la camera risale al suo punto del racconto.
+  let diving = false;
+  let underAmount = 0;
+  const waterColor = new THREE.Color();
+  const waterBase = new THREE.Color('#3d8aa3');
+  window.addEventListener('wip:open', () => {
+    if (diving) return;
+    diving = true;
+    drone.setDive(true);
+    getLenis()?.stop();
+    document.documentElement.classList.add('is-diving');
+  });
+  window.addEventListener('wip:close', () => {
+    if (!diving) return;
+    diving = false;
+    drone.setDive(false);
+    getLenis()?.start();
+    document.documentElement.classList.remove('is-diving');
+  });
+
   function tick(_time, deltaMs) {
     const dt = Math.min(deltaMs / 1000, 0.1);
     elapsed += dt;
@@ -300,8 +323,13 @@ async function boot() {
     lastChapter = ch.id;
 
     // --- camera ---
-    const idle = ch.id === 'hero' ? 1 - ch.progress * 0.6 : 0;
-    const cam = drone.update({ scroll: sReal, dt, time: elapsed, idle, override: testShot || (reducedMotion ? override : null) });
+    const idle = ch.id === 'hero' && !diving ? 1 - ch.progress * 0.6 : 0;
+    const rmShot = reducedMotion ? (diving ? drone.dive : override) : null;
+    const cam = drone.update({ scroll: sReal, dt, time: elapsed, idle, override: testShot || rmShot });
+    // quanto la camera è vicina al pelo dell'acqua (0 = lontana, 1 = dentro)
+    const waterY = LAYOUT.POOL.water;
+    underAmount = clamp01((waterY + 0.6 - cam.position.y) / 0.6);
+    temple.setUnderwater(underAmount);
 
     // --- atmosfera: cielo, acqua, tende, raggi, nebbia, luci ---
     temple.update({
@@ -333,10 +361,12 @@ async function boot() {
       focus: cam.focus,
       // raggi di luce: più forti quando il sole è alto e la nebbia si è aperta
       light: { sun: stage.lights.sun, sunDir: atm.sunDir, color: atm.sunColor, amount: atm.beams * Math.min(1, atm.sunIntensity / 2.2) * 0.9 },
+      // a pelo d'acqua: l'azzurro dell'acqua prende un po' del colore del sole
+      water: underAmount > 0.5 ? { y: waterY, time: elapsed, color: waterColor.copy(waterBase).lerp(atm.sunColor, 0.18).multiplyScalar(0.5 + 0.3 * Math.min(1, atm.sunIntensity / 2.5)) } : null,
     });
 
     // --- qualità adattiva: prima via la profondità di campo, poi meno pixel ---
-    if (ADAPT && !testShot) {
+    if (ADAPT && !testShot && !diving) {
       fpsMon.warm += dt;
       if (fpsMon.warm > 3) {
         fpsMon.acc += dt;
@@ -389,6 +419,11 @@ async function boot() {
       else window.scrollTo(0, y);
       drone.initialized = false; // la camera salta subito al punto, senza smorzamento
       ScrollTrigger.update();
+    },
+    /** apre il "work in progress" con la camera già nell'acqua (senza discesa) */
+    dive() {
+      document.querySelector('.js-wa')?.click();
+      testShot = drone.dive;
     },
     /** prova un'inquadratura: { target, az, el, dist, shift, dof } (null = percorso) */
     shot(s) {

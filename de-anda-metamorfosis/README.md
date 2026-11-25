@@ -1,8 +1,8 @@
 # Dr. Roberto de Anda — «Metamorfosis» (demo conceptual, Alessia Studio)
 
 Scrollytelling 3D: una Venere di marmo in un tempio classico bianco affacciato sul mare
-(archi con archivolti e chiavi di volta, colonne con capitello corinzio, trabeazione con
-dentelli, vasi, cipressi, vasca d'acqua che riflette).
+(archi con archivolti e chiavi di volta, colonne doriche scanalate, trabeazione, vasca
+d'acqua che riflette, tende).
 Si apre all'alba (nebbia, luce fredda, tende chiuse, marmo opaco). Scorrendo sale il sole:
 la nebbia si dirada, le tende si aprono nel vento, entrano i raggi di luce, compaiono le
 ombre delle foglie d'ulivo e il marmo diventa levigato e luminoso. Il finale è al tramonto,
@@ -50,14 +50,28 @@ Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
 
 | File | Contenuto |
 | --- | --- |
-| `src/config.js` | **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua |
-| `src/drone-path.js` | tappe del drone (anche le soste sulle zone nel capitolo 04) e **atmosfere** (sole, cielo, mare, nebbia, tende, raggi, ombre d'ulivo) per ogni punto dello scroll |
-| `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi e decorazioni, colonne, vasi, cipressi, tende, cielo e mare |
-| `src/three/post.js` | luce volumetrica (raggi calcolati dalle ombre del sole) e profondità di campo |
-| `src/i18n.js` | tutti i testi ES/EN (parole tra `*asterischi*` = corsivo oro) e messaggio WhatsApp |
+| `src/config.js` | **`DEMO_MODE`** (vedi sotto), **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua |
+| `src/drone-path.js` | tappe del drone (anche le soste sulle zone nel capitolo 04), molle e inclinazione della camera, inquadratura nell'acqua (`DIVE`) e **atmosfere** (sole, cielo, mare, nebbia, tende, raggi, ombre d'ulivo) per ogni punto dello scroll |
+| `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi e decorazioni, colonne, tende (`CURTAINS`: il carattere di ognuna), cielo e mare |
+| `src/three/post.js` | luce volumetrica (raggi calcolati dalle ombre del sole), profondità di campo, vista a pelo d'acqua |
+| `src/i18n.js` | tutti i testi ES/EN (parole tra `*asterischi*` = corsivo azzurro) e messaggio WhatsApp |
 | `src/styles.css` | palette, tipografia, altezze dei capitoli (= lunghezza dello scroll) |
 | `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo compare ogni testo |
 | `public/img/doctor.jpg` | **foto del dottore** (da aggiungere: senza foto compare un segnaposto con il monogramma) |
+
+**`DEMO_MODE = true`** (demo da mostrare): i pulsanti "Agendar" non aprono WhatsApp. La camera
+scende nella vasca e si ferma con l'obiettivo a pelo d'acqua, metà sopra e metà sotto; compare
+"Work in progress · alessia.studio" e un tocco riporta al racconto. Con `false` i pulsanti aprono
+WhatsApp con il messaggio nella lingua scelta.
+
+Il caricamento iniziale mostra solo una linea e la percentuale.
+
+**Simmetria**: l'architettura è simmetrica, le cose vive no. Ogni tenda ha il suo carattere
+(una sola tenda legata nell'arco di sinistra, al centro una raccolta e una lasciata al vento,
+a destra una legata più in alto e una lunga sul pavimento); le raffiche di vento arrivano da un
+lato e passano all'altro. La camera ha il peso di una camera vera: molle che si posano con un
+piccolo assestamento, oscillazione non periodica, leggera inclinazione nelle curve, soste di
+durata diversa sulle zone del capitolo 04.
 
 Tutto si guida con lo scroll, senza pulsanti (restano solo WhatsApp e la lingua): nel capitolo
 04 il drone si ferma su viso, collo, petto e vita (`{ zone: '…', hold }` in `drone-path.js`),

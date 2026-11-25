@@ -39,8 +39,22 @@ export const MOBILE = { fov: 42, distScale: 1.55, shift: [0, 0.2] };
 export const DRIFT = { position: 0.01, target: 0.005, speed: 0.16 };
 // Movimento lento all'apertura anche senza scroll (gradi di oscillazione)
 export const IDLE = { az: 3, el: 1.2, speed: 0.06 };
-// Smorzamento: più alto = la camera segue lo scroll più da vicino
+// Smorzamento di inquadratura, fuoco e fov: più alto = segue lo scroll più da vicino
 export const DAMPING = 3.2;
+// Molle di posizione e punto guardato (rad/s): lo sguardo è più rapido del corpo.
+// zeta < 1 = piccolo assestamento all'arrivo, come una camera vera con il suo peso
+export const SPRING = { pos: 4.6, target: 6.2, zeta: 0.8 };
+// Inclinazione nelle curve (gradi): gain = quanto, max = limite, shake = tremito
+export const BANK = { gain: 5, max: 1.6, shake: 0.12 };
+
+// "Work in progress" (clic su un pulsante): la camera scende nella vasca e si
+// ferma con l'obiettivo a pelo d'acqua, metà sopra e metà sotto (foto "over-under").
+// pos: posizione (y 4 mm sotto il pelo, che è a -0.08); la discesa è più lenta del solito.
+export const DIVE = {
+  pos: [2.9, -0.084, 3.3], target: [0, 0.75, 0], fov: 58, shift: [0.4, 0],
+  mobile: { pos: [2.6, -0.084, 3.35], target: [0, 0.9, 0], fov: 64, shift: [0, 0.06] },
+  spring: { pos: 2.2, target: 2.6, zeta: 1 },
+};
 
 export const PATH = [
   // 0 · Apertura, all'alba: lontano e alto, il tempio nella nebbia sopra le nuvole
@@ -85,10 +99,11 @@ export const PATH = [
   //     (ZONES → cam); hold = quanto dura la sosta, in frazioni del capitolo.
   { at: 'procedimientos:0.1', target: [0, 1.85, 0], az: 352, el: 6, dist: 4.6, shift: [0.27, 0],
     mobile: { dist: 6.6, shift: [0, 0.22] } },
-  { at: 'procedimientos:0.27', zone: 'faciales', hold: 0.08 },
-  { at: 'procedimientos:0.46', zone: 'noquirurgicos', hold: 0.08 },
-  { at: 'procedimientos:0.65', zone: 'reconstructivos', hold: 0.08, rm: true },
-  { at: 'procedimientos:0.84', zone: 'corporales', hold: 0.08 },
+  //     Soste e distanze volutamente diverse: un ritmo regolare sembra una macchina.
+  { at: 'procedimientos:0.265', zone: 'faciales', hold: 0.1 },
+  { at: 'procedimientos:0.45', zone: 'noquirurgicos', hold: 0.06 },
+  { at: 'procedimientos:0.63', zone: 'reconstructivos', hold: 0.075, rm: true },
+  { at: 'procedimientos:0.84', zone: 'corporales', hold: 0.09 },
   { at: 'procedimientos:0.98', target: [0, 1.85, 0], az: 356, el: 7, dist: 5.2, shift: [0.27, 0],
     mobile: { dist: 7.2, shift: [0, 0.22] } },
 

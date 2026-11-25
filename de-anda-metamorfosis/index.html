@@ -8,7 +8,7 @@
     <!-- demo conceptual: non indicizzare -->
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#F3EEE6" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F3EEE6'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' text-anchor='middle' fill='%232B2722'%3ER%3Ctspan fill='%23B8915A'%3E·%3C/tspan%3EdA%3C/text%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F3EEE6'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' text-anchor='middle' fill='%231D2E3D'%3ER%3Ctspan fill='%234A7CA3'%3E·%3C/tspan%3EdA%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,9 +20,8 @@
     <!-- Loader: linea oro sottile + percentuale -->
     <div id="loader" aria-live="polite">
       <div class="loader-inner">
-        <span class="loader-mark">R<i>·</i>dA</span>
         <span class="loader-line"><i></i></span>
-        <span class="loader-meta"><span class="loader-label" data-i18n="loader.label">Preparando el mármol</span><span class="loader-pct">00</span></span>
+        <span class="loader-meta"><span class="loader-pct">00</span></span>
       </div>
     </div>
 
@@ -129,7 +128,7 @@
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="final.label">05 · Tu valoración</p>
           <h2 class="title" data-i18n-title="final.title">Tu mejor versión empieza con una conversación.</h2>
-          <a class="btn-gold js-wa" href="#" data-reveal="text" data-i18n="final.cta">Agenda tu valoración →</a>
+          <a class="btn-accent js-wa" href="#" data-reveal="text" data-i18n="final.cta">Agenda tu valoración →</a>
           <p class="address" data-reveal="text" data-i18n="final.address">Calle 4 #136, Residencial Montecristo, Mérida, Yucatán</p>
         </div>
       </section>
@@ -149,6 +148,16 @@
       <div class="chapter" data-chapter="procedimientos"></div>
       <div class="chapter" data-chapter="final"></div>
     </main>
+
+    <!-- Demo: i pulsanti mostrano "Work in progress" (DEMO_MODE in src/config.js) -->
+    <div class="wip" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="wip-inner">
+        <p class="wip-title">Work in progress</p>
+        <span class="wip-line" aria-hidden="true"></span>
+        <p class="wip-studio">alessia.studio</p>
+        <p class="wip-close" data-i18n="wip.close">Toca para volver</p>
+      </div>
+    </div>
 
     <footer class="site-footer">
       <span data-i18n="footer.name">Dr. Roberto de Anda Gómez</span>

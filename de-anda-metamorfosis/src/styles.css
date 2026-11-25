@@ -7,12 +7,13 @@
 :root {
   --ivory: #f3eee6;
   --ivory-0: rgba(243, 238, 230, 0);
-  --ink: #2b2722;
-  --ink-soft: #625a50;
-  --ink-faint: rgba(43, 39, 34, 0.55);
-  --gold: #b8915a;
-  --gold-deep: #9a7443;
-  --line: rgba(43, 39, 34, 0.16);
+  /* testi blu notte e accento azzurro: contrasto fresco sul marmo caldo */
+  --ink: #1d2e3d;
+  --ink-soft: #4a5864;
+  --ink-faint: rgba(29, 46, 61, 0.55);
+  --accent: #4a7ca3;
+  --accent-deep: #2f5d82;
+  --line: rgba(29, 46, 61, 0.16);
   --serif: 'Cormorant Garamond', 'Cormorant', Georgia, 'Times New Roman', serif;
   /* titoli: maiuscole romane da iscrizione, monumentali */
   --display: 'Cinzel', 'Trajan Pro', 'Cormorant Garamond', Georgia, serif;
@@ -47,7 +48,7 @@ body {
 
 a { color: inherit; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
 
 /* ---------------------------------------------------------------- scena */
 #scene {
@@ -88,9 +89,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .loader-inner { display: grid; justify-items: center; gap: 1.4rem; }
 .loader-mark { font-family: var(--display); font-size: 1.7rem; font-weight: 600; letter-spacing: 0.04em; }
-.loader-mark i, .monogram span, .portrait-fallback i { color: var(--gold); font-style: normal; padding: 0 0.06em; }
-.loader-line { position: relative; width: min(15rem, 54vw); height: 1px; background: rgba(184, 145, 90, 0.22); overflow: hidden; }
-.loader-line i { position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left center; }
+.loader-mark i, .monogram span, .portrait-fallback i { color: var(--accent); font-style: normal; padding: 0 0.06em; }
+.loader-line { position: relative; width: min(15rem, 54vw); height: 1px; background: rgba(74, 124, 163, 0.22); overflow: hidden; }
+.loader-line i { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left center; }
 .loader-meta {
   display: flex;
   gap: 1.1rem;
@@ -99,7 +100,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-.loader-pct { font-variant-numeric: tabular-nums; color: var(--gold); min-width: 1.6em; }
+.loader-pct { font-variant-numeric: tabular-nums; color: var(--accent); min-width: 1.6em; }
 #loader.is-error .loader-line { opacity: 0.3; }
 
 /* ---------------------------------------------------------------- header */
@@ -126,13 +127,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .lang { display: flex; align-items: center; gap: 0.45rem; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--ink-faint); }
 .lang button { padding: 0.4rem 0.1rem; letter-spacing: 0.2em; transition: color 0.4s var(--ease); }
 .lang button[aria-pressed='true'] { color: var(--ink); }
-.lang button:hover { color: var(--gold); }
+.lang button:hover { color: var(--accent); }
 .btn-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.78rem 1.35rem;
-  border: 1px solid rgba(184, 145, 90, 0.75);
+  border: 1px solid rgba(74, 124, 163, 0.75);
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 500;
@@ -142,7 +143,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   color: var(--ink);
   transition: background-color 0.5s var(--ease), color 0.5s var(--ease), border-color 0.5s var(--ease);
 }
-.btn-pill:hover { background: var(--gold); border-color: var(--gold); color: var(--ivory); }
+.btn-pill:hover { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
 .btn-pill .short { display: none; }
 
 /* ---------------------------------------------------------------- livelli di testo */
@@ -169,7 +170,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--accent);
 }
 .label::before,
 .eyebrow::before { content: ''; width: 2.4rem; height: 1px; background: currentColor; opacity: 0.7; }
@@ -192,7 +193,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   font-weight: 600;
   font-size: 1.18em;
   letter-spacing: -0.005em;
-  color: var(--gold-deep);
+  color: var(--accent-deep);
 }
 .title-hero { font-size: clamp(2.4rem, 4.1vw, 4.6rem); font-weight: 700; line-height: 1.02; margin-bottom: 1.4rem; }
 .title-slogan { font-size: clamp(2.5rem, 4.6vw, 5rem); font-weight: 700; line-height: 1.04; }
@@ -201,10 +202,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .text { margin: 0; max-width: 29rem; font-size: clamp(0.97rem, 1.04vw, 1.1rem); font-weight: 500; line-height: 1.78; color: var(--ink-soft); }
 .subtitle { margin: 0 0 1.4rem; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: clamp(1.3rem, 1.75vw, 1.75rem); line-height: 1.3; color: var(--ink-soft); }
 .creds { margin: 0; font-size: 0.66rem; letter-spacing: 0.3em; color: var(--ink-faint); }
-.epigraph { margin: 2.6rem 0 0; max-width: 24rem; padding-left: 1.1rem; border-left: 1px solid rgba(184, 145, 90, 0.55); }
+.epigraph { margin: 2.6rem 0 0; max-width: 24rem; padding-left: 1.1rem; border-left: 1px solid rgba(74, 124, 163, 0.55); }
 .epigraph blockquote { margin: 0 0 0.45rem; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.12rem; line-height: 1.35; color: var(--ink); }
 .epigraph figcaption { font-size: 0.74rem; line-height: 1.6; color: var(--ink-soft); }
-.epigraph cite { display: block; margin-top: 0.3rem; font-style: normal; font-size: 0.6rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
+.epigraph cite { display: block; margin-top: 0.3rem; font-style: normal; font-size: 0.6rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); }
 
 /* indicatore di scroll */
 .scroll-hint {
@@ -226,7 +227,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--gold);
+  background: var(--accent);
   transform: translateX(-100%);
   animation: hint-line 2.6s var(--ease) infinite;
 }
@@ -248,7 +249,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   border-radius: 999px 999px 1.1rem 1.1rem;
   overflow: hidden;
   background: linear-gradient(170deg, #e8dfd2, #d6c8b4);
-  box-shadow: 0 2.2rem 3.5rem -2.2rem rgba(70, 52, 34, 0.45);
+  box-shadow: 0 2.2rem 3.5rem -2.2rem rgba(30, 45, 60, 0.32);
   clip-path: inset(0% 0% 0% 0% round 999px 999px 1.1rem 1.1rem);
 }
 .portrait img {
@@ -265,7 +266,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(243, 238, 230, 0) 55%, rgba(184, 145, 90, 0.16)), radial-gradient(120% 90% at 50% 30%, rgba(0, 0, 0, 0) 60%, rgba(243, 238, 230, 0.35));
+  background: linear-gradient(180deg, rgba(243, 238, 230, 0) 55%, rgba(74, 124, 163, 0.16)), radial-gradient(120% 90% at 50% 30%, rgba(0, 0, 0, 0) 60%, rgba(243, 238, 230, 0.35));
   pointer-events: none;
 }
 .portrait-fallback {
@@ -301,7 +302,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   color: var(--ink-faint);
   transition: color 0.6s var(--ease), padding 0.7s var(--ease);
 }
-.proc-list .n { width: 1.8rem; font-family: var(--sans); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+.proc-list .n { width: 1.8rem; font-family: var(--sans); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
 .proc-list li::after {
   content: '';
   position: absolute;
@@ -309,12 +310,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   bottom: -1px;
   height: 1px;
   width: 100%;
-  background: var(--gold);
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.8s var(--ease);
 }
-.proc-list li.is-active { color: var(--gold-deep); padding-left: 0.4rem; }
+.proc-list li.is-active { color: var(--accent-deep); padding-left: 0.4rem; }
 .proc-list li.is-active::after { transform: scaleX(1); }
 .proc-desc { min-height: 7.5rem; }
 .proc-text { margin: 0 0 0.9rem; max-width: 28rem; font-size: 0.98rem; line-height: 1.72; color: var(--ink-soft); }
@@ -324,7 +325,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   max-width: 28rem;
   font-size: 0.86rem;
   line-height: 1.55;
-  color: var(--gold-deep);
+  color: var(--accent-deep);
   text-decoration: none;
   background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
   transition: background-size 0.6s var(--ease);
@@ -332,24 +333,48 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .proc-link:hover { background-size: 100% 1px; }
 
 /* ---------------------------------------------------------------- 05 · Tu valoración */
-.btn-gold {
+.btn-accent {
   display: inline-flex;
   align-items: center;
   margin: 0.6rem 0 2rem;
   padding: 1.15rem 2.1rem;
   border-radius: 999px;
-  background: var(--gold);
-  color: #fbf8f3;
+  background: var(--accent);
+  color: #f7f4ee;
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   text-decoration: none;
-  box-shadow: 0 1.2rem 2.4rem -1.4rem rgba(122, 88, 42, 0.65);
+  box-shadow: 0 1.2rem 2.4rem -1.4rem rgba(35, 70, 100, 0.65);
   transition: background-color 0.5s var(--ease), transform 0.6s var(--ease), box-shadow 0.6s var(--ease);
 }
-.btn-gold:hover { background: var(--gold-deep); transform: translateY(-2px); box-shadow: 0 1.6rem 2.6rem -1.4rem rgba(122, 88, 42, 0.7); }
+.btn-accent:hover { background: var(--accent-deep); transform: translateY(-2px); box-shadow: 0 1.6rem 2.6rem -1.4rem rgba(35, 70, 100, 0.7); }
 .address { margin: 0; max-width: 22rem; font-size: 0.82rem; line-height: 1.7; letter-spacing: 0.04em; color: var(--ink-soft); }
+
+/* ---------------------------------------------------------------- work in progress (demo) */
+.wip {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  /* niente pannello: la scena resta visibile (la camera è a pelo d'acqua),
+     solo un alone chiaro dietro alle parole */
+  background: radial-gradient(ellipse 34rem 15rem at 50% 50%, rgba(243, 238, 230, 0.62), rgba(243, 238, 230, 0) 72%);
+  opacity: 0;
+  visibility: hidden;
+  cursor: pointer;
+}
+/* mentre la camera è nell'acqua i testi del racconto si ritirano */
+.layers, .site-header { transition: opacity 0.7s ease; }
+.is-diving .layers,
+.is-diving .site-header { opacity: 0; }
+.wip-inner { display: grid; justify-items: center; gap: 1.2rem; text-align: center; padding: 2rem; }
+.wip-title { margin: 0; font-family: var(--display); font-weight: 600; font-size: clamp(1.6rem, 3vw, 2.6rem); letter-spacing: 0.06em; color: var(--ink); }
+.wip-line { width: 3.4rem; height: 1px; background: var(--accent); }
+.wip-studio { margin: 0; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: clamp(1.2rem, 1.8vw, 1.5rem); color: var(--accent); }
+.wip-close { margin-top: 1.4rem; font-size: 0.6rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-faint); }
 
 /* ---------------------------------------------------------------- footer */
 .site-footer {
@@ -366,8 +391,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   color: var(--ink-faint);
 }
 .site-footer a { text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.4s; }
-.site-footer a:hover { border-color: var(--gold); color: var(--ink); }
-.site-footer .sep { color: var(--gold); }
+.site-footer a:hover { border-color: var(--accent); color: var(--ink); }
+.site-footer .sep { color: var(--accent); }
 
 /* ---------------------------------------------------------------- debug */
 .debug-hud {
@@ -432,7 +457,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .proc-text { font-size: 0.88rem; line-height: 1.58; margin-bottom: 0.6rem; }
   .proc-link { font-size: 0.8rem; }
 
-  .btn-gold { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
+  .btn-accent { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
   /* il footer arriva in fondo alla pagina: il testo finale gli lascia spazio */
   .layer-final .col { padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); }
   .site-footer { font-size: 0.56rem; letter-spacing: 0.1em; }

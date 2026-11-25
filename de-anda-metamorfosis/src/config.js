@@ -4,6 +4,10 @@
 //  Il percorso del drone e le atmosfere (luce, cielo, nebbia, tende) sono in
 //  drone-path.js, i testi in i18n.js.
 
+// Demo: i pulsanti mostrano "Work in progress · alessia.studio" invece di
+// aprire WhatsApp. Con false tornano ad aprire WhatsApp.
+export const DEMO_MODE = true;
+
 // Numero WhatsApp del dottore: solo cifre, con prefisso internazionale
 // (Messico = 52), es. '5219991234567'. Vuoto = WhatsApp si apre senza destinatario.
 export const WHATSAPP_NUMBER = '';
@@ -12,8 +16,8 @@ export const WHATSAPP_NUMBER = '';
 export const COLORS = {
   ivory: '#F3EEE6', // sfondo
   taupe: '#C9BCA9',
-  ink: '#2B2722', // testi
-  gold: '#B8915A', // accento
+  ink: '#1D2E3D', // testi (blu notte)
+  accent: '#4A7CA3', // accento azzurro
 };
 
 // ----------------------------------------------------------------------------

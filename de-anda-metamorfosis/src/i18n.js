@@ -58,6 +58,7 @@ export const STRINGS = {
     'footer.name': 'Dr. Roberto de Anda Gómez',
     'footer.demo': 'Demo conceptual · Alessia Studio',
 
+    'wip.close': 'Toca para volver',
     whatsapp: 'Hola Dr. de Anda, me gustaría agendar una valoración.',
   },
 
@@ -113,6 +114,7 @@ export const STRINGS = {
     'footer.name': 'Dr. Roberto de Anda Gómez',
     'footer.demo': 'Conceptual demo · Alessia Studio',
 
+    'wip.close': 'Tap to go back',
     whatsapp: 'Hello Dr. de Anda, I would like to book a consultation.',
   },
 };

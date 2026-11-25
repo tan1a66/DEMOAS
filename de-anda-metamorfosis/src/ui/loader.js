@@ -30,9 +30,8 @@ export function createLoader() {
       await gsap.to(el, { autoAlpha: 0, duration: 0.9, ease: 'power2.inOut', delay: 0.15 });
       el.remove();
     },
-    error(message) {
+    error() {
       el.classList.add('is-error');
-      el.querySelector('.loader-label').textContent = message;
     },
   };
 }

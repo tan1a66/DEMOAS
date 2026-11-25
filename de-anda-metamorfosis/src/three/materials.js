@@ -21,7 +21,7 @@ export const marbleUniforms = {
   uMarbleA: { value: lin('#f6f4f0') },
   uMarbleB: { value: lin('#e8e3da') },
   uVeinGrey: { value: lin('#8c8781') },
-  uVeinGold: { value: lin('#c49a5c') },
+  uVeinGold: { value: lin('#a39a90') }, // niente oro: venatura grigio caldo
   uVeinScale: { value: 1.6 },
   uTime: { value: 0 },
   uExposure: { value: 1 },
@@ -32,7 +32,7 @@ export const figureUniforms = {
   uPolish: { value: 0 }, // 0 = marmo opaco e gessoso, 1 = levigato e lucido
   uZones: { value: [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()] },
   uZoneAmt: { value: new THREE.Vector4(0, 0, 0, 0) },
-  uGold: { value: lin('#f0d4a2') },
+  uGold: { value: lin('#fbf6ee') }, // luce delle zone: bianco caldo
   uSSS: { value: lin('#ffd9b8').multiplyScalar(0.11) },
 };
 
@@ -102,8 +102,7 @@ export function createFigureMaterial({ physical = false, lowQuality = false }) {
         uniform vec3 uSSS;
         float zoneGlow(vec3 p) {
           float g = 0.0;
-          float pulse = 0.78 + 0.22 * sin(uTime * 2.4);
-          float ripple = fract(uTime * 0.42);
+          float pulse = 0.85 + 0.09 * sin(uTime * 1.13) + 0.06 * sin(uTime * 0.71 + 1.9); // respiro lento, mai regolare
           for (int i = 0; i < 4; i++) {
             float amt = uZoneAmt[i];
             if (amt <= 0.001) continue;
@@ -111,8 +110,7 @@ export function createFigureMaterial({ physical = false, lowQuality = false }) {
             float d = distance(p, uZones[i].xyz);
             float core = 1.0 - smoothstep(0.0, r, d);
             core *= core;
-            float ring = exp(-pow((d - r * ripple) / (r * 0.08), 2.0)) * (1.0 - ripple) * (1.0 - smoothstep(r * 0.5, r, d));
-            g = max(g, amt * (core * pulse + ring * 0.55));
+            g = max(g, amt * core * pulse);
           }
           return g;
         }`
@@ -131,7 +129,7 @@ export function createFigureMaterial({ physical = false, lowQuality = false }) {
         float ao = mix(1.0, vAO, 0.75);
         diffuseColor.rgb = marble * mix(0.82, 1.0, ao);
         float glow = zoneGlow(vObj);
-        diffuseColor.rgb = mix(diffuseColor.rgb, uGold, glow * 0.22);`
+        diffuseColor.rgb = mix(diffuseColor.rgb, uGold, glow * 0.15);`
       )
       .replace(
         '#include <roughnessmap_fragment>',
@@ -250,7 +248,7 @@ export function createStoneMaterial({ tone = '#f1ebe2', roughness = 0.6, veins =
           ? /* glsl */ `#include <normal_fragment_maps>
           {
             float footprint = length(fwidth(vWorldPos)) * 9.0;
-            float s = 0.004 * (1.0 - smoothstep(0.1, 0.5, footprint));
+            float s = 0.0016 * (1.0 - smoothstep(0.1, 0.5, footprint));
             if (s > 0.0) normal = bumpNormal(-vViewPosition, normal, snoise(vWorldPos * 9.0) * 0.6 + snoise(vWorldPos * 23.0) * 0.4, s);
           }`
           : '#include <normal_fragment_maps>'
