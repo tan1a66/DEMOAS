@@ -199,7 +199,7 @@ export class PostFX {
         uCamPos: { value: new THREE.Vector3() },
         uSunDir: { value: new THREE.Vector3(0, 0.3, -1) },
         uBoxMin: { value: new THREE.Vector3(-7.2, 0, -7.9) },
-        uBoxMax: { value: new THREE.Vector3(7.2, 7.4, 9.4) },
+        uBoxMax: { value: new THREE.Vector3(7.2, 8.4, 9.4) },
         uFrame: { value: 0 },
       },
       depthTest: false,

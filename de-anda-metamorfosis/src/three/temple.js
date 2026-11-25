@@ -22,8 +22,10 @@ export const LAYOUT = {
   PLATFORM: { x0: -8.4, x1: 8.4, z0: -8.6, z1: 9.4, thickness: 1.4 },
   SIDE_WALL_X: 7.5,
   BACK_WALL_Z: -8.2,
-  WALL_HEIGHT: 7.4, // muri laterali (quello in fondo è più alto)
-  BACK_HEIGHT: 8.6,
+  // tutti i muri alla stessa altezza: le trabeazioni girano l'angolo senza
+  // spigoli tagliati contro il cielo
+  WALL_HEIGHT: 8.4,
+  BACK_HEIGHT: 8.4,
 };
 
 // rumore 2D economico per cielo e nuvole
@@ -556,8 +558,20 @@ export function createTemple({ quality }) {
   const sideWall = archWall({ length: sideLen, height: H, thickness: T, arches: sideArches });
   const sideOrn = wallOrnaments({ arches: sideArches, length: sideLen, height: H, face: T / 2 });
   const toLeft = new THREE.Matrix4().makeTranslation(-L.SIDE_WALL_X, 0, -1.0).multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2));
-  const leftStone = mergeGeometries([noUV(sideWall), ...sideOrn.stone]);
-  leftStone.applyMatrix4(toLeft);
+  const leftStone0 = mergeGeometries([noUV(sideWall), ...sideOrn.stone]);
+  leftStone0.applyMatrix4(toLeft);
+  // testata del muro dove finisce (davanti, verso i gradini): un'anta con zoccolo
+  // e la trabeazione che gira attorno alla fine del muro, invece del taglio netto
+  const xo = -L.SIDE_WALL_X - T / 2, xi = -L.SIDE_WALL_X + T / 2; // facce esterna e interna
+  const zEnd = -1.0 + sideLen / 2;
+  const endCap = [
+    box(xo, xi + 0.22, 0, H - 1.05, zEnd - 0.9, zEnd + 0.16), // anta
+    box(xo - 0.05, xi + 0.3, 0, 0.32, zEnd - 0.98, zEnd + 0.24), // zoccolo
+    ...[[H - 1.05, H - 0.7, 0.26], [H - 0.7, H - 0.32, 0.16], [H - 0.32, H - 0.2, 0.42], [H - 0.2, H, 0.58]].map(([y0, y1, pr]) =>
+      box(xo, xi + pr, y0, y1, zEnd - 0.02, zEnd + pr)
+    ),
+  ];
+  const leftStone = mergeGeometries([leftStone0, ...endCap]);
   const leftCarved = mergeGeometries(sideOrn.carved);
   leftCarved.applyMatrix4(toLeft);
 

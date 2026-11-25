@@ -256,7 +256,9 @@ export function createTitles3D({ flights, depthTexture }) {
         const x0 = sx + dxG + (hash(w.i, 1) - 0.5) * 0.03;
         const y0 = sy + dyG;
         const ex = easeInOut(clamp01(q / 0.9));
-        const ey = smoothstep(0.22, 0.96, q);
+        // in verticale la frase scende tutta insieme (le righe non si incrociano);
+        // in orizzontale le parole arrivano una dopo l'altra
+        const ey = smoothstep(0.22, 0.96, t.p);
         let x = x0 + (sx - x0) * ex;
         let y = y0 + (sy - y0) * ey + Math.sin(Math.PI * q) * 0.025 * (hash(w.i, 3) - 0.3);
         y += easeOut(o) * 0.05; // uscita: salgono appena mentre svaniscono

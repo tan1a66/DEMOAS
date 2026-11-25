@@ -32,8 +32,9 @@
 //  Dentro al cortile la camera deve restare entro |x| < 6.5 e z > -7.5.
 // =============================================================================
 
-export const DESKTOP = { fov: 32 };
-export const MOBILE = { fov: 42, distScale: 1.55, shift: [0, 0.2] };
+// obiettivi un po' lunghi: inquadrature strette, mai i confini del set
+export const DESKTOP = { fov: 29 };
+export const MOBILE = { fov: 38, distScale: 1.55, shift: [0, 0.2] };
 
 // Oscillazione naturale del drone (micro-drift): ampiezza in frazioni della distanza
 export const DRIFT = { position: 0.01, target: 0.005, speed: 0.16 };
