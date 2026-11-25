@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.local
+# Scansione originale (71 MB): resta fuori dal repository, vedi README
+models-src/*.glb
+# file di lavoro
+_scratch
+# anteprima in un file (generata da npm run build:anteprima)
+anteprima
+src/three/inline/*.glb

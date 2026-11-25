@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Dr. Roberto de Anda · Cirujano Plástico en Mérida</title>
+    <meta name="description" content="Cirujano Plástico, Estético y Reconstructivo en Mérida, Yucatán. Tu belleza merece precisión." />
+    <!-- demo conceptual: non indicizzare -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F3EEE6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F3EEE6'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='26' text-anchor='middle' fill='%232B2722'%3ER%3Ctspan fill='%23B8915A'%3E·%3C/tspan%3EdA%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Manrope:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Loader: linea oro sottile + percentuale -->
+    <div id="loader" aria-live="polite">
+      <div class="loader-inner">
+        <span class="loader-mark">R<i>·</i>dA</span>
+        <span class="loader-line"><i></i></span>
+        <span class="loader-meta"><span class="loader-label" data-i18n="loader.label">Preparando el mármol</span><span class="loader-pct">00</span></span>
+      </div>
+    </div>
+
+    <!-- La scena 3D, fissa dietro a tutto -->
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="veil" aria-hidden="true"></div>
+
+    <!-- Header fisso -->
+    <header class="site-header">
+      <a class="monogram" href="#" data-i18n-aria="header.home">R<span>·</span>dA</a>
+      <div class="header-right">
+        <div class="lang" role="group" aria-label="Idioma / Language">
+          <button type="button" data-lang="es" aria-pressed="true">ES</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+        <a class="btn-pill js-wa" href="#">
+          <span class="long" data-i18n="header.cta">Agendar valoración</span>
+          <span class="short" data-i18n="header.ctaShort">Agendar</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Punti cliccabili sulla statua (04 · Procedimientos) -->
+    <div id="hotspots"></div>
+
+    <!-- =====================================================================
+         Testi: livelli fissi sopra la scena. data-window = finestra del
+         capitolo (0..1) in cui il livello è visibile.
+         ===================================================================== -->
+    <div class="layers">
+      <!-- Apertura -->
+      <section class="layer layer-hero" data-layer="hero" data-window="0,0.42">
+        <div class="col">
+          <p class="eyebrow" data-reveal="first" data-i18n="hero.place">Mérida · Yucatán</p>
+          <h1 class="title title-hero" data-i18n-title="hero.title">Dr. Roberto de Anda</h1>
+          <p class="subtitle" data-reveal="text" data-i18n="hero.subtitle">Cirujano Plástico, Estético y Reconstructivo</p>
+          <p class="creds" data-reveal="text" data-i18n="hero.creds">UNAM · C.M.C.P.E.R. · A.M.C.P.E.R.</p>
+          <figure class="epigraph" data-reveal="text">
+            <blockquote lang="la">In nova fert animus mutatas dicere formas corpora.</blockquote>
+            <figcaption><span data-i18n="hero.epigraph"></span> <cite data-i18n="hero.epigraphBy">Ovidio, Metamorfosis</cite></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 01 · La valoración -->
+      <section class="layer" data-layer="valoracion" data-window="0.16,0.9">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="valoracion.label">01 · La valoración</p>
+          <h2 class="title" data-i18n-title="valoracion.title">Antes de esculpir, escuchamos.</h2>
+          <p class="text" data-reveal="text" data-i18n="valoracion.text"></p>
+        </div>
+      </section>
+
+      <!-- 02 · La precisión: durante il giro attorno al corpo resta solo l'etichetta -->
+      <section class="layer layer-label-only" data-layer="precision.label" data-window="0.04,0.66">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
+        </div>
+      </section>
+      <section class="layer layer-slogan" data-layer="precision" data-window="0.68,1">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
+          <h2 class="title title-slogan" data-i18n-title="precision.title">Tu belleza merece precisión.</h2>
+          <p class="text" data-reveal="text" data-i18n="precision.text"></p>
+        </div>
+      </section>
+
+      <!-- 03 · El doctor -->
+      <section class="layer layer-doctor" data-layer="doctor" data-window="0.14,0.92">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="doctor.label">03 · El doctor</p>
+          <h2 class="title title-doctor" data-i18n-title="doctor.title">Dr. Roberto de Anda Gómez</h2>
+          <div class="doctor-row">
+            <figure class="portrait" data-reveal="portrait">
+              <img src="/img/doctor.jpg" data-i18n-alt="doctor.photoAlt" alt="" width="600" height="760" decoding="async" />
+              <span class="portrait-fallback" aria-hidden="true">R<i>·</i>dA</span>
+            </figure>
+            <div class="doctor-copy">
+              <p class="role" data-reveal="text" data-i18n="doctor.role"></p>
+              <p class="text" data-reveal="text" data-i18n="doctor.text"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 · Procedimientos -->
+      <section class="layer layer-proc" data-layer="procedimientos" data-window="0.08,1">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="proc.label">04 · Procedimientos</p>
+          <h2 class="title" data-i18n-title="proc.title">Elige una zona. Descubre cómo.</h2>
+          <ul class="proc-list" data-reveal="text">
+            <li><button type="button" data-zone="faciales" aria-pressed="false"><span class="n">i</span><span data-i18n="proc.faciales">Faciales</span></button></li>
+            <li><button type="button" data-zone="corporales" aria-pressed="false"><span class="n">ii</span><span data-i18n="proc.corporales">Corporales</span></button></li>
+            <li><button type="button" data-zone="noquirurgicos" aria-pressed="false"><span class="n">iii</span><span data-i18n="proc.noquirurgicos">No quirúrgicos</span></button></li>
+            <li><button type="button" data-zone="reconstructivos" aria-pressed="false"><span class="n">iv</span><span data-i18n="proc.reconstructivos">Reconstructivos</span></button></li>
+          </ul>
+          <div class="proc-desc" data-reveal="text">
+            <p class="proc-text" aria-live="polite"></p>
+            <a class="proc-link js-wa" href="#"></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 · Tu valoración -->
+      <section class="layer layer-final" data-layer="final" data-window="0.3,1">
+        <div class="col">
+          <p class="label" data-reveal="first" data-i18n="final.label">05 · Tu valoración</p>
+          <h2 class="title" data-i18n-title="final.title">Tu mejor versión empieza con una conversación.</h2>
+          <a class="btn-gold js-wa" href="#" data-reveal="text" data-i18n="final.cta">Agenda tu valoración →</a>
+          <p class="address" data-reveal="text" data-i18n="final.address">Calle 4 #136, Residencial Montecristo, Mérida, Yucatán</p>
+        </div>
+      </section>
+
+      <div class="scroll-hint" aria-hidden="true">
+        <span data-i18n="hero.scroll">Desliza para descubrir</span>
+        <i></i>
+      </div>
+    </div>
+
+    <!-- Capitoli: solo lunghezza di scroll (altezze in styles.css) -->
+    <main id="story">
+      <div class="chapter" data-chapter="hero"></div>
+      <div class="chapter" data-chapter="valoracion"></div>
+      <div class="chapter" data-chapter="precision"></div>
+      <div class="chapter" data-chapter="doctor"></div>
+      <div class="chapter" data-chapter="procedimientos"></div>
+      <div class="chapter" data-chapter="final"></div>
+    </main>
+
+    <footer class="site-footer">
+      <span data-i18n="footer.name">Dr. Roberto de Anda Gómez</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span data-i18n="footer.demo">Demo conceptual · Alessia Studio</span>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

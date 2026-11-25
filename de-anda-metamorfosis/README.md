@@ -1,0 +1,92 @@
+# Dr. Roberto de Anda — «Metamorfosis» (demo conceptual, Alessia Studio)
+
+Scrollytelling 3D: una Venere di marmo in un tempio bianco sospeso sulle nuvole.
+Si apre all'alba (nebbia, luce fredda, tende chiuse, marmo opaco). Scorrendo sale il sole:
+la nebbia si dirada, le tende si aprono nel vento, entrano i raggi di luce, compaiono le
+ombre delle foglie d'ulivo e il marmo diventa levigato e luminoso. Il finale è al tramonto,
+con la luna. Epigrafe: Ovidio, *Metamorfosi* («forme mutate in corpi nuovi»).
+
+La statua non si trasforma nella forma: la trasformazione la fa la luce. Il chirurgo rivela
+la versione migliore, non cambia la persona.
+
+Stack: Vite + Three.js + GSAP ScrollTrigger + Lenis, three-mesh-bvh; una sola pagina,
+build statica. Demo privata (`noindex`).
+
+## Avvio in locale
+
+```bash
+cd de-anda-metamorfosis
+npm install
+npm run dev            # http://localhost:5173
+```
+
+| Parametro | Cosa fa |
+| --- | --- |
+| `?debug` | percorso del drone (oro), punti guardati (blu), sfere delle zone, fps. Tasto **O**: vista dall'alto |
+| `?quality=mobile` / `?quality=desktop` | forza la versione leggera o quella completa |
+| `?lang=en` | lingua iniziale |
+| `?reduced` | simula `prefers-reduced-motion` (niente voli, solo dissolvenze) |
+| `?noadapt` | spegne la qualità adattiva (per i test) |
+
+## Pubblicazione
+
+- **Netlify**: nuovo sito da Git con *Base directory* `de-anda-metamorfosis` (il resto è in `netlify.toml`).
+  Senza Git: `npm run build` e trascina `dist/` su app.netlify.com/drop.
+- **Vercel**: nuovo progetto con *Root Directory* `de-anda-metamorfosis` (impostazioni in `vercel.json`).
+
+## Anteprima in un solo file HTML
+
+```bash
+npm run build:anteprima   # → anteprima/dr-de-anda-metamorfosis-anteprima.html
+```
+
+Un file con dentro codice, stili e modelli: si apre con doppio clic, senza server (serve
+internet solo per i font). I modelli dell'anteprima sono compressi con meshopt invece che con
+Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
+
+## Dove cambiare le cose
+
+| File | Contenuto |
+| --- | --- |
+| `src/config.js` | **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone interattive |
+| `src/drone-path.js` | tappe del drone e **atmosfere** (sole, cielo, nebbia, tende, raggi, ombre d'ulivo, luna) per ogni punto dello scroll |
+| `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi, colonne, tende, cielo |
+| `src/i18n.js` | tutti i testi ES/EN (parole tra `*asterischi*` = corsivo oro) e messaggio WhatsApp |
+| `src/styles.css` | palette, tipografia, altezze dei capitoli (= lunghezza dello scroll) |
+| `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo compare ogni testo |
+| `public/img/doctor.jpg` | **foto del dottore** (da aggiungere: senza foto compare un segnaposto con il monogramma) |
+
+Le tappe del drone si scrivono come angoli attorno a un punto guardato (`az`, `el`, `dist`),
+con `shift` per spostare la statua sullo schermo e `mobile` per i valori da telefono.
+Con `?debug` si vede il percorso; il tasto **O** passa alla vista libera.
+
+## Il modello
+
+Sorgente: la Venere fornita da Alessia Studio (Meshy), ~900k triangoli. Non è nel repository:
+va messa in `models-src/venus.glb`, poi:
+
+```bash
+npm run models   # → public/models/venus-desktop.glb (~300k) e venus-mobile.glb (~120k)
+```
+
+Lo script (`scripts/optimize-model.mjs`, gltf-transform + meshoptimizer + three-mesh-bvh + Draco):
+1. tiene solo la geometria (texture e UV non servono: il marmo è uno shader)
+2. `weld`, pulizia, normalizzazione (base a y = 0, altezza 2, lei guarda verso +Z)
+3. `simplify` con viso e mani più densi del resto
+4. occlusione ambientale per vertice, calcolata con raggi sulla mesh originale
+   (dà profondità alle pieghe del panneggio)
+5. compressione Draco (desktop 0,57 MB, mobile 0,25 MB)
+
+Nota: se il modello è stato generato con il piano gratuito di Meshy, verificare le
+condizioni di licenza di Meshy prima di pubblicare il sito.
+
+## Prestazioni
+
+- Desktop: modello 300k, riflesso dell'acqua a metà risoluzione, ombre del sole 2048 e del
+  gobo d'ulivo 1024, profondità di campo, risoluzione massima 1,5×.
+- Telefono: modello 120k, riflesso a 0,3, ombre 1024/512, shader più leggeri.
+- Le ombre si calcolano una volta per frame (non di nuovo nel riflesso dell'acqua).
+- Qualità adattiva: sotto 48 fps per 2 secondi si spegne la profondità di campo, poi si
+  abbassa la risoluzione.
+- `prefers-reduced-motion`: niente scroll morbido né voli; inquadrature fisse per capitolo
+  cambiate con una dissolvenza.

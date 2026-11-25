@@ -1,0 +1,29 @@
+{
+  "name": "dr-de-anda-metamorfosis",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dr. Roberto de Anda Gómez — demo «Metamorfosis» (propuesta Alessia Studio).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "models": "node scripts/optimize-model.mjs",
+    "build:anteprima": "node scripts/inline-models.mjs && vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/dr-de-anda-metamorfosis-anteprima.html')\""
+  },
+  "dependencies": {
+    "gsap": "3.12.5",
+    "lenis": "1.1.20",
+    "three": "0.169.0",
+    "three-mesh-bvh": "0.8.3"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.1.1",
+    "@gltf-transform/extensions": "4.1.1",
+    "@gltf-transform/functions": "4.1.1",
+    "draco3dgltf": "1.5.7",
+    "meshoptimizer": "0.22.0",
+    "vite": "5.4.10",
+    "vite-plugin-singlefile": "^2.0.3"
+  }
+}
