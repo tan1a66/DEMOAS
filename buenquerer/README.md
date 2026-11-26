@@ -81,6 +81,10 @@ Dal sito e dal profilo Instagram, in `src/config.js` e `src/tratamientos.js`:
 ## Anteprima del link
 `public/og-buenquerer.jpg` (1200×630, composta con `scripts/og.html`), `public/favicon-96.png` e
 `public/apple-touch-icon.png` (la "b" del logo). I tag in `index.html` puntano a
-`https://buenquerer-demo-alessiastudio.vercel.app/`: se il progetto Vercel ha un altro nome,
-cambiarli. Per pubblicare: caricare la cartella `deploy/` (dopo `npm run build:vercel`) oppure
-`dist/`; se si carica solo il file HTML il link arriva senza anteprima.
+`https://buenquerer-demo-alessiastudio.vercel.app/` (il progetto pubblicato).
+Per pubblicare: **meglio la cartella `dist/`** (`npm run build`): la pagina pesa 30 KB e i robot
+delle anteprime (WhatsApp, iMessage, Telegram) leggono subito i tag; `deploy/` (un solo file da
+2 MB) funziona ma è più lenta da leggere. Se si carica solo il file HTML il link arriva senza
+anteprima. Su Vercel il **Security Checkpoint** (Firewall: Bot Protection / Attack Challenge Mode)
+può bloccare i robot delle anteprime: va lasciato spento per questa demo. WhatsApp ricorda
+l'anteprima di un link per un po': per provarla subito si aggiunge `?v=2` in fondo al link.
