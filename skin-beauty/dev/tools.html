@@ -1,0 +1,32 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#F5EDE6}canvas{display:block}</style></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { createWoodMaterials } from '/src/three/wood.js';
+import { TOOL_BUILDERS } from '/src/three/tools.js';
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.NeutralToneMapping;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+const pm = new THREE.PMREMGenerator(r);
+scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.55;
+scene.add(new THREE.HemisphereLight('#fff4ea', '#d9b3ad', 0.9));
+const key = new THREE.DirectionalLight('#ffe8d2', 2.4); key.position.set(-4, 6, 6); scene.add(key);
+const rim = new THREE.DirectionalLight('#f2c3bd', 1.6); rim.position.set(5, -1, -5); scene.add(rim);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 0, 16);
+const M = createWoodMaterials(r);
+const names = Object.keys(TOOL_BUILDERS);
+names.forEach((n, i) => {
+  const t = TOOL_BUILDERS[n](M);
+  const col = i % 5, row = Math.floor(i / 5);
+  t.group.position.set(-6 + col * 3, 2.2 - row * 4.6, 0);
+  const s = 2.6 / t.length * (n==='curved'||n==='square'||n==='beads'||n==='rope' ? 1.5 : 1.2);
+  t.group.scale.setScalar(s);
+  const params = new URLSearchParams(location.search);
+  t.group.rotation.set(+(params.get('rx')||0.35), +(params.get('ry')||0.5), 0);
+  scene.add(t.group);
+});
+r.render(scene, cam);
+window.__done = true;
+</script></body></html>
