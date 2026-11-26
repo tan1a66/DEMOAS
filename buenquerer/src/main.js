@@ -73,7 +73,8 @@ const viewSize = () => {
 const hemTarget = () => {
   const { portrait } = viewSize();
   // prima pagina: sotto la seta c'è solo il nome, la seta scende un po' di più
-  const menuT = portrait ? 0.66 - 0.35 * page.shown : 0.6 - 0.33 * page.shown;
+  // (schermi bassi: nel menu la seta si ferma un po' più in alto, sopra la prima voce)
+  const menuT = portrait ? 0.66 - (innerHeight < 760 ? 0.4 : 0.35) * page.shown : 0.6 - 0.33 * page.shown;
   const t = menuT + (0.11 - menuT) * sect.v;
   return t + (1.35 - t) * bg.v; // come sfondo l'orlo scende sotto lo schermo
 };
@@ -300,9 +301,23 @@ const centerOf = (el) => {
   const b = el.getBoundingClientRect();
   return { x: b.left + b.width / 2, y: b.top + b.height / 2, fs: parseFloat(getComputedStyle(el).fontSize) };
 };
+// iPhone: scorrendo, le barre di Safari si ritirano e lo schermo si allunga; il nome (ancorato in
+// basso) scenderebbe con il bordo e le lettere arriverebbero sotto la barra. Il nome resta dove
+// è stato misurato (lo spostamento si compensa a ogni fotogramma, vedi pinHero).
+const heroBox = document.querySelector('.hero');
+let pinnedDh = 0;
+const pinHero = () => {
+  const dh = Math.round(innerHeight - geo.h);
+  if (dh === pinnedDh) return;
+  pinnedDh = dh;
+  heroBox.style.transform = dh ? `translate3d(0,${-dh}px,0)` : '';
+};
 const measureName = () => {
   const p = intro ? intro.progress() : 0;
   if (intro) intro.progress(0);
+  heroBox.style.transform = '';
+  pinnedDh = 0;
+  geo.h = innerHeight;
   keeps.forEach((el, i) => (geo['k' + i] = centerOf(el)));
   targets.forEach((el, i) => (geo['m' + i] = centerOf(el)));
   if (intro) {
@@ -696,6 +711,7 @@ const loop = () => {
   const time = clock.elapsedTime;
 
   silk.update(reduceMotion ? dt * 0.35 : dt);
+  pinHero();
   page.p = Math.min(1, intro.time() / 1.0); // la seta va in alto già quando si forma LS
   // cosa è visibile lo decide il tempo reale dell'animazione (che segue lo scroll con morbidezza)
   {

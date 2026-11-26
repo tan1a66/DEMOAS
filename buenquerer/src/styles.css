@@ -2346,3 +2346,25 @@ html.co-open .bag-fab {
 .page .shop .demo-note {
   margin-top: 40px;
 }
+
+/* telefoni bassi (iPhone mini/SE, Safari con le barre grandi): il menu più compatto, così la
+   seta non tocca la prima voce */
+@media (max-height: 760px) and (max-aspect-ratio: 1/1) {
+  .menu {
+    padding-top: 27vh;
+  }
+  .menu ul {
+    gap: clamp(4px, 1vh, 10px);
+  }
+  .menu li a {
+    font-size: clamp(1.45rem, 6.4vw, 1.9rem);
+    padding: 3px 8px;
+  }
+  .menu li.menu-main a small {
+    margin-top: 4px;
+    font-size: 0.6rem;
+  }
+  .menu li.menu-cita a {
+    padding: 13px 26px;
+  }
+}
