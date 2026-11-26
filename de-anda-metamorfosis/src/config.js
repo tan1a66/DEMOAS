@@ -65,21 +65,28 @@ export const DOCTOR_SPIN = { degrees: 18 };
 // -----------------------------------------------------------------------------
 //  Titoli che giocano con la statua (three/titles3d.js): le parole partono
 //  dietro di lei, la attraversano con lo scroll e arrivano davanti, al loro
-//  posto nella colonna di testo. in = [partenza, arrivo] del volo, out =
-//  [inizio, fine] dell'uscita, in punti dello scroll ('capitolo:avanzamento').
-//  La chiave è il data-layer del livello in index.html; il titolo HTML resta
-//  invisibile. Con prefers-reduced-motion si vedono i titoli HTML normali.
+//  posto nella colonna di testo. in = [partenza, arrivo] del volo, in punti
+//  dello scroll ('capitolo:avanzamento'). Escono insieme al loro testo,
+//  salendo con lo scroll (vedi EXIT_SPEED); out = [inizio, fine] serve solo
+//  se un titolo deve svanire da solo. La chiave è il data-layer del livello in
+//  index.html; il titolo HTML resta invisibile. Con prefers-reduced-motion si
+//  vedono i titoli HTML normali.
 // -----------------------------------------------------------------------------
 export const TITLE_FLIGHTS = {
-  valoracion: { in: ['hero:0.46', 'valoracion:0.3'], out: ['valoracion:0.88', 'valoracion:0.96'] },
-  precision: { in: ['precision:0.05', 'precision:0.66'], out: ['precision:0.95', 'precision:1'] },
-  menu: { in: ['precision:0.985', 'menu:0.3'] }, // l'indice è la fine del racconto: resta
+  valoracion: { in: ['hero:0.8', 'valoracion:0.3'] },
+  precision: { in: ['precision:0.05', 'precision:0.66'] },
+  menu: { in: ['menu:0', 'menu:0.32'] }, // l'indice è la fine del racconto: resta
   // pagine (si entra dall'indice): il titolo vola mentre la pagina si apre
-  doctor: { in: ['doctor:0', 'doctor:0.12'], out: ['doctor:0.32', 'doctor:0.37'] },
-  'doctor.formacion': { in: ['doctor:0.35', 'doctor:0.48'], out: ['doctor:0.64', 'doctor:0.69'] },
-  'doctor.consulta': { in: ['doctor:0.67', 'doctor:0.8'] },
+  doctor: { in: ['doctor:0', 'doctor:0.12'] },
+  'doctor.formacion': { in: ['doctor:0.43', 'doctor:0.55'] },
+  'doctor.consulta': { in: ['doctor:0.84', 'doctor:0.94'] },
   procedimientos: { in: ['procedimientos:0', 'procedimientos:0.1'] },
 };
+
+// Uscita dei testi: finita la loro finestra (data-window in index.html) non
+// svaniscono, salgono con lo scroll. Velocità rispetto allo scroll: 1 = come
+// la pagina, di più = un primo piano che scorre un po' più svelto.
+export const EXIT_SPEED = 1.6;
 
 // ----------------------------------------------------------------------------
 //  Zone della statua (04 · Procedimientos): scorrendo il drone si ferma su

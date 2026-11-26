@@ -29,12 +29,14 @@ uniform sampler2D tDepth;
 uniform vec2 uRes;
 uniform float uOpacity;
 uniform float uFront; // 0 = dietro (la scena la copre), 1 = davanti a tutto
+uniform vec2 uFade;   // in alto, sotto la barra: da qui (trasparente) a qui (pieno), pixel dall'alto
 varying vec2 vUv;
 void main() {
   vec4 c = texture2D(map, vUv);
   float scene = texture2D(tDepth, gl_FragCoord.xy / uRes).x;
   float hidden = step(scene + 0.000002, gl_FragCoord.z);
   float a = c.a * uOpacity * mix(1.0, uFront, hidden);
+  a *= smoothstep(uFade.x, uFade.y, uRes.y - gl_FragCoord.y);
   if (a < 0.003) discard;
   gl_FragColor = vec4(c.rgb, a);
   #include <colorspace_fragment>
@@ -92,6 +94,8 @@ export function createTitles3D({ flights, depthTexture }) {
   const titles = []; // { layer, words: [{ el, mesh, mat, rect, ... }], anchors }
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const res = new THREE.Vector2(1, 1);
+  const fadeCss = new THREE.Vector2(0, 0); // pixel CSS
+  const fadePx = new THREE.Vector2(0, 0); // pixel del canvas
   const tmp = new THREE.Vector3();
   const statueNdc = new THREE.Vector3();
   const qCam = new THREE.Quaternion();
@@ -108,6 +112,7 @@ export function createTitles3D({ flights, depthTexture }) {
         map: { value: texture },
         tDepth: { value: depthTexture },
         uRes: { value: res },
+        uFade: { value: fadePx },
         uOpacity: { value: 0 },
         uFront: { value: 0 },
       },
@@ -169,8 +174,10 @@ export function createTitles3D({ flights, depthTexture }) {
   /** Posizioni dei titoli sullo schermo e punti dello scroll */
   function layout() {
     for (const t of titles) {
-      // il livello quando è nascosto è spostato di qualche pixel (text.js)
-      const ty = Number(gsap.getProperty(t.layer, 'y')) || 0;
+      // il livello quando è nascosto è spostato di qualche pixel, e la colonna
+      // sale quando esce con lo scroll (text.js): qui serve il posto a riposo
+      const col = t.layer.querySelector('.col');
+      const ty = (Number(gsap.getProperty(t.layer, 'y')) || 0) + (col ? Number(gsap.getProperty(col, 'y')) || 0 : 0);
       for (const w of t.words) {
         const r = w.el.getBoundingClientRect();
         // rettangolo del piano in pixel (con il margine del canvas)
@@ -196,10 +203,12 @@ export function createTitles3D({ flights, depthTexture }) {
   /**
    * Per frame, dopo il drone.
    * scroll: frazione 0..1; focus: distanza camera → punto guardato;
-   * statue: centro della statua (mondo); hidden: true per spegnerle
+   * statue: centro della statua (mondo); hidden: true per spegnerle;
+   * exitOf(layerEl): di quanti pixel è salito il testo del livello (uscita con lo scroll)
    */
-  function update({ scroll, dt, camera, focus, statue, viewport, drawingBuffer, hidden = false }) {
+  function update({ scroll, dt, camera, focus, statue, viewport, drawingBuffer, hidden = false, exitOf = null }) {
     res.copy(drawingBuffer);
+    fadePx.copy(fadeCss).multiplyScalar(drawingBuffer.y / Math.max(1, viewport.y));
     fade += ((hidden ? 0 : 1) - fade) * (1 - Math.exp(-9 * Math.min(dt, 0.1)));
     camera.updateMatrixWorld();
     qCam.copy(camera.quaternion);
@@ -236,12 +245,16 @@ export function createTitles3D({ flights, depthTexture }) {
         maxY = Math.max(maxY, w.sy);
       }
       const gcx = (minX + maxX) / 2, gcy = (minY + maxY) / 2;
+      // uscita: il titolo sale insieme al suo testo, pixel per pixel
+      const exitPx = exitOf ? exitOf(t.layer) : 0;
+      const exitY = (exitPx / H) * 2;
+      const gone = minY - 0.3 + exitY > 1; // tutto sopra lo schermo
       // parte dalla parte opposta al posto finale, oltre la statua
       const side = Math.abs(gcx - statueNdc.x) > 0.25 ? -Math.sign(gcx - statueNdc.x) : 1;
       const dxG = side > 0 ? statueNdc.x + sr * 1.25 + 0.05 - minX : statueNdc.x - sr * 1.25 - 0.05 - maxX;
       const dyG = (statueNdc.y - gcy) * 0.85;
       for (const w of t.words) {
-        if (t.off) {
+        if (t.off || gone) {
           w.mesh.visible = false;
           continue;
         }
@@ -261,7 +274,8 @@ export function createTitles3D({ flights, depthTexture }) {
         const ey = smoothstep(0.22, 0.96, t.p);
         let x = x0 + (sx - x0) * ex;
         let y = y0 + (sy - y0) * ey + Math.sin(Math.PI * q) * 0.025 * (hash(w.i, 3) - 0.3);
-        y += easeOut(o) * 0.05; // uscita: salgono appena mentre svaniscono
+        y += easeOut(o) * 0.05; // uscita in dissolvenza (out): salgono appena mentre svaniscono
+        y += exitY;
         const scale = 0.84 + 0.16 * smoothstep(0.45, 1, q);
         const tilt = (1 - easeOut(q)) * (hash(w.i, 4) - 0.5) * 0.3;
 
@@ -286,6 +300,10 @@ export function createTitles3D({ flights, depthTexture }) {
     titles,
     snap() {
       snapNext = true;
+    },
+    /** salendo, i titoli scivolano sotto la barra in alto (come i testi HTML) */
+    setTopFade(from, to) {
+      fadeCss.set(from, to);
     },
   };
 }

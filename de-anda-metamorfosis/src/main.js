@@ -9,7 +9,7 @@
 
 import './styles.css';
 import * as THREE from 'three';
-import { QUALITY, ADAPTIVE, POLISH, DOCTOR_SPIN, TITLE_FLIGHTS } from './config.js';
+import { QUALITY, ADAPTIVE, POLISH, DOCTOR_SPIN, TITLE_FLIGHTS, EXIT_SPEED } from './config.js';
 import { ATMOSPHERES } from './drone-path.js';
 import { applyStaticTexts, setLang, onLangChange } from './i18n.js';
 import { initScroll, measure, resolveAnchor, hasChapter, scrollFraction, currentChapter, getChapters, getLenis, scrollY as currentScroll, gsap, ScrollTrigger } from './core/scroll.js';
@@ -165,6 +165,12 @@ async function boot() {
     drawingBuffer.copy(db);
     temple.water.getRenderTarget().setSize(Math.round(db.x * quality.reflection), Math.round(db.y * quality.reflection));
     pxScale = db.y / (2 * Math.tan(deg(camera.fov) / 2));
+    // i testi che escono salendo scivolano sotto la barra in alto (logo, menù)
+    const hb = document.querySelector('.site-header')?.getBoundingClientRect().bottom || 80;
+    const fadeA = Math.round(hb * 0.55), fadeB = Math.round(hb + 28);
+    document.documentElement.style.setProperty('--fade-a', `${fadeA}px`);
+    document.documentElement.style.setProperty('--fade-b', `${fadeB}px`);
+    titles?.setTopFade(fadeA, fadeB);
     if (portraitLayout() !== mobileLayout) {
       mobileLayout = portraitLayout();
       drone.mobile = mobileLayout;
@@ -277,6 +283,9 @@ async function boot() {
   // ---------------------------------------------------------------- testi e procedure
   const procedures = createProcedures({ statue, reducedMotion });
   const layers = [...document.querySelectorAll('[data-layer]')].map((el) => ({ el, layer: createLayer(el, { reducedMotion }) }));
+  // di quanto è salito il testo di un livello (i titoli 3D lo seguono)
+  const layerByEl = new Map(layers.map((r) => [r.el, r.layer]));
+  const exitOf = (el) => layerByEl.get(el)?.exit ?? 0;
   // si apre già in una pagina se l'indirizzo lo dice (#quien-soy, #procedimientos, #indice)
   const startAt = fromHash();
   setMode(modeOf(startAt));
@@ -294,12 +303,19 @@ async function boot() {
     goTo('hero');
   });
 
-  /** Ogni livello di testo è visibile in una finestra del suo capitolo (data-window) */
+  /**
+   * Ogni livello di testo è visibile in una finestra del suo capitolo (data-window).
+   * Finita la finestra non svanisce: sale con lo scroll finché non è fuori dallo
+   * schermo (un po' più veloce dello scroll, come un primo piano), poi si spegne.
+   */
   function createTextTriggers() {
-    layers.forEach(({ el, layer }) => {
+    layers.forEach((rec) => {
+      const { el, layer } = rec;
       const chapterId = el.dataset.layer.split('.')[0];
       const [a, b] = el.dataset.window.split(',').map(Number);
       const range = () => getChapters().find((c) => c.id === chapterId);
+      rec.endPx = Infinity;
+      rec.exitLen = 0;
       ScrollTrigger.create({
         // capitolo in un'altra pagina: finestra fuori dallo scroll, mai attiva
         start: () => {
@@ -309,10 +325,23 @@ async function boot() {
         },
         end: () => {
           const c = range();
+          rec.endPx = Infinity;
+          rec.exitLen = 0;
           if (!c) return -1e6 + 1;
-          return c.start + (c.end - c.start) * b + (b >= 1 && c.end >= document.documentElement.scrollHeight - innerHeight - 1 ? 100 : 0);
+          const maxScroll = document.documentElement.scrollHeight - innerHeight;
+          const end = c.start + (c.end - c.start) * b;
+          // l'ultimo livello della pagina resta: lo scroll finisce lì
+          if (end >= maxScroll - 1) return end + 100;
+          rec.endPx = end;
+          rec.exitLen = layer.exitDistance() / EXIT_SPEED;
+          return end + rec.exitLen;
         },
-        onToggle: (self) => (self.isActive && hasChapter(chapterId) ? layer.show() : layer.hide()),
+        onToggle: (self) => {
+          // oltre la fine della finestra il testo è (in parte) già salito: niente entrata animata
+          const past = currentScroll() > rec.endPx;
+          if (self.isActive && hasChapter(chapterId)) layer.show(past);
+          else layer.hide({ instant: past });
+        },
       });
     });
     // "Desliza para descubrir": entra dopo il titolo, sparisce appena si scorre
@@ -425,9 +454,12 @@ async function boot() {
     const waterY = LAYOUT.POOL.water;
     underAmount = clamp01((waterY + 0.6 - cam.position.y) / 0.6);
     temple.setUnderwater(underAmount);
-    // titoli: dietro di lei, poi davanti
+    // testi: finita la loro finestra salgono con lo scroll
+    const y = currentScroll();
+    for (const rec of layers) rec.layer.setExit(rec.exitLen > 0 ? clamp01((y - rec.endPx) / rec.exitLen) * rec.exitLen * EXIT_SPEED : 0);
+    // titoli: dietro di lei, poi davanti (e in uscita salgono con il loro testo)
     const titlesOn = titles
-      ? titles.update({ scroll: sReal, dt, camera, focus: cam.focus, statue: statueCenter, viewport, drawingBuffer, hidden: diving })
+      ? titles.update({ scroll: sReal, dt, camera, focus: cam.focus, statue: statueCenter, viewport, drawingBuffer, hidden: diving, exitOf })
       : false;
 
     // --- atmosfera: cielo, acqua, tende, raggi, nebbia, luci ---
@@ -515,6 +547,9 @@ async function boot() {
     statue,
     stage,
     temple,
+    /** stato dei livelli di testo (finestra, uscita) */
+    layers: () => layers.map(({ el, layer, endPx, exitLen }) => ({ id: el.dataset.layer, active: layer.active, exit: Math.round(layer.exit), endPx: Math.round(endPx), exitLen: Math.round(exitLen), opacity: getComputedStyle(el).opacity })),
+    scroll: () => Math.round(currentScroll()),
     jump(anchor) {
       setMode(modeOf(anchor.split(':')[0]));
       const y = resolveAnchor(anchor) * (document.documentElement.scrollHeight - innerHeight);

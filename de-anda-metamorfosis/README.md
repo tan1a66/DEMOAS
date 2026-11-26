@@ -54,15 +54,15 @@ Draco. Se esiste `public/img/doctor.jpg`, la foto viene incorporata anche lei.
 
 | File | Contenuto |
 | --- | --- |
-| `src/config.js` | **`DEMO_MODE`** (vedi sotto), **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua, **tempi dei titoli che volano** (`TITLE_FLIGHTS`) |
+| `src/config.js` | **`DEMO_MODE`** (vedi sotto), **`WHATSAPP_NUMBER`** (vuoto = segnaposto), qualità desktop/mobile, levigatura, zone della statua, **tempi dei titoli che volano** (`TITLE_FLIGHTS`), velocità con cui i testi escono salendo (`EXIT_SPEED`) |
 | `src/three/titles3d.js` | i titoli 3D: parole ridisegnate dal titolo HTML, dietro/davanti alla statua leggendo la profondità della scena |
 | `src/drone-path.js` | tappe del drone (anche le soste sulle zone nel capitolo 04), molle e inclinazione della camera, inquadratura nell'acqua (`DIVE`) e **atmosfere** (sole, cielo, mare, nebbia, tende, raggi, ombre d'ulivo) per ogni punto dello scroll |
 | `src/three/temple.js` | l'architettura: piattaforma, vasca, piedistallo, muri con archi e decorazioni, colonne, tende (`CURTAINS`: il carattere di ognuna), cielo e mare |
 | `src/three/post.js` | luce volumetrica (raggi calcolati dalle ombre del sole), profondità di campo, vista a pelo d'acqua |
 | `src/i18n.js` | tutti i testi ES/EN (parole tra `*asterischi*` = corsivo azzurro) e messaggio WhatsApp |
 | `src/styles.css` | palette, tipografia, altezze dei capitoli (= lunghezza dello scroll) |
-| `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo compare ogni testo |
-| `public/img/doctor.jpg` | **foto del dottore** (da aggiungere: senza foto compare un segnaposto con il monogramma) |
+| `index.html` | struttura dei testi; `data-window` = in quale parte del capitolo ogni testo resta al suo posto (dopo sale con lo scroll e scivola sotto la barra in alto) |
+| `public/img/doctor.jpg` | **foto del dottore** (ritaglio 3:4 su viso e spalle; se manca compare un segnaposto con il monogramma) |
 
 **`DEMO_MODE = true`** (demo da mostrare): i pulsanti "Agendar", "Contacto" e le singole zone non aprono nulla. La camera
 scende nella vasca e si ferma con l'obiettivo a pelo d'acqua, metà sopra e metà sotto; compare

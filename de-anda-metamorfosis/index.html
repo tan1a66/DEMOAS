@@ -48,7 +48,8 @@
 
     <!-- =====================================================================
          Testi: livelli fissi sopra la scena. data-window = finestra del
-         capitolo (0..1) in cui il livello è visibile.
+         capitolo (0..1) in cui il livello è al suo posto; dopo sale con lo
+         scroll finché esce dallo schermo (EXIT_SPEED in config.js).
          ===================================================================== -->
     <div class="layers">
       <!-- Apertura -->
@@ -66,7 +67,7 @@
       </section>
 
       <!-- 01 · La valoración -->
-      <section class="layer" data-layer="valoracion" data-window="0.26,0.92">
+      <section class="layer" data-layer="valoracion" data-window="0.26,0.84">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="valoracion.label">01 · La valoración</p>
           <h2 class="title" data-i18n-title="valoracion.title">Antes de esculpir, escuchamos.</h2>
@@ -76,12 +77,12 @@
 
       <!-- 02 · La precisión: durante il giro attorno al corpo le parole del titolo
            le passano dietro (titles3d.js); qui solo l'etichetta -->
-      <section class="layer layer-label-only" data-layer="precision.label" data-window="0.04,0.6">
+      <section class="layer layer-label-only" data-layer="precision.label" data-window="0.08,0.6">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
         </div>
       </section>
-      <section class="layer layer-slogan" data-layer="precision" data-window="0.62,1">
+      <section class="layer layer-slogan" data-layer="precision" data-window="0.62,0.88">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="precision.label">02 · La precisión</p>
           <h2 class="title title-slogan" data-i18n-title="precision.title">Tu belleza merece precisión.</h2>
@@ -103,7 +104,7 @@
       </section>
 
       <!-- Quién soy · 1: presentazione -->
-      <section class="layer layer-doctor" data-layer="doctor" data-window="0.06,0.36">
+      <section class="layer layer-doctor" data-layer="doctor" data-window="0.06,0.3">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
           <h2 class="title title-doctor" data-i18n-title="doctor.title">Dr. Roberto de Anda Gómez</h2>
@@ -121,7 +122,7 @@
       </section>
 
       <!-- Quién soy · 2: formazione e certificazioni (solo quello che sappiamo) -->
-      <section class="layer layer-cred" data-layer="doctor.formacion" data-window="0.38,0.68">
+      <section class="layer layer-cred" data-layer="doctor.formacion" data-window="0.46,0.72">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
           <h2 class="title" data-i18n-title="doctor.credTitle">Formación y certificaciones.</h2>
@@ -134,7 +135,7 @@
       </section>
 
       <!-- Quién soy · 3: dove riceve -->
-      <section class="layer layer-consulta" data-layer="doctor.consulta" data-window="0.7,1">
+      <section class="layer layer-consulta" data-layer="doctor.consulta" data-window="0.86,1">
         <div class="col">
           <p class="label" data-reveal="first" data-i18n="doctor.label">Quién soy</p>
           <h2 class="title" data-i18n-title="doctor.placeTitle">Consulta en Mérida.</h2>

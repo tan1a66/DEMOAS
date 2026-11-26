@@ -109,7 +109,7 @@ export const PATH = [
     mobile: { dist: 7.2, shift: [0, 0.24] } },
   { at: 'doctor:0.52', target: [-0.02, 2.25, 0.04], az: 292, el: 5, dist: 2.9, shift: [0.27, 0], dof: 0.4, rm: true,
     mobile: { dist: 5.2, shift: [0, 0.36] } },
-  { at: 'doctor:0.64', target: [-0.02, 2.3, 0.04], az: 284, el: 4, dist: 2.7, shift: [0.27, 0], dof: 0.4,
+  { at: 'doctor:0.7', target: [-0.02, 2.3, 0.04], az: 284, el: 4, dist: 2.7, shift: [0.27, 0], dof: 0.4,
     mobile: { dist: 5, shift: [0, 0.36] } },
   { at: 'doctor:0.86', target: [0, 1.7, 0], az: 344, el: 6, dist: 7.6, shift: [0.27, 0],
     mobile: { dist: 10.5, shift: [0, 0.24] } },

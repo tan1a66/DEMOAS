@@ -1,5 +1,6 @@
 // =============================================================================
-//  text.js — titoli con parole che compaiono una dopo l'altra, testi in dissolvenza
+//  text.js — titoli con parole che compaiono una dopo l'altra; i testi escono
+//  salendo con lo scroll, come in una pagina normale
 // =============================================================================
 
 import { gsap } from '../core/scroll.js';
@@ -37,10 +38,13 @@ export const renderAllTitles = (root = document) => root.querySelectorAll('[data
 /**
  * Un "livello" di testo (data-layer) che entra ed esce con lo scroll.
  * Entrata: etichetta, poi le parole del titolo una dopo l'altra, poi i testi.
+ * Uscita: la colonna sale con lo scroll (setExit) finché non è fuori dallo schermo.
  */
 export function createLayer(el, { reducedMotion }) {
   let tl = null;
   let active = false;
+  let exitPx = 0;
+  const col = el.querySelector('.col');
 
   const parts = () => ({
     words: [...el.querySelectorAll('.title .wi')],
@@ -75,11 +79,30 @@ export function createLayer(el, { reducedMotion }) {
     if (rest.length) tl.fromTo(rest, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 1.0, ease: 'power3.out', stagger: 0.12 }, 0.45);
   }
 
-  function hide() {
+  /** instant: già uscito dallo schermo salendo, basta spegnerlo */
+  function hide({ instant = false } = {}) {
     active = false;
     tl?.kill();
+    if (instant) {
+      gsap.set(el, { autoAlpha: 0 });
+      el.classList.remove('is-active');
+      return;
+    }
     tl = gsap.timeline({ onComplete: () => el.classList.remove('is-active') });
     tl.to(el, { autoAlpha: 0, y: reducedMotion ? 0 : -14, duration: 0.55, ease: 'power2.in' });
+  }
+
+  /** Uscita legata allo scroll: la colonna sale di px pixel */
+  function setExit(px) {
+    if (Math.abs(px - exitPx) < 0.05) return;
+    exitPx = px;
+    gsap.set(col, { y: -px, force3D: true });
+  }
+
+  /** Quanto deve salire la colonna per uscire tutta dallo schermo (px) */
+  function exitDistance() {
+    const pad = parseFloat(getComputedStyle(col).paddingBottom) || 0;
+    return col.offsetTop + col.offsetHeight - pad + 24;
   }
 
   gsap.set(el, { autoAlpha: 0 });
@@ -87,6 +110,11 @@ export function createLayer(el, { reducedMotion }) {
     el,
     show,
     hide,
+    setExit,
+    exitDistance,
+    get exit() {
+      return exitPx;
+    },
     get active() {
       return active;
     },

@@ -75,7 +75,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .chapter[data-chapter='valoracion'] { height: calc(230 * var(--vh)); }
 .chapter[data-chapter='precision'] { height: calc(360 * var(--vh)); }
 .chapter[data-chapter='menu'] { height: calc(170 * var(--vh)); }
-.chapter[data-chapter='doctor'] { height: calc(330 * var(--vh)); }
+.chapter[data-chapter='doctor'] { height: calc(380 * var(--vh)); }
 .chapter[data-chapter='procedimientos'] { height: calc(480 * var(--vh)); }
 
 /* ---------------------------------------------------------------- loader */
@@ -167,7 +167,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .chapter[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- livelli di testo */
-.layers { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+.layers {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  /* i testi che escono salendo scivolano sotto la barra in alto (main.js → resize) */
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--fade-a, 44px), #000 var(--fade-b, 108px));
+  mask-image: linear-gradient(to bottom, transparent var(--fade-a, 44px), #000 var(--fade-b, 108px));
+}
 .layer {
   position: absolute;
   inset: 0;
