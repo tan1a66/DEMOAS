@@ -89,7 +89,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .loader-inner { display: grid; justify-items: center; gap: 1.4rem; }
 .loader-mark { font-family: var(--display); font-size: 1.7rem; font-weight: 600; letter-spacing: 0.04em; }
-.loader-mark i, .monogram span, .portrait-fallback i { color: var(--accent); font-style: normal; padding: 0 0.06em; }
+.loader-mark i, .portrait-fallback i { color: var(--accent); font-style: normal; padding: 0 0.06em; }
 .loader-line { position: relative; width: min(15rem, 54vw); height: 1px; background: rgba(74, 124, 163, 0.22); overflow: hidden; }
 .loader-line i { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left center; }
 .loader-meta {
@@ -115,14 +115,19 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   pointer-events: none;
 }
 .site-header > * { pointer-events: auto; }
+/* il nome per esteso, come nel titolo d'apertura: "de Anda" nel colore d'accento */
 .monogram {
   font-family: var(--display);
-  font-size: 1.45rem;
+  font-size: 1.02rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   text-decoration: none;
+  white-space: nowrap;
   line-height: 1;
+  color: var(--ink);
 }
+.monogram .mn-b { color: var(--accent-deep); }
 .header-right { display: flex; align-items: center; gap: clamp(1rem, 2.4vw, 2.2rem); }
 .lang { display: flex; align-items: center; gap: 0.45rem; font-size: 0.7rem; letter-spacing: 0.2em; color: var(--ink-faint); }
 .lang button { padding: 0.4rem 0.1rem; letter-spacing: 0.2em; transition: color 0.4s var(--ease); }
@@ -145,6 +150,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 .btn-pill:hover { background: var(--accent); border-color: var(--accent); color: var(--ivory); }
 .btn-pill .short { display: none; }
+/* WhatsApp: la prenotazione si fa in chat */
+.btn-pill .wa-icon { width: 0.95rem; height: 0.95rem; margin: -0.2rem 0.05rem -0.2rem -0.3rem; fill: currentColor; flex: none; }
 
 /* Menú: porta all'indice da qualsiasi punto */
 .btn-menu {
@@ -159,9 +166,18 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   color: var(--ink);
   transition: color 0.5s var(--ease);
 }
-.btn-menu i { position: relative; width: 1.25rem; height: 7px; border-top: 1px solid currentColor; border-bottom: 1px solid currentColor; transition: width 0.5s var(--ease); }
+.btn-menu i {
+  position: relative;
+  width: 1.45rem;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform-origin: right center;
+  transition: transform 0.5s var(--ease);
+}
 .btn-menu:hover { color: var(--accent-deep); }
-.btn-menu:hover i { width: 1.6rem; }
+/* le linee si allungano verso sinistra: il bordo destro resta fermo */
+.btn-menu:hover i { transform: scaleX(1.25); }
 
 /* capitoli delle altre pagine: fuori dallo scroll */
 .chapter[hidden] { display: none; }
@@ -507,11 +523,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .btn-pill { padding: 0.62rem 1rem; font-size: 0.62rem; }
   .btn-pill .long { display: none; }
   .btn-pill .short { display: inline; }
-  .monogram { font-size: 1.45rem; }
-  .header-right { gap: 0.95rem; }
+  /* su telefono il nome va su due righe, così c'è posto per lingue, Agendar e menù */
+  .monogram { display: grid; gap: 0.28rem; font-size: 0.8rem; letter-spacing: 0.15em; }
+  .header-right { gap: 0.85rem; }
   .btn-menu span { display: none; }
   .btn-menu { padding: 0.7rem 0.15rem; }
-  .btn-menu i { width: 1.35rem; }
+  .btn-menu i { width: 1.4rem; }
+  .btn-pill .wa-icon { width: 0.9rem; height: 0.9rem; margin-left: -0.15rem; }
 
   .layer { align-items: flex-end; }
   .layer .col {
