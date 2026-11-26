@@ -1,0 +1,20 @@
+/* I caratteri sono dentro il sito (niente Google Fonts): il nome nasce subito col carattere del
+   logo, senza passare dal carattere di riserva del telefono, e funziona anche offline.
+   Licenze OFL in src/fonts/; fatti con scripts/build-fonts.py. */
+@font-face {
+  /* Quicksand (OFL): il carattere del logo buenquerer e dei testi del sito attuale */
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: block;
+  src: url(./fonts/quicksand-latin-wght.woff2) format('woff2-variations'), url(./fonts/quicksand-latin-wght.woff2) format('woff2');
+}
+@font-face {
+  /* Fraunces morbido (OFL), al posto di Recoleta Alt (i titoli del sito attuale, a pagamento):
+     stesso spirito, serif rotondo e caldo. Pesi 300–600, dimensioni ottiche automatiche. */
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: block;
+  src: url(./fonts/fraunces-soft-latin.woff2) format('woff2-variations'), url(./fonts/fraunces-soft-latin.woff2) format('woff2');
+}

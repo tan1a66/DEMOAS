@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="es-ES">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>buenquerer · Estética Avanzada en Chamberí</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Demo privada de Alessia Studio. No es el sitio oficial." />
+    <meta name="theme-color" content="#f3f0ea" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- vista previa del enlace (WhatsApp, iMessage, Instagram, Facebook…): la imagen va con dirección completa -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="buenquerer" />
+    <meta property="og:title" content="buenquerer · Estética Avanzada en Chamberí" />
+    <meta property="og:description" content="Diagnóstico personalizado, alta cosmética y resultados visibles. Vista previa del nuevo sitio, por Alessia Studio." />
+    <meta property="og:url" content="https://buenquerer-demo-alessiastudio.vercel.app/" />
+    <meta property="og:image" content="https://buenquerer-demo-alessiastudio.vercel.app/og-buenquerer.jpg" />
+    <meta property="og:image:secure_url" content="https://buenquerer-demo-alessiastudio.vercel.app/og-buenquerer.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Seda del rosa de buenquerer, con un bies verde petróleo, sobre el nombre buenquerer" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="buenquerer · Estética Avanzada en Chamberí" />
+    <meta name="twitter:description" content="Diagnóstico personalizado, alta cosmética y resultados visibles." />
+    <meta name="twitter:image" content="https://buenquerer-demo-alessiastudio.vercel.app/og-buenquerer.jpg" />
+    <script>
+      // el nombre aparece cuando su tipografía está lista (sin saltos de tamaño al abrir)
+      document.documentElement.classList.add('fonts-wait');
+      setTimeout(function () { document.documentElement.classList.remove('fonts-wait'); }, 3000);
+    </script>
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <header class="site-head">
+      <div class="head-right">
+        <nav class="social" aria-label="Contacto">
+          <a class="ico" href="#" data-ig target="_blank" rel="noopener" aria-label="Instagram @_buenquerer_" title="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle class="fill" cx="17.1" cy="6.9" r="0.95" /></svg>
+          </a>
+          <a class="ico" href="#ven-a-vernos" data-section="ven-a-vernos" aria-label="Ven a vernos" title="Ven a vernos">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><circle cx="12" cy="9.8" r="2.4" /></svg>
+          </a>
+          <a class="ico" href="#" data-wa="cita" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" title="WhatsApp">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.8a8.5 8.5 0 0 1-12.4 7.5L3.6 20.4l1.3-4.2a8.5 8.5 0 1 1 15.6-4.4z" /><path class="fill" d="M9.3 8.3c.3-.5.6-.5.9-.5h.5c.2 0 .4.1.5.4l.8 1.8c.1.2 0 .5-.1.7l-.6.7c-.1.2-.1.4 0 .6.6 1.1 1.5 2 2.6 2.6.2.1.4.1.6 0l.7-.6c.2-.2.5-.2.7-.1l1.8.8c.3.1.4.3.4.5v.5c0 .3 0 .6-.5.9-.6.3-1.6.5-2.9 0-2.2-.8-4-2.6-4.8-4.8-.5-1.3-.3-2.3 0-2.9z" /></svg>
+          </a>
+          <a class="ico ico-bag" href="#tienda" aria-label="Bolsa" title="Bolsa">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8.5h13l-1 11.5h-11z" /><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5" /></svg>
+            <span class="bag-count" hidden>0</span>
+          </a>
+        </nav>
+        <button class="back-btn" type="button" aria-label="Volver al menú" hidden><i></i><i></i><i></i></button>
+      </div>
+      <!-- il marchio piccolo: qui arrivano le lettere del nome (questo link è solo il punto d'arrivo) -->
+      <a class="mono" href="#" aria-label="buenquerer, volver al inicio" tabindex="-1">
+        <span class="m-l">b</span><span class="m-l">u</span><span class="m-l">e</span><span class="m-l">n</span><span class="m-l">q</span><span class="m-l">u</span><span class="m-l">e</span><span class="m-l">r</span><span class="m-l">e</span><span class="m-l">r</span>
+      </a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1 class="hero-name">
+          <span class="sr-only">buenquerer, Estética Avanzada en Chamberí</span>
+          <span class="nl nl-mark" aria-hidden="true"><span class="keep">b</span><span class="keep">u</span><span class="keep">e</span><span class="keep">n</span><span class="keep">q</span><span class="keep">u</span><span class="keep">e</span><span class="keep">r</span><span class="keep">e</span><span class="keep">r</span></span>
+          <span class="nl nl-sub" aria-hidden="true">Estética Avanzada · Chamberí</span>
+        </h1>
+      </div>
+      <div class="hint scroll-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+
+      <section class="manifesto" aria-label="buenquerer">
+        <p class="m-lead">¡Esto va de quererse bien!</p>
+        <p class="m-claim">Positive beauty &amp; hyper care</p>
+        <p>Diagnóstico personalizado, alta cosmética y resultados visibles, en Chamberí.</p>
+        <div class="hint hint-inline" aria-hidden="true"><span>Desliza</span><i></i></div>
+      </section>
+
+      <nav class="menu" aria-label="Secciones del sitio">
+        <ul>
+          <li class="menu-main">
+            <a href="#diagnostico" data-section="diagnostico">
+              Diagnóstico
+              <small>Tu piel, a fondo</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#tratamientos" data-section="tratamientos">
+              Tratamientos
+              <small>Faciales · Corporales · Mirada · Bienestar</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#tienda" data-section="tienda">
+              Tienda
+              <small>Biologique Recherche · Sepai</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#filosofia" data-section="filosofia">
+              Filosofía
+              <small>Positive beauty &amp; hyper care</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#ven-a-vernos" data-section="ven-a-vernos">
+              Ven a vernos
+              <small>María de Guzmán 53 · Chamberí</small>
+            </a>
+          </li>
+          <li class="menu-cita"><a href="#pide-cita" data-section="pide-cita">Pide cita</a></li>
+        </ul>
+        <p class="demo-note">Demo de Alessia Studio · no es el sitio oficial</p>
+      </nav>
+
+      <!-- Secciones: cada una es un lugar sobre la seda. Diagnóstico y Filosofía se leen como
+           historias por capítulos; los tratamientos (generados desde src/tratamientos.js) quedan
+           en "Work in progress": es una demo. -->
+
+      <!-- Diagnóstico: la sezione sviluppata. Lo scroll guida la camera sulla seta (data-cam:
+           direzione x,y,z e distanza); "Resultados visibles" spegne e riaccende il lucido della
+           seta (la pelle spenta che torna luminosa); "Biologique Recherche" si tuffa sulla trama;
+           alla fine "Solicita tu diagnóstico" porta a Pide cita con Diagnóstico già scelto. -->
+      <section class="page page-story page-diag" id="diagnostico" aria-labelledby="t-diag" hidden>
+        <div class="story-scroll">
+          <header class="story-head fac-head">
+            <p class="page-kicker">Diagnóstico personalizado</p>
+            <h2 class="fac-title fac-title-long reveal-title" id="t-diag">Diagnóstico</h2>
+            <p class="fac-sub">Todas las pieles son diferentes. Las personas que hay debajo, también.</p>
+            <div class="hint fac-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+          </header>
+          <div class="story">
+            <section class="ch" data-fx="letters" data-cam="-0.15,0.05,1,1.2" aria-label="Escuchar">
+              <div class="ch-stage">
+                <p class="ch-label">El instante de tu piel</p>
+                <p class="big-word" aria-hidden="true">PIEL</p>
+                <p class="ch-text fx-fade">
+                  Tu piel cambia con el día, con las estaciones y con los años. Por eso empezamos por conocerte: tus hábitos, tu ritmo y lo que buscas.
+                </p>
+              </div>
+            </section>
+
+            <section class="ch ch-ritual" data-fx="ritual" data-cam="0.6,-0.05,1,1.1" aria-label="Cómo lo hacemos">
+              <div class="ch-stage">
+                <p class="ch-label">Cómo lo hacemos</p>
+                <ol class="ritual">
+                  <li>
+                    <span class="r-num">01</span>
+                    <span class="r-name">Escucha</span>
+                    <span class="r-text">Hablamos de ti: tus cuidados en casa y lo que te gustaría cambiar.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">02</span>
+                    <span class="r-name">Análisis</span>
+                    <span class="r-text">Observamos tu piel de cerca, con lupa y tecnología de diagnóstico.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">03</span>
+                    <span class="r-name">Protocolo</span>
+                    <span class="r-text">Diseñamos tu plan: tratamientos en cabina y alta cosmética para casa.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">04</span>
+                    <span class="r-name">Seguimiento</span>
+                    <span class="r-text">Vemos cómo responde tu piel y ajustamos el plan contigo.</span>
+                  </li>
+                </ol>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="photo" data-cam="-0.35,0.25,1,1.35" aria-label="La cabina">
+              <div class="ch-stage">
+                <p class="ch-label">La cabina</p>
+                <figure class="ch-photo">
+                  <div class="ph-frame"><img data-foto="diagnostico" alt="La cabina de diagnóstico de buenquerer: lámpara lupa, dos tabletas con la ficha técnica de diagnóstico y la camilla" /></div>
+                  <figcaption class="fx-fade">Nuestra cabina de diagnóstico, en Chamberí.</figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section class="ch ch-gloss" data-fx="gloss" data-cam="0.3,0.6,1,1.55" style="--len: 1.6" aria-label="Resultados visibles">
+              <div class="ch-stage">
+                <p class="ch-label">Resultados visibles</p>
+                <p class="big-lines fx-lines" aria-hidden="true">Una piel cuidada refleja la luz</p>
+                <p class="ch-text fx-fade">Como esta seda: cuando la piel está equilibrada, se nota a simple vista.</p>
+                <p class="gloss-hint" aria-hidden="true"><i></i>Mira la seda</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="focus" data-cam="-0.1,0.2,1,0.18" aria-label="Biologique Recherche">
+              <div class="ch-stage">
+                <p class="ch-label">Alta cosmética</p>
+                <p class="ch-text fx-focus big-focus">
+                  Centro especializado en Biologique Recherche: activos puros, para cada instante de tu piel.
+                </p>
+              </div>
+            </section>
+
+            <section class="ch ch-end" data-fx="lines" data-cam="0,0.12,1,1.3" aria-label="Tu diagnóstico">
+              <div class="ch-stage">
+                <p class="ch-label">Tu diagnóstico</p>
+                <p class="big-lines fx-lines">Empieza por conocerte.</p>
+                <p class="ch-text">Más de 20 años dedicados al cuidado de la piel. Reserva tu diagnóstico y diseñamos tu plan contigo.</p>
+                <a class="page-cta end-cta" href="#pide-cita" data-section="pide-cita" data-servicio="Diagnóstico">Solicita tu diagnóstico</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tratamientos: la lista (con le foto del sito) la genera src/tratamientos.js -->
+      <section class="page page-story page-hub" id="tratamientos" aria-labelledby="t-trat" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Tratamientos</p>
+            <h2 class="story-title" id="t-trat">Todo lo que<br />te hace bien</h2>
+          </header>
+          <div class="hub">
+            <p class="hub-lead">Faciales, corporales, mirada y bienestar. Siempre con un diagnóstico como punto de partida.</p>
+            <ul class="hub-list"></ul>
+            <p class="demo-note">Demo realizada por Alessia Studio · no es el sitio oficial</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tienda: i prodotti e i prezzi del negozio attuale (src/productos.js, schede fatte da
+           src/tienda.js); l'ordine parte su WhatsApp, il pagamento online è "work in progress" -->
+      <section class="page page-story page-tienda" id="tienda" aria-labelledby="t-tienda" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Tienda · Alta cosmética</p>
+            <h2 class="story-title" id="t-tienda">Tu rutina,<br />en casa</h2>
+          </header>
+          <div class="shop">
+            <p class="hub-lead">La cosmética con la que trabajamos en cabina, para seguir tu protocolo en casa. Te asesoramos según tu diagnóstico.</p>
+            <div class="chips shop-filters" role="radiogroup" aria-label="Categoría">
+              <label class="chip"><input type="radio" name="cat" value="todo" checked /><span>Todo</span></label>
+              <label class="chip"><input type="radio" name="cat" value="limpieza" /><span>Limpieza</span></label>
+              <label class="chip"><input type="radio" name="cat" value="lociones" /><span>Lociones P50</span></label>
+              <label class="chip"><input type="radio" name="cat" value="serums" /><span>Sérums</span></label>
+              <label class="chip"><input type="radio" name="cat" value="cremas" /><span>Cremas</span></label>
+              <label class="chip"><input type="radio" name="cat" value="sepai" /><span>Sepai</span></label>
+            </div>
+            <div class="shop-grid"></div>
+            <p class="shop-note">Precios con IVA incluido. Recogida en el centro de Chamberí.</p>
+            <p class="demo-note">Demo realizada por Alessia Studio · no es el sitio oficial</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filosofía: i testi sono quelli del sito attuale (Filosofía buenquerer) -->
+      <section class="page page-story page-filo" id="filosofia" aria-labelledby="t-filo" hidden>
+        <div class="story-scroll">
+          <header class="story-head fac-head">
+            <p class="page-kicker">Filosofía buenquerer</p>
+            <h2 class="fac-title fac-title-long reveal-title" id="t-filo">Filosofía</h2>
+            <p class="fac-sub">Esto va de quererte bien. Realmente bien.</p>
+            <div class="hint fac-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+          </header>
+          <div class="story">
+            <section class="ch" data-fx="words" data-cam="-0.2,0.1,1,1.25" aria-label="Positive beauty">
+              <div class="ch-stage">
+                <p class="ch-label">Positive beauty</p>
+                <p class="ch-text big-text fx-words">Celebramos la belleza única de cada persona. Reivindicamos las imperfecciones como aquello que nos hace únic@s.</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="lines" data-cam="0.5,0.05,1,1.15" aria-label="Quiérete como eres">
+              <div class="ch-stage">
+                <p class="ch-label">Belleza empoderada</p>
+                <p class="big-lines fx-lines">Quiérete como eres, porque eres bell@.</p>
+                <p class="ch-text">Hacemos a cada un@ protagonista de su proceso y de su cuidado.</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="photo" data-cam="-0.35,0.3,1,1.4" aria-label="Chamberí">
+              <div class="ch-stage">
+                <p class="ch-label">Chamberí</p>
+                <figure class="ch-photo">
+                  <div class="ph-frame ph-tall"><img data-foto="interior" alt="El centro buenquerer: arcos iluminados, estanterías de cosmética y plantas colgantes" /></div>
+                  <figcaption class="fx-fade">Tu puerta de entrada al universo del bienestar y la belleza.</figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="words" data-cam="0.25,0.45,1,1.3" aria-label="Hyper care">
+              <div class="ch-stage">
+                <p class="ch-label">Hyper care</p>
+                <p class="ch-text big-text fx-words">La máxima sensibilidad hacia tu cuidado: productos, aparatología, tecnología, innovación y profesionalidad, elegidos con especial exigencia.</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="letters" data-cam="-0.1,0.2,1,0.5" aria-label="Más de 20 años">
+              <div class="ch-stage">
+                <p class="ch-label">Más de</p>
+                <p class="big-word big-num" aria-hidden="true">20</p>
+                <p class="ch-text fx-fade">años dedicados al cuidado de la piel: la confianza y el conocimiento para acompañarte en esta travesía.</p>
+              </div>
+            </section>
+
+            <section class="ch ch-end" data-fx="lines" data-cam="0,0.12,1,1.3" aria-label="Ven">
+              <div class="ch-stage">
+                <p class="ch-label">Una marca que escucha</p>
+                <p class="big-lines fx-lines">Ven, porque tenemos mucho buenquerer para ti.</p>
+                <a class="page-cta end-cta" href="#pide-cita" data-section="pide-cita">Pide cita</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ven a vernos: un solo centro, in Chamberí -->
+      <section class="page page-story page-ubi" id="ven-a-vernos" aria-labelledby="t-ubi" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Chamberí · Madrid</p>
+            <h2 class="story-title" id="t-ubi">Ven a vernos</h2>
+          </header>
+          <div class="ubi">
+            <address class="ubi-address">
+              Calle María de Guzmán, 53<br />
+              esquina Alonso Cano<br />
+              28003 Madrid
+            </address>
+            <p class="suc-hours">Lunes a viernes, de 10 a 20 h<br />Sábados, de 10 a 14 h</p>
+            <p class="ubi-contact">
+              <a href="tel:+34914219705">91 421 97 05</a>
+              <span aria-hidden="true">·</span>
+              <a href="#" data-wa="cita" target="_blank" rel="noopener">WhatsApp 683 13 76 69</a>
+              <br />
+              <a href="mailto:buenquerer@buenquerer.com">buenquerer@buenquerer.com</a>
+            </p>
+            <figure class="ubi-photo">
+              <img data-foto="interior" alt="El interior de buenquerer, en Chamberí" />
+            </figure>
+            <div class="ubi-map">
+              <iframe title="Mapa: buenquerer, Chamberí" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="ubi-actions">
+              <a class="page-cta suc-go" href="#" target="_blank" rel="noopener">Cómo llegar</a>
+              <a class="page-cta page-cta-ghost" href="#" data-wa="cita" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+              <a class="suc-book" href="#pide-cita" data-section="pide-cita">Pide cita aquí</a>
+            </div>
+            <p class="demo-note">Demo realizada por Alessia Studio · no es el sitio oficial</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page page-story page-agendar" id="pide-cita" aria-labelledby="t-cita" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Pide cita</p>
+            <h2 class="story-title" id="t-cita">Tu momento<br />buenquerer</h2>
+          </header>
+          <!-- la richiesta si compone qui e parte su WhatsApp (+34 683 13 76 69):
+               nessun dato passa da questo sito -->
+          <form class="book" novalidate>
+            <fieldset class="book-step book-servicio">
+              <legend><span class="num">01</span> ¿Qué te apetece?</legend>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="servicio" value="Diagnóstico" /><span>Diagnóstico</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Facial" /><span>Facial</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Corporal" /><span>Corporal</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Masaje o ritual" /><span>Masaje o ritual</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Mirada" /><span>Mirada</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Manicura y pedicura" /><span>Manicura y pedicura</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="Depilación" /><span>Depilación</span></label>
+                <label class="chip chip-otro"><input type="radio" name="servicio" value="Otro" /><span>Otro</span></label>
+              </div>
+              <p class="book-error err-servicio" role="alert" hidden>Elige un tratamiento para continuar.</p>
+            </fieldset>
+            <fieldset class="book-step">
+              <legend><span class="num">02</span> ¿Qué día?</legend>
+              <div class="days" role="radiogroup" aria-label="Día"></div>
+              <p class="book-hint">De lunes a viernes, de 10 a 20 h. Sábados, de 10 a 14 h.</p>
+            </fieldset>
+            <fieldset class="book-step">
+              <legend><span class="num">03</span> ¿A qué hora?</legend>
+              <div class="chips franjas">
+                <label class="chip"><input type="radio" name="franja" value="mañana" /><span>Mañana</span></label>
+                <label class="chip"><input type="radio" name="franja" value="mediodía" /><span>Mediodía</span></label>
+                <label class="chip"><input type="radio" name="franja" value="tarde" /><span>Tarde</span></label>
+              </div>
+              <!-- dopo la fascia: gli orari precisi, ogni mezz'ora (oggi solo quelli ancora possibili) -->
+              <div class="chips horas" role="radiogroup" aria-label="Hora exacta" hidden></div>
+              <p class="book-hint horas-note" hidden></p>
+            </fieldset>
+            <div class="book-step">
+              <label class="book-name">
+                <span class="legend"><span class="num">04</span> Tu nombre</span>
+                <input type="text" name="nombre" autocomplete="name" placeholder="Nombre y apellido" />
+              </label>
+            </div>
+            <p class="book-summary" aria-live="polite"></p>
+            <button class="page-cta book-send" type="submit">Enviar por WhatsApp</button>
+            <p class="book-note">Te confirmamos la disponibilidad por WhatsApp.</p>
+          </form>
+        </div>
+      </section>
+
+      <div class="scroll-space" aria-hidden="true"></div>
+    </main>
+
+    <!-- la bolsa: il bottone in basso (nella Tienda) e il pannello -->
+    <button class="bag-fab" type="button" aria-label="Ver la bolsa">
+      <span class="bag-fab-label">Bolsa</span>
+      <span class="bag-count" hidden>0</span>
+      <span class="bag-fab-total"></span>
+    </button>
+    <div class="bag-sheet" role="dialog" aria-modal="true" aria-labelledby="t-bolsa" hidden>
+      <div class="bag-backdrop"></div>
+      <div class="bag-panel">
+        <header class="bag-head">
+          <h2 id="t-bolsa">Tu bolsa</h2>
+          <button class="bag-close" type="button" aria-label="Cerrar la bolsa">✕</button>
+        </header>
+        <p class="bag-empty">Todavía no has añadido nada.</p>
+        <ul class="bag-list"></ul>
+        <div class="bag-foot">
+          <p class="bag-total">Total <b></b></p>
+          <button class="page-cta bag-send" type="button">Tramitar pedido</button>
+          <p class="bag-note">Pago seguro con tarjeta o PayPal. Recogida en el centro o envío a domicilio.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- la pagina di pagamento (come quella del negozio attuale): dati, entrega, pago, riepilogo.
+         È una demo: nessun dato parte da qui e nessun pagamento viene fatto; il bottone finale
+         mostra la conferma di prova (la pasarela vera si collega nella versione finale). -->
+    <div class="checkout" role="dialog" aria-modal="true" aria-labelledby="t-pago" hidden>
+      <header class="co-head">
+        <img class="co-logo" src="/favicon-96.png" alt="" width="34" height="34" />
+        <h2 id="t-pago">Página de pago</h2>
+        <button class="co-back" type="button">Seguir comprando</button>
+      </header>
+      <p class="co-demo">Modo demo · el pago todavía no está conectado: no se cobra nada ni se envían datos</p>
+      <div class="co-body">
+        <form class="co-form" novalidate>
+          <fieldset class="co-step">
+            <legend><span class="num">01</span> Tus datos</legend>
+            <label class="co-field co-wide"><span>Email *</span><input type="email" name="email" autocomplete="email" required /></label>
+            <label class="co-field"><span>Nombre *</span><input type="text" name="nombre" autocomplete="given-name" required /></label>
+            <label class="co-field"><span>Apellido *</span><input type="text" name="apellido" autocomplete="family-name" required /></label>
+            <label class="co-field co-wide co-tel"><span>Teléfono *</span><b aria-hidden="true">+34</b><input type="tel" name="telefono" autocomplete="tel-national" inputmode="tel" required /></label>
+          </fieldset>
+          <fieldset class="co-step">
+            <legend><span class="num">02</span> Entrega</legend>
+            <label class="co-opt"><input type="radio" name="entrega" value="recogida" checked /><span><b>Recogida en el centro</b><small>María de Guzmán 53, Chamberí · Gratis</small></span></label>
+            <label class="co-opt"><input type="radio" name="entrega" value="envio" /><span><b>Envío a domicilio</b><small>Te indicamos el coste antes de pagar</small></span></label>
+            <div class="co-address" hidden>
+              <label class="co-field co-wide"><span>Dirección *</span><input type="text" name="direccion" autocomplete="street-address" /></label>
+              <label class="co-field"><span>Código postal *</span><input type="text" name="cp" autocomplete="postal-code" inputmode="numeric" /></label>
+              <label class="co-field"><span>Ciudad *</span><input type="text" name="ciudad" autocomplete="address-level2" /></label>
+            </div>
+            <p class="co-small">En las compras físicas, la fecha de entrega puede alargarse a 5 días laborables.</p>
+          </fieldset>
+          <fieldset class="co-step">
+            <legend><span class="num">03</span> Pago</legend>
+            <label class="co-opt"><input type="radio" name="pago" value="tarjeta" checked /><span><b>Tarjeta</b><small>Visa, Mastercard</small></span></label>
+            <label class="co-opt"><input type="radio" name="pago" value="paypal" /><span><b>PayPal</b><small>Paga con tu cuenta</small></span></label>
+            <label class="co-opt"><input type="radio" name="pago" value="plazos" /><span><b>Paga a plazos</b><small>Con PayPal</small></span></label>
+          </fieldset>
+          <p class="co-error" role="alert" hidden>Revisa los campos marcados.</p>
+          <button class="page-cta co-pay" type="submit">Pagar</button>
+        </form>
+        <aside class="co-summary" aria-label="Resumen del pedido">
+          <h3>Resumen del pedido <small class="co-items"></small></h3>
+          <ul class="co-list"></ul>
+          <div class="co-promo">
+            <input type="text" name="promo" placeholder="Código de promoción" aria-label="Código de promoción" />
+            <button type="button">Aplicar</button>
+          </div>
+          <p class="co-promo-msg" hidden></p>
+          <dl class="co-totals">
+            <dt>Subtotal</dt><dd class="co-sub"></dd>
+            <dt>Entrega</dt><dd class="co-ship"></dd>
+            <dt class="co-total-l">Total</dt><dd class="co-total"></dd>
+          </dl>
+          <p class="co-small">Impuestos incluidos.</p>
+        </aside>
+      </div>
+      <!-- dopo "Pagar": la conferma di prova -->
+      <div class="co-done" hidden>
+        <p class="co-done-kicker">Pedido de prueba</p>
+        <h3 class="co-done-title">¡Gracias<span class="co-done-name"></span>!</h3>
+        <p class="co-done-text">En el sitio final, aquí se cobra con tarjeta o PayPal y recibes la confirmación por email. En esta demo no se ha cobrado nada.</p>
+        <button class="page-cta co-done-back" type="button">Volver a la tienda</button>
+        <p class="co-done-studio">Alessia Studio</p>
+      </div>
+    </div>
+
+    <p id="fps" class="fps" hidden></p>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
