@@ -30,6 +30,17 @@ Parámetros útiles en desarrollo: `?static` fuerza la versión sin animaciones
 - `src/three/stage.js` — render (un solo contexto WebGL), profundidad de campo, muelle del cursor, giroscopio.
 - `src/ui/` — tratamientos (filtros, tarjetas 3D, ficha), comparador antes/después, reseñas, mapa, cursor, líneas líquidas.
 
+## Publicación (Vercel)
+
+Enlace: https://skinbeauty-alessiastudio.vercel.app
+
+- **Subida manual**: `npm run build:preview` y subir la carpeta **entera** `dist-preview/`
+  (index.html + og.jpg + iconos). Si solo se sube el index.html, la vista previa del enlace no tendrá imagen.
+- **Desde GitHub** (recomendado): importar el repositorio en Vercel con *Root Directory* = `skin-beauty`;
+  `vercel.json` ya indica el build (`npm run build` → `dist/`). Cada push publica la web.
+- La vista previa al compartir el enlace (WhatsApp, Instagram, Facebook, X) usa `public/og.jpg` (1200×630)
+  y las etiquetas Open Graph de `index.html`, con la URL absoluta de Vercel. Si cambia el dominio, actualizar esas URLs.
+
 ## Rendimiento
 
 - three.js se carga en un chunk aparte (import dinámico); el mapa (MapLibre) solo al acercarse a «Encuéntranos».
