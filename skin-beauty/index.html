@@ -93,8 +93,25 @@
         <a href="#resenas" data-scroll="resenas">Reseñas</a>
         <a href="#contacto" data-scroll="contacto">Contacto</a>
       </nav>
-      <a class="btn btn--rose btn--sm" href="https://wa.link/pev3bc" target="_blank" rel="noopener" data-magnetic>Reserva tu cita</a>
+      <div class="nav__right">
+        <a class="btn btn--rose btn--sm" href="https://wa.link/pev3bc" target="_blank" rel="noopener" data-magnetic>Reserva tu cita</a>
+        <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú"><i></i><i></i></button>
+      </div>
     </header>
+
+    <div class="menu" id="menu" aria-hidden="true">
+      <nav class="menu__links" aria-label="Menú">
+        <a href="#drenoredux" data-scroll="dreno"><span>01</span>Drenoredux</a>
+        <a href="#sobre-mi" data-scroll="sobre-mi"><span>02</span>Sobre mí</a>
+        <a href="#tratamientos" data-scroll="tratamientos"><span>03</span>Tratamientos</a>
+        <a href="#resenas" data-scroll="resenas"><span>04</span>Reseñas</a>
+        <a href="#contacto" data-scroll="contacto"><span>05</span>Contacto</a>
+      </nav>
+      <div class="menu__foot">
+        <a class="btn btn--rose" href="https://wa.link/pev3bc" target="_blank" rel="noopener"><svg class="ico"><use href="#i-wa" /></svg>Reservar por WhatsApp</a>
+        <p>C/ Riera Blanca, 55 · Barcelona<br />Lun–Vie 10–20 h · Sáb 10–17 h</p>
+      </div>
+    </div>
 
     <a class="wa-float" href="https://wa.link/pev3bc" target="_blank" rel="noopener" aria-label="Reservar por WhatsApp">
       <svg><use href="#i-wa" /></svg>

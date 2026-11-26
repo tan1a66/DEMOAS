@@ -426,6 +426,19 @@ const io = new IntersectionObserver(
 );
 io.observe(mapEl);
 
+// ——— Menú (tablet y móvil) ———
+const menu = $('#menu');
+const menuBtn = $('.menu-btn');
+const setMenu = (open) => {
+  menu.classList.toggle('is-open', open);
+  menu.setAttribute('aria-hidden', String(!open));
+  menuBtn.setAttribute('aria-expanded', String(open));
+  menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  lockScroll(open);
+};
+menuBtn.addEventListener('click', () => setMenu(!menu.classList.contains('is-open')));
+document.addEventListener('keydown', (e) => e.key === 'Escape' && menu.classList.contains('is-open') && setMenu(false));
+
 // ——— Navegación interna ———
 const scrollTargets = {
   top: () => 0,
@@ -434,6 +447,7 @@ const scrollTargets = {
 $$('[data-scroll]').forEach((a) => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
+    if (menu.classList.contains('is-open')) setMenu(false);
     const key = a.dataset.scroll;
     const t = scrollTargets[key] ? scrollTargets[key]() : $(`#${key}`);
     if (lenis) lenis.scrollTo(t, { duration: key === 'dreno' ? 2.6 : 1.8, easing: (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2) });

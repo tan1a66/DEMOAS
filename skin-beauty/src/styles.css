@@ -385,6 +385,101 @@ html.is-ready .intro {
   transform-origin: left;
 }
 
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.menu-btn {
+  display: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  border: 1px solid rgba(59, 42, 42, 0.18);
+  background: rgba(248, 242, 236, 0.7);
+  backdrop-filter: blur(6px);
+  position: relative;
+}
+.menu-btn i {
+  position: absolute;
+  left: 50%;
+  width: 1.05rem;
+  height: 1.5px;
+  margin-left: -0.525rem;
+  background: var(--cocoa);
+  transition: transform 0.6s var(--ease), top 0.6s var(--ease);
+}
+.menu-btn i:first-child {
+  top: calc(50% - 3.5px);
+}
+.menu-btn i:last-child {
+  top: calc(50% + 2.5px);
+}
+.menu-btn[aria-expanded='true'] i:first-child {
+  top: calc(50% - 0.75px);
+  transform: rotate(45deg);
+}
+.menu-btn[aria-expanded='true'] i:last-child {
+  top: calc(50% - 0.75px);
+  transform: rotate(-45deg);
+}
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 58;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6.5rem var(--pad) 2rem;
+  background: var(--cream);
+  background-image: radial-gradient(90% 60% at 100% 0%, rgba(235, 211, 207, 0.9), transparent 70%);
+  clip-path: circle(0% at calc(100% - 2.5rem) 2.4rem);
+  transition: clip-path 0.9s var(--ease);
+  visibility: hidden;
+}
+.menu.is-open {
+  clip-path: circle(150% at calc(100% - 2.5rem) 2.4rem);
+  visibility: visible;
+}
+.menu__links {
+  display: grid;
+  gap: 0.4rem;
+}
+.menu__links a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 11vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s var(--ease), transform 0.9s var(--ease);
+}
+.menu.is-open .menu__links a {
+  opacity: 1;
+  transform: none;
+}
+.menu.is-open .menu__links a:nth-child(2) { transition-delay: 0.05s; }
+.menu.is-open .menu__links a:nth-child(3) { transition-delay: 0.1s; }
+.menu.is-open .menu__links a:nth-child(4) { transition-delay: 0.15s; }
+.menu.is-open .menu__links a:nth-child(5) { transition-delay: 0.2s; }
+.menu__links a span {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--rose);
+}
+.menu__foot {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  color: var(--cocoa-60);
+  font-size: 0.9rem;
+}
+
 /* ——— WhatsApp flotante ——— */
 .wa-float {
   position: fixed;
@@ -1745,6 +1840,15 @@ html:not(.is-ready) .wa-float {
   }
   .nav__links {
     display: none;
+  }
+  .menu-btn {
+    display: block;
+  }
+}
+@media (max-width: 420px) {
+  .nav__right .btn {
+    padding: 0.72rem 0.95rem;
+    font-size: 0.8rem;
   }
 }
 
