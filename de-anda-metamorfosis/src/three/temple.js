@@ -383,29 +383,33 @@ function createCurtain({ width, side, arch, worldX, style }) {
         uniform float uTime, uWind, uOpen;
         vec3 curtain(vec3 p) {
           float xo = p.x;
-          float dx = xo - (${f(cLocal)});
-          float r = ${f(arch.r)};
-          // bordo alto: la curva dell'arco (un filo più in basso)
-          float top = ${f(arch.spring)} + sqrt(max(r * r - dx * dx, 0.0)) - 0.05;
           float y = p.y;       // 0 in basso, 1 in alto
           float v = 1.0 - y;
-          // lunghezza: le tende più lunghe si appoggiano a terra e l'orlo si piega in avanti
-          float py = mix(${f(-st.pool)}, top, y);
-          float pool = max(0.02 - py, 0.0);
-          p.y = max(py, 0.02);
-          p.z += pool * 0.85;
           float open = uOpen * ${f(st.gather)};
-          float free = 1.0 - min(pool * 9.0, 1.0); // l'orlo a terra non si muove
           ${st.tie > 0 ? `
           // legata a metà altezza: sopra il drappo scende in diagonale verso il nodo,
           // sotto la stoffa ricade e si riapre un poco
           float T = ${f(st.tie)};
           float w = y > T ? mix(1.0, 0.28, pow((y - T) / (1.0 - T), 0.75)) : mix(1.0, 0.62, pow((T - y) / T, 1.2));
-          p.x = mix(xo, xo * ${f(st.keep)}, open * w);
-          p.z += 0.07 * open * exp(-pow((y - T) * 7.0, 2.0)); // la stoffa raccolta nel nodo
-          free *= y > T ? 0.22 : mix(0.25, 1.0, (T - y) / T);` : `
+          float gx = mix(xo, xo * ${f(st.keep)}, open * w);` : `
           // raccolta verso il lato: più in basso che in alto
-          p.x = mix(xo, xo * ${f(st.keep)}, open * (0.25 + 0.75 * v * v));`}
+          float gx = mix(xo, xo * ${f(st.keep)}, open * (0.25 + 0.75 * v * v));`}
+          // bordo alto: la curva dell'arco (un filo più in basso), presa dove la
+          // stoffa sta davvero dopo essere stata raccolta: così resta attaccata
+          // all'arco invece di scendere prima e lasciare vedere il cielo
+          float dx = gx - (${f(cLocal)});
+          float r = ${f(arch.r)};
+          float top = ${f(arch.spring)} + sqrt(max(r * r - dx * dx, 0.0)) - 0.05;
+          // lunghezza: le tende più lunghe si appoggiano a terra e l'orlo si piega in avanti
+          float py = mix(${f(-st.pool)}, top, y);
+          float pool = max(0.02 - py, 0.0);
+          p.x = gx;
+          p.y = max(py, 0.02);
+          p.z += pool * 0.85;
+          float free = 1.0 - min(pool * 9.0, 1.0); // l'orlo a terra non si muove
+          ${st.tie > 0 ? `
+          p.z += 0.07 * open * exp(-pow((y - T) * 7.0, 2.0)); // la stoffa raccolta nel nodo
+          free *= y > T ? 0.22 : mix(0.25, 1.0, (T - y) / T);` : ''}
           // pieghe verticali: irregolari, più profonde quando la tenda è raccolta;
           // scendendo ruotano appena, come una stoffa vera
           float S = ${f(st.seed)};
