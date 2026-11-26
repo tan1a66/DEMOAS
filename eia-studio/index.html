@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="es-ES">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ÉIA Studio · Cejas &amp; Beauty en Madrid</title>
+    <meta name="claude:viewport-fit-sides" content="cover" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Demo privada de Alessia Studio. No es el sitio oficial." />
+    <meta name="theme-color" content="#bbd5ec" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- vista previa del enlace (WhatsApp, iMessage, Instagram, Facebook…): la imagen va con dirección completa -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="ÉIA Studio" />
+    <meta property="og:title" content="ÉIA Studio · Cejas &amp; Beauty" />
+    <meta property="og:description" content="Laminado de cejas, lifting, micropigmentación, uñas y piel en Valdemoro, Madrid. Vista previa del nuevo sitio, por Alessia Studio." />
+    <meta property="og:url" content="https://eiastudio-demo-alessiastudio.vercel.app/" />
+    <meta property="og:image" content="https://eiastudio-demo-alessiastudio.vercel.app/og-eia.jpg" />
+    <meta property="og:image:secure_url" content="https://eiastudio-demo-alessiastudio.vercel.app/og-eia.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Arándanos azules y cerezas rojas sobre el nombre ÉIA Studio, Cejas &amp; Beauty" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ÉIA Studio · Cejas &amp; Beauty" />
+    <meta name="twitter:description" content="Laminado de cejas, lifting, micropigmentación, uñas y piel en Valdemoro, Madrid." />
+    <meta name="twitter:image" content="https://eiastudio-demo-alessiastudio.vercel.app/og-eia.jpg" />
+    <script>
+      // el nombre aparece cuando su tipografía está lista (sin saltos de tamaño al abrir)
+      document.documentElement.classList.add('fonts-wait');
+      setTimeout(function () { document.documentElement.classList.remove('fonts-wait'); }, 3000);
+    </script>
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+
+    <header class="site-head">
+      <div class="head-right">
+        <nav class="social" aria-label="Contacto">
+          <a class="ico" href="#" data-ig target="_blank" rel="noopener" aria-label="Instagram @eeia.studio" title="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle class="fill" cx="17.1" cy="6.9" r="0.95" /></svg>
+          </a>
+          <a class="ico" href="#estudio" data-section="estudio" aria-label="Estudio" title="Estudio">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><circle cx="12" cy="9.8" r="2.4" /></svg>
+          </a>
+          <a class="ico" href="#reservar" data-section="reservar" aria-label="Reservar cita" title="Reservar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.8" y="5.2" width="16.4" height="15" rx="2.6" /><path d="M3.8 9.8h16.4M8.3 3.4v3.4M15.7 3.4v3.4" /><circle class="fill" cx="12" cy="14.8" r="1.25" /></svg>
+          </a>
+        </nav>
+        <button class="back-btn" type="button" aria-label="Volver al menú" hidden><i></i><i></i><i></i></button>
+      </div>
+      <!-- il marchio piccolo: qui arrivano le lettere del nome (questo link è solo il punto d'arrivo) -->
+      <a class="mono" href="#" aria-label="ÉIA Studio, volver al inicio" tabindex="-1">
+        <span class="m-l">É</span><span class="m-l">I</span><span class="m-l">A</span>
+      </a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1 class="hero-name">
+          <span class="sr-only">ÉIA Studio, Cejas &amp; Beauty en Madrid</span>
+          <span class="nl nl-mark" aria-hidden="true"><span class="keep">É</span><span class="keep">I</span><span class="keep">A</span></span>
+          <span class="nl nl-sub" aria-hidden="true">Studio · Cejas &amp; Beauty</span>
+        </h1>
+      </div>
+      <div class="hint scroll-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+
+      <section class="manifesto" aria-label="ÉIA Studio">
+        <p class="m-lead">Primero, tu mirada.</p>
+        <p>Laminado de cejas, lifting, micropigmentación, uñas y piel. Un estudio en Valdemoro, Madrid, donde te sientes como en casa.</p>
+        <div class="hint hint-inline" aria-hidden="true"><span>Desliza</span><i></i></div>
+      </section>
+
+      <nav class="menu" aria-label="Secciones del sitio">
+        <ul>
+          <li class="menu-main">
+            <a href="#servicios" data-section="servicios">
+              Servicios
+              <small>Cejas · Pestañas · Uñas · Piel</small>
+            </a>
+          </li>
+          <li class="menu-main">
+            <a href="#estudio" data-section="estudio">
+              Estudio
+              <small>Valdemoro · Madrid</small>
+            </a>
+          </li>
+          <li class="menu-agendar"><a href="#reservar" data-section="reservar">Reservar</a></li>
+        </ul>
+        <p class="demo-note">Demo de Alessia Studio · no es el sitio oficial</p>
+      </nav>
+
+      <!-- Secciones: cada una es un lugar sobre los arándanos. Cejas se lee como una historia por
+           capítulos; las demás quedan en "Work in progress" (es una demo). -->
+      <section class="page page-story page-hub" id="servicios" aria-labelledby="t-servicios" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <h2 class="story-title" id="t-servicios">Servicios</h2>
+          </header>
+          <div class="hub">
+            <p class="hub-lead">Todo lo que realza tu belleza natural, en un mismo estudio.</p>
+            <ul class="hub-list">
+              <li>
+                <a href="#cejas" data-section="cejas">
+                  <span class="hub-num">01</span>
+                  <span class="hub-name">Cejas</span>
+                  <span class="hub-desc">Laminado, diseño y tinte.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#pestanas" data-section="pestanas">
+                  <span class="hub-num">02</span>
+                  <span class="hub-name">Pestañas</span>
+                  <span class="hub-desc">Lifting de pestañas con tinte.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#micro" data-section="micro">
+                  <span class="hub-num">03</span>
+                  <span class="hub-name">Micropigmentación</span>
+                  <span class="hub-desc">Cejas, labios y eyeliner.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#unas" data-section="unas">
+                  <span class="hub-num">04</span>
+                  <span class="hub-name">Uñas</span>
+                  <span class="hub-desc">Manicura rusa y pedicura.</span>
+                </a>
+              </li>
+              <li>
+                <a href="#piel" data-section="piel">
+                  <span class="hub-num">05</span>
+                  <span class="hub-name">Piel y cuerpo</span>
+                  <span class="hub-desc">Facial, láser diodo y masajes.</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cejas: la sezione sviluppata (il laminado è il trattamento "estrella" di ÉIA). Lo scroll
+           guida la camera sui mirtilli (data-cam: direzione x,y,z e quanti mirtilli in larghezza);
+           "El acabado" spegne e riaccende il lucido; "De cerca" si tuffa su una bacca;
+           "Tu cita" porta a Reservar con il laminado già scelto. -->
+      <section class="page page-story page-nails" id="cejas" aria-labelledby="t-cejas" hidden>
+        <div class="story-scroll">
+          <header class="story-head fac-head">
+            <p class="page-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Cejas</p>
+            <h2 class="fac-title reveal-title" id="t-cejas">Cejas</h2>
+            <p class="fac-sub">El tratamiento que más transforma.</p>
+            <div class="hint fac-hint" aria-hidden="true"><span>Desliza</span><i></i></div>
+          </header>
+          <div class="story">
+            <section class="ch" data-fx="letters" data-cam="-0.15,1,0.35,4.4" aria-label="La mirada">
+              <div class="ch-stage">
+                <p class="ch-label">La mirada</p>
+                <p class="big-word" aria-hidden="true">MIRADA</p>
+                <p class="ch-text fx-fade">
+                  Unas cejas bien trabajadas cambian tu mirada y tu expresión, sin técnicas invasivas.
+                </p>
+              </div>
+            </section>
+
+            <section class="ch ch-ritual" data-fx="ritual" data-cam="0.45,1,0.15,4" aria-label="El laminado">
+              <div class="ch-stage">
+                <p class="ch-label">El laminado</p>
+                <ol class="ritual">
+                  <li>
+                    <span class="r-num">01</span>
+                    <span class="r-name">Limpieza</span>
+                    <span class="r-text">Preparamos la zona para que el producto trabaje bien.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">02</span>
+                    <span class="r-name">Laminado</span>
+                    <span class="r-text">Alineamos y fijamos cada pelo: adiós a las cejas rebeldes.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">03</span>
+                    <span class="r-name">Diseño</span>
+                    <span class="r-text">A medida de tus facciones, perfilado con hilo.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">04</span>
+                    <span class="r-name">Tinte</span>
+                    <span class="r-text">Si lo quieres. Al final, crema regeneradora.</span>
+                  </li>
+                </ol>
+              </div>
+            </section>
+
+            <section class="ch ch-gloss" data-fx="gloss" data-cam="0.3,1,0.5,5" style="--len: 1.6" aria-label="El acabado">
+              <div class="ch-stage">
+                <p class="ch-label">El acabado</p>
+                <p class="big-lines fx-lines" aria-hidden="true">Pulido y natural</p>
+                <p class="ch-text fx-fade">Peinadas, definidas, con efecto lifting. Como un arándano cuando le da la luz.</p>
+                <p class="gloss-hint" aria-hidden="true"><i></i>Mira el brillo</p>
+              </div>
+            </section>
+
+            <section class="ch" data-fx="focus" data-cam="-0.05,1,0.25,1.6" aria-label="De cerca">
+              <div class="ch-stage">
+                <p class="ch-label">De cerca</p>
+                <p class="ch-text fx-focus big-focus">Cada pelo, en su sitio.</p>
+              </div>
+            </section>
+
+            <section class="ch ch-ritual ch-carta" data-fx="ritual" data-cam="-0.35,1,0.4,4.6" aria-label="Precios">
+              <div class="ch-stage">
+                <p class="ch-label">Precios</p>
+                <ol class="ritual">
+                  <li>
+                    <span class="r-num">60 €</span>
+                    <span class="r-name">Laminado</span>
+                    <span class="r-text">1 h · dura de 4 a 5 semanas.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">30 €</span>
+                    <span class="r-name">Diseño y tinte</span>
+                    <span class="r-text">30 min · para mantenerlo cada 3 semanas.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">25 €</span>
+                    <span class="r-name">Diseño</span>
+                    <span class="r-text">20 min · hilo y gel fijador.</span>
+                  </li>
+                  <li>
+                    <span class="r-num">110 €</span>
+                    <span class="r-name">Laminado + lifting</span>
+                    <span class="r-text">1 h 45 min · cejas y pestañas.</span>
+                  </li>
+                </ol>
+              </div>
+            </section>
+
+            <section class="ch ch-end" data-fx="lines" data-cam="0,1,0.35,4.8" aria-label="Tu cita">
+              <div class="ch-stage">
+                <p class="ch-label">Tu cita</p>
+                <p class="big-lines fx-lines">Tu mirada, lista.</p>
+                <p class="ch-text">Eliges día, hora y profesional en Booksy, con la disponibilidad real del estudio.</p>
+                <a class="page-cta end-cta" href="#reservar" data-section="reservar" data-servicio="laminado">Reserva tu laminado</a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="pestanas" aria-labelledby="t-pestanas" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Pestañas</p>
+          <h2 class="wip-title" id="t-pestanas">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="micro" aria-labelledby="t-micro" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Micropigmentación</p>
+          <h2 class="wip-title" id="t-micro">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="unas" aria-labelledby="t-unas" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Uñas</p>
+          <h2 class="wip-title" id="t-unas">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <section class="page page-wip" id="piel" aria-labelledby="t-piel" hidden>
+        <div class="wip">
+          <p class="wip-kicker has-crumb"><a class="crumb" href="#servicios" data-up="servicios">Servicios</a><span class="crumb-sep" aria-hidden="true">/</span>Piel y cuerpo</p>
+          <h2 class="wip-title" id="t-piel">Work in progress</h2>
+          <p class="wip-studio">Alessia Studio</p>
+          <p class="wip-note">Esto lo construimos juntos.</p>
+        </div>
+      </section>
+
+      <!-- Estudio: uno solo, a Valdemoro -->
+      <section class="page page-story page-ubi" id="estudio" aria-labelledby="t-estudio" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Estudio</p>
+            <h2 class="story-title" id="t-estudio">Valdemoro,<br />Madrid</h2>
+          </header>
+          <div class="ubi">
+            <div class="suc-panel">
+              <p class="suc-name">ÉIA Studio</p>
+              <address class="ubi-address">Glorieta de las Amazonas, 12<br />28341 Valdemoro, Madrid</address>
+              <p class="suc-hours estado-est" aria-live="polite"></p>
+              <ul class="horario horario-est" aria-label="Horario"></ul>
+              <p class="suc-extra">Aparcamiento · Acceso adaptado · Se admiten mascotas · Wi-Fi</p>
+              <p class="suc-rating"><b>4,9</b> ★ · 783 reseñas en Booksy</p>
+            </div>
+            <div class="ubi-map">
+              <iframe title="Mapa: ÉIA Studio, Valdemoro" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="ubi-actions">
+              <a class="page-cta suc-go" href="#" target="_blank" rel="noopener">Cómo llegar</a>
+              <a class="page-cta page-cta-ghost" href="#" data-ig target="_blank" rel="noopener">Instagram</a>
+              <a class="suc-book" href="#reservar" data-section="reservar">Reservar cita</a>
+            </div>
+            <p class="demo-note">Demo realizada por Alessia Studio · no es el sitio oficial</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page page-story page-agendar" id="reservar" aria-labelledby="t-reservar" hidden>
+        <div class="story-scroll">
+          <header class="story-head">
+            <p class="page-kicker">Reservar</p>
+            <h2 class="story-title" id="t-reservar">Reserva<br />tu cita</h2>
+          </header>
+          <!-- si sceglie il trattamento; la prenotazione vera si fa su Booksy, dove ÉIA ha già
+               la disponibilità reale: nessun dato passa da questo sito -->
+          <form class="book" novalidate>
+            <fieldset class="book-step book-servicio">
+              <legend><span class="num">01</span> ¿Qué te apetece?</legend>
+              <p class="book-group">Cejas y pestañas</p>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="servicio" value="laminado" /><span>Laminado de cejas</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="diseno-tinte" /><span>Diseño y tinte</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="diseno" /><span>Diseño</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="lifting" /><span>Lifting de pestañas</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="laminado-lifting" /><span>Laminado + lifting</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="micro" /><span>Micropigmentación</span></label>
+              </div>
+              <p class="book-group">Uñas</p>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="servicio" value="manicura" /><span>Manicura rusa</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="pedicura" /><span>Pedicura</span></label>
+              </div>
+              <p class="book-group">Piel</p>
+              <div class="chips">
+                <label class="chip"><input type="radio" name="servicio" value="facial" /><span>Limpieza facial</span></label>
+                <label class="chip"><input type="radio" name="servicio" value="laser" /><span>Láser diodo</span></label>
+              </div>
+              <p class="book-error err-servicio" role="alert" hidden>Elige un tratamiento para continuar.</p>
+              <div class="svc-detail" aria-live="polite" hidden>
+                <p class="svc-name"></p>
+                <p class="svc-meta"></p>
+                <p class="svc-text"></p>
+              </div>
+            </fieldset>
+            <fieldset class="book-step">
+              <legend><span class="num">02</span> ¿Cuándo?</legend>
+              <p class="estado"></p>
+              <ul class="horario" aria-label="Horario"></ul>
+              <p class="book-hint">Solo con cita previa.</p>
+            </fieldset>
+            <button class="page-cta book-send" type="submit">Reservar en Booksy</button>
+            <p class="book-note">En Booksy eliges día, hora y profesional, con la disponibilidad real del estudio.</p>
+          </form>
+        </div>
+      </section>
+
+      <div class="scroll-space" aria-hidden="true"></div>
+    </main>
+
+    <p id="fps" class="fps" hidden></p>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

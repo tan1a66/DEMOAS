@@ -1,0 +1,48 @@
+/* I caratteri sono dentro il sito (niente Google Fonts): ÉIA nasce subito col suo carattere, senza passare dal carattere di riserva del telefono, e funziona anche offline.
+   Solo i caratteri dello spagnolo (sottoinsiemi fatti con fonttools). Licenze OFL in src/fonts/. */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url(./fonts/cormorant-garamond-latin-500-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 500;
+  font-display: block;
+  src: url(./fonts/cormorant-garamond-latin-500-italic.woff2) format('woff2');
+}
+@font-face {
+  /* solo lo spessore 600 e le larghezze 112–125% (le uniche usate), solo maiuscole */
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 112% 125%;
+  font-display: block;
+  src: url(./fonts/archivo-600-wide.woff2) format('woff2-variations'), url(./fonts/archivo-600-wide.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: block;
+  src: url(./fonts/manrope-latin-wght-normal.woff2) format('woff2-variations'), url(./fonts/manrope-latin-wght-normal.woff2) format('woff2');
+}
+@font-face {
+  /* Bodoni Moda (OFL): il marchio ÉIA e i titoli. Variabile: peso 400–900 e grandezza ottica
+     6–96 (grande, i filetti diventano sottilissimi, come in una rivista). */
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: block;
+  src: url(./fonts/bodoni-moda-normal.woff2) format('woff2-variations'), url(./fonts/bodoni-moda-normal.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: block;
+  src: url(./fonts/bodoni-moda-italic.woff2) format('woff2-variations'), url(./fonts/bodoni-moda-italic.woff2) format('woff2');
+}
