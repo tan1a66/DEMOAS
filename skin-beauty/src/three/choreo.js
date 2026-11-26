@@ -81,12 +81,12 @@ const HERO_D = {
 
 // Mitad derecha: "Maderoterapia colombiana"
 const SPLIT_D = {
-  square: P(0.36, 0.5, -0.9, 0.4, 0.3, -0.75, 0.78),
-  beads: P(0.86, 0.36, 0.2, 0.25, 0.6, 0.4, 0.74),
-  whale: P(0.87, -0.4, 0.9, 0.4, -0.4, -0.35, 0.62),
-  cup: P(0.5, -0.62, 0.4, 0.5, 0.2, 0.3, 0.62),
-  mushroom: P(0.62, 0.66, -1.4, 0.7, 0.2, 0.2, 0.66),
-  trigger: P(0.17, -0.5, 1.2, 0.3, 0.6, 0.9, 0.58),
+  square: P(0.36, 0.5, -0.9, 0.4, 0.3, -0.75, 0.9),
+  beads: P(0.86, 0.36, 0.2, 0.25, 0.6, 0.4, 0.85),
+  whale: P(0.87, -0.42, 0.9, 0.4, -0.4, -0.35, 0.72),
+  cup: P(0.52, -0.64, 0.4, 0.5, 0.2, 0.3, 0.72),
+  mushroom: P(0.62, 0.66, -1.4, 0.7, 0.2, 0.2, 0.76),
+  trigger: P(0.18, -0.52, 1.2, 0.3, 0.6, 0.9, 0.68),
 };
 
 // En órbita alrededor de DRENOREDUX. La copa y la seta se "funden" en la palabra
@@ -121,7 +121,7 @@ export const buildTracks = (L, ids) => {
     const th = (k / n) * TAU + ctx.t * 0.17;
     const lift = (Math.max(0, ctx.scroll - L.stage.end) / vh) * 2;
     const rx = mobile ? 0.9 : 0.93;
-    const ry = mobile ? 0.2 : 0.46;
+    const ry = mobile ? 0.42 : 0.46;
     return {
       x: Math.cos(th) * rx,
       y: L.wordY + Math.sin(th) * ry + lift,

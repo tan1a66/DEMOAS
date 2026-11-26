@@ -115,8 +115,8 @@ export const initTreatments = ({ reduced, finePointer, onCategory, onLayoutChang
     grid.addEventListener(
       'pointerleave',
       (e) => {
-        const card = e.target.closest?.('.card');
-        if (!card) return;
+        const card = e.target;
+        if (!card.classList?.contains('card')) return;
         card.classList.remove('is-tilting');
         card.style.setProperty('--rx', '0deg');
         card.style.setProperty('--ry', '0deg');

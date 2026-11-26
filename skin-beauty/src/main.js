@@ -143,15 +143,15 @@ if (mobile && !reduced && 'DeviceOrientationEvent' in window) {
     stage.mouse.gx = Math.max(-1, Math.min(1, e.gamma / 30));
     stage.mouse.gy = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
   };
-  const ask = () => {
-    const D = window.DeviceOrientationEvent;
-    if (typeof D.requestPermission === 'function') {
+  const D = window.DeviceOrientationEvent;
+  if (typeof D.requestPermission === 'function') {
+    // iOS pide permiso tras un gesto del usuario
+    const ask = () =>
       D.requestPermission()
         .then((r) => r === 'granted' && window.addEventListener('deviceorientation', onOrient))
         .catch(() => {});
-    } else window.addEventListener('deviceorientation', onOrient);
-  };
-  window.addEventListener('touchend', ask, { once: true });
+    window.addEventListener('touchend', ask, { once: true });
+  } else window.addEventListener('deviceorientation', onOrient);
 }
 
 // ——— Botones magnéticos ———
