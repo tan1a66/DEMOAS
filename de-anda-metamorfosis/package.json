@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "models": "node scripts/optimize-model.mjs",
-    "build:anteprima": "node scripts/inline-models.mjs && vite build --config vite.preview.config.js && node -e \"require('fs').renameSync('anteprima/index.html','anteprima/dr-de-anda-metamorfosis-anteprima.html')\""
+    "build:anteprima": "node scripts/inline-models.mjs && vite build --config vite.preview.config.js && node -e \"const fs=require('fs');fs.renameSync('anteprima/index.html','anteprima/dr-de-anda-metamorfosis-anteprima.html');for(const f of ['og.jpg','apple-touch-icon.png'])fs.copyFileSync('public/'+f,'anteprima/'+f)\""
   },
   "dependencies": {
     "gsap": "3.12.5",
