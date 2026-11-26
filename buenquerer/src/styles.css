@@ -1683,12 +1683,6 @@ html.in-section .ubi-map {
   outline: 1px solid #fff;
   outline-offset: 3px;
 }
-.page .shop-note {
-  margin: 34px 0 0;
-  max-width: none;
-  text-align: center;
-  font-size: 0.86rem;
-}
 
 /* l'icona della bolsa in alto, con il numero */
 .ico-bag {
@@ -1938,8 +1932,7 @@ html.in-section .page .prod-brand,
 html.in-section .page .prod-sub,
 html.in-section .page .prod-size,
 html.in-section .page .prod-name,
-html.in-section .page .prod-price,
-html.in-section .page .shop-note {
+html.in-section .page .prod-price {
   color: #fff;
 }
 html.in-section .page .prod-brand,
@@ -2349,4 +2342,7 @@ html.co-open .bag-fab {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--rosa-deep);
+}
+.page .shop .demo-note {
+  margin-top: 40px;
 }

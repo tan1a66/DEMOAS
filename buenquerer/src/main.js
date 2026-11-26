@@ -485,6 +485,13 @@ const flyPose = (dt) => {
 const openSection = (id, { push = true } = {}) => {
   const el = pages.get(id);
   if (!el || current === id) return;
+  // se il nome non è ancora nella barra (per esempio la bolsa toccata mentre le lettere volano),
+  // si completa prima l'apertura: lettere nella barra, menu sotto
+  if (!current && intro.progress() < 1) {
+    scrollTo(0, innerHeight * 2.3);
+    intro.scrollTrigger?.update();
+    intro.progress(1);
+  }
   const prevId = current;
   const prev = current ? pages.get(current) : null;
   current = id;
