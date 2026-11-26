@@ -154,7 +154,13 @@ async function boot() {
   let debug = null; // pannello ?debug (creato più sotto)
   const size = { w: 1, h: 1 };
   let pxScale = 800;
+  // su telefono l'indice (in basso) lascia posto alla riga finale del sito
+  const footer = document.querySelector('.site-footer');
+  function measureFooter() {
+    if (footer) document.documentElement.style.setProperty('--footer-h', `${footer.offsetHeight}px`);
+  }
   function resize() {
+    measureFooter();
     size.w = canvas.clientWidth || window.innerWidth;
     size.h = canvas.clientHeight || window.innerHeight;
     stage.setSize(size.w, size.h, pixelRatio);
@@ -185,13 +191,33 @@ async function boot() {
   let lastH = window.innerHeight;
   window.addEventListener('resize', () => {
     const w = window.innerWidth, h = window.innerHeight;
-    if (coarse && w === lastW && Math.abs(h - lastH) < 160) return;
+    if (coarse && w === lastW && Math.abs(h - lastH) < 160) return relayoutTexts();
     lastW = w;
     lastH = h;
     resize();
     ScrollTrigger.refresh();
     rebuildTitles();
   });
+  // iPhone: quando la barra di Safari si allarga o si riduce cambia l'altezza
+  // della zona dei testi (allineati in basso) e i testi HTML si spostano: i
+  // titoli 3D vanno rimisurati subito, altrimenti finiscono sopra le etichette
+  let relayoutFrame = 0;
+  function relayoutTexts() {
+    cancelAnimationFrame(relayoutFrame);
+    relayoutFrame = requestAnimationFrame(() => {
+      measureFooter();
+      titles?.layout();
+    });
+  }
+  const layersBox = document.querySelector('.layers');
+  let lastLayersH = layersBox.clientHeight;
+  new ResizeObserver(() => {
+    if (layersBox.clientHeight === lastLayersH) return;
+    lastLayersH = layersBox.clientHeight;
+    relayoutTexts();
+  }).observe(layersBox);
+  window.visualViewport?.addEventListener('resize', relayoutTexts);
+
   ScrollTrigger.addEventListener('refresh', () => {
     measure();
     computeAnchors();

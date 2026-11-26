@@ -283,7 +283,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 /* 02 · solo etichetta durante il giro del drone */
 .layer-label-only { align-items: flex-start; }
-.layer-label-only .col { padding-top: clamp(6.5rem, 16vh, 9rem); }
+.layer-label-only .col { padding-top: max(clamp(6.5rem, 16vh, 9rem), calc(var(--fade-b, 108px) + 0.6rem)); }
 .layer-slogan { align-items: flex-end; }
 .layer-slogan .col { padding-bottom: clamp(3rem, 12vh, 7.5rem); width: min(40rem, 40vw); }
 .layer-slogan .text { max-width: 25rem; }
@@ -552,7 +552,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .scroll-hint { left: 50%; transform: translateX(-50%); bottom: calc(1rem + env(safe-area-inset-bottom)); display: none; }
 
   .layer-label-only { align-items: flex-start; }
-  .layer-label-only .col { background: none; padding-top: 5.2rem; }
+  .layer-label-only .col { background: none; padding-top: calc(var(--fade-b, 108px) + 0.4rem); }
   .layer-slogan .col { width: 100%; padding-bottom: calc(2.2rem + env(safe-area-inset-bottom)); }
 
   .doctor-row { grid-template-columns: 5.6rem 1fr; gap: 1rem; align-items: start; }
@@ -567,8 +567,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .proc-link { font-size: 0.8rem; }
 
   .btn-accent { margin: 0.2rem 0 1.2rem; padding: 1rem 1.6rem; font-size: 0.68rem; }
-  /* il footer arriva in fondo alla pagina: l'ultimo testo gli lascia spazio */
-  .layer-proc .col { padding-bottom: calc(4.4rem + env(safe-area-inset-bottom)); }
+  /* il footer arriva in fondo alla pagina: l'ultimo testo di ogni pagina gli
+     lascia spazio (--footer-h misurata in main.js) */
+  .layer-menu .col,
+  .layer-consulta .col,
+  .layer-proc .col { padding-bottom: calc(var(--footer-h, 5.5rem) + 0.7rem); }
   .menu-list a { padding: 0.75rem 0 0.7rem; }
   .menu-list .m { font-size: 1.15rem; }
   .menu-list .d { font-size: 0.56rem; }
