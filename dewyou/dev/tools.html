@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#FFFCF7}canvas{display:block}</style></head>
+<body><script type="module">
+// Las ocho piezas 3D juntas, para retocar formas: /dev/tools.html?rx=0.3&ry=0.5
+import * as THREE from 'three';
+import { createMaterials, createEnvironment } from '/src/three/materials.js';
+import { TOOL_BUILDERS } from '/src/three/tools.js';
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+r.setPixelRatio(1); r.setSize(innerWidth, innerHeight); r.toneMapping = THREE.NeutralToneMapping;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.environment = createEnvironment(r);
+scene.environmentIntensity = 0.9;
+scene.add(new THREE.HemisphereLight('#fffaf4', '#d9cfe6', 0.8));
+const key = new THREE.DirectionalLight('#fff2e2', 2.6); key.position.set(-4, 6, 6); scene.add(key);
+const rim = new THREE.DirectionalLight('#d8c6f2', 1.8); rim.position.set(5, -1, -5); scene.add(rim);
+const cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 0, 16);
+const M = createMaterials();
+const params = new URLSearchParams(location.search);
+const names = Object.keys(TOOL_BUILDERS);
+const groups = [];
+names.forEach((n, i) => {
+  const t = TOOL_BUILDERS[n](M);
+  const col = i % 4, row = Math.floor(i / 4);
+  t.group.position.set(-5.4 + col * 3.6, 2.1 - row * 4.3, 0);
+  t.group.scale.setScalar(2.9 / t.length);
+  t.group.rotation.set(+(params.get('rx') || 0.25), +(params.get('ry') || 0.45), +(params.get('rz') || 0));
+  scene.add(t.group);
+  groups.push(t.group);
+});
+let n = 0;
+const draw = () => { r.render(scene, cam); if (++n > 60) window.__done = true; requestAnimationFrame(draw); };
+draw();
+</script></body></html>
