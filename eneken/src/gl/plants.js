@@ -31,20 +31,15 @@ function layout() {
   put('palm', 1.95, -3.7, 1.1); put('palm', 2.15, -2.8); put('fern', 1.45, -3.25); put('broad', 2.2, -4.35);
   put('monstera', 1.65, -2.35, 0.8);
   // franja este
-  for (let z = -1.7; z < 1.9; z += 0.75) put(R() < 0.5 ? 'fern' : 'monstera', 2.2 + R() * 0.1, z + R() * 0.3, 0.8 + R() * 0.3);
+  for (let z = -1.7; z < 0.6; z += 0.75) put(R() < 0.5 ? 'fern' : 'monstera', 2.2 + R() * 0.1, z + R() * 0.3, 0.8 + R() * 0.3);
   put('palm', 2.2, 0.2, 0.9);
   // suroeste
   put('monstera', -2.05, 0.1); put('broad', -2.2, 0.9); put('monstera', -1.8, -0.55, 0.85); put('palm', -2.15, 1.7);
   put('fern', -1.65, 0.65, 0.9);
-  // sureste
-  put('palm', 2.0, 1.4); put('fern', 1.6, 1.9);
-  // camino de entrada: arriates a ambos lados
-  for (let z = 2.6; z < 13; z += 1.1) {
-    put(['fern', 'monstera', 'broad', 'palm'][Math.floor(R() * 4)], -2.05 - R() * 0.2, z + R() * 0.4, 0.8 + R() * 0.4);
-    put(['fern', 'monstera', 'broad', 'palm'][Math.floor(R() * 4)], 2.05 + R() * 0.2, z + R() * 0.4, 0.8 + R() * 0.4);
-  }
+  // junto a la casa sur: plátano y monstera grandes (fotos 1/20, 12/20)
+  put('broad', -2.15, 3.6, 1.5); put('monstera', -1.9, 3.95, 1.3); put('broad', -2.2, 2.9, 1.2); put('fern', 0.5, 3.9, 0.9);
   // árboles grandes detrás de la casa (en el video asoman por encima de la cubierta)
-  for (const [x, z, h, r] of [[-3.6, -16.5, 8.6, 3.4], [4.2, -15.5, 9.4, 3.8], [0.8, -21, 10.5, 4.2], [-6.5, -11, 7.5, 3.0], [7.0, -9.5, 8.0, 3.2]]) {
+  for (const [x, z, h, r] of [[-3.6, -16.5, 8.6, 3.4], [4.2, -15.5, 9.4, 3.8], [0.8, -21, 10.5, 4.2], [-6.5, -11, 7.5, 3.0], [7.0, -9.5, 8.0, 3.2], [-0.6, 12.5, 10.5, 5.2], [4.5, 9.0, 8.5, 3.4]]) {
     P.push({ type: 'tree', x, z, s: 1, h, r });
   }
   // vecinos: palmas altas y fronda

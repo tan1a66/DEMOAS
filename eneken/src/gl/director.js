@@ -49,16 +49,25 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
     const T0 = sculptW.clone().add(new THREE.Vector3(0.12, 0.12, 0.3));
     const c0 = T0.clone().addScaledVector(forward(Y0, P0), -d1);
     const L = LOGO_POS;
-    const fovF = portrait() ? 70 : 50;
+    const fovF = portrait() ? 70 : 60;
     const hubY = portrait() ? 34 : 26;
+    const stop1 = portrait() ? [0.1, 1.75, 3.3, 0.0, 0.1] : [0.1, 2.25, 3.9, 0.0, 0.07];
+    const stop2 = portrait() ? [-0.45, 2.75, -4.3, -Math.PI + 0.06, -0.24] : [-0.5, 2.9, -4.4, -Math.PI + 0.06, -0.2];
     return [
       [0.0, c0.x, c0.y, c0.z, Y0, P0, FOV0],
-      [0.13, c0.x * 0.55 + 0.6, L.y + 1.6, L.z + d1 * 0.62, 0.22, -0.42, FOV0],
-      [0.26, 0.35, L.y + 6.5, L.z + 0.6, 0.06, -1.3, FOV0],
-      [0.42, 0.0, hubY, 0.9, 0.0, -Math.PI / 2 + 0.001, FOV0 + 2],
-      [0.62, 2.7, 11.5, 5.6, 0.44, -1.02, 46],
-      [0.82, 1.0, 3.7, portrait() ? 4.7 : 7.0, 0.15, -0.3, (58 + fovF) / 2],
-      portrait() ? [1.0, 0.1, 1.72, 3.25, 0.0, 0.1, fovF] : [1.0, 0.1, 2.35, 6.4, 0.0, 0.06, fovF],
+      [0.11, c0.x * 0.55 + 0.6, L.y + 1.6, L.z + d1 * 0.62, 0.22, -0.42, FOV0],
+      [0.22, 0.35, L.y + 6.5, L.z + 0.6, 0.06, -1.3, FOV0],
+      [0.34, 0.0, hubY, 0.9, 0.0, -Math.PI / 2 + 0.001, FOV0 + 2],
+      [0.47, 2.7, 11.5, 5.6, 0.44, -1.02, 46],
+      [0.58, 1.0, 3.6, 3.7, 0.15, -0.3, (58 + fovF) / 2],
+      // tappa 1: dal lato della casa sud, il divano con la casa nord dietro
+      [0.66, ...stop1, fovF],
+      [0.74, ...stop1, fovF],
+      // giro intorno alla piscina dal lato ovest
+      [0.86, -1.9, 4.4, -0.6, -Math.PI / 2, -0.82, fovF],
+      // tappa 2: dietro lo schienale, la casa sud con l'oculo
+      [0.96, ...stop2, fovF],
+      [1.0, ...stop2, fovF],
     ];
   }
 
@@ -121,33 +130,33 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
   }
 
   function frameScroll(p, t) {
-    const toHouse = sine(seg(p, 0, 0.16));
+    const toHouse = sine(seg(p, 0, 0.13));
     pathAt(p, tmp);
     place(tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], t, mix(0.06, 0.005, toHouse), sculptDist() * (1 - toHouse));
 
-    const logoLight = 1 - sine(seg(p, 0.2, 0.34));
+    const logoLight = 1 - sine(seg(p, 0.17, 0.28));
     applyLook(intro.light * logoLight);
-    logo.group.visible = p < 0.34;
-    courtyard.group.visible = p > 0.18;
-    sky.visible = p > 0.5;
+    logo.group.visible = p < 0.3;
+    courtyard.group.visible = p > 0.16;
+    sky.visible = p > 0.42;
     renderer.setClearColor(PAPER, 1);
 
     // el círculo de luz se abre en el papel: primero el agua, luego toda la casa
     G.uVoid.value.copy(PAPER_SRGB);
     G.uRevealC.value.set(0, -0.6);
-    const r = seg(p, 0.24, 0.5);
-    G.uRevealR.value = 1.6 * sine(seg(p, 0.24, 0.32)) + 46 * Math.pow(r, 2.2);
+    const r = seg(p, 0.2, 0.42);
+    G.uRevealR.value = 1.6 * sine(seg(p, 0.2, 0.27)) + 46 * Math.pow(r, 2.2);
     G.uRevealF.value = mix(0.8, 7.0, r);
 
-    const day = sine(seg(p, 0.22, 0.4));
+    const day = sine(seg(p, 0.18, 0.34));
     sun.intensity = 2.6 * day;
     water.surfMat.uniforms.uSunInt.value = day;
-    scene.environmentIntensity = 0.9;
+    scene.environmentIntensity = 1.25;   // luz rebotada del patio: las fachadas en sombra no quedan negras
 
-    if (p < 0.36) renderer.shadowMap.needsUpdate = true;
+    if (p < 0.31) renderer.shadowMap.needsUpdate = true;
     else if (!state.shadowsDone) { renderer.shadowMap.needsUpdate = true; state.shadowsDone = true; }
-    if (p < 0.3) state.shadowsDone = false;
-    state.hub = p > 0.9;
+    if (p < 0.26) state.shadowsDone = false;
+    state.hub = p > 0.62;
     ui(p);
   }
 

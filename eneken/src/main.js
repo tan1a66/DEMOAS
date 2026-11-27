@@ -143,9 +143,9 @@ let water = null, director = null;
 const capTouch = $('#cap-touch'), hint = $('#hint');
 let introDone = false;
 function ui(p) {
-  document.body.classList.toggle('on-paper', p < 0.3);
+  document.body.classList.toggle('on-paper', p < 0.26);
   hint.classList.toggle('on', introDone && p < 0.02);
-  capTouch.classList.toggle('on', p > 0.93);
+  capTouch.classList.toggle('on', (p > 0.65 && p < 0.75) || p > 0.95);
 }
 
 // ---------------------------------------------------------------- carga completa

@@ -139,7 +139,7 @@ body.ui-on .top { opacity: 1; }
 body.ui-on .credit { opacity: 1; }
 
 .track { position: relative; z-index: 1; }
-.seq { height: 640vh; }
+.seq { height: 820vh; }
 
 @media (min-width: 900px) {
   .cap .k { font-size: 38px; }
