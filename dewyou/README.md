@@ -68,7 +68,7 @@ In `src/data/content.js`:
 ## Anteprima del link
 `public/og.jpg` (1200×630, il hero vero), `favicon.ico`, `favicon-32.png` e
 `apple-touch-icon.png` (l'unicorno crema su prugna). I tag in `index.html` puntano a
-`https://dewyou-demo-alessiastudio.vercel.app/`: se il progetto Vercel ha un altro nome, cambiare
+`https://dewyou-alessiastudio.vercel.app/`: se il progetto Vercel ha un altro nome, cambiare
 l'indirizzo lì.
 
 **Per pubblicare su Vercel**: caricare la cartella `dist/` (dopo `npm run build`) oppure
