@@ -4,6 +4,7 @@
 // Casa Skoura vista desde el dron, y el dron baja en espiral hasta quedarse mirando el sofá.
 import * as THREE from 'three';
 import { G } from './core.js';
+import { HALO_MAT } from './courtyard.js';
 
 const FOV0 = 35;
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -127,6 +128,7 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
     renderer.shadowMap.needsUpdate = true;   // los listones se arman: sombras propias vivas
     renderer.setClearColor(PAPER, 1);
     G.uRevealR.value = 0;
+    HALO_MAT.opacity = 0;
   }
 
   function frameScroll(p, t) {
@@ -151,7 +153,8 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
     const day = sine(seg(p, 0.18, 0.34));
     sun.intensity = 2.6 * day;
     water.surfMat.uniforms.uSunInt.value = day;
-    scene.environmentIntensity = 1.25;   // luz rebotada del patio: las fachadas en sombra no quedan negras
+    scene.environmentIntensity = 1.25;
+    HALO_MAT.opacity = 0.5 * sine(seg(p, 0.42, 0.56));   // luz rebotada del patio: las fachadas en sombra no quedan negras
 
     if (p < 0.31) renderer.shadowMap.needsUpdate = true;
     else if (!state.shadowsDone) { renderer.shadowMap.needsUpdate = true; state.shadowsDone = true; }

@@ -16,15 +16,15 @@ export const PLATFORM_Y = 0.44;   // el pit es un zócalo de chukum: desde fuera
 // Paleta (muestreada de las fotos, corregida a albedo)
 const C = {
   // chukum al sol (video de Casa Skoura): terracota saturada, monolítica en piso, muros y casa
-  terracotta: '#a35c3f',   // piso del pit
-  ring: '#9f5a40',         // respaldo de chukum
-  wall: '#985843',         // muros del lote
-  house: '#9b5a44',
+  terracotta: '#b9714d',   // piso del pit
+  ring: '#b26a4d',         // respaldo de chukum
+  wall: '#ad6b52',         // muros del lote
+  house: '#b06e54',
   table: '#b56d4b',        // mesa larga de chukum frente a la casa
   stone: '#8f877d',        // losa gris y escalones
   stoneDark: '#6f675e',
   limestone: '#b39a72',    // fragmentos de muro antiguo (piedra caliza)
-  carrizo: '#5c4234',      // celosía de carrizo sobre los muros
+  carrizo: '#a3804f',      // carrizo (palos de madera clara) sobre los muros
   cushion: '#e4dccb',      // cojines marfil
   gravel: '#aaa295',       // grava blanca (en la foto, gris cálido)
   pool: '#7e8c84',         // chukum del vaso
@@ -65,8 +65,21 @@ function extrudeUp(shape, h, bevel = 0.01, curveSegments = 48) {
 // Lámpara redonda de muro: aro negro con disco de luz cálida
 const LAMP_RING = patch(new THREE.MeshStandardMaterial({ color: 0x151210, roughness: 0.5, metalness: 0.5 }), { key: 'lampRing', reveal: true });
 const LAMP_LIGHT = patch(new THREE.MeshStandardMaterial({ color: 0xffe2bc, emissive: 0xffb466, emissiveIntensity: 2.2, roughness: 1 }), { key: 'lampLight', reveal: true });
+// alone di luce calda sul muro (le lampade tonde di Skoura)
+function haloTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 4, 64, 64, 64);
+  g.addColorStop(0, 'rgba(255,190,120,1)'); g.addColorStop(0.25, 'rgba(255,170,95,0.55)'); g.addColorStop(1, 'rgba(255,150,80,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+export const HALO_MAT = new THREE.MeshBasicMaterial({ map: haloTexture(), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
 function lamp(r) {
   const g = new THREE.Group();
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(r * 16, r * 16), HALO_MAT);
+  halo.position.z = 0.008;
+  g.add(halo);
   const ring = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.03, 32).rotateX(Math.PI / 2), LAMP_RING);
   ring.position.z = 0.015;
   const disc = new THREE.Mesh(new THREE.CircleGeometry(r * 0.62, 32), LAMP_LIGHT);
@@ -202,20 +215,40 @@ export function buildCourtyard(scene) {
     // mesa larga de chukum en el eje, frente a la puerta de la casa (video y skoura_fosa_lateral.jpg)
     // barra larga: nace dentro de la casa norte y sale al patio por la cancelería abierta (foto 3/10)
     {
-      const mTop = chukum('#8a6a56', 'tableTop', { tri: 0.7, normal: 0.4, mottle: 0.22, rough: 0.6 });
+      const mTop = chukum('#c69a82', 'tableTop', { tri: 0.6, normal: 0.3, mottle: 0.18, rough: 0.55 });
       const mBase = chukum(C.table, 'table', { tri: 0.5, normal: 0.6, mottle: 0.2, rough: 0.75 });
       const mW = chukum('#6b4129', 'woodStool', { tri: 0.9, normal: 0.4, mottle: 0.3, rough: 0.6 });
+      // seduta intrecciata a righe (foto 3/10)
+      const mWoven = patch(new THREE.MeshStandardMaterial({ color: 0xe7dccb, roughness: 0.9 }), {
+        key: 'woven', gobo: true, reveal: true,
+        fragNormal: `{ float f = fract(vWPos.x * 22.0); vec3 st = f < 0.18 ? vec3(0.62, 0.22, 0.16) : (f > 0.55 && f < 0.62 ? vec3(0.35, 0.3, 0.25) : vec3(1.0));
+          diffuseColor.rgb *= st * (0.88 + 0.12 * step(0.5, fract(vWPos.z * 90.0))); }`,
+      });
       const z0 = -7.4, z1 = -3.4, x = 0.3;
-      const top = add(new RoundedBoxGeometry(0.86, 0.07, z1 - z0, 2, 0.012), mTop);
-      top.position.set(x, 0.96, (z0 + z1) / 2);
-      const base = add(new RoundedBoxGeometry(0.62, 0.92, 1.05, 2, 0.02), mBase);
-      base.position.set(x, 0.46, z1 - 0.62);
+      const top = add(new RoundedBoxGeometry(0.9, 0.1, z1 - z0, 2, 0.015), mTop);
+      top.position.set(x, 0.95, (z0 + z1) / 2);
+      const base = add(new RoundedBoxGeometry(0.66, 0.9, 1.2, 2, 0.02), mBase);
+      base.position.set(x + 0.08, 0.45, z1 - 0.66);
+      // rejillas oscuras en la base (ventilación), como en la foto 9/20
+      const mVent = patch(new THREE.MeshStandardMaterial({ color: 0x2a1a12, roughness: 0.8 }), { key: 'vent', reveal: true });
+      for (const [vx, vz, ry, w] of [[x + 0.08 - 0.335, z1 - 0.66, -Math.PI / 2, 0.75], [x + 0.08, z1 - 0.055, 0, 0.42]]) {
+        const v = add(new THREE.PlaneGeometry(w, 0.26), mVent, { cast: false }); v.position.set(vx, 0.22, vz); v.rotation.y = ry;
+        for (let i = 1; i < 6; i++) { const sl = add(new THREE.BoxGeometry(ry ? 0.012 : w, 0.012, ry ? w : 0.012), mBase, { cast: false }); sl.position.set(vx + (ry ? -0.004 : 0), 0.09 + i * 0.043, vz + (ry ? 0 : 0.004)); }
+      }
+      // vassoio di legno con il modellino della casa (foto 9/20 e 3/10)
+      const mTray = chukum('#7a4a2c', 'tray', { tri: 1.0, normal: 0.3, mottle: 0.3, rough: 0.5 });
+      const tray = add(new RoundedBoxGeometry(0.22, 0.05, 0.62, 2, 0.008), mTray); tray.position.set(x + 0.05, 1.025, -3.95);
+      for (const [dz, h, w] of [[-0.14, 0.12, 0.13], [0.12, 0.16, 0.15]]) {
+        const hs = new THREE.Shape(); hs.moveTo(-w / 2, 0); hs.lineTo(-w / 2, h); hs.lineTo(0, h + w * 0.55); hs.lineTo(w / 2, h); hs.lineTo(w / 2, 0); hs.lineTo(-w / 2, 0);
+        const hg = new THREE.ExtrudeGeometry(hs, { depth: 0.16, bevelEnabled: false }); hg.rotateY(Math.PI / 2);
+        const hm = add(hg, mTray); hm.position.set(x - 0.03, 1.05, -3.95 + dz - 0.08);
+      }
       const cab = add(new RoundedBoxGeometry(0.66, 0.92, 2.2, 2, 0.01), mW);
       cab.position.set(x, 0.46, z0 + 1.3);
       // taburetes altos de madera a lo largo de la barra
-      for (const z of [-4.35, -3.85]) {
+      for (const z of [-4.3, -3.75, -5.4]) {
         const g = new THREE.Group();
-        const seat = new THREE.Mesh(new RoundedBoxGeometry(0.36, 0.05, 0.36, 2, 0.01), mW);
+        const seat = new THREE.Mesh(new RoundedBoxGeometry(0.36, 0.05, 0.36, 2, 0.01), mWoven);
         seat.position.y = 0.7;
         g.add(seat);
         for (const [lx, lz] of [[-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14], [0.14, 0.14]]) {
@@ -389,9 +422,9 @@ export function buildCourtyard(scene) {
     leaf(HINGE + 0.03, 1, 1.35);
     leaf(OP.x1 - 0.03, -1, -1.35);
     const wz = z1 - T * 0.5;
-    for (let i = 0; i <= 3; i++) {
-      bar(0.035, WIN.y1 - WIN.y0, WIN.x0 + (WIN.x1 - WIN.x0) * (i / 3), (WIN.y0 + WIN.y1) / 2, wz);
-      bar(WIN.x1 - WIN.x0, 0.035, (WIN.x0 + WIN.x1) / 2, WIN.y0 + (WIN.y1 - WIN.y0) * (i / 3), wz);
+    for (let i = 0; i <= 2; i++) {
+      bar(0.045, WIN.y1 - WIN.y0, WIN.x0 + (WIN.x1 - WIN.x0) * (i / 2), (WIN.y0 + WIN.y1) / 2, wz);
+      bar(WIN.x1 - WIN.x0, 0.045, (WIN.x0 + WIN.x1) / 2, WIN.y0 + (WIN.y1 - WIN.y0) * (i / 2), wz);
     }
     const wb = add(new THREE.PlaneGeometry(WIN.x1 - WIN.x0, WIN.y1 - WIN.y0), patch(new THREE.MeshStandardMaterial({ color: 0x15110e, roughness: 0.08, envMapIntensity: 1.2 }), { key: 'winBack', reveal: true }), { cast: false });
     wb.position.set((WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, wz - 0.03);
@@ -487,10 +520,30 @@ export function buildCourtyard(scene) {
           diffuseColor.rgb *= (0.55 + 0.45 * sh) * (1.0 - 0.3 * knot) * (0.8 + 0.4 * eHash12(vec2(floor(u), 7.0)));
         }`,
     });
-    for (const x of [LOT.x0 - 0.12, LOT.x1 + 0.12]) {
-      const c = add(new THREE.BoxGeometry(0.06, 1.15, LOT.z1 - LOT.z0 - 9.4), m);
-      c.position.set(x, 4.6 + 0.575, (LOT.z0 + 9.4 + LOT.z1) / 2);
+    const poles = [];
+    let seed = 3;
+    const rr = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    for (const x of [LOT.x0 - 0.15, LOT.x1 + 0.15]) {
+      for (let z = -4.6; z < 9.5; z += 0.055 + rr() * 0.03) {
+        poles.push({ x: x + (rr() - 0.5) * 0.08, z, h: 0.95 + rr() * 0.55, r: 0.018 + rr() * 0.016, tx: (rr() - 0.5) * 0.08, tz: (rr() - 0.5) * 0.08, k: rr() });
+      }
     }
+    const pg = new THREE.CylinderGeometry(0.85, 1, 1, 6).translate(0, 0.5, 0);
+    const pm = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color(C.carrizo), roughness: 0.85, envMapIntensity: 0.6 }), {
+      key: 'carrizoPoles', gobo: true, reveal: true,
+      fragNormal: 'diffuseColor.rgb *= 0.75 + 0.5 * eNoise2(vec2(vWPos.y * 9.0, vWPos.z * 3.0 + vWPos.x * 3.0));',
+    });
+    const im = new THREE.InstancedMesh(pg, pm, poles.length);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), col = new THREE.Color();
+    poles.forEach((p, i) => {
+      q.setFromEuler(e.set(p.tx, 0, p.tz));
+      m4.compose(new THREE.Vector3(p.x, 4.45, p.z), q, new THREE.Vector3(p.r, p.h, p.r));
+      im.setMatrixAt(i, m4);
+      im.setColorAt(i, col.setScalar(0.7 + p.k * 0.5));
+    });
+    im.castShadow = true; im.receiveShadow = true;
+    group.add(im);
+    void m;
   }
   // --- fragmentos de muro antiguo a los lados del vano (mampostería de piedra caliza conservada)
   {

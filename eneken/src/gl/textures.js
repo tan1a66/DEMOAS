@@ -88,6 +88,22 @@ export function makeGobo(rect) {
       frond(ctx, px, py, a, len, R, { leaf: 0.34 * sx, lw: 2.2, rib: 2.0, step: 6 });
     }
   }
+  // chioma dell'albero: macchie di foglie con buchi di luce, più fitte dove la chioma è densa
+  ctx.filter = 'none';
+  ctx.fillStyle = '#000';
+  for (let i = 0; i < 9000; i++) {
+    const x = R() * W, y = R() * H;
+    const dens = 0.5 + 0.5 * Math.sin(x * 0.011 + 1.3) * Math.sin(y * 0.008 + 0.4) + 0.35 * Math.sin(x * 0.03 + y * 0.021);
+    if (R() > dens * 0.9) continue;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 3 + R() * 7, 2 + R() * 4, R() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // una sola sfocatura per tutto il gobo (sfocare ogni macchia blocca il caricamento)
+  const tmp = document.createElement('canvas'); tmp.width = W; tmp.height = H;
+  tmp.getContext('2d').drawImage(c, 0, 0);
+  ctx.filter = 'blur(1.5px)';
+  ctx.drawImage(tmp, 0, 0);
   ctx.filter = 'none';
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.NoColorSpace;
