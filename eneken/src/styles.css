@@ -99,7 +99,7 @@ body.ui-on .top { opacity: 1; }
 .cap.on { opacity: 1; transform: translate(-50%, 0); }
 .cap .k { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(22px, 6.2vw, 34px); letter-spacing: 0.01em; color: var(--cream); }
 .cap .v { font-family: var(--tech); font-size: 9.5px; letter-spacing: 0.22em; font-stretch: 118%; text-transform: uppercase; color: rgba(239, 230, 214, 0.62); }
-.cap-intro { top: max(74px, calc(env(safe-area-inset-top) + 58px)); }
+.cap-intro { top: auto; bottom: max(104px, calc(env(safe-area-inset-bottom) + 92px)); }
 .cap-place { top: max(74px, calc(env(safe-area-inset-top) + 58px)); }
 .cap-place .k, .cap-place .v { text-shadow: 0 1px 18px rgba(18, 13, 10, 0.55); }
 .cap-touch {
@@ -124,7 +124,7 @@ body.ui-on .top { opacity: 1; }
   padding: 10px 16px;
 }
 .hint.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-.hint i { display: block; width: 1px; height: 34px; background: rgba(239, 230, 214, 0.16); position: relative; overflow: hidden; }
+.hint i { display: block; width: 1px; height: 46px; background: rgba(239, 230, 214, 0.16); position: relative; overflow: hidden; }
 .hint i::after {
   content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: rgba(239, 230, 214, 0.85);
   animation: plumb 3.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
@@ -143,8 +143,22 @@ body.ui-on .credit { opacity: 1; }
 
 @media (min-width: 900px) {
   .cap .k { font-size: 38px; }
-  .cap-intro, .cap-place { top: 96px; }
+  .cap-place { top: 96px; }
+  .cap-intro { left: var(--gutter); transform: translate(0, 8px); align-items: flex-start; text-align: left; bottom: 44px; }
+  .cap-intro.on { transform: translate(0, 0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .hint i::after, .cap-touch i::after { animation: none; }
 }
+
+/* sobre el papel (logo): la interfaz se escribe con la tinta del logo */
+body.on-paper .mark { color: var(--ink); }
+body.on-paper .mark .logo-svg path { fill: var(--ink); }
+body.on-paper .lang, body.on-paper .lang button { color: rgba(72, 85, 49, 0.55); }
+body.on-paper .lang button[aria-pressed='true'] { color: var(--ink); }
+body.on-paper .cap .k { color: var(--ink); }
+body.on-paper .cap .v, body.on-paper .hint { color: rgba(72, 85, 49, 0.75); }
+body.on-paper .hint i { background: rgba(72, 85, 49, 0.18); }
+body.on-paper .hint i::after { background: var(--ink); }
+body.on-paper .credit { color: rgba(72, 85, 49, 0.55); }
+.mark, .mark .logo-svg path, .lang button, .cap .k, .cap .v, .hint, .credit { transition: color 1.2s var(--ease), fill 1.2s var(--ease), opacity 1.6s var(--ease); }

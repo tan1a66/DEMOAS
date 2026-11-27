@@ -4,8 +4,9 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { createRenderer, G, QUALITY, MOBILE } from './gl/core.js';
-import { loadTextures, makeGobo, makeSpotGobo } from './gl/textures.js';
-import { buildRoom } from './gl/sculpture.js';
+import { loadTextures, makeGobo } from './gl/textures.js';
+import { buildLogo } from './gl/logo3d.js';
+import { buildSky } from './gl/sky.js';
 import { buildCourtyard, POOL_R } from './gl/courtyard.js';
 import { buildPlants } from './gl/plants.js';
 import { buildWater } from './gl/water.js';
@@ -117,7 +118,6 @@ G.uPebbleNor.value = tex.pebbleNor;
 G.uPebbleDiff.value = tex.pebbleDiff;
 G.uWoodNor.value = tex.woodNor;
 G.uGoboTex.value = makeGobo(G.uGoboRect.value);
-G.uSpotGoboTex.value = makeSpotGobo();
 
 // luz del día (sol alto de Mérida, desde el sureste)
 const sun = new THREE.DirectionalLight(0xfff0dc, 0);
@@ -132,19 +132,19 @@ sun.shadow.radius = 2.5;
 sun.layers.enableAll(); // también ilumina el vaso (capa submarina): cáusticas
 scene.add(sun, sun.target);
 
-const room = buildRoom(scene, tex);
+const logo = buildLogo(scene, renderer);
+const sky = buildSky(scene);
 const courtyard = buildCourtyard(scene);
 buildPlants(courtyard.group);
 let water = null, director = null;
 
 // ---------------------------------------------------------------- UI según el progreso
-const capIntro = $('#cap-intro'), capPlace = $('#cap-place'), capTouch = $('#cap-touch'), hint = $('#hint');
+const capTouch = $('#cap-touch'), hint = $('#hint');
 let introDone = false;
 function ui(p) {
-  capIntro.classList.toggle('on', introDone && p < 0.03);
+  document.body.classList.toggle('on-paper', p < 0.3);
   hint.classList.toggle('on', introDone && p < 0.02);
-  capPlace.classList.toggle('on', p > 0.6 && p < 0.86);
-  capTouch.classList.toggle('on', p > 0.9);
+  capTouch.classList.toggle('on', p > 0.93);
 }
 
 // ---------------------------------------------------------------- carga completa
@@ -156,12 +156,12 @@ const ready = (async () => {
   scene.environmentIntensity = 0.08;
   pmrem.dispose();
   water = buildWater(renderer, courtyard.group, tex.sky);
-  director = createDirector({ camera, room, water, courtyard, sun, scene, renderer, ui });
+  director = createDirector({ camera, logo, water, courtyard, sun, scene, renderer, ui, sky });
   director.setFlatPx(logoPx());
   realProgress = 0.82;
   try { await document.fonts.ready; } catch (e) { /* sin fuentes */ }
   // compilar todos los shaders con la cámara del pit y de la sala (evita tirones luego)
-  room.group.visible = true; courtyard.group.visible = true;
+  logo.group.visible = true; courtyard.group.visible = true; sky.visible = true;
   camera.position.set(0, 12, 2); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   renderer.render(scene, camera);
@@ -200,16 +200,13 @@ function playIntro() {
     .to(loaderEl, { opacity: 0, duration: 1.0, ease: 'sine.inOut' }, 0.45)
     .set(loaderEl, { display: 'none' }, 1.5)
     .to(I, { k: 1, duration: 6.6, ease: 'power2.inOut' }, 0.6)
-    .to(I, { thick: 1, duration: 2.6, ease: 'sine.inOut' }, 1.6)
-    .to(I, { ink: 0, duration: 1.8, ease: 'sine.inOut' }, 1.7)
-    .to(I, { fill: 0.55, duration: 1.4 }, 1.4)
-    .to(I, { spot: 120, duration: 3.2, ease: 'sine.inOut' }, 1.5)
-    .to(I, { paper: 0, duration: 3.0, ease: 'sine.inOut' }, 2.0)
-    .to(I, { rake: 1, duration: 4.2, ease: 'sine.inOut' }, 2.2)
-    .to(I, { fill: 0.1, duration: 3.0 }, 3.2)
-    .to(I, { inkAlb: 0, duration: 2.6, ease: 'sine.inOut' }, 3.1)
-    .to(I, { carve: 1, duration: 2.8, ease: 'sine.inOut' }, 3.3)
-    .to(I, { dust: 1, duration: 3.5, ease: 'sine.out' }, 4.2)
+    .to(I, { light: 1, duration: 2.0 }, 1.2)
+    .to(I, { thick: 1, duration: 2.8 }, 1.4)
+    .to(I, { ink: 0, duration: 1.6 }, 1.5)
+    .to(I, { dil: 1, duration: 3.0 }, 2.0)
+    .to(I, { depth: 1.5, duration: 3.0 }, 2.4)
+    .to(I, { inkAlb: 0, duration: 2.4 }, 2.6)
+    .to(I, { carve: 1, duration: 2.6 }, 3.2)
     .call(() => {
       introDone = true;
       director.endIntro();
@@ -217,14 +214,14 @@ function playIntro() {
       document.body.classList.add('ui-on');
       lenis.start();
       ui(0);
-    }, null, 6.6);
+    }, null, 6.8);
   if (params.has('fast')) tl.timeScale(6);
 }
 
 Promise.all([ready, loaded]).then(() => {
   if (params.has('p')) {
     // saltar a un punto de la secuencia (para revisión): ?p=0.5
-    Object.assign(director.intro, { k: 1, thick: 1, ink: 0, inkAlb: 0, paper: 0, rake: 1, dust: 1, carve: 1, spot: 120, fill: 0.1 });
+    Object.assign(director.intro, { k: 1, thick: 1, dil: 1, depth: 1.5, ink: 0, inkAlb: 0, carve: 1, light: 1 });
     loaderEl.style.display = 'none';
     document.body.classList.remove('is-loading');
     document.body.classList.add('ui-on');
@@ -282,7 +279,7 @@ function tick() {
     director.frameScroll(smooth.p, time, dt);
   }
   const p = introDone ? smooth.p : 0;
-  const poolVisible = p > 0.1;
+  const poolVisible = p > 0.2;
   water.update(dt, poolVisible);
   if (poolVisible) water.renderRefraction(scene, camera);
   renderer.render(scene, camera);
@@ -299,7 +296,7 @@ function tick() {
 gsap.ticker.lagSmoothing(0);
 gsap.ticker.add((t) => lenis.raf(t * 1000));
 
-if (DEBUG || CAPTURE) Object.assign(window, { THREE, renderer, scene, camera, G, room, courtyard, smooth, target, lenis });
+if (DEBUG || CAPTURE) Object.assign(window, { THREE, renderer, scene, camera, G, logo, courtyard, smooth, target, lenis });
 if (CAPTURE) {
   gsap.ticker.sleep();
   window.__cap = {

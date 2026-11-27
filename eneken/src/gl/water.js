@@ -150,7 +150,7 @@ export function buildWater(renderer, parent, sky) {
         vec3 R = reflect(-V, n);
         vec3 sky = texture2D(uSky, equirectUv(R)).rgb * uSkyInt;
         float occl = smoothstep(0.45, 0.92, R.y);
-        vec3 refl = mix(vec3(0.20, 0.14, 0.10) * uSkyInt, sky, occl);
+        vec3 refl = mix(vec3(0.34, 0.15, 0.08) * uSkyInt, sky, occl);   // a ras de agua se refleja el chukum
         float shade = eGobo(vWPos) * sunVis(vWPos);
         vec3 H = normalize(uSunDir + V);
         float NH = max(dot(n, H), 0.0);

@@ -11,28 +11,31 @@ npm run build:preview  # un solo file: dist-preview/index.html (si apre con dopp
 ```
 
 Parametri utili nell'URL:
-- `?p=0.6` salta a un punto della sequenza (0 = scultura, 1 = pit dall'alto)
+- `?p=0.6` salta a un punto della sequenza (0 = scultura, 1 = vista sul divano)
 - `?fast` intro accelerata · `?debug` fps e oggetti in console · `?capture` orologio manuale (registrazione video)
 
 ## Stato
 - [x] **1. Caricamento** — logo in inchiostro su crema; la linea di base è la barra (avanza con il caricamento reale)
-- [x] **2. Logo → legno** — il segno piatto prende volume, diventa legno intagliato (venature, segni di sgorbia),
-      la stanza si scurisce, luce radente da una finestra con ombre di palma, pulviscolo nel fascio, ombra lunga sul muro
-- [x] **3. Caduta** — la sfera si stacca, cade nel buio, il cerchio d'acqua si accende, splash (onde vere + gocce),
-      il drone sale e la sfera diventa lo sgabello (tre tondi di legno) al centro del pit
-- [x] Pit di Casa Skoura ricostruito da `skoura_fosa_cenital.jpg` e dal video in pieno sole
+- [x] **2. Logo → scultura di legno** — il segno piatto prende volume e diventa un pezzo massiccio di legno oliato,
+      come le sculture di Miguel Tapia (venatura, facette morbide di sgorbia). Solo il logo sul fondo carta: nessuna stanza, nessuna ombra.
+- [x] **3. Entrata nella casa** — la camera sorvola la scultura, guarda in basso, nella carta si apre un cerchio su Casa Skoura
+      vista dal drone; il drone scende a spirale e si ferma ad altezza d'occhio guardando il divano, con la casa dietro
+- [x] Casa Skoura ricostruita dalla foto cenitale e dal video in pieno sole: facciata a capanna con vano in acciaio e vetro,
+      finestra quadrata, interno con lanterna, frammenti di pietra calcarea, tavolo di chukum, divano con luci, sgabello di tre tondi,
+      carrizo sui muri, alberi dietro la casa, cielo
 - [x] Toccando l'acqua si creano increspature vere (simulazione d'onda in GPU)
-- [ ] 4/5. Foto dei progetti sotto l'acqua, planta viva con le porte (Nosotros, Proyectos, Taller, Contacto)
+- [ ] Porte / navigazione (Nosotros, Proyectos, Taller, Contacto) e foto dei progetti
 - [ ] Stanze: Proyectos (ODA, Skoura), Nosotros, Taller, Contacto
 
 ## Struttura
 - `src/logo-data.js` — il logo ricalcato: 7 forme separate (punto, gambo, 4 foglie, linea di base).
   Generato con `tools/trace_logo.py` dallo screenshot del profilo. Quando arriva il vettoriale originale basta sostituire i `d`.
-- `src/gl/sculpture.js` — scena 2: rilievo scolpito dal campo di distanza di ogni tratto (`sdf.js`), sfera, stanza, luce, polvere
+- `src/gl/logo3d.js` — scena 2: scultura dal campo di distanza di ogni tratto (`sdf.js`), ingrossata e profonda; sgabello
+- `src/gl/sky.js` — cielo con nuvole
 - `src/gl/courtyard.js` — Casa Skoura (misure dalla foto cenitale: piscina Ø 2,4 m come scala)
 - `src/gl/water.js` — onde (GPU), superficie con rifrazione del vaso, riflesso del cielo, gocce
 - `src/gl/plants.js` — piante tropicali instanziate · `src/gl/textures.js` — texture Poly Haven + gobo disegnati a mano
-- `src/gl/director.js` — regia: intro e camera guidata dallo scroll
+- `src/gl/director.js` — regia: intro e percorso della camera (Catmull-Rom tra punti di passaggio) guidato dallo scroll
 - `src/gl/core.js` — renderer, qualità mobile/desktop, patch dei materiali (ombre di palma, chukum triplanare, caustiche, grana)
 
 ## Fonti e licenze

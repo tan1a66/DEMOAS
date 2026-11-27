@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { patch, LAYER_UNDERWATER } from './core.js';
+import { makeStool } from './logo3d.js';
 
 export const POOL_R = 1.2;
 export const POOL_DEPTH = 1.35;
@@ -15,10 +16,10 @@ const PLATFORM_Y = 0.03;
 // Paleta (muestreada de las fotos, corregida a albedo)
 const C = {
   // chukum al sol (video de Casa Skoura): terracota saturada, monolítica en piso, muros y casa
-  terracotta: '#ad5f3b',   // piso del pit
-  ring: '#a95d3e',         // respaldo de chukum
-  wall: '#a2573d',         // muros del lote
-  house: '#a65b3f',
+  terracotta: '#a35c3f',   // piso del pit
+  ring: '#9f5a40',         // respaldo de chukum
+  wall: '#985843',         // muros del lote
+  house: '#9b5a44',
   table: '#b56d4b',        // mesa larga de chukum frente a la casa
   stone: '#8f877d',        // losa gris y escalones
   stoneDark: '#6f675e',
@@ -31,7 +32,7 @@ const C = {
   roofN: '#b7ada2',
 };
 
-function chukum(color, key, { tri = 0.4, normal = 0.7, mottle = 0.16, rough = 0.86 } = {}) {
+function chukum(color, key, { tri = 0.4, normal = 0.7, mottle = 0.26, rough = 0.86 } = {}) {
   const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: rough, envMapIntensity: 0.55 });
   return patch(m, { key, gobo: true, reveal: true, tri: { scale: tri, normal, amount: 0.5, mean: 0.42 }, mottle });
 }
@@ -61,6 +62,19 @@ function extrudeUp(shape, h, bevel = 0.01, curveSegments = 48) {
   return g;
 }
 
+// Lámpara redonda de muro: aro negro con disco de luz cálida
+const LAMP_RING = patch(new THREE.MeshStandardMaterial({ color: 0x151210, roughness: 0.5, metalness: 0.5 }), { key: 'lampRing', reveal: true });
+const LAMP_LIGHT = patch(new THREE.MeshStandardMaterial({ color: 0xffe2bc, emissive: 0xffb466, emissiveIntensity: 2.2, roughness: 1 }), { key: 'lampLight', reveal: true });
+function lamp(r) {
+  const g = new THREE.Group();
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.03, 32).rotateX(Math.PI / 2), LAMP_RING);
+  ring.position.z = 0.015;
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(r * 0.62, 32), LAMP_LIGHT);
+  disc.position.z = 0.031;
+  g.add(ring, disc);
+  return g;
+}
+
 export function buildCourtyard(scene) {
   const group = new THREE.Group();
   group.name = 'patio';
@@ -75,8 +89,8 @@ export function buildCourtyard(scene) {
 
   const mTerra = chukum(C.terracotta, 'terra');
   const mRing = chukum(C.ring, 'ring');
-  const mWall = chukum(C.wall, 'wall', { tri: 0.25, normal: 0.55, mottle: 0.22 });
-  const mHouse = chukum(C.house, 'house', { tri: 0.25, normal: 0.5, mottle: 0.2 });
+  const mWall = chukum(C.wall, 'wall', { tri: 0.25, normal: 0.55, mottle: 0.34 });
+  const mHouse = chukum(C.house, 'house', { tri: 0.25, normal: 0.5, mottle: 0.32 });
   const mStone = chukum(C.stone, 'stone', { tri: 0.9, normal: 0.8, mottle: 0.22, rough: 0.8 });
   const mStoneDark = chukum(C.stoneDark, 'stoneDark', { tri: 0.9, normal: 0.8, mottle: 0.2, rough: 0.8 });
   const mRoofN = chukum(C.roofN, 'roofN', { tri: 0.3, normal: 0.8, mottle: 0.25, rough: 0.9 });
@@ -180,11 +194,15 @@ export function buildCourtyard(scene) {
 
   // --- losas de piedra gris: centro del pit, camino norte y diagonal de los escalones
   {
-    const c = add(new RoundedBoxGeometry(0.86, 0.04, 1.16, 2, 0.008), mStone, { cast: false });
-    c.position.set(0.03, PLATFORM_Y + 0.012, -1.72);
+    // dentro del sofá el piso es el mismo chukum (no hay losa de cemento): el taburete se apoya directo
+    const stool = makeStool(STOOL.r, STOOL.h);
+    stool.position.set(STOOL.x, PLATFORM_Y + 0.008 + STOOL.h / 2, STOOL.z);
+    stool.castShadow = stool.receiveShadow = true;
+    group.add(stool);
     // mesa larga de chukum en el eje, frente a la puerta de la casa (video y skoura_fosa_lateral.jpg)
-    const n = add(new RoundedBoxGeometry(0.82, 0.92, 2.1, 3, 0.03), chukum(C.table, 'table', { tri: 0.5, normal: 0.6, mottle: 0.2, rough: 0.75 }));
-    n.position.set(0.18, 0.46, -3.75);
+    // entre la fachada (z -4.65) y el respaldo del sofá (z -3.15): no toca ninguno de los dos
+    const n = add(new RoundedBoxGeometry(0.82, 0.92, 1.2, 3, 0.03), chukum(C.table, 'table', { tri: 0.5, normal: 0.6, mottle: 0.2, rough: 0.75 }));
+    n.position.set(0.18, 0.46, -3.95);
     const d = add(new RoundedBoxGeometry(0.62, 0.05, 1.9, 2, 0.01), mStone, { cast: false });
     const dir = new THREE.Vector2(1, 1).normalize();
     d.position.set(dir.x * 2.1, PLATFORM_Y + 0.006, dir.y * 2.1);
@@ -205,8 +223,15 @@ export function buildCourtyard(scene) {
     g.position.set(SOFA.cx, 0, SOFA.cz);
     group.add(g);
     const addS = (geo, mat, cast = true) => { const m = new THREE.Mesh(geo, mat); m.castShadow = cast; m.receiveShadow = true; g.add(m); return m; };
-    addS(extrudeUp(annularSector(SOFA.rWall, SOFA.rOut, 0, Math.PI), 0.74, 0.018), mRing);
+    addS(extrudeUp(annularSector(SOFA.rWall, SOFA.rOut, 0, Math.PI), 0.68, 0.02), mRing);
     addS(extrudeUp(annularSector(SOFA.rSeat, SOFA.rWall, 0, Math.PI), 0.3, 0.014), mTerra);
+    // luces redondas empotradas en el frente de la base (video)
+    for (const a of [0.32, 0.95, 1.57, 2.19, 2.82]) {
+      const l = lamp(0.035);
+      l.position.set(Math.cos(a) * (SOFA.rSeat - 0.004), 0.15, -Math.sin(a) * (SOFA.rSeat - 0.004));
+      l.lookAt(0, 0.15, 0);
+      g.add(l);
+    }
     // cojines del asiento (4 piezas) — almohadillas redondeadas
     const gap = 0.012;
     for (let i = 0; i < 4; i++) {
@@ -223,12 +248,12 @@ export function buildCourtyard(scene) {
       tg.rotateX(-Math.PI / 2);
       tg.scale(1, 0.92, 1);
       const t = addS(tg, mCushion);
-      t.position.y = 0.43 + 0.11;
+      t.position.y = 0.43 + 0.105;
       // extremos redondeados
       for (const a of [a0, a1]) {
         const cap = addS(new THREE.SphereGeometry(0.12, 20, 14), mCushion);
         cap.scale.set(1, 0.92, 1);
-        cap.position.set(Math.cos(a) * (SOFA.rWall - 0.13), 0.54, -Math.sin(a) * (SOFA.rWall - 0.13));
+        cap.position.set(Math.cos(a) * (SOFA.rWall - 0.13), 0.535, -Math.sin(a) * (SOFA.rWall - 0.13));
       }
     }
   }
@@ -242,21 +267,65 @@ export function buildCourtyard(scene) {
     }
     const back = add(new RoundedBoxGeometry(LOT.x1 - LOT.x0 + 0.6, H, 0.3, 2, 0.02), mWall);
     back.position.set(0, H / 2, LOT.z1 + 0.15);
-    // casa: volumen con cubierta a dos aguas, cumbrera norte-sur (como skoura_capanna.jpg)
-    const z0 = -14, z1 = -4.65, eave = 6.0, ridge = 7.9, hw = 2.65;
-    const body = add(new THREE.BoxGeometry(hw * 2, eave, z1 - z0), mHouse);
-    body.position.set(0, eave / 2, (z0 + z1) / 2);
+    // casa a dos aguas (cumbrera norte-sur), fachada al patio como en el video:
+    // gran vano con cancelería de acero negro y vidrio, ventana cuadrada arriba a la izquierda
+    const z1 = -4.65, z0 = -14, eave = 6.0, ridge = 7.9, hw = 2.65, T = 0.32;
+    const OP = { x0: -1.35, x1: 1.65, h: 2.95 }, WIN = { x0: -1.6, x1: -0.3, y0: 4.15, y1: 5.45 };
+    const fac = new THREE.Shape();
+    fac.moveTo(-hw, 0); fac.lineTo(OP.x0, 0); fac.lineTo(OP.x0, OP.h); fac.lineTo(OP.x1, OP.h); fac.lineTo(OP.x1, 0);
+    fac.lineTo(hw, 0); fac.lineTo(hw, eave); fac.lineTo(0, ridge); fac.lineTo(-hw, eave); fac.lineTo(-hw, 0);
+    const wh = new THREE.Path();
+    wh.moveTo(WIN.x0, WIN.y0); wh.lineTo(WIN.x0, WIN.y1); wh.lineTo(WIN.x1, WIN.y1); wh.lineTo(WIN.x1, WIN.y0); wh.lineTo(WIN.x0, WIN.y0);
+    fac.holes.push(wh);
+    const facade = add(new THREE.ExtrudeGeometry(fac, { depth: T, bevelEnabled: false }), mHouse);
+    facade.position.set(0, 0, z1 - T);
+    // volumen de la casa detrás de la fachada (planta alta maciza) y cubierta
+    const upper = add(new THREE.BoxGeometry(hw * 2, eave - 3.25, z1 - T - z0), mHouse);
+    upper.position.set(0, 3.25 + (eave - 3.25) / 2, (z0 + z1 - T) / 2);
     const prof = new THREE.Shape();
-    prof.moveTo(-hw - 0.05, 0); prof.lineTo(0, ridge - eave); prof.lineTo(hw + 0.05, 0); prof.lineTo(-hw - 0.05, 0);
-    const roof = new THREE.ExtrudeGeometry(prof, { depth: z1 - z0, bevelEnabled: false });
-    const r = add(roof, mHouse);
+    prof.moveTo(-hw, 0); prof.lineTo(0, ridge - eave); prof.lineTo(hw, 0); prof.lineTo(-hw, 0);
+    const r = add(new THREE.ExtrudeGeometry(prof, { depth: z1 - T - z0, bevelEnabled: false }), mHouse);
     r.position.set(0, eave, z0);
-    // vano de la puerta y ventana hacia el patio (sombras profundas)
-    const mDark = patch(new THREE.MeshStandardMaterial({ color: 0x2a221c, roughness: 0.4, envMapIntensity: 0.6 }), { key: 'dark', reveal: true });
-    const door = add(new THREE.PlaneGeometry(1.5, 2.5), mDark, { cast: false });
-    door.position.set(0.05, 1.25, z1 + 0.005);
-    const win = add(new THREE.PlaneGeometry(0.8, 0.9), mDark, { cast: false });
-    win.position.set(0.05, 4.6, z1 + 0.005);
+    // interior visible por el vano: comedor en penumbra cálida
+    const mIn = chukum('#7a4a36', 'interior', { tri: 0.4, normal: 0.4, mottle: 0.2, rough: 0.9 });
+    const D = 4.4;
+    const room = add(new THREE.BoxGeometry(hw * 2 - 0.3, 3.25, D), Object.assign(mIn, { side: THREE.BackSide }), { cast: false });
+    room.position.set(0, 1.625, z1 - T - D / 2);
+    const mFloorIn = chukum('#8d6a52', 'floorIn', { tri: 0.6, normal: 0.3, mottle: 0.15, rough: 0.6 });
+    const fl = add(new THREE.PlaneGeometry(hw * 2 - 0.3, D).rotateX(-Math.PI / 2), mFloorIn, { cast: false });
+    fl.position.set(0, 0.004, z1 - T - D / 2);
+    const mWood = chukum('#5a3424', 'woodIn', { tri: 0.8, normal: 0.3, mottle: 0.25, rough: 0.55 });
+    const tbl = add(new RoundedBoxGeometry(1.0, 0.06, 2.2, 2, 0.01), mWood); tbl.position.set(0.2, 0.76, z1 - T - 2.0);
+    const ped = add(new THREE.CylinderGeometry(0.18, 0.24, 0.73, 24), mWood); ped.position.set(0.2, 0.365, z1 - T - 2.0);
+    const dark = add(new THREE.PlaneGeometry(0.95, 2.2), patch(new THREE.MeshStandardMaterial({ color: 0x120c08, roughness: 1 }), { key: 'darkDoor', reveal: true }), { cast: false });
+    dark.position.set(-0.9, 1.1, z1 - T - D + 0.02);
+    // lámpara de papel (como en skoura_comedor.jpg)
+    const lantern = add(new THREE.SphereGeometry(0.32, 32, 20), patch(new THREE.MeshStandardMaterial({ color: 0xf3e6d2, emissive: 0xffcf96, emissiveIntensity: 1.4, roughness: 1 }), { key: 'lantern', reveal: true }), { cast: false });
+    lantern.position.set(0.2, 2.2, z1 - T - 2.0);
+    const inLight = new THREE.PointLight(0xffc58a, 6, 6, 1.6);
+    inLight.position.set(0.2, 2.0, z1 - T - 2.0);
+    group.add(inLight);
+    // cancelería de acero negro y vidrio
+    const mSteel = patch(new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.45, metalness: 0.6 }), { key: 'steel', reveal: true });
+    const mGlass = patch(new THREE.MeshStandardMaterial({ color: 0x0a0d0d, roughness: 0.04, metalness: 0.0, envMapIntensity: 1.6, transparent: true, opacity: 0.32, depthWrite: false }), { key: 'glass', reveal: true });
+    const zf = z1 - T * 0.55;
+    const bar = (w, h, x, y, z = zf) => { const b = add(new THREE.BoxGeometry(w, h, 0.05), mSteel, { cast: false }); b.position.set(x, y, z); };
+    for (const x of [OP.x0 + 0.03, -0.6, 0.15, 0.9, OP.x1 - 0.03]) bar(0.05, OP.h, x, OP.h / 2);
+    bar(OP.x1 - OP.x0, 0.05, (OP.x0 + OP.x1) / 2, 2.32);
+    bar(OP.x1 - OP.x0, 0.05, (OP.x0 + OP.x1) / 2, OP.h - 0.03);
+    const gl = add(new THREE.PlaneGeometry(OP.x1 - OP.x0, OP.h), mGlass, { cast: false, receive: false });
+    gl.position.set((OP.x0 + OP.x1) / 2, OP.h / 2, zf - 0.01);
+    const wz = z1 - T * 0.5;
+    for (let i = 0; i <= 3; i++) {
+      bar(0.035, WIN.y1 - WIN.y0, WIN.x0 + (WIN.x1 - WIN.x0) * (i / 3), (WIN.y0 + WIN.y1) / 2, wz);
+      bar(WIN.x1 - WIN.x0, 0.035, (WIN.x0 + WIN.x1) / 2, WIN.y0 + (WIN.y1 - WIN.y0) * (i / 3), wz);
+    }
+    const wb = add(new THREE.PlaneGeometry(WIN.x1 - WIN.x0, WIN.y1 - WIN.y0), patch(new THREE.MeshStandardMaterial({ color: 0x15110e, roughness: 0.08, envMapIntensity: 1.2 }), { key: 'winBack', reveal: true }), { cast: false });
+    wb.position.set((WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, wz - 0.03);
+    // lámparas redondas en los muros (los "ojos" de luz de Skoura)
+    for (const [x, y, z, ry] of [[LOT.x0 + 0.005, 1.75, -2.4, Math.PI / 2], [LOT.x0 + 0.005, 1.75, 1.6, Math.PI / 2], [LOT.x1 - 0.005, 1.75, -1.2, -Math.PI / 2], [LOT.x1 - 0.005, 1.75, 2.8, -Math.PI / 2]]) {
+      const l = lamp(0.06); l.position.set(x, y, z); l.rotation.y = ry; group.add(l);
+    }
   }
 
   // --- celosía de carrizo sobre los muros laterales (en el video, sobre ambos muros)
@@ -277,26 +346,42 @@ export function buildCourtyard(scene) {
       c.position.set(x, 4.6 + 0.575, (LOT.z0 + 9.4 + LOT.z1) / 2);
     }
   }
-  // --- fragmentos de muro antiguo a los lados de la puerta (piedra caliza conservada)
+  // --- fragmentos de muro antiguo a los lados del vano (mampostería de piedra caliza conservada)
   {
-    const mL = chukum(C.limestone, 'limestone', { tri: 1.3, normal: 2.2, mottle: 0.45, rough: 0.95 });
-    const rock = (seed, w, h, d) => {
-      const g = new THREE.IcosahedronGeometry(1, 4);
+    const mL = chukum(C.limestone, 'limestone', { tri: 1.1, normal: 1.6, mottle: 0.4, rough: 0.95 });
+    mL.onBeforeCompile = ((orig) => (sh) => {
+      orig(sh);
+      sh.fragmentShader = sh.fragmentShader.replace('#include <lights_fragment_begin>', `
+        { // poros y oquedades de la piedra coralina
+          float pit = smoothstep(0.6, 0.78, eNoise3(vWPos * 7.0)) + 0.6 * smoothstep(0.66, 0.8, eNoise3(vWPos * 19.0 + 3.1));
+          diffuseColor.rgb *= 1.0 - 0.5 * clamp(pit, 0.0, 1.0);
+          diffuseColor.rgb *= 0.85 + 0.3 * eFbm2(vWPos.xy * 1.7 + vWPos.z);
+        }
+        #include <lights_fragment_begin>`);
+    })(mL.onBeforeCompile);
+    const ruin = (seed, w, h, d) => {
+      const g = new THREE.BoxGeometry(w, h, d, 18, 30, 6);
       const pos = g.attributes.position;
       const v = new THREE.Vector3();
+      const n3 = (x, y, z) => Math.sin(x * 3.1 + seed) * Math.sin(y * 2.3 + seed * 1.7) * Math.sin(z * 4.1 + seed * 0.6)
+        + 0.5 * Math.sin(x * 9.7 + seed * 2.0) * Math.sin(y * 8.3 + seed) + 0.25 * Math.sin(y * 21.0 + x * 13.0 + seed);
       for (let i = 0; i < pos.count; i++) {
         v.fromBufferAttribute(pos, i);
-        const n = Math.sin(v.x * 5.1 + seed) * Math.sin(v.y * 4.3 + seed * 2.1) * Math.sin(v.z * 6.7 + seed * 0.7);
-        const n2 = Math.sin(v.x * 13.0 + seed * 3.0) * Math.sin(v.y * 11.0) * 0.4;
-        v.multiplyScalar(1 + 0.16 * n + 0.07 * n2);
-        v.y = Math.max(v.y, -0.92);
-        pos.setXYZ(i, v.x * w, v.y * h, v.z * d);
+        const top = (v.y + h / 2) / h;
+        // borde superior erosionado e irregular, caras abombadas
+        const bite = top > 0.75 ? (top - 0.75) * 4 * (0.5 + 0.5 * Math.sin(v.x * 5.0 + seed * 3.0)) : 0;
+        v.y -= bite * h * 0.22;
+        const k = 1 + 0.05 * n3(v.x, v.y, v.z);
+        v.x *= k; v.z *= 1 + 0.12 * n3(v.z, v.x, v.y);
+        v.x += 0.04 * n3(v.y, v.z, v.x);
+        pos.setXYZ(i, v.x, v.y, v.z);
       }
       g.computeVertexNormals();
       return g;
     };
-    const a = add(rock(1.3, 0.62, 1.35, 0.38), mL); a.position.set(-1.72, 1.25, -4.42); a.rotation.y = 0.12;
-    const b = add(rock(4.1, 0.34, 1.25, 0.32), mL); b.position.set(1.85, 1.15, -4.45); b.rotation.y = -0.2;
+    const a = add(ruin(1.3, 1.25, 2.35, 0.42), mL); a.position.set(-1.92, 1.175, -4.2); a.rotation.y = 0.05;
+    const b = add(ruin(4.1, 0.55, 2.2, 0.4), mL); b.position.set(2.17, 1.1, -4.22); b.rotation.y = -0.08;
+    const l = lamp(0.05); l.position.set(-1.72, 1.55, -3.98); group.add(l);
   }
 
   // --- vecinos: azoteas y jardines (sólo se ven desde el dron)

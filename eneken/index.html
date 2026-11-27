@@ -9,7 +9,7 @@
     <title>Enekén Studio — Arquitectura escultórica</title>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body class="is-loading">
+  <body class="is-loading on-paper">
     <canvas id="gl" aria-hidden="true"></canvas>
 
     <div id="loader" class="loader" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria="loader">
@@ -29,11 +29,9 @@
       </div>
     </header>
 
-    <div class="captions" aria-live="polite">
-      <p class="cap cap-intro" id="cap-intro"><span class="k" data-i18n="intro.k"></span><span class="v" data-i18n="intro.v"></span></p>
-      <button class="hint" id="hint" type="button"><span data-i18n="hint"></span><i aria-hidden="true"></i></button>
-      <p class="cap cap-place" id="cap-place"><span class="k" data-i18n="place.k"></span><span class="v" data-i18n="place.v"></span></p>
-      <p class="cap cap-touch" id="cap-touch"><i aria-hidden="true"></i><span data-i18n="touch"></span></p>
+    <div class="captions">
+      <button class="hint" id="hint" type="button" data-i18n-aria="hint"><i aria-hidden="true"></i></button>
+      <p class="cap cap-touch" id="cap-touch" aria-hidden="true"><i></i></p>
     </div>
 
     <main id="track" class="track">

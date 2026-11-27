@@ -16,7 +16,7 @@ export const LAYER_UNDERWATER = 1;
 // Uniforms globales: el mismo objeto se comparte entre todos los materiales.
 export const G = {
   uTime: { value: 0 },
-  uSunDir: { value: new THREE.Vector3(0.34, 0.86, 0.38).normalize() }, // sol alto de Mérida, desde el sureste
+  uSunDir: { value: new THREE.Vector3(0.3, 0.8, 0.52).normalize() }, // sol alto de Mérida, desde el sur-sureste
   uGoboTex: { value: null },
   uGoboRect: { value: new THREE.Vector4(-9, -10, 18, 20) }, // x0, z0, ancho, largo (m)
   uGoboH: { value: 5.5 },
@@ -205,7 +205,7 @@ export function patch(mat, opt = {}) {
     }
     if (opt.mottle) {
       normalCode += `
-        diffuseColor.rgb *= 1.0 - ${opt.mottle.toFixed(3)} * 0.5 + ${opt.mottle.toFixed(3)} * eFbm2(vWPos.xz * 0.9 + vWPos.y * 0.6);`;
+        diffuseColor.rgb *= 1.0 - ${opt.mottle.toFixed(3)} * 0.5 + ${opt.mottle.toFixed(3)} * (0.65 * eFbm2(vWPos.xz * 0.9 + vec2(vWPos.y * 0.7, -vWPos.y * 0.5)) + 0.35 * eFbm2(vWPos.zy * 2.3 + vWPos.x * 1.7));`;
     }
 
     sh.fragmentShader = sh.fragmentShader
