@@ -31,14 +31,14 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
   const PAPER = new THREE.Color('#f6f0e1');
   const PAPER_SRGB = new THREE.Vector3(246 / 255, 240 / 255, 225 / 255);
 
-  const intro = { k: 0, thick: 0, dil: 0, depth: 1, ink: 1, inkAlb: 1, carve: 0, light: 0 };
+  const intro = { k: 0, build: 0, ink: 1, light: 0 };
   const state = { hub: false, shadowsDone: false };
 
   const portrait = () => camera.aspect < 0.9;
   const sculptDist = () => {
     const a = camera.aspect, T = tanH(FOV0);
     const dh = logo.size.y / (0.72 * T);
-    const dw = logo.size.x / (0.9 * T * a);
+    const dw = logo.size.x / (0.96 * T * a);
     return Math.max(dh, dw);
   };
 
@@ -115,6 +115,7 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
     courtyard.group.visible = false;
     sky.visible = false;
     sun.intensity = 0;
+    renderer.shadowMap.needsUpdate = true;   // los listones se arman: sombras propias vivas
     renderer.setClearColor(PAPER, 1);
     G.uRevealR.value = 0;
   }
@@ -143,7 +144,9 @@ export function createDirector({ camera, logo, water, courtyard, sun, scene, ren
     water.surfMat.uniforms.uSunInt.value = day;
     scene.environmentIntensity = 0.9;
 
-    if (courtyard.group.visible && !state.shadowsDone) { renderer.shadowMap.needsUpdate = true; state.shadowsDone = true; }
+    if (p < 0.36) renderer.shadowMap.needsUpdate = true;
+    else if (!state.shadowsDone) { renderer.shadowMap.needsUpdate = true; state.shadowsDone = true; }
+    if (p < 0.3) state.shadowsDone = false;
     state.hub = p > 0.9;
     ui(p);
   }

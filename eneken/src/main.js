@@ -88,6 +88,7 @@ if (!CAPTURE) requestAnimationFrame(pumpLoader);
 
 // ---------------------------------------------------------------- three
 const renderer = createRenderer(canvas);
+renderer.shadowMap.autoUpdate = false; // las sombras se recalculan sólo cuando algo se mueve
 const scene = new THREE.Scene();
 scene.background = null;
 renderer.setClearColor(0x120d0a, 1);
@@ -200,13 +201,9 @@ function playIntro() {
     .to(loaderEl, { opacity: 0, duration: 1.0, ease: 'sine.inOut' }, 0.45)
     .set(loaderEl, { display: 'none' }, 1.5)
     .to(I, { k: 1, duration: 6.6, ease: 'power2.inOut' }, 0.6)
-    .to(I, { light: 1, duration: 2.0 }, 1.2)
-    .to(I, { thick: 1, duration: 2.8 }, 1.4)
-    .to(I, { ink: 0, duration: 1.6 }, 1.5)
-    .to(I, { dil: 1, duration: 3.0 }, 2.0)
-    .to(I, { depth: 1.5, duration: 3.0 }, 2.4)
-    .to(I, { inkAlb: 0, duration: 2.4 }, 2.6)
-    .to(I, { carve: 1, duration: 2.6 }, 3.2)
+    .to(I, { light: 1, duration: 1.8 }, 1.0)
+    .to(I, { build: 1, duration: 4.2, ease: 'none' }, 1.3)
+    .to(I, { ink: 0, duration: 1.4 }, 2.9)
     .call(() => {
       introDone = true;
       director.endIntro();
@@ -221,7 +218,7 @@ function playIntro() {
 Promise.all([ready, loaded]).then(() => {
   if (params.has('p')) {
     // saltar a un punto de la secuencia (para revisión): ?p=0.5
-    Object.assign(director.intro, { k: 1, thick: 1, dil: 1, depth: 1.5, ink: 0, inkAlb: 0, carve: 1, light: 1 });
+    Object.assign(director.intro, { k: 1, build: 1, ink: 0, light: 1 });
     loaderEl.style.display = 'none';
     document.body.classList.remove('is-loading');
     document.body.classList.add('ui-on');
