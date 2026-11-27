@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f0e1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Enekén Studio — arquitectura escultórica. Mérida · CDMX. Demo conceptual por Alessia Studio." />
+    <title>Enekén Studio — Arquitectura escultórica</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="is-loading">
+    <canvas id="gl" aria-hidden="true"></canvas>
+
+    <div id="loader" class="loader" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria="loader">
+      <div class="loader-mark">
+        <svg id="loader-logo" class="logo-svg" aria-hidden="true"></svg>
+        <p class="wordmark" aria-hidden="true">ENEKĒN</p>
+      </div>
+    </div>
+
+    <header class="top" id="top">
+      <a class="mark" href="#" id="mark" aria-label="Enekén Studio">
+        <svg id="mark-logo" class="logo-svg" aria-hidden="true"></svg>
+        <span class="mark-name">Enekēn</span>
+      </a>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="es">ES</button><span aria-hidden="true">/</span><button type="button" data-lang="en">EN</button>
+      </div>
+    </header>
+
+    <div class="captions" aria-live="polite">
+      <p class="cap cap-intro" id="cap-intro"><span class="k" data-i18n="intro.k"></span><span class="v" data-i18n="intro.v"></span></p>
+      <button class="hint" id="hint" type="button"><span data-i18n="hint"></span><i aria-hidden="true"></i></button>
+      <p class="cap cap-place" id="cap-place"><span class="k" data-i18n="place.k"></span><span class="v" data-i18n="place.v"></span></p>
+      <p class="cap cap-touch" id="cap-touch"><i aria-hidden="true"></i><span data-i18n="touch"></span></p>
+    </div>
+
+    <main id="track" class="track">
+      <section id="seq" class="seq">
+        <h1 class="sr-only" data-i18n="title"></h1>
+      </section>
+    </main>
+
+    <footer class="credit" data-i18n="credit"></footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
