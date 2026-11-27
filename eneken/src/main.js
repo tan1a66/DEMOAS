@@ -199,7 +199,7 @@ function playIntro() {
   tl.to('.wordmark', { opacity: 0, duration: 0.9, ease: 'sine.out' }, 0)
     .to(loaderEl, { opacity: 0, duration: 1.0, ease: 'sine.inOut' }, 0.45)
     .set(loaderEl, { display: 'none' }, 1.5)
-    .to(I, { k: 1, duration: 6.4, ease: 'expo.inOut' }, 0.7)
+    .to(I, { k: 1, duration: 6.6, ease: 'power2.inOut' }, 0.6)
     .to(I, { thick: 1, duration: 2.6, ease: 'sine.inOut' }, 1.6)
     .to(I, { ink: 0, duration: 1.8, ease: 'sine.inOut' }, 1.7)
     .to(I, { fill: 0.55, duration: 1.4 }, 1.4)

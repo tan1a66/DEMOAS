@@ -39,7 +39,7 @@ const WOOD_FRAG = (normalFromSdf) => /* glsl */ `
     float wr;
     vec3 wc = eWoodAlbedo(vObj - uRingAxis, wr);
     wc *= 1.0 - edge * 0.04 * uCarve;
-    diffuseColor.rgb = mix(wc, uInkAlbCol, uInkAlb);
+    diffuseColor.rgb = mix(wc, uInkAlbCol, uInkAlb) * (1.0 - 0.45 * sin(3.14159 * uInkAlb));
     roughnessFactor = mix(wr, 0.55, uInkAlb);
   }
 `;
@@ -295,11 +295,11 @@ export function buildRoom(scene, tex) {
     tri: { scale: 0.22, normal: 0.45, amount: 0.3, mean: 0.42 },
     mottle: 0.24,
     fragHead: 'uniform float uPaperMix; uniform vec3 uPaperCol; uniform float uRoomDark; uniform float uRoomY;',
-    fragColor: `gl_FragColor.rgb = mix(gl_FragColor.rgb, uVoid, max(uRoomDark, smoothstep(-3.6, -6.5, vWPos.y - uRoomY)));
+    fragColor: `gl_FragColor.rgb = mix(gl_FragColor.rgb, uVoid, uRoomDark);
       gl_FragColor.rgb = mix(gl_FragColor.rgb, uPaperCol, uPaperMix);`,
   });
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 16), wallMat);
-  wall.position.set(0, 0.5, -0.34);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(70, 46), wallMat);
+  wall.position.set(0, 1.5, -0.34);
   wall.receiveShadow = true;
   group.add(wall);
 

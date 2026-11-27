@@ -257,11 +257,13 @@ export function buildWater(renderer, parent, sky) {
     const mask = camera.layers.mask;
     camera.layers.set(LAYER_UNDERWATER);
     const bg = scene.background;
+    const prevClear = renderer.getClearColor(new THREE.Color());
     renderer.setRenderTarget(refractRT);
     renderer.setClearColor(0x0d1614, 1);
     renderer.clear();
     renderer.render(scene, camera);
     renderer.setRenderTarget(null);
+    renderer.setClearColor(prevClear, 1);
     camera.layers.mask = mask;
     scene.background = bg;
   };

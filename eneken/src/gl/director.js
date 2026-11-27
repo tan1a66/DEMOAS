@@ -30,6 +30,8 @@ export function createDirector({ camera, room, water, courtyard, sun, scene, ren
   // la esfera vive en el mundo (la sala se oculta después de la caída)
   room.group.updateMatrixWorld(true);
   scene.attach(room.sphere);
+  morphSphere(room.sphere, 0, room.sphereR, STOOL.r, STOOL.h);   // la esfera nace con el radio del punto
+  room.sphere.position.copy(room.group.position);
   room.group.updateMatrixWorld(true);
   const dotW = room.group.position.clone();
   const sculptW = dotW.clone().add(room.center);
@@ -45,6 +47,7 @@ export function createDirector({ camera, room, water, courtyard, sun, scene, ren
 
   const intro = { k: 0, thick: 0, ink: 1, inkAlb: 1, paper: 1, rake: 0, dust: 0, carve: 0, spot: 0, fill: 0.0 };
 
+  const VOID = new THREE.Color('#120d0a'), PAPER = new THREE.Color('#f6f0e1'), clearCol = new THREE.Color();
   const state = { splashed: false, morphK: -1, aspect: 1, hub: false, lastShadow: -1 };
 
   // distancias de encuadre según la proporción de pantalla
@@ -192,6 +195,12 @@ export function createDirector({ camera, room, water, courtyard, sun, scene, ren
     room.fill.intensity = intro.fill;
     room.dustU.uDust.value = intro.dust;
     G.uRoomDark.value = 0;
+    room.group.visible = true;
+    room.wall.visible = true;
+    courtyard.group.visible = false;
+    // fondo: papel del logo al principio, sombra cálida después
+    clearCol.copy(VOID).lerp(PAPER, intro.paper);
+    renderer.setClearColor(clearCol, 1);
     scene.environmentIntensity = 0.08;
     sun.intensity = 0;
     G.uRevealR.value = 0;
@@ -199,6 +208,7 @@ export function createDirector({ camera, room, water, courtyard, sun, scene, ren
 
   function frameScroll(p, t, dt) {
     applyLook();
+    renderer.setClearColor(VOID, 1);
     pose(p, P);
     applyCamera(P.target, P.yaw, P.pitch, P.dist, t);
 
@@ -233,6 +243,7 @@ export function createDirector({ camera, room, water, courtyard, sun, scene, ren
     G.uRevealR.value = 1.3 * sine(seg(p, 0.12, 0.25)) + 34 * Math.pow(seg(p, 0.25, 0.47), 2.0);
     G.uRevealF.value = mix(0.5, 4.0, seg(p, 0.22, 0.47));
     room.group.visible = p < 0.34;
+    room.wall.visible = p < 0.24;   // ya en penumbra total: deja ver el patio que se revela
     courtyard.group.visible = p > 0.08;
     // sombras estáticas en el pit: se recalculan sólo cuando algo cambia
     const needAuto = p < 0.86;
