@@ -11,6 +11,8 @@ export const POOL_DEPTH = 1.35;
 export const LOT = { x0: -2.5, x1: 2.5, z0: -14, z1: 14 };
 export const SOFA = { cx: 0.03, cz: -1.55, rOut: 1.6, rWall: 1.43, rSeat: 0.83 };
 export const STOOL = { x: 0.03, z: -1.58, r: 0.2, h: 0.4 };
+// puerta en el muro este (sale hacia la escalera de la segunda plaza)
+export const GATE = { z: -0.4, w: 1.3, h: 2.9 };
 export const PLATFORM_Y = 0.44;   // el pit es un zócalo de chukum: desde fuera el respaldo mide más de 1 m (fotos 9/20, 12/20)
 
 // Paleta (muestreada de las fotos, corregida a albedo)
@@ -90,7 +92,7 @@ function lamp(r) {
 
 export function buildCourtyard(scene) {
   // puntos de las puertas (tappe) y la hoja de madera que se abre
-  const hotspots = { nosotros: new THREE.Vector3(0.15, 1.35, -4.55), vision: new THREE.Vector3(1.95, 1.35, 2.55), contacto: new THREE.Vector3() };
+  const hotspots = { nosotros: new THREE.Vector3(0.15, 1.35, -4.55), vision: new THREE.Vector3(LOT.x1 + 0.1, 1.4, GATE.z), contacto: new THREE.Vector3() };
   const doorPivot = new THREE.Group();
   const group = new THREE.Group();
   group.name = 'patio';
@@ -111,8 +113,6 @@ export function buildCourtyard(scene) {
   const mStoneDark = chukum(C.stoneDark, 'stoneDark', { tri: 0.9, normal: 0.8, mottle: 0.2, rough: 0.8 });
   const mConc = chukum('#8c8077', 'concrete', { tri: 0.8, normal: 0.6, mottle: 0.3, rough: 0.8 });
   const mConcStep = mConc;
-  const mRoofN = chukum(C.roofN, 'roofN', { tri: 0.3, normal: 0.8, mottle: 0.25, rough: 0.9 });
-  const mSoil = chukum(C.soil, 'soil', { tri: 0.8, normal: 1.5, mottle: 0.35, rough: 1 });
 
   const mGravel = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color(C.gravel), roughness: 0.95, envMapIntensity: 0.5 }), {
     key: 'gravel', gobo: true, reveal: true, tri: { tex: 'pebble', scale: 1.9, normal: 2.0, amount: 0.9, mean: 0.36 },
@@ -135,17 +135,6 @@ export function buildCourtyard(scene) {
     const h = new THREE.Path(); h.absarc(0, 0, POOL_R, 0, Math.PI * 2, true); gs.holes.push(h);
     const gg = new THREE.ShapeGeometry(gs, 96); gg.rotateX(-Math.PI / 2);
     add(gg, mGravel, { cast: false });
-  }
-  {
-    // tierra de los jardines vecinos, con el hueco del lote
-    const ss = new THREE.Shape();
-    ss.moveTo(-20, 30); ss.lineTo(20, 30); ss.lineTo(20, -30); ss.lineTo(-20, -30); ss.lineTo(-20, 30);
-    const h = new THREE.Path();
-    h.moveTo(LOT.x0 - 0.1, -LOT.z0); h.lineTo(LOT.x0 - 0.1, -LOT.z1); h.lineTo(LOT.x1 + 0.1, -LOT.z1); h.lineTo(LOT.x1 + 0.1, -LOT.z0); h.lineTo(LOT.x0 - 0.1, -LOT.z0);
-    ss.holes.push(h);
-    const sg = new THREE.ShapeGeometry(ss); sg.rotateX(-Math.PI / 2);
-    const soil = add(sg, mSoil, { cast: false });
-    soil.position.y = -0.01;
   }
 
   // --- plataforma de chukum: unión suavizada de dos círculos, con el hueco de la piscina
@@ -346,10 +335,30 @@ export function buildCourtyard(scene) {
   // --- muros altos del lote y la casa a dos aguas (al norte)
   {
     const H = 4.6;
-    for (const x of [LOT.x0 - 0.15, LOT.x1 + 0.15]) {
-      const w = add(new RoundedBoxGeometry(0.3, H, LOT.z1 - LOT.z0, 2, 0.02), mWall);
-      w.position.set(x, H / 2, (LOT.z0 + LOT.z1) / 2);
+    const wW = add(new RoundedBoxGeometry(0.3, H, LOT.z1 - LOT.z0, 2, 0.02), mWall);
+    wW.position.set(LOT.x0 - 0.15, H / 2, (LOT.z0 + LOT.z1) / 2);
+    // muro este con la puerta de arco hacia la segunda plaza (GATE)
+    const xE = LOT.x1 + 0.15, g0 = GATE.z - GATE.w / 2, g1 = GATE.z + GATE.w / 2;
+    for (const [z0, z1] of [[LOT.z0, g0], [g1, LOT.z1]]) {
+      const w = add(new RoundedBoxGeometry(0.3, H, z1 - z0, 2, 0.02), mWall);
+      w.position.set(xE, H / 2, (z0 + z1) / 2);
     }
+    const gs = new THREE.Shape();
+    gs.moveTo(-GATE.w / 2, 0); gs.lineTo(GATE.w / 2, 0); gs.lineTo(GATE.w / 2, H); gs.lineTo(-GATE.w / 2, H); gs.lineTo(-GATE.w / 2, 0);
+    const gh = new THREE.Path();
+    gh.moveTo(-GATE.w / 2 + 0.001, -0.01); gh.lineTo(GATE.w / 2 - 0.001, -0.01); gh.lineTo(GATE.w / 2 - 0.001, GATE.h - GATE.w / 2);
+    gh.absarc(0, GATE.h - GATE.w / 2, GATE.w / 2 - 0.001, 0, Math.PI, false); gh.lineTo(-GATE.w / 2 + 0.001, -0.01);
+    gs.holes.push(gh);
+    const gw = add(new THREE.ExtrudeGeometry(gs, { depth: 0.3, bevelEnabled: false, curveSegments: 32 }), mWall);
+    gw.rotation.y = -Math.PI / 2; gw.position.set(xE - 0.15, 0, GATE.z);
+    // arco de piedra clara alrededor del vano, por los dos lados
+    const ar = new THREE.Shape();
+    const ro = GATE.w / 2 + 0.16, ri = GATE.w / 2, yc = GATE.h - GATE.w / 2;
+    ar.moveTo(-ro, 0); ar.lineTo(-ro, yc); ar.absarc(0, yc, ro, Math.PI, 0, true); ar.lineTo(ro, 0); ar.lineTo(ri, 0); ar.lineTo(ri, yc);
+    ar.absarc(0, yc, ri, 0, Math.PI, false); ar.lineTo(-ri, 0); ar.lineTo(-ro, 0);
+    const mArch = chukum('#d8c3a5', 'archStone', { tri: 1.1, normal: 1.0, mottle: 0.3, rough: 0.9 });
+    const arc = add(new THREE.ExtrudeGeometry(ar, { depth: 0.4, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, bevelSegments: 2, curveSegments: 32 }), mArch);
+    arc.rotation.y = -Math.PI / 2; arc.position.set(xE - 0.2, 0, GATE.z);
     const back = add(new RoundedBoxGeometry(LOT.x1 - LOT.x0 + 0.6, H, 0.3, 2, 0.02), mWall);
     back.position.set(0, H / 2, LOT.z1 + 0.15);
     // casa a dos aguas (cumbrera norte-sur), fachada al patio como en el video:
@@ -600,23 +609,6 @@ export function buildCourtyard(scene) {
     const a = add(ruin(1.3, 1.05, 2.55, 0.5), mL); a.position.set(-1.85, 1.275, -4.2); a.rotation.y = 0.05;
     const b = add(ruin(4.1, 0.6, 2.45, 0.45), mL); b.position.set(2.05, 1.225, -4.22); b.rotation.y = -0.08;
     const l = lamp(0.05); l.position.set(-1.72, 1.55, -3.98); group.add(l);
-  }
-
-  // --- vecinos: azoteas y jardines (sólo se ven desde el dron)
-  {
-    const roofs = [[-6.2, 4.0, -8.5, 6, 11], [6.4, 3.4, 7.5, 6.5, 12], [-6.6, 6.2, 6.5, 6, 9], [6.8, 5.6, -9.0, 6.5, 8]];
-    for (const [x, y, z, w, d] of roofs) {
-      const b = add(new THREE.BoxGeometry(w, y, d), mRoofN);
-      b.position.set(x, y / 2, z);
-      // pretil de la azotea
-      for (const [px, pz, pw, pd] of [[0, d / 2, w, 0.16], [0, -d / 2, w, 0.16], [w / 2, 0, 0.16, d], [-w / 2, 0, 0.16, d]]) {
-        const p = add(new THREE.BoxGeometry(pw, 0.4, pd), mRoofN);
-        p.position.set(x + px, y + 0.2, z + pz);
-      }
-      // tinaco
-      const t = add(new THREE.CylinderGeometry(0.55, 0.55, 1.2, 28), chukum('#2a2a2a', 'tinaco', { tri: 0.5, normal: 0.3, mottle: 0.05, rough: 0.6 }));
-      t.position.set(x + w * 0.25, y + 0.7, z - d * 0.3);
-    }
   }
 
   return { group, hotspots, doorPivot };

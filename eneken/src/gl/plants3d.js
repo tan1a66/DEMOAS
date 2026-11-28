@@ -19,8 +19,8 @@ const LAYOUT = [
   // junto a la casa sur (plátano y filodendro grandes)
   ['anthurium', -2.05, 3.4, 2.5, 1.0], ['anthurium', -1.6, 3.95, 2.1, 3.6], ['fern', -0.6, 4.05, 1.7, 0.2],
   // muro este
-  ['anthurium', 2.15, -3.35, 1.9, 2.9], ['fern', 2.2, -2.45, 1.9, 0.8], ['calathea', 2.15, -1.6, 2.0, 1.9],
-  ['anthurium', 2.2, -0.7, 1.7, 0.1], ['fern', 2.2, 0.25, 1.8, 2.4],
+  ['anthurium', 2.15, -3.35, 1.9, 2.9], ['fern', 2.2, -2.45, 1.9, 0.8], ['calathea', 2.2, -1.65, 1.6, 1.9],
+  ['fern', 2.25, 0.75, 1.7, 2.4], ['anthurium', 2.2, 1.35, 1.5, 0.1],
   // al norte, entre la grava y las ruinas
   ['fern', -1.15, -4.15, 1.5, 0.6], ['fern', 1.35, -4.2, 1.4, 1.7], ['calathea', -1.55, -3.75, 1.5, 0.9],
 ];

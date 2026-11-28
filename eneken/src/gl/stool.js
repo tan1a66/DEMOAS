@@ -48,3 +48,13 @@ export function makeStool(r, h) {
   return m;
 }
 
+
+// Sfera di legno intagliata (la scultura di Miguel Tapia, interior_lampara.jpg)
+export function makeWoodSphere(r) {
+  const s = makeStool(1, 2);
+  s.geometry.dispose();
+  s.geometry = new THREE.SphereGeometry(1, 64, 48);
+  s.scale.setScalar(r);
+  s.name = 'esfera';
+  return s;
+}

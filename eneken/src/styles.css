@@ -135,9 +135,12 @@ body.ui-on .stops { opacity: 1; }
 }
 .panel.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .kicker {
-  margin: 0 0 6px; font-family: var(--tech); font-size: 10.5px; font-weight: 600; letter-spacing: 0.26em; font-stretch: 118%;
-  text-transform: uppercase; color: var(--cream);
+  /* etichetta del capitolo: piccola targa color terracotta (come le "chapter" di ORVAE) */
+  display: inline-block; margin: 0 0 10px; padding: 4px 8px 3px;
+  font-family: var(--tech); font-size: 9.5px; font-weight: 600; letter-spacing: 0.24em; font-stretch: 118%;
+  text-transform: uppercase; color: #fff7ec; background: #c8683f; text-shadow: none;
 }
+.panel.bottom { top: auto; bottom: max(44px, calc(env(safe-area-inset-bottom) + 32px)); }
 .ptitle, .manifesto .hand, .mail, .pname { font-family: var(--hand); font-weight: 700; letter-spacing: 0; }
 .ptitle { margin: 0 0 10px; font-size: clamp(56px, 16vw, 112px); line-height: 0.9; }
 .ptext, .manifesto .line, .ig {
@@ -186,6 +189,7 @@ body.ui-on .stops { opacity: 1; }
 
 @media (min-width: 900px) {
   .panel { left: 64px; top: 120px; }
+  .panel.bottom { top: auto; bottom: 64px; }
   .stops { gap: 28px; left: 50%; top: 22px; transform: translateX(-50%); }
 }
 @media (prefers-reduced-motion: reduce) { .pin i::after { animation: none; } }

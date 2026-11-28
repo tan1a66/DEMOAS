@@ -1,4 +1,4 @@
-// Enekén — demo. Carga (la línea de base del logo) → el dron entra en Casa Skoura → Nosotros, Visión, Contacto.
+// Enekén — demo. Carga (la línea de base del logo) → el castillo sobre las nubes → tres plazas: Nosotros, Visión, Contacto.
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,6 +9,7 @@ import { buildSky } from './gl/sky.js';
 import { buildCourtyard, POOL_R } from './gl/courtyard.js';
 import { buildPlants } from './gl/plants.js';
 import { buildPlants3D } from './gl/plants3d.js';
+import { buildWorld } from './gl/world.js';
 import { buildWater } from './gl/water.js';
 import { createDirector, STOPS } from './gl/director.js';
 import { LOGO_STROKES, LOGO_VIEWBOX } from './logo-data.js';
@@ -94,7 +95,7 @@ renderer.shadowMap.autoUpdate = false; // las sombras se recalculan sólo cuando
 const scene = new THREE.Scene();
 scene.background = null;
 renderer.setClearColor(0x120d0a, 1);
-const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 200);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 600);
 
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -124,11 +125,11 @@ G.uGoboTex.value = makeGobo(G.uGoboRect.value);
 
 // luz del día (sol alto de Mérida, desde el sureste)
 const sun = new THREE.DirectionalLight(0xfff0dc, 0);
-sun.position.copy(G.uSunDir.value).multiplyScalar(30);
-sun.target.position.set(0, 0, 0);
+sun.position.copy(G.uSunDir.value).multiplyScalar(45).add(new THREE.Vector3(9, 0, -3));
+sun.target.position.set(9, 0, -3);   // centro del castillo
 sun.castShadow = true;
 sun.shadow.mapSize.set(QUALITY.shadow, QUALITY.shadow);
-Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 11, bottom: -11, near: 5, far: 60 });
+Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 5, far: 110 });
 sun.shadow.bias = -0.0006;
 sun.shadow.normalBias = 0.025;
 sun.shadow.radius = 2.5;
@@ -139,6 +140,9 @@ scene.add(bounce);
 
 const sky = buildSky(scene);
 const courtyard = buildCourtyard(scene);
+const world = buildWorld(scene, renderer);
+courtyard.hotspots.contacto = world.hotContacto;   // la puerta del arco de ODA lleva a la tercera plaza
+scene.fog = new THREE.Fog(0xc6d8e8, 45, 190);
 buildPlants(courtyard.group);
 let water = null, director = null;
 
@@ -166,11 +170,11 @@ const ready = (async () => {
   pmrem.dispose();
   await buildPlants3D(courtyard.group, manager);
   water = buildWater(renderer, courtyard.group, tex.sky);
-  director = createDirector({ camera, water, courtyard, sun, scene, renderer, ui, sky });
+  director = createDirector({ camera, water, courtyard, world, sun, scene, renderer, ui, sky });
   realProgress = 0.82;
   try { await document.fonts.ready; } catch (e) { /* sin fuentes */ }
   // compilar todos los shaders con la cámara del pit y de la sala (evita tirones luego)
-  courtyard.group.visible = true; sky.visible = true;
+  courtyard.group.visible = true; sky.visible = true; world.reflector.visible = true;
   camera.position.set(0, 12, 2); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   renderer.render(scene, camera);
@@ -209,8 +213,12 @@ function updatePins() {
   const H = courtyard.hotspots;
   const pts = [H.nosotros, H.vision, H.contacto];
   const w = canvas.clientWidth, h = canvas.clientHeight;
+  // fascia libera per i segnaposto: sotto il testo (in alto) o sopra il testo (in basso)
   const panel = document.querySelector('.panel.on');
-  const pb = panel ? panel.getBoundingClientRect().bottom + 30 : 0;
+  const pr = panel ? panel.getBoundingClientRect() : null;
+  const below = !pr || !panel.classList.contains('bottom');
+  const minY = below ? (pr ? pr.bottom + 30 : h * 0.18) : h * 0.2;
+  const maxY = below ? h * 0.86 : pr.top - 26;
   const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const used = { l: [], r: [] };   // i segnaposto sullo stesso bordo si impilano, non si sovrappongono
   pts.forEach((pt, i) => {
@@ -230,11 +238,12 @@ function updatePins() {
       x = right ? w - 12 - el.offsetWidth + 11 : 18;   // a la derecha el segnaposto termina en el borde
       y = Math.min(h * 0.82, Math.max(h * 0.62, y));
       el.dataset.edge = right ? 'r' : 'l';
+      y = Math.min(maxY, Math.max(minY, y));
       const side = used[right ? 'r' : 'l'];
-      while (side.some((yy) => Math.abs(yy - y) < 46)) y += 52;
+      while (side.some((yy) => Math.abs(yy - y) < 46)) y += below ? 52 : -52;
       side.push(y);
     } else delete el.dataset.edge;
-    y = Math.max(y, pb);
+    if (!edge) y = Math.min(maxY, Math.max(minY, y));
     el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
   });
 }
@@ -253,15 +262,15 @@ function playIntro() {
   tl.to('.loader-mark', { opacity: 0, duration: 0.9, ease: 'sine.out' }, 0)
     .set(loaderEl, { opacity: 0 }, 0.9)        // el lienzo ya muestra el mismo papel: el cambio no se ve
     .set(loaderEl, { display: 'none' }, 1.0)
-    .to(I, { k: 1, duration: 6.2, ease: 'power2.inOut' }, 0.9)
+    .to(I, { k: 1, duration: 8.4, ease: 'sine.inOut' }, 0.9)
     .call(() => {
       introDone = true;
       director.endIntro();
       document.body.classList.remove('is-intro', 'on-paper');
       lenis.start();
       ui(0);
-    }, null, 7.1)
-    .call(() => { document.body.classList.add('ui-on'); document.body.classList.remove('on-paper'); }, null, 5.6);
+    }, null, 9.3)
+    .call(() => { document.body.classList.add('ui-on'); document.body.classList.remove('on-paper'); }, null, 7.6);
   if (params.has('fast')) tl.timeScale(6);
 }
 

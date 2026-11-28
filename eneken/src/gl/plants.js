@@ -24,8 +24,9 @@ function layout() {
   const P = [];
   // dentro del lote las plantas son modelos reales (plants3d.js); aquí sólo las copas de los árboles
   // árboles grandes detrás de la casa (en el video asoman por encima de la cubierta)
-  for (const [x, z, h, r] of [[-3.6, -16.5, 8.6, 3.4], [4.2, -15.5, 9.4, 3.8], [0.8, -21, 10.5, 4.2], [-6.5, -11, 7.5, 3.0], [7.0, -9.5, 8.0, 3.2], [-0.6, 12.5, 10.5, 5.2], [4.5, 9.0, 8.5, 3.4]]) {
-    P.push({ type: 'tree', x, z, s: 1, h, r });
+  // ulivi sulle piazze del castello (base y0) e l'aguacate nel cortile posteriore
+  for (const [x, z, y0, h, r] of [[-0.6, 12.5, 0, 9.5, 4.2], [16.6, 2.6, 3.2, 2.9, 1.5], [10.4, -4.2, 3.2, 2.6, 1.3], [18.6, -11.5, 7.6, 2.8, 1.4]]) {
+    P.push({ type: 'tree', x, z, s: 1, h: h + y0, r, y0 });
   }
   return P;
 }
@@ -41,16 +42,18 @@ export function buildPlants(parent) {
     const T = TYPES[p.type];
     if (p.type === 'tree') {
       // copa: hojas sobre un volumen esférico achatado, con tronco
-      trunks.push({ x: p.x, z: p.z, h: p.h - p.r * 0.6, r: 0.16 + p.r * 0.03 });
-      const n = Math.round(520 * QUALITY.leaves);
+      trunks.push({ x: p.x, z: p.z, y0: p.y0 || 0, h: p.h - p.r * 0.6, r: 0.12 + p.r * 0.05 });
+      // ulivi (chioma piccola): foglie più piccole e argentate
+      const olive = p.r < 2;
+      const n = Math.round(520 * QUALITY.leaves * (olive ? 0.55 : 1));
       for (let i = 0; i < n; i++) {
         const u = R() * 2 - 1, a = R() * Math.PI * 2, rr = Math.cbrt(R()) * 0.35 + 0.65;
         const sx = Math.sqrt(1 - u * u) * Math.cos(a), sz = Math.sqrt(1 - u * u) * Math.sin(a);
-        const L = (T.L[0] + R() * (T.L[1] - T.L[0]));
+        const L = (T.L[0] + R() * (T.L[1] - T.L[0])) * (olive ? 0.55 : 1);
         leaves.push({
           tile: T.tile, kind: 'tree', L, W: L * T.W, yaw: Math.atan2(-sx, -sz) + (R() - 0.5) * 0.8, el: u * 0.9 + (R() - 0.5) * 0.6,
           x: p.x + sx * p.r * rr, z: p.z + sz * p.r * rr, y: p.h + u * p.r * 0.72 * rr,
-          droop: 0.1, phase: R(), tint: 0.62 + R() * 0.35,
+          droop: 0.1, phase: R(), tint: (olive ? 0.85 : 0.62) + R() * 0.35, olive,
         });
       }
       continue;
@@ -121,7 +124,7 @@ export function buildPlants(parent) {
     po.set(l.x, l.y, l.z);
     m4.compose(po, q, sc);
     mesh.setMatrixAt(i, m4);
-    col.setRGB(l.tint * 0.95, l.tint, l.tint * 0.9);
+    if (l.olive) col.setRGB(l.tint * 1.05, l.tint * 1.08, l.tint * 1.0); else col.setRGB(l.tint * 0.95, l.tint, l.tint * 0.9);
     mesh.setColorAt(i, col);
     aTile[i] = l.tile; aPhase[i] = l.phase; aDroop[i] = l.droop; aFold[i] = FOLD[l.kind] ?? 0.2;
   });
@@ -148,17 +151,17 @@ export function buildPlants(parent) {
   const stemMat = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color('#6f7432'), roughness: 0.7 }), { key: 'stems', gobo: true, reveal: true });
   const trunkMat = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color('#6b5a4a'), roughness: 0.95 }), { key: 'trunks', gobo: true, reveal: true, mottle: 0.4 });
   const cyl = new THREE.CylinderGeometry(0.7, 1, 1, 6, 1, true).translate(0, 0.5, 0);
-  const all = [...stems.map((s) => ({ ...s, mat: 0 })), ...trunks.map((t) => ({ x0: t.x, z0: t.z, x1: t.x + 0.3, y1: t.h, z1: t.z - 0.2, r: t.r, mat: 1 }))];
+  const all = [...stems.map((s) => ({ ...s, mat: 0 })), ...trunks.map((t) => ({ x0: t.x, z0: t.z, y0: t.y0, x1: t.x + 0.3, y1: t.h, z1: t.z - 0.2, r: t.r, mat: 1 }))];
   for (const [mi, mat] of [[0, stemMat], [1, trunkMat]]) {
     const list = all.filter((s) => s.mat === mi);
     if (!list.length) continue;
     const im = new THREE.InstancedMesh(cyl, mat, list.length);
     const up = new THREE.Vector3(0, 1, 0), dir = new THREE.Vector3();
     list.forEach((s, i) => {
-      dir.set(s.x1 - s.x0, s.y1, s.z1 - s.z0);
+      dir.set(s.x1 - s.x0, s.y1 - (s.y0 || 0), s.z1 - s.z0);
       const len = dir.length();
       q.setFromUnitVectors(up, dir.normalize());
-      m4.compose(po.set(s.x0, 0, s.z0), q, sc.set(s.r, len, s.r));
+      m4.compose(po.set(s.x0, s.y0 || 0, s.z0), q, sc.set(s.r, len, s.r));
       im.setMatrixAt(i, m4);
     });
     im.castShadow = true; im.receiveShadow = true;
