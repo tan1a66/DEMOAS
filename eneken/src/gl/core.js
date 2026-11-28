@@ -28,7 +28,7 @@ export const G = {
   uRevealR: { value: 100 },
   uRevealF: { value: 2.5 },
   uVoid: { value: new THREE.Vector3(18 / 255, 13 / 255, 10 / 255) }, // sRGB (se mezcla tras la conversión)
-  uGrain: { value: 0.035 },
+  uGrain: { value: 0.02 },
   uWaterY: { value: -0.07 },
   uAbsorb: { value: new THREE.Vector3(0.95, 0.3, 0.24) },
   uScatter: { value: new THREE.Vector3(0.016, 0.066, 0.058) }, // verde turquesa del video

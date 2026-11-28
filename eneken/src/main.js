@@ -8,6 +8,7 @@ import { loadTextures, makeGobo } from './gl/textures.js';
 import { buildSky } from './gl/sky.js';
 import { buildCourtyard, POOL_R } from './gl/courtyard.js';
 import { buildPlants } from './gl/plants.js';
+import { buildPlants3D } from './gl/plants3d.js';
 import { buildWater } from './gl/water.js';
 import { createDirector, STOPS } from './gl/director.js';
 import { LOGO_STROKES, LOGO_VIEWBOX } from './logo-data.js';
@@ -133,6 +134,8 @@ sun.shadow.normalBias = 0.025;
 sun.shadow.radius = 2.5;
 sun.layers.enableAll(); // también ilumina el vaso (capa submarina): cáusticas
 scene.add(sun, sun.target);
+const bounce = new THREE.HemisphereLight(0xdfe7f2, 0xc98a62, 0.9); // cielo + rebote del chukum
+scene.add(bounce);
 
 const sky = buildSky(scene);
 const courtyard = buildCourtyard(scene);
@@ -150,6 +153,7 @@ function ui(p) {
   const near = Math.abs(p - STOPS[cur]) < 0.09;
   panels.forEach((el, i) => el.classList.toggle('on', introDone && near && i === cur));
   navLinks.forEach((a, i) => a.setAttribute('aria-current', String(i === cur)));
+  curStop = cur;
 }
 
 // ---------------------------------------------------------------- carga completa
@@ -160,6 +164,7 @@ const ready = (async () => {
   scene.environment = pmrem.fromEquirectangular(tex.sky).texture;
   scene.environmentIntensity = 0.08;
   pmrem.dispose();
+  await buildPlants3D(courtyard.group, manager);
   water = buildWater(renderer, courtyard.group, tex.sky);
   director = createDirector({ camera, water, courtyard, sun, scene, renderer, ui, sky });
   realProgress = 0.82;
@@ -195,6 +200,44 @@ const goTo = (i) => {
   lenis.scrollTo(max * STOPS[i], { duration: 3.2, easing: (x) => 0.5 - 0.5 * Math.cos(Math.PI * x) });
 };
 navLinks.forEach((a, i) => a.addEventListener('click', (e) => { e.preventDefault(); if (introDone) goTo(i); }));
+// segnaposto sulle porte: tocando una porta la cámara va a su parada
+const pins = [...document.querySelectorAll('[data-pin]')];
+pins.forEach((b, i) => b.addEventListener('click', () => { if (introDone) goTo(i); }));
+const pinV = new THREE.Vector3();
+let curStop = 0;
+function updatePins() {
+  const H = courtyard.hotspots;
+  const pts = [H.nosotros, H.vision, H.contacto];
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const panel = document.querySelector('.panel.on');
+  const pb = panel ? panel.getBoundingClientRect().bottom + 30 : 0;
+  const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const used = { l: [], r: [] };   // i segnaposto sullo stesso bordo si impilano, non si sovrappongono
+  pts.forEach((pt, i) => {
+    const el = pins[i];
+    const vis = introDone && i !== curStop;
+    el.classList.toggle('on', vis);
+    if (!vis) return;
+    // en el espacio de la cámara: si la puerta está fuera del encuadre, el segnaposto se queda en el borde con una flecha
+    pinV.copy(pt).applyMatrix4(camera.matrixWorldInverse);
+    const inFront = pinV.z < -0.2;
+    const sx = inFront ? pinV.x / (-pinV.z * halfH * camera.aspect) : Math.sign(pinV.x || 1) * 9;
+    const sy = inFront ? pinV.y / (-pinV.z * halfH) : 0;
+    let x = (sx + 1) / 2 * w, y = (1 - sy) / 2 * h;
+    const edge = !inFront || Math.abs(sx) > 0.9 || sy < -0.9 || sy > 0.9;
+    if (edge) {
+      const right = sx > 0;
+      x = right ? w - 12 - el.offsetWidth + 11 : 18;   // a la derecha el segnaposto termina en el borde
+      y = Math.min(h * 0.82, Math.max(h * 0.62, y));
+      el.dataset.edge = right ? 'r' : 'l';
+      const side = used[right ? 'r' : 'l'];
+      while (side.some((yy) => Math.abs(yy - y) < 46)) y += 52;
+      side.push(y);
+    } else delete el.dataset.edge;
+    y = Math.max(y, pb);
+    el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+  });
+}
 $('#mark').addEventListener('click', (e) => { e.preventDefault(); if (introDone) goTo(0); });
 
 // ---------------------------------------------------------------- intro
@@ -293,6 +336,7 @@ function tick() {
   water.update(dt, poolVisible);
   if (poolVisible) water.renderRefraction(scene, camera);
   renderer.render(scene, camera);
+  updatePins();
 
   // calidad adaptativa: si el móvil no llega, bajamos la resolución
   frames++; acc += dt;

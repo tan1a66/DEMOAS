@@ -22,36 +22,10 @@ function rnd(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 10139
 // Plantas del patio según skoura_fosa_cenital.jpg (arriates junto a los muros) y vecinos.
 function layout() {
   const P = [];
-  const R = rnd(4);
-  const put = (type, x, z, s = 1) => P.push({ type, x, z, s });
-  // noroeste
-  put('monstera', -2.05, -3.0); put('monstera', -1.75, -2.45, 0.9); put('palm', -2.1, -4.1); put('fern', -1.6, -3.45);
-  put('broad', -2.2, -2.0, 0.9); put('fern', -2.25, -3.6, 0.8);
-  // noreste
-  put('palm', 1.95, -3.7, 1.1); put('palm', 2.15, -2.8); put('fern', 1.45, -3.25); put('broad', 2.2, -4.35);
-  put('monstera', 1.65, -2.35, 0.8);
-  // franja este
-  for (let z = -1.7; z < 0.6; z += 0.75) put(R() < 0.5 ? 'fern' : 'monstera', 2.2 + R() * 0.1, z + R() * 0.3, 0.8 + R() * 0.3);
-  put('palm', 2.2, 0.2, 0.9);
-  // suroeste
-  put('monstera', -2.05, 0.1); put('broad', -2.2, 0.9); put('monstera', -1.8, -0.55, 0.85); put('palm', -2.15, 1.7);
-  put('fern', -1.65, 0.65, 0.9);
-  // junto a la casa sur: plátano y monstera grandes (fotos 1/20, 12/20)
-  put('broad', -2.15, 3.6, 1.5); put('monstera', -1.9, 3.95, 1.3); put('broad', -2.2, 2.9, 1.2); put('fern', 0.5, 3.9, 0.9);
+  // dentro del lote las plantas son modelos reales (plants3d.js); aquí sólo las copas de los árboles
   // árboles grandes detrás de la casa (en el video asoman por encima de la cubierta)
   for (const [x, z, h, r] of [[-3.6, -16.5, 8.6, 3.4], [4.2, -15.5, 9.4, 3.8], [0.8, -21, 10.5, 4.2], [-6.5, -11, 7.5, 3.0], [7.0, -9.5, 8.0, 3.2], [-0.6, 12.5, 10.5, 5.2], [4.5, 9.0, 8.5, 3.4]]) {
     P.push({ type: 'tree', x, z, s: 1, h, r });
-  }
-  // vecinos: palmas altas y fronda
-  const n = Math.round(70 * QUALITY.leaves);
-  for (let i = 0; i < n; i++) {
-    const side = i % 2 ? 1 : -1;
-    const x = side * (3.6 + R() * 7.5);
-    const z = -12 + R() * 24;
-    const roofs = [[-6.2, -8.5, 6, 11], [6.4, 7.5, 6.5, 12], [-6.6, 6.5, 6, 9], [6.8, -9.0, 6.5, 8]];
-    const onRoof = roofs.some(([rx, rz, w, d]) => Math.abs(x - rx) < w / 2 && Math.abs(z - rz) < d / 2);
-    const big = onRoof || R() < 0.4;
-    put(big ? 'bigpalm' : ['monstera', 'broad', 'palm', 'palm'][Math.floor(R() * 4)], x, z, big ? 0.75 + R() * 0.3 : 1.2 + R() * 0.7);
   }
   return P;
 }

@@ -32,9 +32,9 @@ const C = {
   roofN: '#b7ada2',
 };
 
-function chukum(color, key, { tri = 0.4, normal = 0.7, mottle = 0.26, rough = 0.86 } = {}) {
+function chukum(color, key, { tri = 0.4, normal = 0.7, mottle = 0.26, rough = 0.86, gobo = true } = {}) {
   const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: rough, envMapIntensity: 0.55 });
-  return patch(m, { key, gobo: true, reveal: true, tri: { scale: tri, normal, amount: 0.5, mean: 0.42 }, mottle });
+  return patch(m, { key, gobo, reveal: true, tri: { scale: tri, normal, amount: 0.5, mean: 0.42 }, mottle });
 }
 
 function annularSector(r0, r1, a0, a1, segs = 72) {
@@ -89,6 +89,9 @@ function lamp(r) {
 }
 
 export function buildCourtyard(scene) {
+  // puntos de las puertas (tappe) y la hoja de madera que se abre
+  const hotspots = { nosotros: new THREE.Vector3(0.15, 1.35, -4.55), vision: new THREE.Vector3(1.95, 1.35, 2.55), contacto: new THREE.Vector3() };
+  const doorPivot = new THREE.Group();
   const group = new THREE.Group();
   group.name = 'patio';
   scene.add(group);
@@ -107,6 +110,7 @@ export function buildCourtyard(scene) {
   const mStone = chukum(C.stone, 'stone', { tri: 0.9, normal: 0.8, mottle: 0.22, rough: 0.8 });
   const mStoneDark = chukum(C.stoneDark, 'stoneDark', { tri: 0.9, normal: 0.8, mottle: 0.2, rough: 0.8 });
   const mConc = chukum('#8c8077', 'concrete', { tri: 0.8, normal: 0.6, mottle: 0.3, rough: 0.8 });
+  const mConcStep = mConc;
   const mRoofN = chukum(C.roofN, 'roofN', { tri: 0.3, normal: 0.8, mottle: 0.25, rough: 0.9 });
   const mSoil = chukum(C.soil, 'soil', { tri: 0.8, normal: 1.5, mottle: 0.35, rough: 1 });
 
@@ -185,24 +189,33 @@ export function buildCourtyard(scene) {
     key: 'pool' + side, gobo: true, underwater: true, grain: false, tri: { scale: 0.7, normal: 0.9, amount: 0.4, mean: 0.42 }, mottle: 0.18,
   });
   const mPool = poolMat(THREE.FrontSide);
-  const mStepsUW = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color(C.stone), roughness: 0.8, envMapIntensity: 0.0 }), {
-    key: 'stepsUW', gobo: true, underwater: true, grain: false, tri: { scale: 0.9, normal: 0.8, amount: 0.4, mean: 0.42 }, mottle: 0.2,
-  });
   {
     const wallG = new THREE.CylinderGeometry(POOL_R, POOL_R, POOL_DEPTH, 128, 6, true);
     const w = add(wallG, poolMat(THREE.BackSide), { cast: false, layer: LAYER_UNDERWATER });
     w.position.y = PLATFORM_Y - POOL_DEPTH / 2;
     const floor = add(new THREE.CircleGeometry(POOL_R, 96).rotateX(-Math.PI / 2), mPool, { cast: false, layer: LAYER_UNDERWATER });
     floor.position.y = PLATFORM_Y - POOL_DEPTH;
-    // escalones cuadrados en diagonal (sureste), bajando hacia el centro
+    // escalera única en la diagonal sureste (foto 15/20): los mismos peldaños cuadrados de concreto
+    // suben desde la grava, cruzan el zócalo y bajan dentro de la piscina
     const dir = new THREE.Vector2(1, 1).normalize();
-    const steps = [[0.27, -0.98], [0.54, -0.73], [0.81, -0.48], [1.06, -0.24]];
-    for (const [t, top] of steps) {
-      const h = top + POOL_DEPTH;
-      const st = add(new RoundedBoxGeometry(0.62, h, 0.26, 2, 0.012), mStepsUW, { cast: false, layer: LAYER_UNDERWATER });
-      st.position.set(dir.x * t, PLATFORM_Y - POOL_DEPTH + h / 2, dir.y * t);
-      st.rotation.y = -Math.PI / 4;
-    }
+    const TREAD = 0.3, RISE = PLATFORM_Y / 2, W = 0.62, GAP = 0.012;
+    const mStepUW = patch(new THREE.MeshStandardMaterial({ color: new THREE.Color('#8c8077'), roughness: 0.8, envMapIntensity: 0.0 }), {
+      key: 'stepsUW', gobo: true, underwater: true, grain: false, tri: { scale: 0.8, normal: 0.6, amount: 0.3, mean: 0.42 }, mottle: 0.3,
+    });
+    const step = (t, top, bottom, uw) => {
+      const h = top - bottom;
+      const st = add(new RoundedBoxGeometry(W, h, TREAD - GAP, 2, 0.01), uw ? mStepUW : mConcStep, uw ? { cast: false, layer: LAYER_UNDERWATER } : {});
+      st.position.set(dir.x * t, bottom + h / 2, dir.y * t);
+      st.rotation.y = Math.PI / 4;
+    };
+    // fuera: dos peldaños desde la grava hasta el zócalo
+    step(2.25 + TREAD / 2, RISE, 0, false);
+    step(1.95 + TREAD / 2, PLATFORM_Y + 0.004, 0, false);
+    // sobre el zócalo: dos peldaños al nivel del piso
+    step(1.65 + TREAD / 2, PLATFORM_Y + 0.006, PLATFORM_Y - 0.1, false);
+    step(1.35 + TREAD / 2, PLATFORM_Y + 0.006, PLATFORM_Y - 0.1, false);
+    // dentro del agua: cuatro peldaños hacia el centro
+    for (let k = 1; k <= 4; k++) step(1.2 - k * TREAD + TREAD / 2, PLATFORM_Y - k * RISE, PLATFORM_Y - POOL_DEPTH, true);
   }
 
   // --- losas de piedra gris: centro del pit, camino norte y diagonal de los escalones
@@ -272,15 +285,6 @@ export function buildCourtyard(scene) {
       c.position.set(sx, 0.58, sz);
       const r = add(new THREE.TorusGeometry(0.56, 0.055, 12, 64).rotateX(Math.PI / 2), mCushion);
       r.position.set(sx, 0.58, sz);
-    }
-    const d = add(new RoundedBoxGeometry(0.62, 0.03, 0.62, 2, 0.008), mConc, { cast: false });
-    const dir = new THREE.Vector2(1, 1).normalize();
-    d.position.set(dir.x * 1.5, PLATFORM_Y + 0.004, dir.y * 1.5);
-    d.rotation.y = Math.PI / 4;
-    for (const [t, h] of [[1.93, PLATFORM_Y * 0.66], [2.21, PLATFORM_Y * 0.33]]) {
-      const st = add(new RoundedBoxGeometry(0.62, h, 0.28, 2, 0.01), mConc);
-      st.position.set(dir.x * t, h / 2, dir.y * t);
-      st.rotation.y = Math.PI / 4;
     }
     // franja de concreto pigmentado en el eje: de la barra, por el respaldo y bajo el taburete, hasta el agua (foto 15/20)
     const axis = add(new RoundedBoxGeometry(0.86, 0.02, 1.22, 2, 0.006), mConc, { cast: false });
@@ -368,14 +372,14 @@ export function buildCourtyard(scene) {
     const r = add(new THREE.ExtrudeGeometry(prof, { depth: z1 - T - z0, bevelEnabled: false }), mHouse);
     r.position.set(0, eave, z0);
     // interior visible por el vano: comedor en penumbra cálida
-    const mIn = chukum('#7a4a36', 'interior', { tri: 0.4, normal: 0.4, mottle: 0.2, rough: 0.9 });
+    const mIn = chukum('#7a4a36', 'interior', { tri: 0.4, normal: 0.4, mottle: 0.2, rough: 0.9, gobo: false });
     const D = 4.4;
     const room = add(new THREE.BoxGeometry(hw * 2 - 0.3, 3.25, D), Object.assign(mIn, { side: THREE.BackSide }), { cast: false });
     room.position.set(0, 1.625, z1 - T - D / 2);
-    const mFloorIn = chukum('#8d6a52', 'floorIn', { tri: 0.6, normal: 0.3, mottle: 0.15, rough: 0.6 });
+    const mFloorIn = chukum('#8d6a52', 'floorIn', { tri: 0.6, normal: 0.3, mottle: 0.15, rough: 0.6, gobo: false });
     const fl = add(new THREE.PlaneGeometry(hw * 2 - 0.3, D).rotateX(-Math.PI / 2), mFloorIn, { cast: false });
     fl.position.set(0, 0.004, z1 - T - D / 2);
-    const mWood = chukum('#5a3424', 'woodIn', { tri: 0.8, normal: 0.3, mottle: 0.25, rough: 0.55 });
+    const mWood = chukum('#5a3424', 'woodIn', { tri: 0.8, normal: 0.3, mottle: 0.25, rough: 0.55, gobo: false });
     const tbl = add(new RoundedBoxGeometry(1.0, 0.06, 2.2, 2, 0.01), mWood); tbl.position.set(0.2, 0.76, z1 - T - 2.0);
     const ped = add(new THREE.CylinderGeometry(0.18, 0.24, 0.73, 24), mWood); ped.position.set(0.2, 0.365, z1 - T - 2.0);
     const dark = add(new THREE.PlaneGeometry(0.95, 2.2), patch(new THREE.MeshStandardMaterial({ color: 0x120c08, roughness: 1 }), { key: 'darkDoor', reveal: true }), { cast: false });
@@ -388,7 +392,7 @@ export function buildCourtyard(scene) {
     group.add(inLight);
     // cancelería de acero negro y vidrio
     const mSteel = patch(new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.45, metalness: 0.6 }), { key: 'steel', reveal: true });
-    const mGlass = patch(new THREE.MeshStandardMaterial({ color: 0x0a0d0d, roughness: 0.04, metalness: 0.0, envMapIntensity: 1.6, transparent: true, opacity: 0.32, depthWrite: false }), { key: 'glass', reveal: true });
+    const mGlass = patch(new THREE.MeshStandardMaterial({ color: 0x0a0d0d, roughness: 0.04, metalness: 0.0, envMapIntensity: 1.6, transparent: true, opacity: 0.2, depthWrite: false }), { key: 'glass', reveal: true, grain: false });
     const zf = z1 - T * 0.55;
     const bar = (w, h, x, y, z = zf) => { const b = add(new THREE.BoxGeometry(w, h, 0.05), mSteel, { cast: false }); b.position.set(x, y, z); };
     // fijo a la izquierda y montante arriba; las dos hojas centrales están abiertas hacia dentro
@@ -400,6 +404,7 @@ export function buildCourtyard(scene) {
     bar(0.03, TR, (OP.x0 + HINGE) / 2, TR / 2);
     for (const [w, h, cx, cy] of [[HINGE - OP.x0, TR, (OP.x0 + HINGE) / 2, TR / 2], [OP.x1 - OP.x0, OP.h - TR, (OP.x0 + OP.x1) / 2, (TR + OP.h) / 2]]) {
       const gl = add(new THREE.PlaneGeometry(w, h), mGlass, { cast: false, receive: false });
+      gl.renderOrder = 3;
       gl.position.set(cx, cy, zf - 0.01);
     }
     const leafW = (OP.x1 - HINGE) / 2;
@@ -415,6 +420,7 @@ export function buildCourtyard(scene) {
       part(leafW, 0.03, dir * leafW / 2, TR * 0.5);
       part(0.03, TR - 0.02, dir * leafW / 2, TR / 2);
       const gm = new THREE.Mesh(new THREE.PlaneGeometry(leafW, TR), mGlass);
+      gm.renderOrder = dir > 0 ? 1 : 2;
       gm.position.set(dir * leafW / 2, TR / 2, 0);
       g.add(gm);
       group.add(g);
@@ -458,7 +464,7 @@ export function buildCourtyard(scene) {
     const roof = add(new THREE.ExtrudeGeometry(pr, { depth: D + T, bevelEnabled: false }), mHouse);
     roof.position.set(cx, eave, zS);
     // interior en penumbra detrás de la cancelería y del ventanal
-    const room = add(new THREE.BoxGeometry(xE - xW - 0.2, 2.9, D), Object.assign(chukum('#7c4c38', 'interiorS', { tri: 0.4, normal: 0.3, mottle: 0.2 }), { side: THREE.BackSide }), { cast: false });
+    const room = add(new THREE.BoxGeometry(xE - xW - 0.2, 2.9, D), Object.assign(chukum('#7c4c38', 'interiorS', { tri: 0.4, normal: 0.3, mottle: 0.2, gobo: false }), { side: THREE.BackSide }), { cast: false });
     room.position.set(cx, 1.45, zS + T + D / 2);
     const bed = add(new RoundedBoxGeometry(1.5, 0.45, 2.0, 3, 0.06), mCushion); bed.position.set(-1.1, 0.25, zS + T + 1.6);
     const upIn = add(new THREE.PlaneGeometry(GRID[1] - GRID[0], GRID[3] - GRID[2]), patch(new THREE.MeshStandardMaterial({ color: 0x2a1c14, roughness: 0.9 }), { key: 'upIn', reveal: true }), { cast: false });
@@ -468,11 +474,24 @@ export function buildCourtyard(scene) {
     curtain.rotation.y = Math.PI; curtain.position.set(GRID[0] + 0.3, (GRID[2] + GRID[3]) / 2, zS + T + 0.12);
     // puerta de madera (tablones verticales)
     const mDoor = chukum('#b0703f', 'doorWood', { tri: 1.2, normal: 0.5, mottle: 0.35, rough: 0.6 });
-    const door = add(new THREE.BoxGeometry(DOOR[1] - DOOR[0], DOOR[2], 0.05), mDoor);
-    door.position.set((DOOR[0] + DOOR[1]) / 2, DOOR[2] / 2, zS + T * 0.6);
+    const dw = DOOR[1] - DOOR[0];
+    doorPivot.position.set(DOOR[0], 0, zS + T * 0.6);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(dw, DOOR[2], 0.05), mDoor);
+    door.position.set(dw / 2, DOOR[2] / 2, 0);
+    door.castShadow = door.receiveShadow = true;
+    doorPivot.add(door);
+    group.add(doorPivot);
+    // símbolo de planta arquitectónica: cuarto de círculo del barrido de la hoja, dibujado fino en el piso
+    const mLine = new THREE.MeshBasicMaterial({ color: 0xf3ead9, transparent: true, opacity: 0.85, depthWrite: false });
+    const arc = add(new THREE.RingGeometry(dw - 0.006, dw + 0.006, 48, 1, 0, Math.PI / 2).rotateX(-Math.PI / 2), mLine, { cast: false, receive: false });
+    arc.position.set(DOOR[0], 0.012, zS);
+    arc.rotation.y = 0;
+    const leafL = add(new THREE.PlaneGeometry(0.012, dw).rotateX(-Math.PI / 2), mLine, { cast: false, receive: false });
+    leafL.position.set(DOOR[0], 0.012, zS - dw / 2);
+    hotspots.contacto.set((DOOR[0] + DOOR[1]) / 2, 1.2, zS);
     // cancelería (3 x 3) y ventanal (3 x 4) de acero negro
     const mSteelS = patch(new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.45, metalness: 0.6 }), { key: 'steelS', reveal: true });
-    const mGlassS = patch(new THREE.MeshStandardMaterial({ color: 0x0b0e0e, roughness: 0.03, envMapIntensity: 1.8, transparent: true, opacity: 0.35, depthWrite: false }), { key: 'glassS', reveal: true });
+    const mGlassS = patch(new THREE.MeshStandardMaterial({ color: 0x0b0e0e, roughness: 0.03, envMapIntensity: 1.8, transparent: true, opacity: 0.25, depthWrite: false }), { key: 'glassS', reveal: true, grain: false });
     const grid = (x0, x1, y0, y1, nx, ny, z) => {
       for (let i = 0; i <= nx; i++) { const b = add(new THREE.BoxGeometry(0.045, y1 - y0, 0.05), mSteelS, { cast: false }); b.position.set(x0 + (x1 - x0) * (i / nx), (y0 + y1) / 2, z); }
       for (let j = 0; j <= ny; j++) { const b = add(new THREE.BoxGeometry(x1 - x0, 0.045, 0.05), mSteelS, { cast: false }); b.position.set((x0 + x1) / 2, y0 + (y1 - y0) * (j / ny), z); }
@@ -600,5 +619,5 @@ export function buildCourtyard(scene) {
     }
   }
 
-  return { group };
+  return { group, hotspots, doorPivot };
 }

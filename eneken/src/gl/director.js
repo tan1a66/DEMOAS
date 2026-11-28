@@ -1,8 +1,8 @@
 // Dirección de cámara.
 // Entrada (automática, tras la carga): sobre el papel del cargador se abre un círculo sobre Casa Skoura
 // vista desde el dron; el dron baja en espiral hasta la primera parada.
-// Scroll: tres paradas — Nosotros (el sofá con la casa norte detrás), Visión (desde lo alto del muro oeste,
-// el pit y el agua) y Contacto (detrás del respaldo, mirando la casa sur).
+// Paradas (con el scroll o tocando las puertas): Nosotros (la vetrata abierta de la casa norte), Visión (arriba
+// de la escalera exterior, el patio desde lo alto) y Contacto (delante de la puerta de madera de la casa sur).
 import * as THREE from 'three';
 import { G } from './core.js';
 import { HALO_MAT } from './courtyard.js';
@@ -42,8 +42,8 @@ export function createDirector({ camera, water, courtyard, sun, scene, renderer,
 
   // [x, y, z, yaw, pitch]
   const stopNosotros = () => (portrait() ? [0.1, 1.75, 3.3, 0.0, 0.1] : [0.1, 2.25, 3.9, 0.0, 0.07]);
-  const stopVision = () => (portrait() ? [-1.95, 4.0, -0.75, -Math.PI / 2, -0.9] : [-1.95, 3.6, -0.75, -Math.PI / 2, -0.75]);
-  const stopContacto = () => (portrait() ? [-0.45, 2.75, -4.3, -Math.PI + 0.06, -0.24] : [-0.5, 2.9, -4.4, -Math.PI + 0.06, -0.2]);
+  const stopVision = () => (portrait() ? [1.85, 4.55, 4.0, 0.3, -0.42] : [1.85, 4.55, 4.0, 0.28, -0.4]);
+  const stopContacto = () => (portrait() ? [-0.15, 2.75, -2.9, Math.PI + 0.04, -0.2] : [-0.15, 2.7, -2.7, Math.PI + 0.04, -0.17]);
   const fovF = () => (portrait() ? 56 : 44);
 
   // entrada: del dron cenital a la primera parada. La altura inicial se calcula para que el ancho
@@ -62,16 +62,16 @@ export function createDirector({ camera, water, courtyard, sun, scene, renderer,
       [1.0001, ...n, f],
     ];
   }
-  // scroll: Nosotros → Visión → Contacto, con pausas en cada parada
+  // scroll: Nosotros → (sube la escalera) Visión → (baja y gira) Contacto, con pausas en cada parada
   function scrollKeys() {
     const f = fovF();
     return [
       [0.0, ...stopNosotros(), f],
       [0.1, ...stopNosotros(), f],
-      [0.27, -1.45, 2.9, 2.3, -0.75, -0.42, f],
+      [0.26, 1.2, 2.4, 2.6, 0.2, -0.18, f],
       [0.42, ...stopVision(), f],
       [0.58, ...stopVision(), f],
-      [0.74, -1.55, 3.4, -3.1, -2.45, -0.42, f],
+      [0.74, 0.2, 3.2, 1.0, 2.0, -0.35, f],
       [0.9, ...stopContacto(), f],
       [1.0, ...stopContacto(), f],
     ];
@@ -120,6 +120,8 @@ export function createDirector({ camera, water, courtyard, sun, scene, renderer,
     pathAt(scrollKeys(), p, tmp);
     place(tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5], t, 0.004);
     common(1, t);
+    // la hoja de madera se abre al llegar a Contacto
+    courtyard.doorPivot.rotation.y = -1.2 * sine(seg(p, 0.8, 0.97));
     state.hub = true;
     ui(p);
   }
