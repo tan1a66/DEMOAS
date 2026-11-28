@@ -20,7 +20,7 @@
     </div>
 
     <header class="top" id="top">
-      <a class="mark" href="#" id="mark" aria-label="Enekén Studio">
+      <a class="mark" href="#nosotros" id="mark" aria-label="Enekén Studio">
         <svg id="mark-logo" class="logo-svg" aria-hidden="true"></svg>
         <span class="mark-name">Enekēn</span>
       </a>
@@ -29,15 +29,41 @@
       </div>
     </header>
 
-    <div class="captions">
-      <button class="hint" id="hint" type="button" data-i18n-aria="hint"><i aria-hidden="true"></i></button>
-      <p class="cap cap-touch" id="cap-touch" aria-hidden="true"><i></i></p>
+    <nav class="stops" id="stops" data-i18n-aria="nav">
+      <a href="#nosotros" data-stop="0"><span data-i18n="nav.nosotros"></span></a>
+      <a href="#vision" data-stop="1"><span data-i18n="nav.vision"></span></a>
+      <a href="#contacto" data-stop="2"><span data-i18n="nav.contacto"></span></a>
+    </nav>
+
+    <div class="panels">
+      <section class="panel" id="nosotros" data-panel="0" aria-labelledby="nos-k">
+        <p class="kicker" id="nos-k" data-i18n="nos.k"></p>
+        <h1 class="ptitle" data-i18n="nos.t"></h1>
+        <p class="ptext" data-i18n="nos.p"></p>
+        <figure class="person">
+          <img id="miguel" alt="Miguel Tapia" width="474" height="582" decoding="async" />
+          <figcaption><span class="pname" data-i18n="nos.name"></span><span class="prole" data-i18n="nos.role"></span></figcaption>
+        </figure>
+      </section>
+      <section class="panel" id="vision" data-panel="1" aria-labelledby="vis-k">
+        <p class="kicker" id="vis-k" data-i18n="vis.k"></p>
+        <p class="manifesto">
+          <span data-i18n="vis.1"></span>
+          <span data-i18n="vis.2"></span>
+          <span data-i18n="vis.3"></span>
+          <span data-i18n="vis.4"></span>
+        </p>
+      </section>
+      <section class="panel" id="contacto" data-panel="2" aria-labelledby="con-k">
+        <p class="kicker" id="con-k" data-i18n="con.k"></p>
+        <a class="mail" href="mailto:info@nkn.mx">info@nkn.mx</a>
+        <a class="ig" href="https://www.instagram.com/nkn.studio/" target="_blank" rel="noopener">@nkn.studio</a>
+        <p class="cities" data-i18n="con.cities"></p>
+      </section>
     </div>
 
     <main id="track" class="track">
-      <section id="seq" class="seq">
-        <h1 class="sr-only" data-i18n="title"></h1>
-      </section>
+      <div id="seq" class="seq"></div>
     </main>
 
     <footer class="credit" data-i18n="credit"></footer>

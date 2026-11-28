@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { G, patch, LAYER_UNDERWATER } from './core.js';
-import { makeStool } from './logo3d.js';
+import { makeStool } from './stool.js';
 
 export const POOL_R = 1.2;
 export const POOL_DEPTH = 1.35;

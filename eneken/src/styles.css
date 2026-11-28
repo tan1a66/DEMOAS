@@ -90,47 +90,6 @@ body.ui-on .top { opacity: 1; }
 .lang button { padding: 8px 2px; color: rgba(239, 230, 214, 0.5); transition: color 0.6s var(--ease); }
 .lang button[aria-pressed='true'] { color: var(--cream); }
 
-.captions { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
-.cap {
-  position: absolute; left: 50%; transform: translate(-50%, 8px);
-  margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; white-space: nowrap;
-  opacity: 0; transition: opacity 1.4s var(--ease), transform 1.6s var(--ease);
-}
-.cap.on { opacity: 1; transform: translate(-50%, 0); }
-.cap .k { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(22px, 6.2vw, 34px); letter-spacing: 0.01em; color: var(--cream); }
-.cap .v { font-family: var(--tech); font-size: 9.5px; letter-spacing: 0.22em; font-stretch: 118%; text-transform: uppercase; color: rgba(239, 230, 214, 0.62); }
-.cap-intro { top: auto; bottom: max(104px, calc(env(safe-area-inset-bottom) + 92px)); }
-.cap-place { top: max(74px, calc(env(safe-area-inset-top) + 58px)); }
-.cap-place .k, .cap-place .v { text-shadow: 0 1px 18px rgba(18, 13, 10, 0.55); }
-.cap-touch {
-  bottom: max(64px, calc(env(safe-area-inset-bottom) + 52px)); top: auto;
-  flex-direction: row; gap: 10px;
-  font-size: 9.5px; letter-spacing: 0.22em; font-stretch: 118%; text-transform: uppercase; color: var(--cream);
-  text-shadow: 0 1px 14px rgba(18, 13, 10, 0.6);
-}
-.cap-touch i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; position: relative; }
-.cap-touch i::after {
-  content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid currentColor;
-  opacity: 0; animation: ripple 3.2s var(--ease) infinite;
-}
-@keyframes ripple { 0% { transform: scale(0.4); opacity: 0.8; } 100% { transform: scale(2.2); opacity: 0; } }
-
-.hint {
-  position: absolute; left: 50%; bottom: max(30px, calc(env(safe-area-inset-bottom) + 18px));
-  transform: translate(-50%, 6px);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  font-size: 9.5px; letter-spacing: 0.26em; font-stretch: 118%; text-transform: lowercase; color: rgba(239, 230, 214, 0.7);
-  opacity: 0; pointer-events: none; transition: opacity 1.6s var(--ease), transform 1.8s var(--ease);
-  padding: 10px 16px;
-}
-.hint.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
-.hint i { display: block; width: 1px; height: 46px; background: rgba(239, 230, 214, 0.16); position: relative; overflow: hidden; }
-.hint i::after {
-  content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: rgba(239, 230, 214, 0.85);
-  animation: plumb 3.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-@keyframes plumb { 0% { top: -40%; } 70%, 100% { top: 100%; } }
-
 .credit {
   position: fixed; z-index: 9; right: var(--gutter); bottom: max(12px, env(safe-area-inset-bottom));
   font-size: 8.5px; letter-spacing: 0.2em; font-stretch: 112%; text-transform: uppercase;
@@ -139,26 +98,69 @@ body.ui-on .top { opacity: 1; }
 body.ui-on .credit { opacity: 1; }
 
 .track { position: relative; z-index: 1; }
-.seq { height: 820vh; }
+.seq { height: 420vh; }
+
+/* --- paradas: navegación y paneles --- */
+.stops {
+  position: fixed; z-index: 10; left: var(--gutter); top: max(56px, calc(env(safe-area-inset-top) + 42px));
+  display: flex; gap: 18px; opacity: 0; transition: opacity 1.6s var(--ease);
+}
+body.ui-on .stops { opacity: 1; }
+.stops a {
+  position: relative; padding: 6px 0;
+  font-size: 9.5px; letter-spacing: 0.2em; font-stretch: 115%; text-transform: uppercase; text-decoration: none;
+  color: rgba(239, 230, 214, 0.55); text-shadow: 0 1px 12px rgba(18, 13, 10, 0.45); transition: color 0.8s var(--ease);
+}
+.stops a::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor;
+  transform: scaleX(0); transform-origin: left; transition: transform 1.2s var(--ease);
+}
+.stops a[aria-current='true'] { color: var(--cream); }
+.stops a[aria-current='true']::after { transform: scaleX(1); }
+
+.panels { position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+.panels::before {
+  /* velo cálido en la base para que el texto se lea sobre el agua y el chukum */
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 58%;
+  background: linear-gradient(to top, rgba(28, 16, 10, 0.78), rgba(28, 16, 10, 0.4) 45%, rgba(28, 16, 10, 0));
+  opacity: 0; transition: opacity 1.6s var(--ease);
+}
+body.ui-on .panels::before { opacity: 1; }
+.panel {
+  position: absolute; left: var(--gutter); right: var(--gutter); bottom: max(46px, calc(env(safe-area-inset-bottom) + 34px));
+  max-width: 460px; opacity: 0; transform: translateY(14px);
+  transition: opacity 1.2s var(--ease), transform 1.6s var(--ease); pointer-events: none;
+}
+.panel.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.kicker {
+  margin: 0 0 14px; font-size: 9.5px; letter-spacing: 0.24em; font-stretch: 118%; text-transform: uppercase;
+  color: rgba(239, 230, 214, 0.7);
+}
+.ptitle { margin: 0 0 10px; font-family: var(--serif); font-weight: 300; font-size: clamp(30px, 8.4vw, 44px); line-height: 1.02; color: var(--cream); }
+.ptext { margin: 0 0 22px; font-family: var(--serif); font-size: 19px; line-height: 1.3; color: rgba(239, 230, 214, 0.9); max-width: 26em; }
+.person { margin: 0; display: flex; align-items: flex-end; gap: 14px; }
+.person img { display: block; width: 78px; height: 96px; object-fit: cover; filter: saturate(0.9); }
+.person figcaption { display: flex; flex-direction: column; gap: 4px; padding-bottom: 2px; }
+.pname { font-family: var(--serif); font-size: 20px; color: var(--cream); }
+.prole { font-size: 9.5px; letter-spacing: 0.2em; font-stretch: 115%; text-transform: uppercase; color: rgba(239, 230, 214, 0.62); }
+.manifesto { margin: 0; display: flex; flex-direction: column; gap: 4px; font-family: var(--serif); font-weight: 300; font-size: clamp(23px, 6.4vw, 34px); line-height: 1.12; color: var(--cream); }
+.manifesto span:first-child { font-style: italic; }
+.mail {
+  display: inline-block; margin: 0 0 12px; font-family: var(--serif); font-weight: 300; font-size: clamp(32px, 9.6vw, 50px); line-height: 1;
+  color: var(--cream); text-decoration: none; border-bottom: 1px solid rgba(239, 230, 214, 0.35); padding-bottom: 6px;
+}
+.ig { display: block; margin: 6px 0 14px; font-size: 11px; letter-spacing: 0.18em; font-stretch: 112%; color: var(--cream); text-decoration: none; }
+.cities { margin: 0; font-size: 9.5px; letter-spacing: 0.24em; font-stretch: 118%; text-transform: uppercase; color: rgba(239, 230, 214, 0.62); }
 
 @media (min-width: 900px) {
-  .cap .k { font-size: 38px; }
-  .cap-place { top: 96px; }
-  .cap-intro { left: var(--gutter); transform: translate(0, 8px); align-items: flex-start; text-align: left; bottom: 44px; }
-  .cap-intro.on { transform: translate(0, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hint i::after, .cap-touch i::after { animation: none; }
+  .panels::before { height: 70%; background: linear-gradient(to top right, rgba(28, 16, 10, 0.72), rgba(28, 16, 10, 0.2) 50%, rgba(28, 16, 10, 0) 70%); }
+  .panel { left: 56px; bottom: 64px; }
+  .stops { gap: 28px; left: 50%; top: 22px; transform: translateX(-50%); }
 }
 
-/* sobre el papel (logo): la interfaz se escribe con la tinta del logo */
+/* durante la carga la interfaz se escribe con la tinta del logo */
 body.on-paper .mark { color: var(--ink); }
 body.on-paper .mark .logo-svg path { fill: var(--ink); }
 body.on-paper .lang, body.on-paper .lang button { color: rgba(72, 85, 49, 0.55); }
 body.on-paper .lang button[aria-pressed='true'] { color: var(--ink); }
-body.on-paper .cap .k { color: var(--ink); }
-body.on-paper .cap .v, body.on-paper .hint { color: rgba(72, 85, 49, 0.75); }
-body.on-paper .hint i { background: rgba(72, 85, 49, 0.18); }
-body.on-paper .hint i::after { background: var(--ink); }
-body.on-paper .credit { color: rgba(72, 85, 49, 0.55); }
-.mark, .mark .logo-svg path, .lang button, .cap .k, .cap .v, .hint, .credit { transition: color 1.2s var(--ease), fill 1.2s var(--ease), opacity 1.6s var(--ease); }
+.mark, .mark .logo-svg path, .lang button, .credit { transition: color 1.2s var(--ease), fill 1.2s var(--ease), opacity 1.6s var(--ease); }

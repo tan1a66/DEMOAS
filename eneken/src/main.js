@@ -1,16 +1,15 @@
-// Enekén — demo. Carga → logo de madera → caída en la piscina → el pit desde el dron.
+// Enekén — demo. Carga (la línea de base del logo) → el dron entra en Casa Skoura → Nosotros, Visión, Contacto.
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { createRenderer, G, QUALITY, MOBILE } from './gl/core.js';
 import { loadTextures, makeGobo } from './gl/textures.js';
-import { buildLogo } from './gl/logo3d.js';
 import { buildSky } from './gl/sky.js';
 import { buildCourtyard, POOL_R } from './gl/courtyard.js';
 import { buildPlants } from './gl/plants.js';
 import { buildWater } from './gl/water.js';
-import { createDirector } from './gl/director.js';
+import { createDirector, STOPS } from './gl/director.js';
 import { LOGO_STROKES, LOGO_VIEWBOX } from './logo-data.js';
 import { applyI18n, setLang } from './i18n.js';
 
@@ -50,6 +49,8 @@ function drawLogo(svg, { clipBase = false } = {}) {
 }
 drawLogo($('#loader-logo'), { clipBase: true });
 drawLogo($('#mark-logo'));
+// foto de Miguel Tapia (baja resolución: se muestra pequeña, a su tamaño)
+$('#miguel').src = new URL('./assets/fotos/miguel_tapia.jpg', import.meta.url).href;
 applyI18n();
 document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 
@@ -133,19 +134,22 @@ sun.shadow.radius = 2.5;
 sun.layers.enableAll(); // también ilumina el vaso (capa submarina): cáusticas
 scene.add(sun, sun.target);
 
-const logo = buildLogo(scene, renderer);
 const sky = buildSky(scene);
 const courtyard = buildCourtyard(scene);
 buildPlants(courtyard.group);
 let water = null, director = null;
 
 // ---------------------------------------------------------------- UI según el progreso
-const capTouch = $('#cap-touch'), hint = $('#hint');
+const panels = [...document.querySelectorAll('[data-panel]')];
+const navLinks = [...document.querySelectorAll('[data-stop]')];
 let introDone = false;
 function ui(p) {
-  document.body.classList.toggle('on-paper', p < 0.26);
-  hint.classList.toggle('on', introDone && p < 0.02);
-  capTouch.classList.toggle('on', (p > 0.65 && p < 0.75) || p > 0.95);
+  // la parada más cercana; su panel se ve sólo cuando la cámara está quieta en ella
+  let cur = 0;
+  STOPS.forEach((s, i) => { if (Math.abs(p - s) < Math.abs(p - STOPS[cur])) cur = i; });
+  const near = Math.abs(p - STOPS[cur]) < 0.09;
+  panels.forEach((el, i) => el.classList.toggle('on', introDone && near && i === cur));
+  navLinks.forEach((a, i) => a.setAttribute('aria-current', String(i === cur)));
 }
 
 // ---------------------------------------------------------------- carga completa
@@ -157,12 +161,11 @@ const ready = (async () => {
   scene.environmentIntensity = 0.08;
   pmrem.dispose();
   water = buildWater(renderer, courtyard.group, tex.sky);
-  director = createDirector({ camera, logo, water, courtyard, sun, scene, renderer, ui, sky });
-  director.setFlatPx(logoPx());
+  director = createDirector({ camera, water, courtyard, sun, scene, renderer, ui, sky });
   realProgress = 0.82;
   try { await document.fonts.ready; } catch (e) { /* sin fuentes */ }
   // compilar todos los shaders con la cámara del pit y de la sala (evita tirones luego)
-  logo.group.visible = true; courtyard.group.visible = true; sky.visible = true;
+  courtyard.group.visible = true; sky.visible = true;
   camera.position.set(0, 12, 2); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
   if (renderer.compileAsync) await renderer.compileAsync(scene, camera);
   renderer.render(scene, camera);
@@ -186,7 +189,13 @@ ScrollTrigger.create({
   trigger: '#seq', start: 'top top', end: 'bottom bottom',
   onUpdate: (self) => { target.p = self.progress; },
 });
-hint.addEventListener('click', () => lenis.scrollTo('bottom', { duration: 16, easing: (x) => 0.5 - 0.5 * Math.cos(Math.PI * x) }));
+// navegación: cada enlace lleva a su parada con un movimiento lento de cámara
+const goTo = (i) => {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  lenis.scrollTo(max * STOPS[i], { duration: 3.2, easing: (x) => 0.5 - 0.5 * Math.cos(Math.PI * x) });
+};
+navLinks.forEach((a, i) => a.addEventListener('click', (e) => { e.preventDefault(); if (introDone) goTo(i); }));
+$('#mark').addEventListener('click', (e) => { e.preventDefault(); if (introDone) goTo(0); });
 
 // ---------------------------------------------------------------- intro
 let introTl = null;
@@ -197,30 +206,28 @@ function playIntro() {
   director.startIntro();
   const tl = gsap.timeline({ defaults: { ease: 'sine.inOut' }, paused: CAPTURE });
   introTl = tl;
-  tl.to('.wordmark', { opacity: 0, duration: 0.9, ease: 'sine.out' }, 0)
-    .to(loaderEl, { opacity: 0, duration: 1.0, ease: 'sine.inOut' }, 0.45)
-    .set(loaderEl, { display: 'none' }, 1.5)
-    .to(I, { k: 1, duration: 6.6, ease: 'power2.inOut' }, 0.6)
-    .to(I, { light: 1, duration: 1.8 }, 1.0)
-    .to(I, { build: 1, duration: 4.2, ease: 'none' }, 1.3)
-    .to(I, { ink: 0, duration: 1.4 }, 2.9)
+  // el logo de tinta se desvanece, el papel se abre en un círculo sobre la casa y el dron baja
+  tl.to('.loader-mark', { opacity: 0, duration: 0.9, ease: 'sine.out' }, 0)
+    .set(loaderEl, { opacity: 0 }, 0.9)        // el lienzo ya muestra el mismo papel: el cambio no se ve
+    .set(loaderEl, { display: 'none' }, 1.0)
+    .to(I, { k: 1, duration: 6.2, ease: 'power2.inOut' }, 0.9)
     .call(() => {
       introDone = true;
       director.endIntro();
-      document.body.classList.remove('is-intro');
-      document.body.classList.add('ui-on');
+      document.body.classList.remove('is-intro', 'on-paper');
       lenis.start();
       ui(0);
-    }, null, 6.8);
+    }, null, 7.1)
+    .call(() => { document.body.classList.add('ui-on'); document.body.classList.remove('on-paper'); }, null, 5.6);
   if (params.has('fast')) tl.timeScale(6);
 }
 
 Promise.all([ready, loaded]).then(() => {
   if (params.has('p')) {
     // saltar a un punto de la secuencia (para revisión): ?p=0.5
-    Object.assign(director.intro, { k: 1, build: 1, ink: 0, light: 1 });
+    director.intro.k = 1;
     loaderEl.style.display = 'none';
-    document.body.classList.remove('is-loading');
+    document.body.classList.remove('is-loading', 'on-paper');
     document.body.classList.add('ui-on');
     introDone = true;
     lenis.start();
@@ -228,6 +235,12 @@ Promise.all([ready, loaded]).then(() => {
     smooth.p = target.p = p;
     const max = document.documentElement.scrollHeight - innerHeight;
     lenis.scrollTo(max * p, { immediate: true });
+  } else if (params.has('k')) {
+    // revisión de la entrada congelada en un punto: ?k=0.3
+    director.intro.k = parseFloat(params.get('k')) || 0;
+    director.startIntro();
+    loaderEl.style.display = 'none';
+    document.body.classList.remove('is-loading', 'on-paper');
   } else {
     playIntro();
   }
@@ -276,7 +289,7 @@ function tick() {
     director.frameScroll(smooth.p, time, dt);
   }
   const p = introDone ? smooth.p : 0;
-  const poolVisible = p > 0.2;
+  const poolVisible = introDone || director.intro.k > 0.02;
   water.update(dt, poolVisible);
   if (poolVisible) water.renderRefraction(scene, camera);
   renderer.render(scene, camera);
@@ -293,7 +306,7 @@ function tick() {
 gsap.ticker.lagSmoothing(0);
 gsap.ticker.add((t) => lenis.raf(t * 1000));
 
-if (DEBUG || CAPTURE) Object.assign(window, { THREE, renderer, scene, camera, G, logo, courtyard, smooth, target, lenis });
+if (DEBUG || CAPTURE) Object.assign(window, { THREE, renderer, scene, camera, G, courtyard, smooth, target, lenis });
 if (CAPTURE) {
   gsap.ticker.sleep();
   window.__cap = {
