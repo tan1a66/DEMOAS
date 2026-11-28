@@ -7,11 +7,12 @@ import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { G, patch, QUALITY, COMMON_FRAG } from './core.js';
-import { LOT, GATE } from './courtyard.js';
+import { GATE } from './courtyard.js';
 import { makeWoodSphere } from './stool.js';
 
-export const P2 = { x: 13.2, y: 3.2, z: GATE.z, r: 5.2 };
-export const P3 = { x: 21.2, y: 7.6, z: -10.4, r: 4.4 };
+export const P1 = { x: 0, y: 0, z: -1, r: 10 };       // la terrazza aperta: lo studio e il salotto (Casa Skoura)
+export const P2 = { x: 22.8, y: 3.2, z: GATE.z, r: 7.0 };
+export const P3 = { x: 31.0, y: 7.6, z: -12.6, r: 6.0 };
 const BASE = -16;              // fondo dei basamenti (nascosto nelle nuvole)
 const CLOUD_Y = -9;
 const POOL2 = { x: P2.x + 1.4, z: P2.z, r: 3.0, rim: 0.42 };
@@ -66,19 +67,6 @@ function archRing(w, spring, t) {
   return s;
 }
 
-function cloudTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 256;
-  const x = c.getContext('2d');
-  let seed = 9; const R = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  for (let i = 0; i < 26; i++) {
-    const px = 128 + (R() - 0.5) * 120, py = 140 + (R() - 0.5) * 60, r = 28 + R() * 46;
-    const g = x.createRadialGradient(px, py, 0, px, py, r);
-    g.addColorStop(0, 'rgba(255,255,255,0.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-    x.fillStyle = g; x.fillRect(0, 0, 256, 256);
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-
 export function buildWorld(scene, renderer) {
   const group = new THREE.Group();
   group.name = 'castillo';
@@ -93,24 +81,40 @@ export function buildWorld(scene, renderer) {
   const mWood = mat('#7a4a2c', 'w_wood', { tri: 1.3, normal: 0.6, mottle: 0.45, rough: 0.6 });
   const mDark = mat('#2b1c15', 'w_dark', { tri: 0.3, normal: 0.2, mottle: 0.1, rough: 0.9 });
 
-  // ---------------------------------------------------------------- basamento della corte (piazza 1)
+  // ---------------------------------------------------------------- piazza 1: terrazza aperta sul cielo
+  const PORTAL_X = 9.3;
   {
-    const w = LOT.x1 - LOT.x0 + 0.6, d = LOT.z1 - LOT.z0 + 0.3;
-    const b = add(new THREE.BoxGeometry(w, -BASE, d), mBase);
-    b.position.set(0, BASE / 2 - 0.001, (LOT.z0 + LOT.z1) / 2 + 0.15);
-    const b2 = add(new THREE.BoxGeometry(w + 1.6, -BASE - 3.2, d + 1.6), mBase);
-    b2.position.set(0, BASE / 2 - 1.6, (LOT.z0 + LOT.z1) / 2 + 0.15);
-    // cornice di pietra al piede dei muri, verso l'esterno
-    const c = add(new THREE.BoxGeometry(w + 0.12, 0.22, d + 0.12), mStone);
-    c.position.set(0, -0.11, (LOT.z0 + LOT.z1) / 2 + 0.15);
+    const t = add(new THREE.CylinderGeometry(P1.r, P1.r * 1.06, P1.y - BASE, 128), mBase);
+    t.position.set(P1.x, (P1.y + BASE) / 2 - 0.002, P1.z);
+    const top = add(new THREE.CylinderGeometry(P1.r + 0.05, P1.r + 0.05, 0.3, 128), mFloor);
+    top.position.set(P1.x, -0.152, P1.z);
+    const corn = add(new THREE.TorusGeometry(P1.r + 0.06, 0.09, 10, 160).rotateX(Math.PI / 2), mStone);
+    corn.position.set(P1.x, -0.32, P1.z);
+    // basamento sotto il padiglione nord (la casa)
+    const hb = add(new THREE.BoxGeometry(8.8, -BASE, 11.0), mBase);
+    hb.position.set(0, BASE / 2 - 0.002, -10.1);
+    // parapetto basso (0,7 m): tutto resta aperto; varco a est per l'arco e la scala
+    for (const [a0, a1] of [[0.2, Math.PI * 1.5 - 0.2], [Math.PI * 1.5 + 0.2, Math.PI * 2 - 0.2]]) {
+      const pp = add(extrudeUp(annularSector(P1.r - 0.26, P1.r, a0, a1), 0.7), mWall);
+      pp.position.set(P1.x, P1.y, P1.z);
+    }
+    // l'arco libero sul bordo: la porta verso la piazza 2 (Visión)
+    const W2 = 4.2, Hh = 5.2, op = 2.6, sp = 2.9;
+    const ps = new THREE.Shape();
+    ps.moveTo(-W2 / 2, 0); ps.lineTo(W2 / 2, 0); ps.lineTo(W2 / 2, Hh); ps.lineTo(-W2 / 2, Hh); ps.lineTo(-W2 / 2, 0);
+    ps.holes.push(archHole(new THREE.Path(), 0, op, sp));
+    const pw = add(new THREE.ExtrudeGeometry(ps, { depth: 0.5, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2, curveSegments: 32 }), mWall);
+    pw.rotation.y = -Math.PI / 2; pw.position.set(PORTAL_X - 0.25, 0, GATE.z);
+    const pr = add(new THREE.ExtrudeGeometry(archRing(op, sp, 0.18), { depth: 0.6, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, bevelSegments: 2, curveSegments: 32 }), mStone);
+    pr.rotation.y = -Math.PI / 2; pr.position.set(PORTAL_X - 0.3, 0, GATE.z);
   }
 
   // ---------------------------------------------------------------- scala dalla porta est alla piazza 2
-  const xs0 = LOT.x1 + 0.3, xs1 = P2.x - P2.r + 0.1, W = 1.4;
+  const xs0 = PORTAL_X + 0.3, xs1 = P2.x - P2.r + 0.1, W = 3.2;
   {
     const N = Math.round(P2.y / 0.2), run = (xs1 - xs0) / N;
     const prof = new THREE.Shape();
-    prof.moveTo(xs0, CLOUD_Y - 2); prof.lineTo(xs0, 0);
+    prof.moveTo(xs0, CLOUD_Y - 2); prof.lineTo(xs0, -0.001);
     for (let k = 1; k <= N; k++) { prof.lineTo(xs0 + (k - 1) * run, k * 0.2); prof.lineTo(xs0 + k * run, k * 0.2); }
     prof.lineTo(xs1, CLOUD_Y - 2); prof.lineTo(xs0, CLOUD_Y - 2);
     const st = add(new THREE.ExtrudeGeometry(prof, { depth: W, bevelEnabled: false }), mFloor);
@@ -205,25 +209,30 @@ export function buildWorld(scene, renderer) {
     }
   }
 
-  // ---------------------------------------------------------------- scala curva verso la piazza 3
-  {
-    const S = new THREE.Vector3(P2.x + P2.r - 0.1, 0, P2.z), E = new THREE.Vector3(P3.x, 0, P3.z + P3.r - 0.1), C = new THREE.Vector3(24.2, 0, -0.8);
-    const N = Math.round((P3.y - P2.y) / 0.2);
+  // ---------------------------------------------------------------- scale curve (gradini pieni, parapetti a gradini)
+  const stair = (S, C, E, y0, y1, width, sides) => {
+    const N = Math.round((y1 - y0) / 0.2), rise = (y1 - y0) / N;
     const bez = (t, o) => o.set((1 - t) ** 2 * S.x + 2 * (1 - t) * t * C.x + t * t * E.x, 0, (1 - t) ** 2 * S.z + 2 * (1 - t) * t * C.z + t * t * E.z);
     const a = new THREE.Vector3(), b = new THREE.Vector3(), m = new THREE.Vector3();
     for (let k = 0; k < N; k++) {
       bez(k / N, a); bez((k + 1) / N, b);
       m.copy(a).add(b).multiplyScalar(0.5);
       const len = a.distanceTo(b) + 0.04, ang = Math.atan2(b.x - a.x, b.z - a.z);
-      const top = P2.y + (k + 1) * 0.2, h = top - CLOUD_Y + 2;
-      const st = add(new THREE.BoxGeometry(1.6, h, len), mFloor);
+      const top = y0 + (k + 1) * rise, h = top - CLOUD_Y + 2;
+      const st = add(new THREE.BoxGeometry(width, h, len), mFloor);
       st.position.set(m.x, top - h / 2, m.z); st.rotation.y = ang;
-      // parapetto curvo sul lato esterno
       const rx = Math.cos(ang), rz = -Math.sin(ang);
-      const pw = add(new THREE.BoxGeometry(0.26, 1.05, len), mWall);
-      pw.position.set(m.x + rx * 0.93, top + 0.5, m.z + rz * 0.93); pw.rotation.y = ang;
+      for (const side of sides) {
+        const off = side * (width / 2 + 0.13);
+        const pw = add(new THREE.BoxGeometry(0.26, 1.0, len), mWall);
+        pw.position.set(m.x + rx * off, top + 0.48, m.z + rz * off); pw.rotation.y = ang;
+      }
     }
-  }
+  };
+  // la scala curva dalla piazza 2 alla piazza 3
+  stair(new THREE.Vector3(P2.x + P2.r - 0.1, 0, P2.z), new THREE.Vector3(P3.x + 4.0, 0, -0.6), new THREE.Vector3(P3.x, 0, P3.z + P3.r - 0.1), P2.y, P3.y, 3.2, [1, -1]);
+  // la grande scala d'ingresso: sale dal mare di nuvole fino al bordo sud della terrazza del salotto
+  stair(new THREE.Vector3(10.5, 0, 26.0), new THREE.Vector3(0.3, 0, 18.5), new THREE.Vector3(0, 0, P1.z + P1.r - 0.1), CLOUD_Y + 1.2, P1.y, 5.2, [-1, 1]);
 
   // ---------------------------------------------------------------- piazza 3 (Contacto) e il disco solare
   {
@@ -279,7 +288,7 @@ export function buildWorld(scene, renderer) {
   }
 
   // ---------------------------------------------------------------- torri (la silhouette del castello)
-  for (const [x, z, r, topY] of [[-6.2, -6.8, 2.1, 12.5], [26.6, -15.2, 1.7, 15.5], [6.2, 10.8, 1.6, 9.0]]) {
+  for (const [x, z, r, topY] of [[-10.6, -10.0, 2.6, 13.5], [39.5, -20.0, 2.2, 17.0], [-7.4, 9.8, 2.0, 10.0]]) {
     const tw = add(new THREE.CylinderGeometry(r, r * 1.1, topY - BASE, 64), mWall);
     tw.position.set(x, (topY + BASE) / 2, z);
     const cr = add(new THREE.CylinderGeometry(r + 0.18, r + 0.18, 0.7, 64), mWall);
@@ -305,54 +314,67 @@ export function buildWorld(scene, renderer) {
     aw.position.set(x, y, z); aw.rotation.y = Math.atan2(-x, -z);
   }
 
-  // ---------------------------------------------------------------- mare di nuvole
-  const cloudU = Object.assign({}, G, { uCloudY: { value: CLOUD_Y }, uFogCol: { value: new THREE.Color(0xc6d8e8) } });
-  const cloudMat = new THREE.ShaderMaterial({
-    uniforms: cloudU,
-    defines: { E_REVEAL: '' },
-    vertexShader: /* glsl */ `
-      varying vec3 vWPos;
-      void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vWPos = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
-    fragmentShader: /* glsl */ `
-      #include <common>
-      ${COMMON_FRAG}
-      uniform vec3 uFogCol;
-      void main(){
-        vec2 q = vWPos.xz * 0.035 + vec2(uTime * 0.006, uTime * 0.0025);
-        float d = eFbm2(q) * 0.65 + eFbm2(q * 2.7 + 4.1) * 0.35;
-        float puff = smoothstep(0.38, 0.72, d);
-        // luce dall'alto sulle cime delle nuvole, ombra azzurra nelle valli
-        float hx = eFbm2(q + vec2(0.02, 0.0)) - eFbm2(q - vec2(0.02, 0.0));
-        float lit = clamp(0.62 + puff * 0.45 + hx * 1.6 * uSunDir.x, 0.0, 1.2);
-        vec3 col = mix(vec3(0.42, 0.5, 0.64), vec3(1.0, 0.98, 0.95), lit * lit);
-        float dist = length(vWPos.xz - cameraPosition.xz);
-        col = mix(col, uFogCol, smoothstep(140.0, 420.0, dist));
-        gl_FragColor = vec4(col, 1.0);
-        #include <tonemapping_fragment>
-        #include <colorspace_fragment>
-        gl_FragColor.rgb = eFinish(gl_FragColor.rgb, uGrain * 0.5);
-      }`,
-  });
-  const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 900, 1, 1).rotateX(-Math.PI / 2), cloudMat);
-  sea.position.y = CLOUD_Y;
-  sea.name = 'nubes';
-  group.add(sea);
-  // sbuffi di nuvola attorno ai basamenti
-  const puffMat = new THREE.SpriteMaterial({ map: cloudTexture(), transparent: true, depthWrite: false, opacity: 0, fog: true });
-  const puffs = [];
-  let seed = 5; const R = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  const around = [[0, -10], [0, 0], [0, 10], [-4, -6], [5, -1], [P2.x, P2.z], [P2.x + 4, P2.z + 3], [P3.x, P3.z], [P3.x - 4, P3.z + 2], [24, -2], [-6, 9], [26, -15]];
-  for (const [ax, az] of around) for (let i = 0; i < 3; i++) {
-    const sp = new THREE.Sprite(puffMat);
-    const sc = 9 + R() * 12;
-    sp.scale.set(sc * 1.6, sc, 1);
-    sp.position.set(ax + (R() - 0.5) * 8, CLOUD_Y + 1.5 + R() * 4.5, az + (R() - 0.5) * 8);
-    group.add(sp); puffs.push(sp);
+  // ---------------------------------------------------------------- banco di nuvole (volumetrico, a strati)
+  // N piani sovrapposti campionano la stessa densità 3D (fBm con distorsione): da sopra si legge come un
+  // volume morbido, con le cime illuminate dal sole e le valli in ombra azzurrina; lontano sfuma nel cielo.
+  const layers = QUALITY.dpr > 1.5 && window.innerWidth < 900 ? 6 : 8;
+  const cloudU = Object.assign({}, G, { uFogCol: { value: new THREE.Color(0x9da1b0) }, uFade: { value: 0 } });
+  const cloudMats = [];
+  for (let i = 0; i < layers; i++) {
+    const h = i / (layers - 1);
+    const m = new THREE.ShaderMaterial({
+      uniforms: Object.assign({}, cloudU, { uH: { value: h } }),
+      defines: { E_REVEAL: '' },
+      transparent: true, depthWrite: false,
+      vertexShader: /* glsl */ `
+        varying vec3 vWPos;
+        void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vWPos = wp.xyz; gl_Position = projectionMatrix * viewMatrix * wp; }`,
+      fragmentShader: /* glsl */ `
+        #include <common>
+        ${COMMON_FRAG}
+        uniform vec3 uFogCol;
+        uniform float uH, uFade;
+        float dens(vec2 xz, float h){
+          vec2 q = xz * 0.028 + vec2(uTime * 0.004, uTime * 0.0018);
+          vec2 w = vec2(eFbm2(q * 0.7 + 3.1), eFbm2(q * 0.7 + 8.4));
+          float n = eFbm2(q + w * 1.4) * 0.72 + eFbm2(q * 3.1 + w * 2.0 + 1.7) * 0.28;
+          // più in alto serve più densità: cime a cavolfiore, valli tra i cumuli
+          return smoothstep(0.34 + h * 0.3, 0.48 + h * 0.3, n);
+        }
+        void main(){
+          float d = dens(vWPos.xz, uH);
+          if (d < 0.01) discard;
+          float dl = dens(vWPos.xz + vec2(-1.4, -0.9), min(1.0, uH + 0.18));   // verso il sole: auto-ombra
+          float lit = clamp(0.5 + uH * 0.55 - (dl - d) * 0.35, 0.0, 1.0);
+          vec3 col = mix(vec3(0.58, 0.63, 0.73), vec3(1.0, 0.985, 0.96), lit);
+          float dist = length(vWPos.xz - cameraPosition.xz);
+          float far = smoothstep(120.0, 520.0, dist);
+          col = mix(col, uFogCol, far);
+          float a = d * mix(0.42, 0.62, uH) * (1.0 - far * 0.35) * uFade;
+          gl_FragColor = vec4(col, a);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+          gl_FragColor.rgb = eFinish(gl_FragColor.rgb, 0.0);
+        }`,
+    });
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2), m);
+    pl.position.y = CLOUD_Y - 4 + h * 7.5;
+    pl.renderOrder = 1 + i;                 // dal basso verso l'alto (la camera è sempre sopra)
+    pl.frustumCulled = false;
+    group.add(pl);
+    cloudMats.push(m);
   }
+  // base opaca sotto gli strati (niente vuoto tra le nuvole)
+  const floorM = new THREE.MeshBasicMaterial({ color: 0x8e98aa, fog: true });
+  const cf = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400).rotateX(-Math.PI / 2), floorM);
+  cf.position.y = CLOUD_Y - 4.6; cf.renderOrder = 0;
+  group.add(cf);
+  const puffMat = { set opacity(v) { for (const m of cloudMats) m.uniforms.uFade.value = Math.min(1, v / 0.85); cf.visible = v > 0.05; } };
 
-  const hotContacto = new THREE.Vector3(POOL2.x, P2.y + POOL2.rim + 1.8, POOL2.z);
+  const hotContacto = new THREE.Vector3(POOL2.x, P2.y + POOL2.rim + 1.6, POOL2.z);
+  const hotVision = new THREE.Vector3(PORTAL_X, 1.3, GATE.z);
   return {
-    group, reflector, archDoors, puffMat, hotContacto,
+    group, reflector, archDoors, puffMat, hotContacto, hotVision,
     setArchOpen(k) { for (const d of archDoors) d.pivot.rotation.y = d.side * (0.22 + 1.2 * k); },
   };
 }

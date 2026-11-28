@@ -5,9 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { createRenderer, G, QUALITY, MOBILE } from './gl/core.js';
 import { loadTextures, makeGobo } from './gl/textures.js';
-import { buildSky } from './gl/sky.js';
 import { buildCourtyard, POOL_R } from './gl/courtyard.js';
-import { buildPlants } from './gl/plants.js';
 import { buildPlants3D } from './gl/plants3d.js';
 import { buildWorld } from './gl/world.js';
 import { buildWater } from './gl/water.js';
@@ -125,11 +123,11 @@ G.uGoboTex.value = makeGobo(G.uGoboRect.value);
 
 // luz del día (sol alto de Mérida, desde el sureste)
 const sun = new THREE.DirectionalLight(0xfff0dc, 0);
-sun.position.copy(G.uSunDir.value).multiplyScalar(45).add(new THREE.Vector3(9, 0, -3));
-sun.target.position.set(9, 0, -3);   // centro del castillo
+sun.position.copy(G.uSunDir.value).multiplyScalar(50).add(new THREE.Vector3(13, 0, -3));
+sun.target.position.set(13, 0, -3);   // centro del castillo
 sun.castShadow = true;
 sun.shadow.mapSize.set(QUALITY.shadow, QUALITY.shadow);
-Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 5, far: 110 });
+Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 5, far: 120 });
 sun.shadow.bias = -0.0006;
 sun.shadow.normalBias = 0.025;
 sun.shadow.radius = 2.5;
@@ -138,12 +136,17 @@ scene.add(sun, sun.target);
 const bounce = new THREE.HemisphereLight(0xdfe7f2, 0xc98a62, 0.9); // cielo + rebote del chukum
 scene.add(bounce);
 
-const sky = buildSky(scene);
+// cielo: fotografia reale (Poly Haven, kloofendal_48d_partly_cloudy, CC0) come sfondo
+const skyTex = new THREE.TextureLoader(manager).load(new URL('./assets/tex/sky_bg.jpg', import.meta.url).href, (t) => {
+  t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+});
+const sky = { set visible(v) { scene.background = v ? skyTex : null; }, get visible() { return scene.background === skyTex; } };
 const courtyard = buildCourtyard(scene);
 const world = buildWorld(scene, renderer);
-courtyard.hotspots.contacto = world.hotContacto;   // la puerta del arco de ODA lleva a la tercera plaza
-scene.fog = new THREE.Fog(0xc6d8e8, 45, 190);
-buildPlants(courtyard.group);
+// tappe: 0 lo studio (la vetrata), 1 la nostra storia (il salotto e la piscina), 2 contatti (l'arco sul bordo → le altre piazze)
+courtyard.hotspots.vision = new THREE.Vector3(0.03, 1.25, -1.6);
+courtyard.hotspots.contacto = world.hotVision;
+scene.fog = new THREE.Fog(0x9da1b0, 70, 320);
 let water = null, director = null;
 
 // ---------------------------------------------------------------- UI según el progreso

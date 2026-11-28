@@ -40,15 +40,17 @@ export function createDirector({ camera, water, courtyard, world, sun, scene, re
   void courtyard;
 
   // paradas: [px, py, pz, tx, ty, tz]
-  const S1 = () => (portrait() ? [0.1, 1.75, 3.3, 0.1, 2.05, 0.3] : [0.1, 2.25, 3.9, 0.1, 2.46, 0.9]);
-  const S2 = () => (portrait() ? [8.5, 4.5, 0.9, 14.6, 5.5, -0.4] : [8.4, 4.6, 1.0, 14.6, 5.4, -0.4]);
-  const S3 = () => (portrait() ? [21.0, 9.3, -5.4, 21.2, 10.3, -14.2] : [21.0, 9.3, -6.0, 21.2, 10.1, -14.2]);
+  // 1 lo studio (dentro il padiglione), 2 la nostra storia (il salotto e la piscina, con lo studio dietro),
+  // 3 contatti (la terrazza alta con il disco di Miguel, oltre l'arco di ODA)
+  const S1 = () => (portrait() ? [0.7, 1.75, -7.1, -1.5, 2.3, -14.5] : [0.8, 1.9, -6.9, -1.2, 2.4, -14.5]);
+  const S2 = () => (portrait() ? [0.1, 2.0, 4.6, 0.1, 2.15, -1.6] : [0.1, 2.4, 5.4, 0.1, 2.5, -1.2]);
+  const S3 = () => (portrait() ? [30.8, 9.4, -7.6, 31.0, 10.4, -17.85] : [30.8, 9.4, -8.4, 31.0, 10.2, -17.85]);
 
   // vista d'insieme: il castello intero sulle nuvole; la distanza si calcola sulla larghezza dello schermo
-  const OV_T = new THREE.Vector3(8, 0.5, -3), OV_D = new THREE.Vector3(-0.62, 0.42, 0.66).normalize();
+  const OV_T = new THREE.Vector3(15, -1, 2), OV_D = new THREE.Vector3(-0.62, 0.42, 0.66).normalize();
   function overview(scale, fov) {
     const hHalf = Math.atan(Math.tan(THREE.MathUtils.degToRad(fov / 2)) * camera.aspect);
-    const dist = Math.max(48, 17 / Math.tan(hHalf)) * scale;
+    const dist = Math.max(64, 30 / Math.tan(hHalf)) * scale;
     const p = OV_T.clone().addScaledVector(OV_D, dist);
     return [p.x, p.y, p.z, OV_T.x, OV_T.y, OV_T.z];
   }
@@ -56,9 +58,12 @@ export function createDirector({ camera, water, courtyard, world, sun, scene, re
     const f = fovF();
     return [
       [0.0, ...overview(1.0, 40), 40],
-      [0.35, ...overview(0.82, 40), 40],
-      [0.62, 0.6, 12.5, 9.5, 0.3, 0.5, -1.2, 46],
-      [0.84, 0.4, 3.2, 4.4, 0.2, 1.5, 0, (46 + f) / 2],
+      [0.3, ...overview(0.84, 40), 40],
+      [0.48, 12.8, -3.4, 30.0, 3.6, -1.2, 18.0, 52],         // giù sopra le nuvole, ai piedi della grande scala
+      [0.6, 5.3, -3.7, 21.6, 1.8, -1.4, 16.6, 54],           // si sale, larga
+      [0.71, 1.3, -1.0, 15.0, 0.1, 1.3, 10.4, 54],
+      [0.8, 0.25, 2.1, 10.0, 0.15, 1.7, 3.0, (54 + f) / 2],  // arrivo sulla terrazza: il salotto e lo studio
+      [0.91, 0.6, 2.0, -2.6, 0.3, 1.9, -10.0, f],            // sopra il salotto, dentro lo studio
       [1.0, ...S1(), f],
       [1.0001, ...S1(), f],
     ];
@@ -68,16 +73,19 @@ export function createDirector({ camera, water, courtyard, world, sun, scene, re
     return [
       [0.0, ...S1(), f],
       [0.08, ...S1(), f],
-      [0.2, 1.0, 1.8, 0.9, 3.6, 1.6, -0.4, f],          // gira hacia la puerta este
-      [0.3, 2.2, 1.85, -0.4, 6.0, 2.7, -0.4, f],        // en la puerta
-      [0.38, 5.0, 3.4, -0.2, 9.6, 5.0, -0.4, f],        // sube la escalera
+      [0.2, 0.6, 2.0, -3.4, 0.2, 1.0, 1.5, f],            // esce dalla vetrata guardando il salotto
+      [0.3, 3.6, 2.6, -1.6, 0.0, 0.7, -0.6, f],           // gira attorno al salotto
+      [0.39, 3.4, 2.5, 3.6, 0.0, 1.2, -1.4, f],
       [0.46, ...S2(), f],
       [0.54, ...S2(), f],
-      [0.62, 12.4, 4.9, -0.4, 16.5, 5.0, -0.4, f],      // hacia el arco
-      [0.7, 16.5, 4.9, -0.4, 20.5, 5.6, -0.6, f],       // a través del arco
-      [0.78, 19.8, 5.7, -0.2, 22.6, 7.1, -3.0, f],      // al pie de la escalera curva
-      [0.86, 22.4, 7.4, -3.4, 21.5, 9.2, -8.5, f],      // subiendo
-      [0.94, ...S3(), f],
+      [0.6, 3.4, 2.3, 2.6, 9.3, 2.0, -0.4, f],            // verso l'arco sul bordo
+      [0.66, 8.2, 2.3, -0.4, 13.5, 3.0, -0.4, f],         // attraverso l'arco
+      [0.72, 13.4, 3.4, -0.3, 19.0, 5.0, -0.4, f],        // la scala larga
+      [0.78, 19.6, 4.8, 0.6, 24.2, 5.3, -0.4, f],         // la piazza dell'arco di ODA
+      [0.83, 26.4, 4.9, -0.4, 30.0, 5.6, -0.6, f],        // attraverso l'arco
+      [0.88, 30.0, 6.0, -0.2, 33.4, 7.4, -3.6, f],        // ai piedi della scala curva
+      [0.92, 32.8, 7.8, -4.4, 31.0, 9.5, -11.0, f],       // si sale
+      [0.96, ...S3(), f],
       [1.0, ...S3(), f],
     ];
   }
@@ -103,7 +111,7 @@ export function createDirector({ camera, water, courtyard, world, sun, scene, re
     G.uRevealR.value = 1.6 * sine(seg(reveal, 0, 0.06)) + 1800 * Math.pow(seg(reveal, 0.02, 0.36), 3.0);
     G.uRevealF.value = mix(0.8, 30.0, seg(reveal, 0.02, 0.36));
     sky.visible = reveal > 0.24;
-    if (scene.fog) scene.fog.far = reveal > 0.24 ? 190 : 1e6;
+    if (scene.fog) { scene.fog.near = 70; scene.fog.far = reveal > 0.24 ? 320 : 1e6; }
     world.puffMat.opacity = 0.85 * sine(seg(reveal, 0.2, 0.45));
     sun.intensity = 2.6;
     water.surfMat.uniforms.uSunInt.value = 1;
@@ -124,9 +132,9 @@ export function createDirector({ camera, water, courtyard, world, sun, scene, re
     place(pathAt(scrollKeys(), p, tmp), t, 0.004);
     common(1);
     // el espejo de agua de la piazza 2 sólo se dibuja cuando se ve
-    world.reflector.visible = p > 0.26 && p < 0.84;
+    world.reflector.visible = p > 0.62 && p < 0.9;
     // las hojas del arco de ODA se abren al acercarse
-    world.setArchOpen(sine(seg(p, 0.5, 0.64)));
+    world.setArchOpen(sine(seg(p, 0.7, 0.8)));
     state.hub = true;
     ui(p);
   }
